@@ -4,6 +4,146 @@ The [first lab](https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab1) inclu
 
 ```{r}
 #| collapse: true
-fs::dir_tree(path = "_labs/lab1/")
+#| eval: false
+#| echo: false
+fs::dir_tree(path = "_labs/lab1/", recurse = 1)
 ```
+
+```{verbatim}
+_labs/lab1/
+├── eda-basic.qmd
+└── model-basic-py.qmd
+```
+
+
+## Project-oriented workflows
+
+Key takeaways: 
+
+1. Each project should have an **isolated** package environment that preserves the names and versions. 
+
+2. The package environment should be captured in a way that makes is exportable/transferable to another machine. 
+    - In R, this is `renv`. In Python, this is `virtualenv` or `venv`
+
+3. Each project should have a virtual environment in a standalone directory that documents everything the project needs.[^rstats-wtf-projects]
+    - This usually means a GitHub or GitLab repo. 
+
+[^rstats-wtf-projects]: Read more in [What They Forgot to Teach You About R: Chapter 3, Project-oriented workflow](https://rstats.wtf/projects)
+
+## Virtual environments
+
+`venv` and `renv`, "*keep user-level package caches of the actual packages and use symlinks, so only one copy of the package is installed.*"
+
+### `renv`
+
+I've copied the `eda-basic.qmd` file into the `renv-eda-basic` folder and run `renv::init()`: 
+
+```{r}
+#| collapse: true
+#| eval: false
+#| echo: false
+fs::dir_tree(
+  path = "_labs/lab1/renv-eda-basic/", 
+  all = TRUE, 
+  recurse = 1)
+```
+
+```{verbatim}
+_labs/lab1/renv-eda-basic/
+├── .Rprofile
+├── eda-basic.qmd
+├── renv
+│   ├── activate.R
+│   ├── library
+│   └── settings.json
+├── renv-eda-basic.Rproj
+└── renv.lock
+```
+
+As we can see, `renv` creates `.Rprofile`, `renv/` and `renv.lock` in the project's root directory. The `renv-eda-basic.Rproj` is specific to RStudio, but it also helps maintain the project-oriented workflow.  
+
+### `venv`
+
+Use the **Terminal** to navigate to the `venv-model-basic-py` folder and create the Python virtual environment: 
+
+```bash
+python3 -m venv .venv
+```
+
+This will create a `.venv/` folder inside `venv-model-basic-py`.
+
+```{r}
+#| collapse: true
+#| eval: false
+#| echo: false
+fs::dir_tree(
+  path = "_labs/lab1/venv-model-basic-py/", 
+  all = TRUE, 
+  recurse = 1)
+```
+
+```{verbatim}
+_labs/lab1/venv-model-basic-py/
+├── .venv
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   └── pyvenv.cfg
+└── model-basic-py.qmd
+```
+
+
+Activate the virtual environment:
+
+```bash
+source .venv/bin/activate
+```
+
+This should change the **Terminal** prompt from: 
+
+```bash
+Bash@MacBook venv-model-basic-py$ 
+```
+
+to: 
+
+```bash
+(.venv) Bash@MacBook venv-model-basic-py$
+```
+
+Now we can install required Python packages. 
+
+```bash
+pip install palmerpenguins pandas numpy scikit-learn
+```
+
+We will add `jupyter` for interactive outputs
+
+```bash
+pip install jupyter
+```
+
+To tell Quarto to use the virtual environment, we can create a `quarto.yml` file in the `venv-model-basic-py/` folder and add:
+
+```yaml
+project:
+  type: default
+
+execute:
+  python: .venv/bin/python  
+  # or .venv\Scripts\python.exe on windows
+```
+
+Or we can set the Python interpreter with the terminal:[^venv-win]
+
+```bash
+quarto use python .venv/bin/python
+```
+
+[^venv-win]: On Windows try `.venv\Scripts\python.exe`
+
+Now, if we open the `model-basic-py.qmd` file in RStudio and click the **Render** button in the toolbar we should see the rendered output. 
+
+
+
 
