@@ -1,0 +1,15 @@
+{
+  "hash": "87f265001913f0783cb04955700adaa2",
+  "result": {
+    "engine": "knitr",
+    "markdown": "# eda-db.qmd {#sec-eda-db.qmd}\n\n\n\n\n\n::: {.cell}\n::: {.cell-output .cell-output-stdout}\n\n````\n---\ntitle: \"Penguins EDA\"\nformat:\n  html:\n    code-fold: true\n---\n\n## *Penguin Size and Mass by Sex and Species*\n\n```{r}\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(dbplyr)\n\ncon <- DBI::dbConnect(\n  duckdb::duckdb(), \n  dbdir = \"my-db.duckdb\"\n  )\ndf <- dplyr::tbl(con, \"penguins\")\n```\n\n```{r}\ndf %>%\n  group_by(species, sex) %>%\n  summarise(\n    across(\n        ends_with(\"mm\") | ends_with(\"g\"),\n      \\(x) mean(x, na.rm = TRUE)\n      )\n    ) %>%\n  dplyr::collect() %>%\n  knitr::kable()\n```\n\n## *Penguin Size vs Mass by Species*\n\n```{r}\ndf %>%\n  ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +\n  geom_point() + \n  geom_smooth(method = \"lm\")\n```\n\n```{r}\nDBI::dbDisconnect(con)\n```\n````\n\n\n:::\n:::",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

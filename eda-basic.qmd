@@ -1,0 +1,59 @@
+# eda-basic.qmd {#sec-eda-basic}
+
+The `eda-basic.qmd` file includes some standard data pipeline functions for exploratory data analysis. 
+
+## Load data 
+
+```{r}
+#| label: eda-basic-qmd-pkgs
+#| message: false
+library(palmerpenguins)
+library(dplyr)
+library(ggplot2)
+
+df <- palmerpenguins::penguins
+```
+
+## Manipulate and summarize 
+
+```{r}
+#| label: eda-basic-qmd-wrangle
+#| warning: false 
+#| message: false
+df %>%
+  dplyr::group_by(species, sex) %>%
+  dplyr::summarise(
+    dplyr::across(
+      dplyr::where(is.numeric), 
+      \(x) mean(x, na.rm = TRUE)
+      )
+    ) %>%
+  knitr::kable()
+```
+
+## Visualize 
+
+```{r}
+#| label: eda-basic-qmd-viz
+#| warning: false 
+#| message: false
+df %>%
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = bill_length_mm, 
+      y = body_mass_g, 
+      color = species)) +
+  ggplot2::geom_point() + 
+  ggplot2::geom_smooth(method = "lm")
+```
+
+
+```{r}
+#| label: print-eda-basic-qmd
+#| echo: false
+library(readr)
+readr::read_lines("_labs/lab1/eda-basic.qmd") |> 
+  base::noquote() |> 
+  writeLines()
+```
+

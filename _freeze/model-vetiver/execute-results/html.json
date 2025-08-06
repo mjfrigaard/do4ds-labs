@@ -1,0 +1,15 @@
+{
+  "hash": "6a2290c3ad9453816693f31bd43fc9af",
+  "result": {
+    "engine": "knitr",
+    "markdown": "# model-vetiver.qmd {#sec-model-vetiver}\n\n\n\n\n\n::: {.cell}\n::: {.cell-output .cell-output-stdout}\n\n````\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n\n```{python}\nimport duckdb\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```\n\n## Turn into Vetiver Model\n\n```{python}\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n```\n\n## Save to Board\n\n```{python}\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nmodel_board = board_folder(\"/data/model\", allow_pickle_read = True)\nvetiver_pin_write(model_board, v)\n```\n\n## Turn model into API\n\n```{python}\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n```\n````\n\n\n:::\n:::",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
