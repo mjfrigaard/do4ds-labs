@@ -181,7 +181,7 @@
     "href": "eda-db.html",
     "title": "eda-db.qmd",
     "section": "",
-    "text": "---\ntitle: \"Penguins EDA\"\nformat:\n  html:\n    code-fold: true\n---\n\n## *Penguin Size and Mass by Sex and Species*\n\n```{r}\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(dbplyr)\n\ncon &lt;- DBI::dbConnect(\n  duckdb::duckdb(), \n  dbdir = \"my-db.duckdb\"\n  )\ndf &lt;- dplyr::tbl(con, \"penguins\")\n```\n\n```{r}\ndf %&gt;%\n  group_by(species, sex) %&gt;%\n  summarise(\n    across(\n        ends_with(\"mm\") | ends_with(\"g\"),\n      \\(x) mean(x, na.rm = TRUE)\n      )\n    ) %&gt;%\n  dplyr::collect() %&gt;%\n  knitr::kable()\n```\n\n## *Penguin Size vs Mass by Species*\n\n```{r}\ndf %&gt;%\n  ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +\n  geom_point() + \n  geom_smooth(method = \"lm\")\n```\n\n```{r}\nDBI::dbDisconnect(con)\n```",
+    "text": "Expand to view eda-db.qmd\n\n\n\n---\ntitle: \"Penguins EDA\"\nformat:\n  html:\n    code-fold: true\n---\n\n## *Penguin Size and Mass by Sex and Species*\n\n```{r}\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(dbplyr)\n\ncon &lt;- DBI::dbConnect(\n  duckdb::duckdb(), \n  dbdir = \"my-db.duckdb\"\n  )\ndf &lt;- dplyr::tbl(con, \"penguins\")\n```\n\n```{r}\ndf %&gt;%\n  group_by(species, sex) %&gt;%\n  summarise(\n    across(\n        ends_with(\"mm\") | ends_with(\"g\"),\n      \\(x) mean(x, na.rm = TRUE)\n      )\n    ) %&gt;%\n  dplyr::collect() %&gt;%\n  knitr::kable()\n```\n\n## *Penguin Size vs Mass by Species*\n\n```{r}\ndf %&gt;%\n  ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +\n  geom_point() + \n  geom_smooth(method = \"lm\")\n```\n\n```{r}\nDBI::dbDisconnect(con)\n```",
     "crumbs": [
       "Lab 3",
       "<span class='chapter-number'>6</span>  <span class='chapter-title'>eda-db.qmd</span>"
@@ -192,7 +192,7 @@
     "href": "model-db.html",
     "title": "model-db.qmd",
     "section": "",
-    "text": "---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nimport duckdb\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n```{python}\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```",
+    "text": "Expand to view model-db.qmd\n\n\n\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nimport duckdb\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n```{python}\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```",
     "crumbs": [
       "Lab 3",
       "<span class='chapter-number'>7</span>  <span class='chapter-title'>model-db.qmd</span>"
@@ -203,7 +203,7 @@
     "href": "py-data-load-py.html",
     "title": "py-data-load.py",
     "section": "",
-    "text": "import duckdb\nfrom palmerpenguins import penguins\n\ncon = duckdb.connect('my-db.duckdb')\ndf = penguins.load_penguins()\ncon.execute('CREATE TABLE penguins AS SELECT * FROM df')\ncon.close()",
+    "text": "Expand to view py-data-load.py\n\n\n\nimport duckdb\nfrom palmerpenguins import penguins\n\ncon = duckdb.connect('my-db.duckdb')\ndf = penguins.load_penguins()\ncon.execute('CREATE TABLE penguins AS SELECT * FROM df')\ncon.close()",
     "crumbs": [
       "Lab 3",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>py-data-load.py</span>"
@@ -214,7 +214,7 @@
     "href": "r-data-load-r.html",
     "title": "r-data-load.R",
     "section": "",
-    "text": "library(readr)\nreadr::read_lines(\"_labs/lab3/r-data-load.R\") |&gt; \n  base::noquote() |&gt; \n  writeLines()\n\ncon &lt;- DBI::dbConnect(duckdb::duckdb(), dbdir = \"my-db.duckdb\")\nDBI::dbWriteTable(con, \"penguins\", palmerpenguins::penguins)\nDBI::dbDisconnect(con)",
+    "text": "Expand to view r-data-load.R\n\n\nlibrary(readr)\nreadr::read_lines(\"_labs/lab3/r-data-load.R\") |&gt; \n  base::noquote() |&gt; \n  writeLines()\n\ncon &lt;- DBI::dbConnect(duckdb::duckdb(), dbdir = \"my-db.duckdb\")\nDBI::dbWriteTable(con, \"penguins\", palmerpenguins::penguins)\nDBI::dbDisconnect(con)",
     "crumbs": [
       "Lab 3",
       "<span class='chapter-number'>9</span>  <span class='chapter-title'>r-data-load.R</span>"
