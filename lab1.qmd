@@ -1,5 +1,27 @@
 # Lab 1 {.unnumbered}
 
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "Caution", 
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
 The [first lab](https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab1) includes two Quarto documents: 
 
 ```{r}
@@ -22,13 +44,13 @@ Key takeaways:
 
 1. Each project should have an **isolated** package environment that preserves the names and versions. 
 
-2. The package environment should be captured in a way that makes is exportable/transferable to another machine. 
-    - In R, this is `renv`. In Python, this is `virtualenv` or `venv`
+2. The project's dependencies/requirements should be captured in a way that **makes it exportable/transferable to another machine**.[^renv-venv]
 
-3. Each project should have a virtual environment in a standalone directory that documents everything the project needs.[^rstats-wtf-projects]
-    - This usually means a GitHub or GitLab repo. 
+3. Each project should have a **virtual environment** in a **standalone directory** that documents everything the project needs (usually in a GitHub or GitLab repo).[^rstats-wtf-projects]
 
 [^rstats-wtf-projects]: Read more in [What They Forgot to Teach You About R: Chapter 3, Project-oriented workflow](https://rstats.wtf/projects)
+
+[^renv-venv]: In R, this is [`renv`](https://rstudio.github.io/renv/index.html). In Python, this is [`venv`](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment).
 
 ## Virtual environments
 
@@ -36,7 +58,43 @@ Key takeaways:
 
 ### `renv`
 
-I've copied the `eda-basic.qmd` file into the `renv-eda-basic` folder and run `renv::init()`: 
+First, read the documentation on [project level management with `renv`](https://rstudio.github.io/renv/index.html) and [using renv with Quarto](https://quarto.org/docs/projects/virtual-environments.html#using-renv).
+
+I’ve summarized the steps below:
+
+```r
+# create a new R project-local environment
+install.packages("renv")
+renv::init()
+
+# install packages into the renv-managed environment
+install.packages(c("tidyverse", "shiny", "ggplot2"))
+
+# snapshot the state of the environment and package versions in 
+# the lock file (renv.lock)
+renv::snapshot()
+
+# to deactivate the environment, restart R or close the session
+# renv projects are automatically reactivated the time a project
+# is opened
+
+# restore the environment on a new system with
+renv::restore()
+```
+
+To demonstrate how to use `renv`, I've copied the `eda-basic.qmd` file into it's own 'project' folder (`renv-eda-basic`):
+
+```{verbatim}
+_labs/lab1/renv-eda-basic/
+└── eda-basic.qmd
+```
+
+Then I ran `renv::init()`: 
+
+```{r}
+#| eval: false
+renv::init()
+```
 
 ```{r}
 #| collapse: true
@@ -48,21 +106,79 @@ fs::dir_tree(
   recurse = 1)
 ```
 
+Initiating `renv` in a project root directory will create the `.Rprofile` and `renv.lock` files and a `renv/` folder:
+
 ```{verbatim}
 _labs/lab1/renv-eda-basic/
 ├── .Rprofile
 ├── eda-basic.qmd
-├── renv
-│   ├── activate.R
-│   ├── library
-│   └── settings.json
+├── renv/
 ├── renv-eda-basic.Rproj
 └── renv.lock
 ```
 
-As we can see, `renv` creates `.Rprofile`, `renv/` and `renv.lock` in the project's root directory. The `renv-eda-basic.Rproj` is specific to RStudio, but it also helps maintain the project-oriented workflow.  
+`renv::init()` will also create `renv-eda-basic.Rproj`, which helps enforce project-oriented workflows (but these are specific to RStudio).  
+
+To install the packages, we can use `install.packages()` or `pak::pak()` for more flexible installations:
+
+```{r}
+#| eval: false
+install.packages("pak")
+pak::pak(c("tidyverse", "shiny", "ggplot2"))
+```
+
+```{r}
+#| label: co_box_renv_install
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "**Note**", 
+  fold = FALSE,
+  contents = "`renv::install()` will install cached packages if they are available if not, it will install the latest version from CRAN.")
+```
+
+Create a snapshot (i.e., the current versions of R and any installed packages, along with the R repositories) with `renv::snapshot()`:
+
+```{r}
+#| eval: false
+renv::snapshot()
+```
+
+The dependencies are saved in the `renv.lock` file, which should be committed to version control. 
+
+To make sure the dependencies in the `renv.lock` file have been installed (i.e., after cloning), run: 
+
+```{r}
+#| eval: false
+renv::restore()
+```
+
 
 ### `venv`
+
+Read the [documentation on Python virtual environments](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment) and using [venv with Quarto](https://quarto.org/docs/projects/virtual-environments.html#using-venv). 
+
+I've summarized the steps below: 
+
+```bash
+# create new Python 3 virtual environment in the '.venv' directory 
+python3 -m venv .venv
+# activate the environment
+source .venv/bin/activate
+# use pip to install packages into your environment
+python3 -m pip install jupyter matplotlib pandas
+# deactivate an environment
+deactivate
+# save environment
+python3 -m pip freeze > requirements.txt
+# restoring environment
+python3 -m pip install -r requirements.txt
+```
 
 Use the **Terminal** to navigate to the `venv-model-basic-py` folder and create the Python virtual environment: 
 
@@ -93,7 +209,7 @@ _labs/lab1/venv-model-basic-py/
 ```
 
 
-Activate the virtual environment:
+To activate the virtual environment, run the following in the **Terminal**:
 
 ```bash
 source .venv/bin/activate
@@ -111,36 +227,47 @@ to:
 (.venv) Bash@MacBook venv-model-basic-py$
 ```
 
-Now we can install required Python packages. 
+Now we can install required Python packages (we include `jupyter` for interactive outputs) 
 
 ```bash
-pip install palmerpenguins pandas numpy scikit-learn
+pip install palmerpenguins pandas numpy scikit-learn jupyter
 ```
 
-We will add `jupyter` for interactive outputs
+To render, use the following in the Terminal: 
 
 ```bash
-pip install jupyter
+quarto preview model-basic-py.qmd --no-browser --no-watch-inputs
 ```
 
-To tell Quarto to use the virtual environment, we can create a `quarto.yml` file in the `venv-model-basic-py/` folder and add:
+To tell Quarto to use the virtual environment, we can place the following in the `model-basic-py.qmd` file:
 
 ```yaml
-project:
-  type: default
-
 execute:
-  python: .venv/bin/python  
-  # or .venv\Scripts\python.exe on windows
+  python: .venv/bin/python
 ```
 
 Or we can set the Python interpreter with the terminal:[^venv-win]
 
 ```bash
-quarto use python .venv/bin/python
+quarto use python .venv/bin/python3
 ```
 
 [^venv-win]: On Windows try `.venv\Scripts\python.exe`
+
+
+If you're working inside **RStudio or Posit Workbench**, consider letting `reticulate` manage the Python environment:
+
+```{r}
+#| eval: false
+library(reticulate)
+use_virtualenv("myenv", required = TRUE)
+virtualenv_install(
+  envname = "myenv", 
+  packages = c("palmerpenguins", "pandas", "numpy", 
+               "scikit-learn", "jupyter"))
+```
+
+This ensures RStudio uses a known-good Python environment.
 
 Now, if we open the `model-basic-py.qmd` file in RStudio and click the **Render** button in the toolbar we should see the rendered output. 
 
