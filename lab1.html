@@ -104,6 +104,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -249,7 +253,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#virtual-environments" id="toc-virtual-environments" class="nav-link" data-scroll-target="#virtual-environments">Virtual environments</a>
   <ul>
   <li><a href="#renv" id="toc-renv" class="nav-link" data-scroll-target="#renv"><code>renv</code></a></li>
-  <li><a href="#venv" id="toc-venv" class="nav-link" data-scroll-target="#venv"><code>venv</code></a></li>
+  <li><a href="#venv" id="toc-venv" class="nav-link" data-scroll-target="#venv"><code>venv</code></a>
+  <ul class="collapse">
+  <li><a href="#rendering-with-python" id="toc-rendering-with-python" class="nav-link" data-scroll-target="#rendering-with-python">Rendering with Python</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -384,6 +391,55 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    %% External sources
+    CRAN["CRAN/&lt;br/&gt;GitHub/..."]
+    
+    %% Local components
+    SysLib["system&lt;br/&gt;library"]
+    ProjLib["project&lt;br/&gt;library"]
+    RenvCache["renv&lt;br/&gt;cache"]
+    Lockfile["lockfile"]
+    
+    %% Subgraph for "your computer" vs "the internet"
+    subgraph Internet ["the internet"]
+        CRAN
+    end
+    
+    subgraph Computer ["your computer"]
+        SysLib
+        ProjLib
+        RenvCache
+        Lockfile
+    end
+    
+    %% Connections with function labels
+    SysLib --&gt;|"init()"| ProjLib
+    
+    CRAN --&gt;|"install()&lt;br/&gt;update()"| RenvCache
+    RenvCache --&gt;|"renv"| ProjLib
+    
+    ProjLib &lt;--&gt;|"status()"| Lockfile
+    ProjLib --&gt;|"snapshot()"| Lockfile
+    Lockfile --&gt;|"restore()"| ProjLib
+    
+    %% Styling
+    style Internet fill:#e1f5fe
+    style Computer fill:#f3e5f5
+    
+    classDef component fill:#fff
+    class SysLib,ProjLib,RenvCache,Lockfile,CRAN component
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
 </section>
 <section id="venv" class="level3">
 <h3 class="anchored" data-anchor-id="venv"><code>venv</code></h3>
@@ -419,12 +475,70 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">.venv</span><span class="kw">)</span> <span class="ex">Bash@MacBook</span> venv-model-basic-py$</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Now we can install required Python packages (we include <code>jupyter</code> for interactive outputs)</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install palmerpenguins pandas numpy scikit-learn jupyter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>To render, use the following in the Terminal:</p>
+<p>To store the installed packages</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    %% External sources
+    PyPI["PyPI/&lt;br/&gt;GitHub/..."]
+    
+    %% Local components
+    SysPython["system&lt;br/&gt;Python"]
+    VirtEnv["virtual&lt;br/&gt;environment"]
+    PipCache["pip&lt;br/&gt;cache"]
+    Requirements["requirements.txt"]
+    
+    %% Subgraph for "your computer" vs "the internet"
+    subgraph Internet ["the internet"]
+        PyPI
+    end
+    
+    subgraph Computer ["your computer"]
+        SysPython
+        VirtEnv
+        PipCache
+        Requirements
+    end
+    
+    %% Connections with function labels
+    SysPython --&gt;|"python -m venv"| VirtEnv
+    
+    PyPI --&gt;|"pip install&lt;br/&gt;pip upgrade"| PipCache
+    PipCache --&gt;|"pip"| VirtEnv
+    
+    VirtEnv &lt;--&gt;|"pip list&lt;br/&gt;pip show"| Requirements
+    VirtEnv --&gt;|"pip freeze"| Requirements
+    Requirements --&gt;|"pip install -r"| VirtEnv
+    
+    %% Additional workflow arrows
+    VirtEnv -.-&gt;|"source activate&lt;br/&gt;deactivate"| VirtEnv
+    
+    %% Styling
+    style Internet fill:#e1f5fe
+    style Computer fill:#f3e5f5
+
+    classDef component fill:#fff
+    classDef workflow fill:#fff2e8
+    
+
+    class SysPython,VirtEnv,PipCache,Requirements,PyPI component
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<section id="rendering-with-python" class="level4">
+<h4 class="anchored" data-anchor-id="rendering-with-python">Rendering with Python</h4>
+<p>To render, use the following in the <strong>Terminal</strong>:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> preview model-basic-py.qmd <span class="at">--no-browser</span> <span class="at">--no-watch-inputs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>To tell Quarto to use the virtual environment, we can place the following in the <code>model-basic-py.qmd</code> file:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">execute</span><span class="kw">:</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">python</span><span class="kw">:</span><span class="at"> .venv/bin/python</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Or we can set the Python interpreter with the terminal:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<p>Or we can set the Python interpreter with the <strong>Terminal</strong>:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> use python .venv/bin/python3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>If you’re working inside <strong>RStudio or Posit Workbench</strong>, consider letting <code>reticulate</code> manage the Python environment:</p>
 <div class="cell">
@@ -439,6 +553,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Now, if we open the <code>model-basic-py.qmd</code> file in RStudio and click the <strong>Render</strong> button in the toolbar we should see the rendered output.</p>
 
 
+</section>
 </section>
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
