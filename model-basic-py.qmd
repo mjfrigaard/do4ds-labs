@@ -1,9 +1,11 @@
 # model-basic-py.qmd {#sec-model-basic-py}
 
-The `model-basic-py.qmd` file creates a model using Python's `palmerpenguins`, `numpy`, `pandas`, `sklearn.linear_model` and `sklearn` libraries. 
+The `model-basic-py.qmd` file creates a model using Python's `palmerpenguins`, `numpy`, `pandas`, and `scikit-learn` libraries. 
 
 <details>
-  <summary>Expand to view model-basic-py.qmd</summary>
+  <summary><strong>View model-basic-py.qmd</strong></summary>
+  
+<br>
   
 ```{r}
 #| label: print-eda-basic-qmd
@@ -16,13 +18,23 @@ readr::read_lines("_labs/lab1/model-basic-py.qmd") |>
 
 </details>
 
+I've added the `reticulate` code below to run this code in Quarto. 
+
 ```{r}
+#| results: hide
+#| message: false 
+#| warning: false
 library(reticulate)
+use_virtualenv("myenv", required = TRUE)
+virtualenv_install(
+  envname = "myenv", 
+  packages = c("palmerpenguins", "pandas", "numpy", 
+               "scikit-learn", "jupyter"))
 ```
 
 
 ```{python}
-#| eval: false
+#| eval: true
 from palmerpenguins import penguins
 from pandas import get_dummies
 import numpy as np
@@ -31,14 +43,14 @@ from sklearn import preprocessing
 ```
 
 ```{python}
-#| eval: false
+#| eval: true
 df = penguins.load_penguins().dropna()
 
 df.head(3)
 ```
 
 ```{python}
-#| eval: false
+#| eval: true
 X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
 y = df['body_mass_g']
 
@@ -46,7 +58,7 @@ model = LinearRegression().fit(X, y)
 ```
 
 ```{python}
-#| eval: false
+#| eval: true
 print(f"R^2 {model.score(X,y)}")
 print(f"Intercept {model.intercept_}")
 print(f"Columns {X.columns}")

@@ -158,6 +158,47 @@ To make sure the dependencies in the `renv.lock` file have been installed (i.e.,
 renv::restore()
 ```
 
+```{mermaid}
+flowchart TD
+    %% External sources
+    CRAN["CRAN/<br/>GitHub/..."]
+    
+    %% Local components
+    SysLib["system<br/>library"]
+    ProjLib["project<br/>library"]
+    RenvCache["renv<br/>cache"]
+    Lockfile["lockfile"]
+    
+    %% Subgraph for "your computer" vs "the internet"
+    subgraph Internet ["the internet"]
+        CRAN
+    end
+    
+    subgraph Computer ["your computer"]
+        SysLib
+        ProjLib
+        RenvCache
+        Lockfile
+    end
+    
+    %% Connections with function labels
+    SysLib -->|"init()"| ProjLib
+    
+    CRAN -->|"install()<br/>update()"| RenvCache
+    RenvCache -->|"renv"| ProjLib
+    
+    ProjLib <-->|"status()"| Lockfile
+    ProjLib -->|"snapshot()"| Lockfile
+    Lockfile -->|"restore()"| ProjLib
+    
+    %% Styling
+    style Internet fill:#e1f5fe
+    style Computer fill:#f3e5f5
+    
+    classDef component fill:#fff
+    class SysLib,ProjLib,RenvCache,Lockfile,CRAN component
+```
+
 
 ### `venv`
 
@@ -233,7 +274,58 @@ Now we can install required Python packages (we include `jupyter` for interactiv
 pip install palmerpenguins pandas numpy scikit-learn jupyter
 ```
 
-To render, use the following in the Terminal: 
+To store the installed packages 
+
+```{mermaid}
+flowchart TD
+    %% External sources
+    PyPI["PyPI/<br/>GitHub/..."]
+    
+    %% Local components
+    SysPython["system<br/>Python"]
+    VirtEnv["virtual<br/>environment"]
+    PipCache["pip<br/>cache"]
+    Requirements["requirements.txt"]
+    
+    %% Subgraph for "your computer" vs "the internet"
+    subgraph Internet ["the internet"]
+        PyPI
+    end
+    
+    subgraph Computer ["your computer"]
+        SysPython
+        VirtEnv
+        PipCache
+        Requirements
+    end
+    
+    %% Connections with function labels
+    SysPython -->|"python -m venv"| VirtEnv
+    
+    PyPI -->|"pip install<br/>pip upgrade"| PipCache
+    PipCache -->|"pip"| VirtEnv
+    
+    VirtEnv <-->|"pip list<br/>pip show"| Requirements
+    VirtEnv -->|"pip freeze"| Requirements
+    Requirements -->|"pip install -r"| VirtEnv
+    
+    %% Additional workflow arrows
+    VirtEnv -.->|"source activate<br/>deactivate"| VirtEnv
+    
+    %% Styling
+    style Internet fill:#e1f5fe
+    style Computer fill:#f3e5f5
+
+    classDef component fill:#fff
+    classDef workflow fill:#fff2e8
+    
+
+    class SysPython,VirtEnv,PipCache,Requirements,PyPI component
+```
+
+#### Rendering with Python
+
+To render, use the following in the **Terminal**: 
 
 ```bash
 quarto preview model-basic-py.qmd --no-browser --no-watch-inputs
@@ -246,7 +338,7 @@ execute:
   python: .venv/bin/python
 ```
 
-Or we can set the Python interpreter with the terminal:[^venv-win]
+Or we can set the Python interpreter with the **Terminal**:[^venv-win]
 
 ```bash
 quarto use python .venv/bin/python3
