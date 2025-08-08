@@ -1,11 +1,304 @@
 # Lab 2 {.unnumbered}
 
+
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "Caution", 
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
 Lab 2 introduces the[ `vetiver` package](https://rstudio.github.io/vetiver-r/) for modeling. 
 
 ```{r}
 #| collapse: true
+#| eval: false
 fs::dir_tree(path = "_labs/lab2/")
+## _labs/lab2/
+## └── model-vetiver.qmd
 ```
 
 ## vetiver basics {#sec-vetiver-basics}
 
+The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) and [Python.](https://rstudio.github.io/vetiver-python/). We'll use the reticulate package below to install the other packages in the `model-vetiver.qmd` lab. 
+
+```{r}
+#| results: hide
+#| message: false 
+#| warning: false
+library(reticulate)
+use_virtualenv("myenv", required = TRUE)
+virtualenv_install(
+  envname = "myenv", 
+  packages = c("palmerpenguins", "pandas", "numpy", 
+               "scikit-learn", "duckdb", "vetiver", 
+                "pins"))
+```
+
+```{python}
+from palmerpenguins import load_penguins
+from pandas import get_dummies
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+import duckdb
+```
+
+## Using `duckdb`
+
+The code below establishes a connection to a `duckdb` database. 
+
+```{r}
+#| label: co_box_duckdb
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "`duckdb` error", 
+  fold = TRUE,
+  contents = "This originally returned an error: 
+  
+\`\`\`
+Traceback (most recent call last):
+  File \"<string>\", line 1, in <module>
+duckdb.duckdb.InvalidInputException: Invalid Input Error: Python Object 
+\"penguins\" of type \"module\" found on line \"<string>:1\" not suitable for
+replacement scans.
+Make sure that \"penguins\" is either a pandas.DataFrame, 
+duckdb.DuckDBPyRelation, pyarrow Table, Dataset, RecordBatchReader, 
+Scanner, or NumPy ndarrays with supported format
+
+Traceback (most recent call last):
+  File \"<string>\", line 1, in <module>
+NameError: name 'df' is not defined
+\`\`\`
+  
+  "
+)
+```
+
+Below we **load the penguins data** and **connect to DuckDB and create the table**:
+
+```{python}
+penguins_data = load_penguins()
+con = duckdb.connect('my-db.duckdb')
+```
+
+The `load_penguins()` function put the penguins data into a DataFrame, then we can insert it into DuckDB *before* querying:
+
+```{python}
+con.execute("CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
+con.close()
+```
+
+Confirm the data: 
+
+```{python}
+df.head(3)
+```
+
+## Create `model`
+
+The model is created below (like lab 1). 
+
+```{python}
+X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
+y = df['body_mass_g']
+
+model = LinearRegression().fit(X, y)
+```
+
+## Model information
+
+This will print the model information. 
+
+```{python}
+print(f"R^2 {model.score(X,y)}")
+print(f"Intercept {model.intercept_}")
+print(f"Columns {X.columns}")
+print(f"Coefficients {model.coef_}")
+```
+
+## Turn into `VetiverModel`
+
+The model is created with `VetiverModel()`, which is a **wrapper class** that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.
+
+```{python}
+from vetiver import VetiverModel
+v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
+```
+
+```{=html}
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #9753b8 !important;
+  background-color: #f6f6f6;
+  padding: 0.2em;
+}
+</style>
+```
+
+```{mermaid}
+%%| fig-cap: 'VetiverModel()'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    RawMod[Raw sklearn model] --> VMod["<code>VetiverModel()</code><br>wrapper"]
+    VMod --> ModMeta["Model + Metadata"]
+    ModMeta --> Dep["Deployment Ready"]
+    
+    subgraph Vet["<em>What it creates</em>"]
+        InSch("Input Schema")
+        ModTypeInfo("Model Type Info")
+        Ver("Versioning")
+        Api("API Generation")
+        Ser("Serialization")
+    end
+    
+    VMod --> InSch
+    VMod --> ModTypeInfo 
+    VMod --> Ver
+    VMod --> Api
+    VMod --> Ser
+    
+    %% style %%
+    style RawMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style Vet fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style InSch fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style ModTypeInfo fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Ver fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Api fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Ser fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+```
+
+## `pins` boards
+
+In this version, we're going to save our `pins` board to a temporary location, but in the lab, we'll create the directory before creating the board. 
+
+```{mermaid}
+%%| fig-cap: 'board_folder()'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    BrdFldr["<code>board_folder()</code>"] --> FSI[File System Interface]
+    FSI --> VerStor[Versioned Storage]
+    VerStor --> MetaTr[Metadata Tracking]
+    
+    subgraph BF["What it creates"]
+        DirStr[Directory Structure]
+        VerCont[Version Control]
+        PinMngMnt[Pin Management]
+    end
+    
+    FSI --> DirStr
+    FSI --> VerCont
+    FSI --> PinMngMnt
+    
+    style BrdFldr fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style FSI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style BF fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style DirStr fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style VerCont fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style PinMngMnt fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style VerStor fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style MetaTr fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+
+```
+
+In `board_folder()`:  
+
+- The **Path** (`f"{temp_dir}/models"`) is where to store everything    
+
+- **`allow_pickle_read=True`** allows reading Python pickle files (needed for `scikit-learn` models)   
+
+```{python}
+import tempfile
+from pins import board_folder
+from vetiver import vetiver_pin_write
+
+# use temp dir
+temp_dir = tempfile.mkdtemp()
+model_board = board_folder(f"{temp_dir}/models", allow_pickle_read=True)
+vetiver_pin_write(model_board, v)
+```
+
+`board_folder()` creates a **pins board** that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models). 
+
+```{python}
+print(f"Model saved to: {temp_dir}/models")
+```
+
+```{python}
+#| code-fold: true 
+#| code-summary: 'show/hide print_tree()'
+import os
+
+def print_tree(directory, prefix="", max_depth=None, current_depth=0):
+    """Print a tree structure of directory contents."""
+    if max_depth is not None and current_depth > max_depth:
+        return
+    
+    items = sorted(os.listdir(directory))
+    for i, item in enumerate(items):
+        path = os.path.join(directory, item)
+        is_last = i == len(items) - 1
+        
+        current_prefix = "└── " if is_last else "├── "
+        print(f"{prefix}{current_prefix}{item}")
+        
+        if os.path.isdir(path):
+            extension = "    " if is_last else "│   "
+            print_tree(path, prefix + extension, max_depth, current_depth + 1)
+```
+
+```{python}
+print_tree(f"{temp_dir}/models")
+```
+
+The board folder handles versioning automatically and manages metadata about what's stored.
+
+```{verbatim}
+└── penguin_model # pin name directory
+    └── CURRENT-DATE-TIME-aba30/ # version directory timestamp + hash
+        ├── data.txt  # model metadata
+        └── penguin_model.joblib # serialized model
+```
+
+## Turn model into `VetiverAPI`
+
+```{python}
+from vetiver import VetiverAPI
+app = VetiverAPI(v, check_prototype = True)
+```
