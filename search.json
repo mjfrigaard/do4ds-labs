@@ -128,7 +128,67 @@
     "href": "lab2.html",
     "title": "Lab 2",
     "section": "",
-    "text": "vetiver basics\nLab 2 introduces thevetiver package for modeling.",
+    "text": "vetiver basics\nLab 2 introduces thevetiver package for modeling.\nThe vetiver package comes in both flavors: R and Python.. We’ll use the reticulate package below to install the other packages in the model-vetiver.qmd lab.\nlibrary(reticulate)\nuse_virtualenv(\"myenv\", required = TRUE)\nvirtualenv_install(\n  envname = \"myenv\", \n  packages = c(\"palmerpenguins\", \"pandas\", \"numpy\", \n               \"scikit-learn\", \"duckdb\", \"vetiver\", \n                \"pins\"))\nfrom palmerpenguins import load_penguins\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\nimport duckdb",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#using-duckdb",
+    "href": "lab2.html#using-duckdb",
+    "title": "Lab 2",
+    "section": "Using duckdb",
+    "text": "Using duckdb\nThe code below establishes a connection to a duckdb database.\n\n\n\n\n\n\nduckdb error\n\n\n\n\n\n\nThis originally returned an error:\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nduckdb.duckdb.InvalidInputException: Invalid Input Error: Python Object \n\"penguins\" of type \"module\" found on line \"&lt;string&gt;:1\" not suitable for\nreplacement scans.\nMake sure that \"penguins\" is either a pandas.DataFrame, \nduckdb.DuckDBPyRelation, pyarrow Table, Dataset, RecordBatchReader, \nScanner, or NumPy ndarrays with supported format\n\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nNameError: name 'df' is not defined\n\n\n\n\nBelow we load the penguins data and connect to DuckDB and create the table:\n\npenguins_data = load_penguins()\ncon = duckdb.connect('my-db.duckdb')\n\nThe load_penguins() function put the penguins data into a DataFrame, then we can insert it into DuckDB before querying:\n\ncon.execute(\"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data\")\n\n&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13b714c70&gt;\n\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\nConfirm the data:\n\ndf.head(3)\n\n  species     island  bill_length_mm  ...  body_mass_g     sex  year\n0  Adelie  Torgersen            39.1  ...       3750.0    male  2007\n1  Adelie  Torgersen            39.5  ...       3800.0  female  2007\n2  Adelie  Torgersen            40.3  ...       3250.0  female  2007\n\n[3 rows x 8 columns]",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#create-model",
+    "href": "lab2.html#create-model",
+    "title": "Lab 2",
+    "section": "Create model",
+    "text": "Create model\nThe model is created below (like lab 1).\n\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#model-information",
+    "href": "lab2.html#model-information",
+    "title": "Lab 2",
+    "section": "Model information",
+    "text": "Model information\nThis will print the model information.\n\nprint(f\"R^2 {model.score(X,y)}\")\n\nR^2 0.8555368759537614\n\nprint(f\"Intercept {model.intercept_}\")\n\nIntercept 2169.2697209393973\n\nprint(f\"Columns {X.columns}\")\n\nColumns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'], dtype='object')\n\nprint(f\"Coefficients {model.coef_}\")\n\nCoefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#turn-into-vetivermodel",
+    "href": "lab2.html#turn-into-vetivermodel",
+    "title": "Lab 2",
+    "section": "Turn into VetiverModel",
+    "text": "Turn into VetiverModel\nThe model is created with VetiverModel(), which is a wrapper class that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.\n\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n\n\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    RawMod[Raw sklearn model] --&gt; VMod[\"&lt;code&gt;VetiverModel()&lt;/code&gt;&lt;br&gt;wrapper\"]\n    VMod --&gt; ModMeta[\"Model + Metadata\"]\n    ModMeta --&gt; Dep[\"Deployment Ready\"]\n    \n    subgraph Vet[\"&lt;em&gt;What it creates&lt;/em&gt;\"]\n        InSch(\"Input Schema\")\n        ModTypeInfo(\"Model Type Info\")\n        Ver(\"Versioning\")\n        Api(\"API Generation\")\n        Ser(\"Serialization\")\n    end\n    \n    VMod --&gt; InSch\n    VMod --&gt; ModTypeInfo \n    VMod --&gt; Ver\n    VMod --&gt; Api\n    VMod --&gt; Ser\n    \n    %% style %%\n    style RawMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Vet fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style InSch fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style ModTypeInfo fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ver fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Api fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ser fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n\n\n VetiverModel()",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#pins-boards",
+    "href": "lab2.html#pins-boards",
+    "title": "Lab 2",
+    "section": "pins boards",
+    "text": "pins boards\nIn this version, we’re going to save our pins board to a temporary location, but in the lab, we’ll create the directory before creating the board.\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    BrdFldr[\"&lt;code&gt;board_folder()&lt;/code&gt;\"] --&gt; FSI[File System Interface]\n    FSI --&gt; VerStor[Versioned Storage]\n    VerStor --&gt; MetaTr[Metadata Tracking]\n    \n    subgraph BF[\"What it creates\"]\n        DirStr[Directory Structure]\n        VerCont[Version Control]\n        PinMngMnt[Pin Management]\n    end\n    \n    FSI --&gt; DirStr\n    FSI --&gt; VerCont\n    FSI --&gt; PinMngMnt\n    \n    style BrdFldr fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style FSI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style BF fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style DirStr fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style VerCont fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style PinMngMnt fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style VerStor fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style MetaTr fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n\n\n\n board_folder() \n\n\n\nIn board_folder():\n\nThe Path (f\"{temp_dir}/models\") is where to store everything\nallow_pickle_read=True allows reading Python pickle files (needed for scikit-learn models)\n\n\nimport tempfile\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\n# use temp dir\ntemp_dir = tempfile.mkdtemp()\nmodel_board = board_folder(f\"{temp_dir}/models\", allow_pickle_read=True)\nvetiver_pin_write(model_board, v)\n\nModel Cards provide a framework for transparent, responsible reporting. \n Use the vetiver `.qmd` Quarto template as a place to start, \n with vetiver.model_card()\nWriting pin:\nName: 'penguin_model'\nVersion: 20250808T113005Z-aba30\n\n\nboard_folder() creates a pins board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing “pins” (data objects/models).\n\nprint(f\"Model saved to: {temp_dir}/models\")\n\nModel saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpfqdr8zgh/models\n\n\n\n\nshow/hide print_tree()\nimport os\n\ndef print_tree(directory, prefix=\"\", max_depth=None, current_depth=0):\n    \"\"\"Print a tree structure of directory contents.\"\"\"\n    if max_depth is not None and current_depth &gt; max_depth:\n        return\n    \n    items = sorted(os.listdir(directory))\n    for i, item in enumerate(items):\n        path = os.path.join(directory, item)\n        is_last = i == len(items) - 1\n        \n        current_prefix = \"└── \" if is_last else \"├── \"\n        print(f\"{prefix}{current_prefix}{item}\")\n        \n        if os.path.isdir(path):\n            extension = \"    \" if is_last else \"│   \"\n            print_tree(path, prefix + extension, max_depth, current_depth + 1)\n\n\n\nprint_tree(f\"{temp_dir}/models\")\n\n└── penguin_model\n    └── 20250808T113005Z-aba30\n        ├── data.txt\n        └── penguin_model.joblib\n\n\nThe board folder handles versioning automatically and manages metadata about what’s stored.\n└── penguin_model # pin name directory\n    └── CURRENT-DATE-TIME-aba30/ # version directory timestamp + hash\n        ├── data.txt  # model metadata\n        └── penguin_model.joblib # serialized model",
+    "crumbs": [
+      "Lab 2"
+    ]
+  },
+  {
+    "objectID": "lab2.html#turn-model-into-vetiverapi",
+    "href": "lab2.html#turn-model-into-vetiverapi",
+    "title": "Lab 2",
+    "section": "Turn model into VetiverAPI",
+    "text": "Turn model into VetiverAPI\n\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)",
     "crumbs": [
       "Lab 2"
     ]
@@ -138,7 +198,7 @@
     "href": "model-vetiver.html",
     "title": "model-vetiver.qmd",
     "section": "",
-    "text": "Expand to view model-vetiver.qmd\n\n\n\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n\n```{python}\nimport duckdb\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```\n\n## Turn into Vetiver Model\n\n```{python}\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n```\n\n## Save to Board\n\n```{python}\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nmodel_board = board_folder(\"/data/model\", allow_pickle_read = True)\nvetiver_pin_write(model_board, v)\n```\n\n## Turn model into API\n\n```{python}\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n```",
+    "text": "View model-vetiver.qmd\n\n\n\n\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n\n```{python}\nimport duckdb\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```\n\n## Turn into Vetiver Model\n\n```{python}\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n```\n\n## Save to Board\n\n```{python}\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nmodel_board = board_folder(\"/data/model\", allow_pickle_read = True)\nvetiver_pin_write(model_board, v)\n```\n\n## Turn model into API\n\n```{python}\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n```",
     "crumbs": [
       "Lab 2",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
