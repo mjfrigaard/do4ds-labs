@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-08">
+<meta name="dcterms.date" content="2025-08-10">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 2 – do4ds-labs</title>
@@ -249,13 +249,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#sec-vetiver-basics" id="toc-sec-vetiver-basics" class="nav-link active" data-scroll-target="#sec-vetiver-basics">vetiver basics</a></li>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension Questions</a></li>
+  <li><a href="#sec-vetiver-basics" id="toc-sec-vetiver-basics" class="nav-link" data-scroll-target="#sec-vetiver-basics">vetiver basics</a>
+  <ul>
   <li><a href="#using-duckdb" id="toc-using-duckdb" class="nav-link" data-scroll-target="#using-duckdb">Using <code>duckdb</code></a></li>
-  <li><a href="#create-model" id="toc-create-model" class="nav-link" data-scroll-target="#create-model">Create <code>model</code></a></li>
-  <li><a href="#model-information" id="toc-model-information" class="nav-link" data-scroll-target="#model-information">Model information</a></li>
-  <li><a href="#turn-into-vetivermodel" id="toc-turn-into-vetivermodel" class="nav-link" data-scroll-target="#turn-into-vetivermodel">Turn into <code>VetiverModel</code></a></li>
-  <li><a href="#pins-boards" id="toc-pins-boards" class="nav-link" data-scroll-target="#pins-boards"><code>pins</code> boards</a></li>
-  <li><a href="#turn-model-into-vetiverapi" id="toc-turn-model-into-vetiverapi" class="nav-link" data-scroll-target="#turn-model-into-vetiverapi">Turn model into <code>VetiverAPI</code></a></li>
+  <li><a href="#create-a-model" id="toc-create-a-model" class="nav-link" data-scroll-target="#create-a-model">Create a <code>model</code></a></li>
+  <li><a href="#print-model-information" id="toc-print-model-information" class="nav-link" data-scroll-target="#print-model-information">Print <code>model</code> information</a></li>
+  </ul></li>
+  <li><a href="#model---vetivermodel" id="toc-model---vetivermodel" class="nav-link" data-scroll-target="#model---vetivermodel"><code>model</code> -&gt; <code>VetiverModel</code></a>
+  <ul>
+  <li><a href="#what-are-pins-boards" id="toc-what-are-pins-boards" class="nav-link" data-scroll-target="#what-are-pins-boards">What are <code>pins</code> boards?</a></li>
+  <li><a href="#what-is-in-penguin_model" id="toc-what-is-in-penguin_model" class="nav-link" data-scroll-target="#what-is-in-penguin_model">What is in <code>penguin_model/</code>?</a></li>
+  </ul></li>
+  <li><a href="#vetivermodel---vetiverapi" id="toc-vetivermodel---vetiverapi" class="nav-link" data-scroll-target="#vetivermodel---vetiverapi"><code>VetiverModel</code> -&gt; <code>VetiverAPI</code></a></li>
   </ul>
 </nav>
     </div>
@@ -275,7 +281,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-08</p>
+      <p class="date">2025-08-10</p>
     </div>
   </div>
   
@@ -311,9 +317,103 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab2/</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="do">## └── model-vetiver.qmd</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension Questions</h2>
+<ol type="1">
+<li>What are the layers of a three-layer application architecture? What libraries could you use to implement a three-layer architecture in R or Python?</li>
+</ol>
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #9753b8 !important;
+  background-color: #f6f6f6;
+  padding: 0.2em;
+}
+</style>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart TD
+    Present("Presentation&lt;br&gt;Layer") -.-&gt; Process("Processing&lt;br&gt;Layer")
+    Process -.-&gt; Data("Data&lt;br&gt;Layer")
+    
+    subgraph UI["User Interface"]
+        Present
+    end
+    
+    subgraph BL["Business Logic"]
+        Process
+    end
+    
+    subgraph DS["Data Storage"]
+        Data
+    end
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p><em>2. What are some questions you should explore to reduce the data requirements for your project?</em></p>
+<ul>
+<li>Problem Definition
+<ul>
+<li>What is the minimum viable outcome?<br>
+</li>
+<li>Can we solve a simpler version first?<br>
+</li>
+<li>What is the cost of being wrong?<br>
+</li>
+</ul></li>
+<li>Feature Engineering
+<ul>
+<li>Which features are actually predictive?<br>
+</li>
+<li>Can we derive features from less data?<br>
+</li>
+<li>What is redundant?<br>
+</li>
+</ul></li>
+<li>Sampling Strategy
+<ul>
+<li>How much data do we actually need?<br>
+</li>
+<li>Can we stratify smartly?<br>
+</li>
+<li>What about active learning?<br>
+</li>
+</ul></li>
+<li>External Resources
+<ul>
+<li>What data already exists?<br>
+</li>
+<li>Can we use pre-trained models?<br>
+</li>
+<li>Are there proxies available?</li>
+</ul></li>
+</ul>
+<p><em>3. What are some patterns you can use to make big data smaller?</em></p>
+<ul>
+<li><p>Minimize data movement by doing as much work as possible where the data already sits.</p></li>
+<li><p>Don’t load all your data at once if you don’t need to (keep a live connection to your database and only pull specific pieces of data when you actually need them).</p></li>
+<li><p>Working with samples can dramatically speed up your analysis while maintaining accuracy for most types of questions</p></li>
+<li><p>If your data has natural groupings, process one group at a time instead of loading everything.</p></li>
+</ul>
+<p><em>4. Where can you put intermediate artifacts in a data science project?</em></p>
+<p>Flat files, <code>.csv</code> files, or <code>duckdb</code> (which only loads the data you need into memory).</p>
+<p><em>5. What does it mean to “take data out of the bundle”?</em></p>
+<p>Take data out of the presentation bundle (i.e., separate it from the code) if it’s updated more frequently than the app code.</p>
+</section>
 <section id="sec-vetiver-basics" class="level2">
 <h2 class="anchored" data-anchor-id="sec-vetiver-basics">vetiver basics</h2>
-<p>The <code>vetiver</code> package comes in both flavors: <a href="https://vetiver.rstudio.com/">R</a> and <a href="https://rstudio.github.io/vetiver-python/">Python.</a>. We’ll use the reticulate package below to install the other packages in the <code>model-vetiver.qmd</code> lab.</p>
+<p>The <code>vetiver</code> package comes in both flavors: <a href="https://vetiver.rstudio.com/">R</a> and <a href="https://rstudio.github.io/vetiver-python/">Python</a>.</p>
+<p>We’ll use the <code>reticulate</code> package below to install the other packages in the <code>model-vetiver.qmd</code> lab.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
@@ -323,6 +423,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"duckdb"</span>, <span class="st">"vetiver"</span>, </span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">"pins"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Now we can import the Python packages/functions.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> palmerpenguins <span class="im">import</span> load_penguins</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pandas <span class="im">import</span> get_dummies</span>
@@ -331,9 +432,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> preprocessing</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> duckdb</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="using-duckdb" class="level2">
-<h2 class="anchored" data-anchor-id="using-duckdb">Using <code>duckdb</code></h2>
+<section id="using-duckdb" class="level3">
+<h3 class="anchored" data-anchor-id="using-duckdb">Using <code>duckdb</code></h3>
 <p>The code below establishes a connection to a <code>duckdb</code> database.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
@@ -365,7 +465,7 @@ NameError: name 'df' is not defined</code></pre>
 </div>
 </div>
 </div>
-<p>Below we <strong>load the penguins data</strong> and <strong>connect to DuckDB and create the table</strong>:</p>
+<p>Below we <strong>load the penguins data</strong>, connect to <code>duckdb</code>, then create the table:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>penguins_data <span class="op">=</span> load_penguins()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>con <span class="op">=</span> duckdb.<span class="ex">connect</span>(<span class="st">'my-db.duckdb'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -374,7 +474,7 @@ NameError: name 'df' is not defined</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13b714c70&gt;</code></pre>
+<pre><code>&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13528d8b0&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>con.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -392,8 +492,8 @@ NameError: name 'df' is not defined</code></pre>
 </div>
 </div>
 </section>
-<section id="create-model" class="level2">
-<h2 class="anchored" data-anchor-id="create-model">Create <code>model</code></h2>
+<section id="create-a-model" class="level3">
+<h3 class="anchored" data-anchor-id="create-a-model">Create a <code>model</code></h3>
 <p>The model is created below (like lab 1).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> get_dummies(df[[<span class="st">'bill_length_mm'</span>, <span class="st">'species'</span>, <span class="st">'sex'</span>]], drop_first <span class="op">=</span> <span class="va">True</span>)</span>
@@ -402,8 +502,8 @@ NameError: name 'df' is not defined</code></pre>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LinearRegression().fit(X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="model-information" class="level2">
-<h2 class="anchored" data-anchor-id="model-information">Model information</h2>
+<section id="print-model-information" class="level3">
+<h3 class="anchored" data-anchor-id="print-model-information">Print <code>model</code> information</h3>
 <p>This will print the model information.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"R^2 </span><span class="sc">{</span>model<span class="sc">.</span>score(X,y)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -424,8 +524,9 @@ NameError: name 'df' is not defined</code></pre>
 </div>
 </div>
 </section>
-<section id="turn-into-vetivermodel" class="level2">
-<h2 class="anchored" data-anchor-id="turn-into-vetivermodel">Turn into <code>VetiverModel</code></h2>
+</section>
+<section id="model---vetivermodel" class="level2">
+<h2 class="anchored" data-anchor-id="model---vetivermodel"><code>model</code> -&gt; <code>VetiverModel</code></h2>
 <p>The model is created with <code>VetiverModel()</code>, which is a <strong>wrapper class</strong> that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span>
@@ -487,10 +588,9 @@ flowchart LR
 </div>
 </div>
 </div>
-</section>
-<section id="pins-boards" class="level2">
-<h2 class="anchored" data-anchor-id="pins-boards"><code>pins</code> boards</h2>
-<p>In this version, we’re going to save our <code>pins</code> board to a temporary location, but in the lab, we’ll create the directory before creating the board.</p>
+<section id="what-are-pins-boards" class="level3">
+<h3 class="anchored" data-anchor-id="what-are-pins-boards">What are <code>pins</code> boards?</h3>
+<p>In this version, we’re going to save our <code>pins</code> board to a temporary location (<code>f"{temp_dir}/models"</code>), but in the lab, we’ll create the directory before creating the board.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -529,80 +629,185 @@ flowchart LR
 </div>
 </div>
 </div>
-<p>In <code>board_folder()</code>:</p>
-<ul>
-<li><p>The <strong>Path</strong> (<code>f"{temp_dir}/models"</code>) is where to store everything</p></li>
-<li><p><strong><code>allow_pickle_read=True</code></strong> allows reading Python pickle files (needed for <code>scikit-learn</code> models)</p></li>
-</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_folder</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> vetiver_pin_write</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># use temp dir</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>temp_dir <span class="op">=</span> tempfile.mkdtemp()</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>vetiver_pin_write(model_board, v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-14"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-14-1"><a href="#annotated-cell-14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="annotated-cell-14-2"><a href="#annotated-cell-14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_folder</span>
+<span id="annotated-cell-14-3"><a href="#annotated-cell-14-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> vetiver_pin_write</span>
+<span id="annotated-cell-14-4"><a href="#annotated-cell-14-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="1">1</button><span id="annotated-cell-14-5" class="code-annotation-target"><a href="#annotated-cell-14-5" aria-hidden="true" tabindex="-1"></a>temp_dir <span class="op">=</span> tempfile.mkdtemp()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="2">2</button><span id="annotated-cell-14-6" class="code-annotation-target"><a href="#annotated-cell-14-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
+<span id="annotated-cell-14-7"><a href="#annotated-cell-14-7" aria-hidden="true" tabindex="-1"></a>vetiver_pin_write(model_board, v)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-14" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-14" data-code-lines="5" data-code-annotation="1">Use temp directory<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-14" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-14" data-code-lines="6" data-code-annotation="2"><code>allow_pickle_read</code> allows reading Python pickle files (needed for <code>scikit-learn</code> models)</span>
+</dd>
+</dl>
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Model Cards provide a framework for transparent, responsible reporting. 
  Use the vetiver `.qmd` Quarto template as a place to start, 
  with vetiver.model_card()
 Writing pin:
 Name: 'penguin_model'
-Version: 20250808T113005Z-aba30</code></pre>
+Version: 20250810T003453Z-aba30</code></pre>
 </div>
 </div>
-<p><code>board_folder()</code> creates a <strong>pins board</strong> that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing “pins” (data objects/models).</p>
+<ul>
+<li><p><strong><code>board_folder()</code></strong> creates the <code>pins</code> board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing “pins” (data objects/models).</p></li>
+<li><p><strong><code>vetiver_pin_write()</code></strong> receives the <code>model_board</code>, which is our <code>board_folder</code> object pointing to <code>temp_dir/models</code> and <code>v</code> (our <code>VetiverModel</code> wrapping the <code>LinearRegression</code>).</p></li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpfqdr8zgh/models</code></pre>
+<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpmyf0m_u1/models</code></pre>
 </div>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>show/hide print_tree()</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_tree(directory, prefix<span class="op">=</span><span class="st">""</span>, max_depth<span class="op">=</span><span class="va">None</span>, current_depth<span class="op">=</span><span class="dv">0</span>):</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Print a tree structure of directory contents."""</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_depth <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> current_depth <span class="op">&gt;</span> max_depth:</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    items <span class="op">=</span> <span class="bu">sorted</span>(os.listdir(directory))</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(items):</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(directory, item)</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        is_last <span class="op">=</span> i <span class="op">==</span> <span class="bu">len</span>(items) <span class="op">-</span> <span class="dv">1</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        current_prefix <span class="op">=</span> <span class="st">"└── "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"├── "</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}{</span>current_prefix<span class="sc">}{</span>item<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.isdir(path):</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>            extension <span class="op">=</span> <span class="st">"    "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"│   "</span></span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>            print_tree(path, prefix <span class="op">+</span> extension, max_depth, current_depth <span class="op">+</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_tree(directory, prefix<span class="op">=</span><span class="st">""</span>, max_depth<span class="op">=</span><span class="va">None</span>, current_depth<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Print a tree structure of directory contents."""</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_depth <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> current_depth <span class="op">&gt;</span> max_depth:</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    items <span class="op">=</span> <span class="bu">sorted</span>(os.listdir(directory))</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(items):</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(directory, item)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>        is_last <span class="op">=</span> i <span class="op">==</span> <span class="bu">len</span>(items) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>        current_prefix <span class="op">=</span> <span class="st">"└── "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"├── "</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}{</span>current_prefix<span class="sc">}{</span>item<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.isdir(path):</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>            extension <span class="op">=</span> <span class="st">"    "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"│   "</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>            print_tree(path, prefix <span class="op">+</span> extension, max_depth, current_depth <span class="op">+</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p>Below is a tree of the model folder:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>└── penguin_model
-    └── 20250808T113005Z-aba30
+    └── 20250810T003453Z-aba30
         ├── data.txt
         └── penguin_model.joblib</code></pre>
 </div>
 </div>
-<p>The board folder handles versioning automatically and manages metadata about what’s stored.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>└── penguin_model # pin name directory</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    └── CURRENT-DATE-TIME-aba30/ # version directory timestamp + hash</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>        ├── data.txt  # model metadata</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>        └── penguin_model.joblib # serialized model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="turn-model-into-vetiverapi" class="level2">
-<h2 class="anchored" data-anchor-id="turn-model-into-vetiverapi">Turn model into <code>VetiverAPI</code></h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="what-is-in-penguin_model" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-in-penguin_model">What is in <code>penguin_model/</code>?</h3>
+<p>The <code>penguin_model</code> board folder is described below:</p>
+<div class="sourceCode" id="annotated-cell-18"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="1">1</button><span id="annotated-cell-18-1" class="code-annotation-target"><a href="#annotated-cell-18-1" aria-hidden="true" tabindex="-1"></a>└── penguin_model</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="2">2</button><span id="annotated-cell-18-2" class="code-annotation-target"><a href="#annotated-cell-18-2" aria-hidden="true" tabindex="-1"></a>    └── CURRENT-DATE-TIME-aba30/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="3">3</button><span id="annotated-cell-18-3" class="code-annotation-target"><a href="#annotated-cell-18-3" aria-hidden="true" tabindex="-1"></a>        ├── data.txt</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="4">4</button><span id="annotated-cell-18-4" class="code-annotation-target"><a href="#annotated-cell-18-4" aria-hidden="true" tabindex="-1"></a>        └── penguin_model.joblib</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-18" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="1" data-code-annotation="1"><code>pin</code> name directory<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="2" data-code-annotation="2">Version directory timestamp + hash<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="3" data-code-annotation="3">Model metadata (what, when, how big)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="4" data-code-annotation="4">Serialized model (the actual trained model + <code>VetiverModel</code> wrapper with all the prediction logic)</span>
+</dd>
+</dl>
+<p>The board folder handles versioning automatically and manages metadata about what’s stored.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    Mod["&lt;code&gt;model&lt;/code&gt;"] --&gt; VetMod["&lt;code&gt;VetiverModel(model)&lt;/code&gt;"]
+    VetMod --&gt; VPW["&lt;code&gt;vetiver_pin_write()&lt;/code&gt;"]
+    VPW --&gt; Joblib["Serialized &lt;code&gt;.joblib&lt;/code&gt;"]
+    VPW --&gt; Meta["Metadata &lt;code&gt;.txt&lt;/code&gt;"]
+    
+    Rep["To reproduce"] --&gt; VPR["&lt;code&gt;vetiver_pin_read()&lt;/code&gt;"]
+    VPR --&gt; Joblib
+    VPR --&gt; Meta
+    VPR --&gt; Recon["Reconstructed&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;"]
+    
+    style Mod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VPW fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style Joblib fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Meta fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Recon fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style Rep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VPR fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+</pre>
 </div>
+<p></p><figcaption> vetiver_pin_write()</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="vetivermodel---vetiverapi" class="level2">
+<h2 class="anchored" data-anchor-id="vetivermodel---vetiverapi"><code>VetiverModel</code> -&gt; <code>VetiverAPI</code></h2>
+<p>Finally, we’ll turn the model into an API.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong><code>VetiverAPI()</code></strong> creates a production-ready web API that wraps the trained model, validates inputs, and returns predictions via HTTP.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    VetMod["&lt;code&gt;VetiverModel()&lt;/code&gt;"] --&gt; VetAPI["&lt;code&gt;VetiverAPI()&lt;/code&gt;"]
+    VetAPI --&gt; REST["&lt;strong&gt;REST&lt;/strong&gt; API&lt;br&gt;Server"]
+    REST --&gt; HttpEP["&lt;strong&gt;HTTP&lt;/strong&gt;&lt;br&gt;Endpoints"]
+    
+    HttpEP --&gt; Post["&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict"]
+    HttpEP --&gt; GetPing["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping"]
+    HttpEP --&gt; GetProto["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype"]
+    HttpEP --&gt; GetMeta["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata"]
+    
+    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VetAPI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style REST fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style HttpEP fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style Post fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetPing fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetProto fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+</pre>
+</div>
+<p></p><figcaption> VetiverAPI()</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>This makes our model accessible to any application that can make web requests.</p>
 
 
 </section>
