@@ -33,9 +33,86 @@ fs::dir_tree(path = "_labs/lab2/")
 ## └── model-vetiver.qmd
 ```
 
+## Comprehension Questions
+
+1. What are the layers of a three-layer application architecture? What libraries could you use to implement a three-layer architecture in R or Python?
+
+```{=html}
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #9753b8 !important;
+  background-color: #f6f6f6;
+  padding: 0.2em;
+}
+</style>
+```
+
+```{mermaid}
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart TD
+    Present("Presentation<br>Layer") -.-> Process("Processing<br>Layer")
+    Process -.-> Data("Data<br>Layer")
+    
+    subgraph UI["User Interface"]
+        Present
+    end
+    
+    subgraph BL["Business Logic"]
+        Process
+    end
+    
+    subgraph DS["Data Storage"]
+        Data
+    end
+```
+
+*2. What are some questions you should explore to reduce the data requirements for your project?*
+
+- Problem Definition    
+  - What is the minimum viable outcome?   
+  - Can we solve a simpler version first?   
+  - What is the cost of being wrong?    
+- Feature Engineering   
+  - Which features are actually predictive?   
+  - Can we derive features from less data?      
+  - What is redundant?    
+- Sampling Strategy   
+  - How much data do we actually need?    
+  - Can we stratify smartly?    
+  - What about active learning?   
+- External Resources    
+  - What data already exists?   
+  - Can we use pre-trained models?    
+  - Are there proxies available?    
+
+*3. What are some patterns you can use to make big data smaller?*
+
+- Minimize data movement by doing as much work as possible where the data already sits.
+
+- Don't load all your data at once if you don't need to (keep a live connection to your database and only pull specific pieces of data when you actually need them). 
+
+- Working with samples can dramatically speed up your analysis while maintaining accuracy for most types of questions
+
+- If your data has natural groupings, process one group at a time instead of loading everything.
+
+*4. Where can you put intermediate artifacts in a data science project?*
+
+Flat files, `.csv` files, or `duckdb` (which only loads the data you need into memory).
+
+*5. What does it mean to “take data out of the bundle”?*
+
+Take data out of the presentation bundle (i.e., separate it from the code) if it's updated more frequently than the app code. 
+
 ## vetiver basics {#sec-vetiver-basics}
 
-The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) and [Python.](https://rstudio.github.io/vetiver-python/). We'll use the reticulate package below to install the other packages in the `model-vetiver.qmd` lab. 
+The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) and [Python](https://rstudio.github.io/vetiver-python/). 
+
+We'll use the `reticulate` package below to install the other packages in the `model-vetiver.qmd` lab. 
 
 ```{r}
 #| results: hide
@@ -50,6 +127,8 @@ virtualenv_install(
                 "pins"))
 ```
 
+Now we can import the Python packages/functions. 
+
 ```{python}
 from palmerpenguins import load_penguins
 from pandas import get_dummies
@@ -59,7 +138,7 @@ from sklearn import preprocessing
 import duckdb
 ```
 
-## Using `duckdb`
+### Using `duckdb`
 
 The code below establishes a connection to a `duckdb` database. 
 
@@ -96,7 +175,7 @@ NameError: name 'df' is not defined
 )
 ```
 
-Below we **load the penguins data** and **connect to DuckDB and create the table**:
+Below we **load the penguins data**, connect to `duckdb`, then create the table:
 
 ```{python}
 penguins_data = load_penguins()
@@ -117,7 +196,7 @@ Confirm the data:
 df.head(3)
 ```
 
-## Create `model`
+### Create a `model`
 
 The model is created below (like lab 1). 
 
@@ -128,7 +207,7 @@ y = df['body_mass_g']
 model = LinearRegression().fit(X, y)
 ```
 
-## Model information
+### Print `model` information
 
 This will print the model information. 
 
@@ -139,7 +218,7 @@ print(f"Columns {X.columns}")
 print(f"Coefficients {model.coef_}")
 ```
 
-## Turn into `VetiverModel`
+## `model` -> `VetiverModel`
 
 The model is created with `VetiverModel()`, which is a **wrapper class** that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.
 
@@ -201,9 +280,9 @@ flowchart LR
     
 ```
 
-## `pins` boards
+### What are `pins` boards? 
 
-In this version, we're going to save our `pins` board to a temporary location, but in the lab, we'll create the directory before creating the board. 
+In this version, we're going to save our `pins` board to a temporary location (`f"{temp_dir}/models"`), but in the lab, we'll create the directory before creating the board. 
 
 ```{mermaid}
 %%| fig-cap: 'board_folder()'
@@ -237,24 +316,22 @@ flowchart LR
 
 ```
 
-In `board_folder()`:  
-
-- The **Path** (`f"{temp_dir}/models"`) is where to store everything    
-
-- **`allow_pickle_read=True`** allows reading Python pickle files (needed for `scikit-learn` models)   
 
 ```{python}
 import tempfile
 from pins import board_folder
 from vetiver import vetiver_pin_write
 
-# use temp dir
-temp_dir = tempfile.mkdtemp()
-model_board = board_folder(f"{temp_dir}/models", allow_pickle_read=True)
+temp_dir = tempfile.mkdtemp() #<1>
+model_board = board_folder(f"{temp_dir}/models", allow_pickle_read=True) #<2> 
 vetiver_pin_write(model_board, v)
 ```
+1. Use temp directory  
+2. `allow_pickle_read` allows reading Python pickle files (needed for `scikit-learn` models) 
 
-`board_folder()` creates a **pins board** that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models). 
+-  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models).
+
+-  **`vetiver_pin_write()`** receives the `model_board`, which is our `board_folder` object pointing to `temp_dir/models` and `v` (our `VetiverModel` wrapping the `LinearRegression`). 
 
 ```{python}
 print(f"Model saved to: {temp_dir}/models")
@@ -283,22 +360,91 @@ def print_tree(directory, prefix="", max_depth=None, current_depth=0):
             print_tree(path, prefix + extension, max_depth, current_depth + 1)
 ```
 
+Below is a tree of the model folder: 
+
 ```{python}
 print_tree(f"{temp_dir}/models")
 ```
 
-The board folder handles versioning automatically and manages metadata about what's stored.
+### What is in `penguin_model/`?
+
+The `penguin_model` board folder is described below: 
 
 ```{verbatim}
-└── penguin_model # pin name directory
-    └── CURRENT-DATE-TIME-aba30/ # version directory timestamp + hash
-        ├── data.txt  # model metadata
-        └── penguin_model.joblib # serialized model
+└── penguin_model #<1> 
+    └── CURRENT-DATE-TIME-aba30/ #<2> 
+        ├── data.txt  #<3> 
+        └── penguin_model.joblib #<4>
+```
+1. `pin` name directory   
+2. Version directory timestamp + hash   
+3. Model metadata (what, when, how big)   
+4. Serialized model (the actual trained model + `VetiverModel` wrapper with all the prediction logic)
+
+The board folder handles versioning automatically and manages metadata about what's stored.
+
+```{mermaid}
+%%| fig-cap: 'vetiver_pin_write()'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    Mod["<code>model</code>"] --> VetMod["<code>VetiverModel(model)</code>"]
+    VetMod --> VPW["<code>vetiver_pin_write()</code>"]
+    VPW --> Joblib["Serialized <code>.joblib</code>"]
+    VPW --> Meta["Metadata <code>.txt</code>"]
+    
+    Rep["To reproduce"] --> VPR["<code>vetiver_pin_read()</code>"]
+    VPR --> Joblib
+    VPR --> Meta
+    VPR --> Recon["Reconstructed<br><code>VetiverModel()</code>"]
+    
+    style Mod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VPW fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style Joblib fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Meta fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    style Recon fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style Rep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VPR fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
 ```
 
-## Turn model into `VetiverAPI`
+## `VetiverModel` -> `VetiverAPI`
+
+Finally, we'll turn the model into an API. 
 
 ```{python}
 from vetiver import VetiverAPI
 app = VetiverAPI(v, check_prototype = True)
 ```
+
+**`VetiverAPI()`** creates a production-ready web API that wraps the trained model, validates inputs, and returns predictions via HTTP. 
+
+```{mermaid}
+%%| fig-cap: 'VetiverAPI()'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+flowchart LR
+    VetMod["<code>VetiverModel()</code>"] --> VetAPI["<code>VetiverAPI()</code>"]
+    VetAPI --> REST["<strong>REST</strong> API<br>Server"]
+    REST --> HttpEP["<strong>HTTP</strong><br>Endpoints"]
+    
+    HttpEP --> Post["<strong>POST</strong><br>/predict"]
+    HttpEP --> GetPing["<strong>GET</strong><br>/ping"]
+    HttpEP --> GetProto["<strong>GET</strong><br>/prototype"]
+    HttpEP --> GetMeta["<strong>GET</strong><br>/metadata"]
+    
+    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style VetAPI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style REST fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    
+    style HttpEP fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
+    
+    style Post fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetPing fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetProto fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    style GetMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+```
+
+This makes our model accessible to any application that can make web requests. 

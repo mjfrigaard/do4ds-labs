@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-06">
+<meta name="dcterms.date" content="2025-08-09">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>model-vetiver.qmd – do4ds-labs</title>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -206,8 +240,19 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#get-data" id="toc-get-data" class="nav-link active" data-scroll-target="#get-data">Get Data</a></li>
+  <li><a href="#define-model-and-fit" id="toc-define-model-and-fit" class="nav-link" data-scroll-target="#define-model-and-fit">Define Model and Fit</a></li>
+  <li><a href="#get-some-information" id="toc-get-some-information" class="nav-link" data-scroll-target="#get-some-information">Get some information</a></li>
+  <li><a href="#turn-into-vetiver-model" id="toc-turn-into-vetiver-model" class="nav-link" data-scroll-target="#turn-into-vetiver-model">Turn into Vetiver Model</a></li>
+  <li><a href="#save-to-board" id="toc-save-to-board" class="nav-link" data-scroll-target="#save-to-board">Save to Board</a></li>
+  <li><a href="#turn-model-into-api" id="toc-turn-model-into-api" class="nav-link" data-scroll-target="#turn-model-into-api">Turn model into API</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -225,7 +270,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-06</p>
+      <p class="date">2025-08-09</p>
     </div>
   </div>
   
@@ -237,6 +282,132 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
+<p>Below is the code I included in <code>_labs/lab2/model-vetiver/model-vetiver.qmd</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"duckdb"</span>, <span class="st">"vetiver"</span>, </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">"pins"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-1" class="code-annotation-target"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> palmerpenguins <span class="im">import</span> load_penguins</span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pandas <span class="im">import</span> get_dummies</span>
+<span id="annotated-cell-2-3"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="annotated-cell-2-4"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> preprocessing</span>
+<span id="annotated-cell-2-6"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> duckdb</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="1" data-code-annotation="1">Added this for the <code>penguins</code> data</span>
+</dd>
+</dl>
+</div>
+</div>
+<section id="get-data" class="level2">
+<h2 class="anchored" data-anchor-id="get-data">Get Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-1" class="code-annotation-target"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a>penguins_data <span class="op">=</span> load_penguins()</span>
+<span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a>con <span class="op">=</span> duckdb.<span class="ex">connect</span>(<span class="st">'my-db.duckdb'</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="2">2</button><span id="annotated-cell-3-3" class="code-annotation-target"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span>
+<span id="annotated-cell-3-4"><a href="#annotated-cell-3-4" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
+<span id="annotated-cell-3-5"><a href="#annotated-cell-3-5" aria-hidden="true" tabindex="-1"></a>con.close()</span>
+<span id="annotated-cell-3-6"><a href="#annotated-cell-3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-3-7"><a href="#annotated-cell-3-7" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">3</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="1" data-code-annotation="1">Load the data for the <code>duckdb</code><br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-3" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="3" data-code-annotation="2">Create the <code>penguins</code> table in db</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="define-model-and-fit" class="level2">
+<h2 class="anchored" data-anchor-id="define-model-and-fit">Define Model and Fit</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> get_dummies(df[[<span class="st">'bill_length_mm'</span>, <span class="st">'species'</span>, <span class="st">'sex'</span>]], drop_first <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">'body_mass_g'</span>]</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LinearRegression().fit(X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="get-some-information" class="level2">
+<h2 class="anchored" data-anchor-id="get-some-information">Get some information</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"R^2 </span><span class="sc">{</span>model<span class="sc">.</span>score(X,y)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Intercept </span><span class="sc">{</span>model<span class="sc">.</span>intercept_<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Columns </span><span class="sc">{</span>X<span class="sc">.</span>columns<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Coefficients </span><span class="sc">{</span>model<span class="sc">.</span>coef_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="turn-into-vetiver-model" class="level2">
+<h2 class="anchored" data-anchor-id="turn-into-vetiver-model">Turn into Vetiver Model</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> VetiverModel(model, model_name<span class="op">=</span><span class="st">'penguin_model'</span>, prototype_data<span class="op">=</span>X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="save-to-board" class="level2">
+<h2 class="anchored" data-anchor-id="save-to-board">Save to Board</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-7"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="1">1</button><span id="annotated-cell-7-1" class="code-annotation-target"><a href="#annotated-cell-7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="annotated-cell-7-2"><a href="#annotated-cell-7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_folder</span>
+<span id="annotated-cell-7-3"><a href="#annotated-cell-7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> vetiver_pin_write</span>
+<span id="annotated-cell-7-4"><a href="#annotated-cell-7-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="2">2</button><span id="annotated-cell-7-5" class="code-annotation-target"><a href="#annotated-cell-7-5" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="st">"./models"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
+<span id="annotated-cell-7-6"><a href="#annotated-cell-7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-7-7"><a href="#annotated-cell-7-7" aria-hidden="true" tabindex="-1"></a>vetiver_pin_write(model_board, v)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-7" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="1" data-code-annotation="1">For creating folder<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="5" data-code-annotation="2">Use the current working directory</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="turn-model-into-api" class="level2">
+<h2 class="anchored" data-anchor-id="turn-model-into-api">Turn model into API</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The original code from lab 2 is below:</p>
 <details>
 <summary>
 <strong>View model-vetiver.qmd</strong>
@@ -315,6 +486,7 @@ app = VetiverAPI(v, check_prototype = True)
 </details>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

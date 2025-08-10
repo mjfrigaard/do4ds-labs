@@ -1,5 +1,122 @@
 # model-vetiver.qmd {#sec-model-vetiver}
 
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "Caution", 
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
+Below is the code I included in `_labs/lab2/model-vetiver/model-vetiver.qmd`: 
+
+```{r}
+#| eval: false
+#| results: hide
+#| message: false 
+#| warning: false
+library(reticulate)
+use_virtualenv("myenv", required = TRUE)
+virtualenv_install(
+  envname = "myenv", 
+  packages = c("palmerpenguins", "pandas", "numpy", 
+               "scikit-learn", "duckdb", "vetiver", 
+                "pins"))
+```
+
+```{python}
+#| eval: false
+from palmerpenguins import load_penguins #<1>
+from pandas import get_dummies
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+import duckdb
+```
+1. Added this for the `penguins` data 
+
+## Get Data
+
+```{python}
+#| eval: false
+penguins_data = load_penguins() #<1>
+con = duckdb.connect('my-db.duckdb')
+con.execute("CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data") #<2>
+df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
+con.close()
+
+df.head(3)
+```
+1. Load the data for the `duckdb`   
+2. Create the `penguins` table in db    
+
+## Define Model and Fit
+
+```{python}
+#| eval: false
+X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
+y = df['body_mass_g']
+
+model = LinearRegression().fit(X, y)
+```
+
+## Get some information
+
+```{python}
+#| eval: false
+print(f"R^2 {model.score(X,y)}")
+print(f"Intercept {model.intercept_}")
+print(f"Columns {X.columns}")
+print(f"Coefficients {model.coef_}")
+```
+
+## Turn into Vetiver Model
+
+```{python}
+#| eval: false
+from vetiver import VetiverModel
+v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
+```
+
+## Save to Board
+
+```{python}
+#| eval: false
+import os #<1>
+from pins import board_folder
+from vetiver import vetiver_pin_write
+
+model_board = board_folder("./models", allow_pickle_read=True) #<2>
+
+vetiver_pin_write(model_board, v)
+```
+1. For creating folder    
+2. Use the current working directory    
+
+## Turn model into API
+
+```{python}
+#| eval: false
+from vetiver import VetiverAPI
+app = VetiverAPI(v, check_prototype = True)
+```
+
+The original code from lab 2 is below:
+
 <details>
   <summary><strong>View model-vetiver.qmd</strong></summary>
   

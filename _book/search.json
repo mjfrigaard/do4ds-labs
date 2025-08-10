@@ -14,7 +14,7 @@
     "href": "preface.html",
     "title": "Preface",
     "section": "",
-    "text": "Praise for do4ds\nAll of the labs for the do4ds book are available in the GitHub repo:\nhttps://github.com/akgold/do4ds.\nBelow are some of the packages you’ll need to complete the labs (and others I’ve included for a better understanding of project, objects, structures, etc.)\nI discovered DevOps for Data Science (do4ds) by Alex K Gold when I started a new position as a Posit System Administrator with CDC’s Enterprise Data, Analytics, and Visualization (EDAV) platform.1 EDAV houses multiple enterprise data science products (Databricks, Power BI, Tableau, SAS Viya, etc.), including Posit Workbench, Connect, and Package Manager.\nI’d spent the last 15 years as an R programmer/Shiny developer, but as a System Admin, my responsibilities now included (but were not limited to) maintaining, monitoring, updating and improving the Posit services for CDC users.\nI was lucky–do4ds was ~90% of the book I wanted to read. The solutions manual you’re reading includes additional topics from the following resources:",
+    "text": "Praise for do4ds\nAll of the labs for the do4ds book are available in the GitHub repo:\nhttps://github.com/akgold/do4ds.\nBelow are some of the packages you’ll need to complete the labs (and others I’ve included for a better understanding of project, objects, structures, etc.)\nI discovered DevOps for Data Science (do4ds) by Alex K Gold when I started a new position as a Posit System Administrator with CDC’s Enterprise Data, Analytics, and Visualization (EDAV) platform.1 EDAV houses multiple enterprise data science products (Databricks, Power BI, Tableau, SAS Viya, etc.), including Posit Workbench, Connect, and Package Manager.\nI’d spent the last 15 years as an R programmer/Shiny developer, but as a System Admin, my responsibilities now included (but were not limited to) maintaining, monitoring, updating and improving the Posit services for CDC users.\nI was lucky–do4ds was ~90% of the book I wanted to read.",
     "crumbs": [
       "Preface"
     ]
@@ -24,7 +24,17 @@
     "href": "preface.html#praise-for-do4ds",
     "title": "Preface",
     "section": "",
-    "text": "“If there’s a book that you want to read, but it hasn’t been written yet, then you must write it.” - Toni Morrison\n\n\n\n\n\nThe Linux Command Line by William Shotts\n\nHow Linux Works: what every superuser show know by Brian Ward\n\nThe Linux programming interface: a Linux and UNIX system programming handbook by Michael Kerrisk.",
+    "text": "“If there’s a book that you want to read, but it hasn’t been written yet, then you must write it.” - Toni Morrison",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "preface.html#other-great-resources",
+    "href": "preface.html#other-great-resources",
+    "title": "Preface",
+    "section": "Other great resources",
+    "text": "Other great resources\nThe solutions manual you’re reading also includes additional topics from the following resources:\n\nThe Linux Command Line by William Shotts\n\nHow Linux Works: what every superuser show know by Brian Ward\n\nThe Linux programming interface: a Linux and UNIX system programming handbook by Michael Kerrisk.",
     "crumbs": [
       "Preface"
     ]
@@ -128,67 +138,47 @@
     "href": "lab2.html",
     "title": "Lab 2",
     "section": "",
-    "text": "vetiver basics\nLab 2 introduces thevetiver package for modeling.\nThe vetiver package comes in both flavors: R and Python.. We’ll use the reticulate package below to install the other packages in the model-vetiver.qmd lab.\nlibrary(reticulate)\nuse_virtualenv(\"myenv\", required = TRUE)\nvirtualenv_install(\n  envname = \"myenv\", \n  packages = c(\"palmerpenguins\", \"pandas\", \"numpy\", \n               \"scikit-learn\", \"duckdb\", \"vetiver\", \n                \"pins\"))\nfrom palmerpenguins import load_penguins\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\nimport duckdb",
+    "text": "Comprehension Questions\nLab 2 introduces thevetiver package for modeling.\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart TD\n    Present(\"Presentation&lt;br&gt;Layer\") -.-&gt; Process(\"Processing&lt;br&gt;Layer\")\n    Process -.-&gt; Data(\"Data&lt;br&gt;Layer\")\n    \n    subgraph UI[\"User Interface\"]\n        Present\n    end\n    \n    subgraph BL[\"Business Logic\"]\n        Process\n    end\n    \n    subgraph DS[\"Data Storage\"]\n        Data\n    end\n2. What are some questions you should explore to reduce the data requirements for your project?\n3. What are some patterns you can use to make big data smaller?\n4. Where can you put intermediate artifacts in a data science project?\nFlat files, .csv files, or duckdb (which only loads the data you need into memory).\n5. What does it mean to “take data out of the bundle”?\nTake data out of the presentation bundle (i.e., separate it from the code) if it’s updated more frequently than the app code.",
     "crumbs": [
       "Lab 2"
     ]
   },
   {
-    "objectID": "lab2.html#using-duckdb",
-    "href": "lab2.html#using-duckdb",
+    "objectID": "lab2.html#comprehension-questions",
+    "href": "lab2.html#comprehension-questions",
     "title": "Lab 2",
-    "section": "Using duckdb",
-    "text": "Using duckdb\nThe code below establishes a connection to a duckdb database.\n\n\n\n\n\n\nduckdb error\n\n\n\n\n\n\nThis originally returned an error:\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nduckdb.duckdb.InvalidInputException: Invalid Input Error: Python Object \n\"penguins\" of type \"module\" found on line \"&lt;string&gt;:1\" not suitable for\nreplacement scans.\nMake sure that \"penguins\" is either a pandas.DataFrame, \nduckdb.DuckDBPyRelation, pyarrow Table, Dataset, RecordBatchReader, \nScanner, or NumPy ndarrays with supported format\n\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nNameError: name 'df' is not defined\n\n\n\n\nBelow we load the penguins data and connect to DuckDB and create the table:\n\npenguins_data = load_penguins()\ncon = duckdb.connect('my-db.duckdb')\n\nThe load_penguins() function put the penguins data into a DataFrame, then we can insert it into DuckDB before querying:\n\ncon.execute(\"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data\")\n\n&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13b714c70&gt;\n\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\nConfirm the data:\n\ndf.head(3)\n\n  species     island  bill_length_mm  ...  body_mass_g     sex  year\n0  Adelie  Torgersen            39.1  ...       3750.0    male  2007\n1  Adelie  Torgersen            39.5  ...       3800.0  female  2007\n2  Adelie  Torgersen            40.3  ...       3250.0  female  2007\n\n[3 rows x 8 columns]",
+    "section": "",
+    "text": "What are the layers of a three-layer application architecture? What libraries could you use to implement a three-layer architecture in R or Python?\n\n\n\n\n\nProblem Definition\n\nWhat is the minimum viable outcome?\n\nCan we solve a simpler version first?\n\nWhat is the cost of being wrong?\n\n\nFeature Engineering\n\nWhich features are actually predictive?\n\nCan we derive features from less data?\n\nWhat is redundant?\n\n\nSampling Strategy\n\nHow much data do we actually need?\n\nCan we stratify smartly?\n\nWhat about active learning?\n\n\nExternal Resources\n\nWhat data already exists?\n\nCan we use pre-trained models?\n\nAre there proxies available?\n\n\n\n\nMinimize data movement by doing as much work as possible where the data already sits.\nDon’t load all your data at once if you don’t need to (keep a live connection to your database and only pull specific pieces of data when you actually need them).\nWorking with samples can dramatically speed up your analysis while maintaining accuracy for most types of questions\nIf your data has natural groupings, process one group at a time instead of loading everything.",
     "crumbs": [
       "Lab 2"
     ]
   },
   {
-    "objectID": "lab2.html#create-model",
-    "href": "lab2.html#create-model",
+    "objectID": "lab2.html#sec-vetiver-basics",
+    "href": "lab2.html#sec-vetiver-basics",
     "title": "Lab 2",
-    "section": "Create model",
-    "text": "Create model\nThe model is created below (like lab 1).\n\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)",
+    "section": "vetiver basics",
+    "text": "vetiver basics\nThe vetiver package comes in both flavors: R and Python.\nWe’ll use the reticulate package below to install the other packages in the model-vetiver.qmd lab.\n\nlibrary(reticulate)\nuse_virtualenv(\"myenv\", required = TRUE)\nvirtualenv_install(\n  envname = \"myenv\", \n  packages = c(\"palmerpenguins\", \"pandas\", \"numpy\", \n               \"scikit-learn\", \"duckdb\", \"vetiver\", \n                \"pins\"))\n\nNow we can import the Python packages/functions.\n\nfrom palmerpenguins import load_penguins\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\nimport duckdb\n\n\nUsing duckdb\nThe code below establishes a connection to a duckdb database.\n\n\n\n\n\n\nduckdb error\n\n\n\n\n\n\nThis originally returned an error:\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nduckdb.duckdb.InvalidInputException: Invalid Input Error: Python Object \n\"penguins\" of type \"module\" found on line \"&lt;string&gt;:1\" not suitable for\nreplacement scans.\nMake sure that \"penguins\" is either a pandas.DataFrame, \nduckdb.DuckDBPyRelation, pyarrow Table, Dataset, RecordBatchReader, \nScanner, or NumPy ndarrays with supported format\n\nTraceback (most recent call last):\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nNameError: name 'df' is not defined\n\n\n\n\nBelow we load the penguins data, connect to duckdb, then create the table:\n\npenguins_data = load_penguins()\ncon = duckdb.connect('my-db.duckdb')\n\nThe load_penguins() function put the penguins data into a DataFrame, then we can insert it into DuckDB before querying:\n\ncon.execute(\"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data\")\n\n&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13528d8b0&gt;\n\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\nConfirm the data:\n\ndf.head(3)\n\n  species     island  bill_length_mm  ...  body_mass_g     sex  year\n0  Adelie  Torgersen            39.1  ...       3750.0    male  2007\n1  Adelie  Torgersen            39.5  ...       3800.0  female  2007\n2  Adelie  Torgersen            40.3  ...       3250.0  female  2007\n\n[3 rows x 8 columns]\n\n\n\n\nCreate a model\nThe model is created below (like lab 1).\n\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n\n\n\nPrint model information\nThis will print the model information.\n\nprint(f\"R^2 {model.score(X,y)}\")\n\nR^2 0.8555368759537614\n\nprint(f\"Intercept {model.intercept_}\")\n\nIntercept 2169.2697209393973\n\nprint(f\"Columns {X.columns}\")\n\nColumns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'], dtype='object')\n\nprint(f\"Coefficients {model.coef_}\")\n\nCoefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]",
     "crumbs": [
       "Lab 2"
     ]
   },
   {
-    "objectID": "lab2.html#model-information",
-    "href": "lab2.html#model-information",
+    "objectID": "lab2.html#model---vetivermodel",
+    "href": "lab2.html#model---vetivermodel",
     "title": "Lab 2",
-    "section": "Model information",
-    "text": "Model information\nThis will print the model information.\n\nprint(f\"R^2 {model.score(X,y)}\")\n\nR^2 0.8555368759537614\n\nprint(f\"Intercept {model.intercept_}\")\n\nIntercept 2169.2697209393973\n\nprint(f\"Columns {X.columns}\")\n\nColumns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'], dtype='object')\n\nprint(f\"Coefficients {model.coef_}\")\n\nCoefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]",
+    "section": "model -> VetiverModel",
+    "text": "model -&gt; VetiverModel\nThe model is created with VetiverModel(), which is a wrapper class that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.\n\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n\n\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    RawMod[Raw sklearn model] --&gt; VMod[\"&lt;code&gt;VetiverModel()&lt;/code&gt;&lt;br&gt;wrapper\"]\n    VMod --&gt; ModMeta[\"Model + Metadata\"]\n    ModMeta --&gt; Dep[\"Deployment Ready\"]\n    \n    subgraph Vet[\"&lt;em&gt;What it creates&lt;/em&gt;\"]\n        InSch(\"Input Schema\")\n        ModTypeInfo(\"Model Type Info\")\n        Ver(\"Versioning\")\n        Api(\"API Generation\")\n        Ser(\"Serialization\")\n    end\n    \n    VMod --&gt; InSch\n    VMod --&gt; ModTypeInfo \n    VMod --&gt; Ver\n    VMod --&gt; Api\n    VMod --&gt; Ser\n    \n    %% style %%\n    style RawMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Vet fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style InSch fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style ModTypeInfo fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ver fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Api fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ser fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n\n\n VetiverModel() \n\n\n\n\nWhat are pins boards?\nIn this version, we’re going to save our pins board to a temporary location (f\"{temp_dir}/models\"), but in the lab, we’ll create the directory before creating the board.\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    BrdFldr[\"&lt;code&gt;board_folder()&lt;/code&gt;\"] --&gt; FSI[File System Interface]\n    FSI --&gt; VerStor[Versioned Storage]\n    VerStor --&gt; MetaTr[Metadata Tracking]\n    \n    subgraph BF[\"What it creates\"]\n        DirStr[Directory Structure]\n        VerCont[Version Control]\n        PinMngMnt[Pin Management]\n    end\n    \n    FSI --&gt; DirStr\n    FSI --&gt; VerCont\n    FSI --&gt; PinMngMnt\n    \n    style BrdFldr fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style FSI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style BF fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style DirStr fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style VerCont fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style PinMngMnt fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style VerStor fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style MetaTr fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n\n\n\n board_folder() \n\n\n\n\nimport tempfile\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\n1temp_dir = tempfile.mkdtemp()\n2model_board = board_folder(f\"{temp_dir}/models\", allow_pickle_read=True)\nvetiver_pin_write(model_board, v)\n\n\n1\n\nUse temp directory\n\n\n2\n\nallow_pickle_read allows reading Python pickle files (needed for scikit-learn models)\n\n\n\n\nModel Cards provide a framework for transparent, responsible reporting. \n Use the vetiver `.qmd` Quarto template as a place to start, \n with vetiver.model_card()\nWriting pin:\nName: 'penguin_model'\nVersion: 20250810T003453Z-aba30\n\n\n\nboard_folder() creates the pins board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing “pins” (data objects/models).\nvetiver_pin_write() receives the model_board, which is our board_folder object pointing to temp_dir/models and v (our VetiverModel wrapping the LinearRegression).\n\n\nprint(f\"Model saved to: {temp_dir}/models\")\n\nModel saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpmyf0m_u1/models\n\n\n\n\nshow/hide print_tree()\nimport os\n\ndef print_tree(directory, prefix=\"\", max_depth=None, current_depth=0):\n    \"\"\"Print a tree structure of directory contents.\"\"\"\n    if max_depth is not None and current_depth &gt; max_depth:\n        return\n    \n    items = sorted(os.listdir(directory))\n    for i, item in enumerate(items):\n        path = os.path.join(directory, item)\n        is_last = i == len(items) - 1\n        \n        current_prefix = \"└── \" if is_last else \"├── \"\n        print(f\"{prefix}{current_prefix}{item}\")\n        \n        if os.path.isdir(path):\n            extension = \"    \" if is_last else \"│   \"\n            print_tree(path, prefix + extension, max_depth, current_depth + 1)\n\n\nBelow is a tree of the model folder:\n\nprint_tree(f\"{temp_dir}/models\")\n\n└── penguin_model\n    └── 20250810T003453Z-aba30\n        ├── data.txt\n        └── penguin_model.joblib\n\n\n\n\nWhat is in penguin_model/?\nThe penguin_model board folder is described below:\n1└── penguin_model\n2    └── CURRENT-DATE-TIME-aba30/\n3        ├── data.txt\n4        └── penguin_model.joblib\n\n1\n\npin name directory\n\n\n2\n\nVersion directory timestamp + hash\n\n\n3\n\nModel metadata (what, when, how big)\n\n\n4\n\nSerialized model (the actual trained model + VetiverModel wrapper with all the prediction logic)\n\n\nThe board folder handles versioning automatically and manages metadata about what’s stored.\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    Mod[\"&lt;code&gt;model&lt;/code&gt;\"] --&gt; VetMod[\"&lt;code&gt;VetiverModel(model)&lt;/code&gt;\"]\n    VetMod --&gt; VPW[\"&lt;code&gt;vetiver_pin_write()&lt;/code&gt;\"]\n    VPW --&gt; Joblib[\"Serialized &lt;code&gt;.joblib&lt;/code&gt;\"]\n    VPW --&gt; Meta[\"Metadata &lt;code&gt;.txt&lt;/code&gt;\"]\n    \n    Rep[\"To reproduce\"] --&gt; VPR[\"&lt;code&gt;vetiver_pin_read()&lt;/code&gt;\"]\n    VPR --&gt; Joblib\n    VPR --&gt; Meta\n    VPR --&gt; Recon[\"Reconstructed&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;\"]\n    \n    style Mod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VPW fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style Joblib fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Meta fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Recon fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style Rep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VPR fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n\n\n vetiver_pin_write()",
     "crumbs": [
       "Lab 2"
     ]
   },
   {
-    "objectID": "lab2.html#turn-into-vetivermodel",
-    "href": "lab2.html#turn-into-vetivermodel",
+    "objectID": "lab2.html#vetivermodel---vetiverapi",
+    "href": "lab2.html#vetivermodel---vetiverapi",
     "title": "Lab 2",
-    "section": "Turn into VetiverModel",
-    "text": "Turn into VetiverModel\nThe model is created with VetiverModel(), which is a wrapper class that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.\n\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n\n\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    RawMod[Raw sklearn model] --&gt; VMod[\"&lt;code&gt;VetiverModel()&lt;/code&gt;&lt;br&gt;wrapper\"]\n    VMod --&gt; ModMeta[\"Model + Metadata\"]\n    ModMeta --&gt; Dep[\"Deployment Ready\"]\n    \n    subgraph Vet[\"&lt;em&gt;What it creates&lt;/em&gt;\"]\n        InSch(\"Input Schema\")\n        ModTypeInfo(\"Model Type Info\")\n        Ver(\"Versioning\")\n        Api(\"API Generation\")\n        Ser(\"Serialization\")\n    end\n    \n    VMod --&gt; InSch\n    VMod --&gt; ModTypeInfo \n    VMod --&gt; Ver\n    VMod --&gt; Api\n    VMod --&gt; Ser\n    \n    %% style %%\n    style RawMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Vet fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style InSch fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style ModTypeInfo fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ver fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Api fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style Ser fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n\n\n VetiverModel()",
-    "crumbs": [
-      "Lab 2"
-    ]
-  },
-  {
-    "objectID": "lab2.html#pins-boards",
-    "href": "lab2.html#pins-boards",
-    "title": "Lab 2",
-    "section": "pins boards",
-    "text": "pins boards\nIn this version, we’re going to save our pins board to a temporary location, but in the lab, we’ll create the directory before creating the board.\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    BrdFldr[\"&lt;code&gt;board_folder()&lt;/code&gt;\"] --&gt; FSI[File System Interface]\n    FSI --&gt; VerStor[Versioned Storage]\n    VerStor --&gt; MetaTr[Metadata Tracking]\n    \n    subgraph BF[\"What it creates\"]\n        DirStr[Directory Structure]\n        VerCont[Version Control]\n        PinMngMnt[Pin Management]\n    end\n    \n    FSI --&gt; DirStr\n    FSI --&gt; VerCont\n    FSI --&gt; PinMngMnt\n    \n    style BrdFldr fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style FSI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style BF fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style DirStr fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style VerCont fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    style PinMngMnt fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style VerStor fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style MetaTr fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n\n\n\n board_folder() \n\n\n\nIn board_folder():\n\nThe Path (f\"{temp_dir}/models\") is where to store everything\nallow_pickle_read=True allows reading Python pickle files (needed for scikit-learn models)\n\n\nimport tempfile\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\n# use temp dir\ntemp_dir = tempfile.mkdtemp()\nmodel_board = board_folder(f\"{temp_dir}/models\", allow_pickle_read=True)\nvetiver_pin_write(model_board, v)\n\nModel Cards provide a framework for transparent, responsible reporting. \n Use the vetiver `.qmd` Quarto template as a place to start, \n with vetiver.model_card()\nWriting pin:\nName: 'penguin_model'\nVersion: 20250808T113005Z-aba30\n\n\nboard_folder() creates a pins board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing “pins” (data objects/models).\n\nprint(f\"Model saved to: {temp_dir}/models\")\n\nModel saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpfqdr8zgh/models\n\n\n\n\nshow/hide print_tree()\nimport os\n\ndef print_tree(directory, prefix=\"\", max_depth=None, current_depth=0):\n    \"\"\"Print a tree structure of directory contents.\"\"\"\n    if max_depth is not None and current_depth &gt; max_depth:\n        return\n    \n    items = sorted(os.listdir(directory))\n    for i, item in enumerate(items):\n        path = os.path.join(directory, item)\n        is_last = i == len(items) - 1\n        \n        current_prefix = \"└── \" if is_last else \"├── \"\n        print(f\"{prefix}{current_prefix}{item}\")\n        \n        if os.path.isdir(path):\n            extension = \"    \" if is_last else \"│   \"\n            print_tree(path, prefix + extension, max_depth, current_depth + 1)\n\n\n\nprint_tree(f\"{temp_dir}/models\")\n\n└── penguin_model\n    └── 20250808T113005Z-aba30\n        ├── data.txt\n        └── penguin_model.joblib\n\n\nThe board folder handles versioning automatically and manages metadata about what’s stored.\n└── penguin_model # pin name directory\n    └── CURRENT-DATE-TIME-aba30/ # version directory timestamp + hash\n        ├── data.txt  # model metadata\n        └── penguin_model.joblib # serialized model",
-    "crumbs": [
-      "Lab 2"
-    ]
-  },
-  {
-    "objectID": "lab2.html#turn-model-into-vetiverapi",
-    "href": "lab2.html#turn-model-into-vetiverapi",
-    "title": "Lab 2",
-    "section": "Turn model into VetiverAPI",
-    "text": "Turn model into VetiverAPI\n\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)",
+    "section": "VetiverModel -> VetiverAPI",
+    "text": "VetiverModel -&gt; VetiverAPI\nFinally, we’ll turn the model into an API.\n\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n\nVetiverAPI() creates a production-ready web API that wraps the trained model, validates inputs, and returns predictions via HTTP.\n\n\n\n\n\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\nflowchart LR\n    VetMod[\"&lt;code&gt;VetiverModel()&lt;/code&gt;\"] --&gt; VetAPI[\"&lt;code&gt;VetiverAPI()&lt;/code&gt;\"]\n    VetAPI --&gt; REST[\"&lt;strong&gt;REST&lt;/strong&gt; API&lt;br&gt;Server\"]\n    REST --&gt; HttpEP[\"&lt;strong&gt;HTTP&lt;/strong&gt;&lt;br&gt;Endpoints\"]\n    \n    HttpEP --&gt; Post[\"&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict\"]\n    HttpEP --&gt; GetPing[\"&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping\"]\n    HttpEP --&gt; GetProto[\"&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype\"]\n    HttpEP --&gt; GetMeta[\"&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata\"]\n    \n    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style VetAPI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style REST fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    \n    style HttpEP fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px\n    \n    style Post fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style GetPing fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style GetProto fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n    style GetMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px\n\n\n VetiverAPI() \n\n\n\nThis makes our model accessible to any application that can make web requests.",
     "crumbs": [
       "Lab 2"
     ]
@@ -198,7 +188,62 @@
     "href": "model-vetiver.html",
     "title": "model-vetiver.qmd",
     "section": "",
-    "text": "View model-vetiver.qmd\n\n\n\n\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n\n```{python}\nimport duckdb\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```\n\n## Turn into Vetiver Model\n\n```{python}\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n```\n\n## Save to Board\n\n```{python}\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nmodel_board = board_folder(\"/data/model\", allow_pickle_read = True)\nvetiver_pin_write(model_board, v)\n```\n\n## Turn model into API\n\n```{python}\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n```",
+    "text": "Get Data\nBelow is the code I included in _labs/lab2/model-vetiver/model-vetiver.qmd:\n1penguins_data = load_penguins()\ncon = duckdb.connect('my-db.duckdb')\n2con.execute(\"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data\")\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n\n\n1\n\nLoad the data for the duckdb\n\n\n2\n\nCreate the penguins table in db",
+    "crumbs": [
+      "Lab 2",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
+    ]
+  },
+  {
+    "objectID": "model-vetiver.html#define-model-and-fit",
+    "href": "model-vetiver.html#define-model-and-fit",
+    "title": "model-vetiver.qmd",
+    "section": "Define Model and Fit",
+    "text": "Define Model and Fit\n\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)",
+    "crumbs": [
+      "Lab 2",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
+    ]
+  },
+  {
+    "objectID": "model-vetiver.html#get-some-information",
+    "href": "model-vetiver.html#get-some-information",
+    "title": "model-vetiver.qmd",
+    "section": "Get some information",
+    "text": "Get some information\n\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")",
+    "crumbs": [
+      "Lab 2",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
+    ]
+  },
+  {
+    "objectID": "model-vetiver.html#turn-into-vetiver-model",
+    "href": "model-vetiver.html#turn-into-vetiver-model",
+    "title": "model-vetiver.qmd",
+    "section": "Turn into Vetiver Model",
+    "text": "Turn into Vetiver Model\n\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)",
+    "crumbs": [
+      "Lab 2",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
+    ]
+  },
+  {
+    "objectID": "model-vetiver.html#save-to-board",
+    "href": "model-vetiver.html#save-to-board",
+    "title": "model-vetiver.qmd",
+    "section": "Save to Board",
+    "text": "Save to Board\n\n1import os\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\n2model_board = board_folder(\"./models\", allow_pickle_read=True)\n\nvetiver_pin_write(model_board, v)\n\n\n1\n\nFor creating folder\n\n\n2\n\nUse the current working directory",
+    "crumbs": [
+      "Lab 2",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
+    ]
+  },
+  {
+    "objectID": "model-vetiver.html#turn-model-into-api",
+    "href": "model-vetiver.html#turn-model-into-api",
+    "title": "model-vetiver.qmd",
+    "section": "Turn model into API",
+    "text": "Turn model into API\n\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n\nThe original code from lab 2 is below:\n\n\nView model-vetiver.qmd\n\n\n\n\n---\ntitle: \"Model\"\nformat:\n  html:\n    code-fold: true\n---\n\n```{python}\nfrom pandas import get_dummies\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import preprocessing\n```\n\n## Get Data\n\n```{python}\nimport duckdb\ncon = duckdb.connect('my-db.duckdb')\ndf = con.execute(\"SELECT * FROM penguins\").fetchdf().dropna()\ncon.close()\n\ndf.head(3)\n```\n\n## Define Model and Fit\n\n```{python}\nX = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)\ny = df['body_mass_g']\n\nmodel = LinearRegression().fit(X, y)\n```\n\n## Get some information\n\n```{python}\nprint(f\"R^2 {model.score(X,y)}\")\nprint(f\"Intercept {model.intercept_}\")\nprint(f\"Columns {X.columns}\")\nprint(f\"Coefficients {model.coef_}\")\n```\n\n## Turn into Vetiver Model\n\n```{python}\nfrom vetiver import VetiverModel\nv = VetiverModel(model, model_name='penguin_model', prototype_data=X)\n```\n\n## Save to Board\n\n```{python}\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nmodel_board = board_folder(\"/data/model\", allow_pickle_read = True)\nvetiver_pin_write(model_board, v)\n```\n\n## Turn model into API\n\n```{python}\nfrom vetiver import VetiverAPI\napp = VetiverAPI(v, check_prototype = True)\n```",
     "crumbs": [
       "Lab 2",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>model-vetiver.qmd</span>"
@@ -209,7 +254,47 @@
     "href": "lab3.html",
     "title": "Lab 3",
     "section": "",
-    "text": "fs::dir_tree(path = \"_labs/lab3/\")\n## _labs/lab3/\n## ├── app-api.R\n## ├── app-api.py\n## ├── eda-db.qmd\n## ├── model-db.qmd\n## ├── py-data-load.py\n## └── r-data-load.R",
+    "text": "App APIs\nThe original files in _labs/lab3 are below:\nIn the previous labs, we build a model API with vetiver (also available in R). This lab continues with accessing databases and using the API.",
+    "crumbs": [
+      "Lab 3"
+    ]
+  },
+  {
+    "objectID": "lab3.html#app-apis",
+    "href": "lab3.html#app-apis",
+    "title": "Lab 3",
+    "section": "",
+    "text": "app-api.R\n\n\napp-api.py",
+    "crumbs": [
+      "Lab 3"
+    ]
+  },
+  {
+    "objectID": "lab3.html#eda-db.qmd",
+    "href": "lab3.html#eda-db.qmd",
+    "title": "Lab 3",
+    "section": "eda-db.qmd",
+    "text": "eda-db.qmd",
+    "crumbs": [
+      "Lab 3"
+    ]
+  },
+  {
+    "objectID": "lab3.html#model-db.qmd",
+    "href": "lab3.html#model-db.qmd",
+    "title": "Lab 3",
+    "section": "model-db.qmd",
+    "text": "model-db.qmd",
+    "crumbs": [
+      "Lab 3"
+    ]
+  },
+  {
+    "objectID": "lab3.html#data-load",
+    "href": "lab3.html#data-load",
+    "title": "Lab 3",
+    "section": "Data load",
+    "text": "Data load\n\npy-data-load.py\n\n\nr-data-load.R",
     "crumbs": [
       "Lab 3"
     ]
