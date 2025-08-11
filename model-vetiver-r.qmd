@@ -22,7 +22,17 @@ co_box(
 )
 ```
 
+This document translates the contents of lab 2 in R. The source Quarto document can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab2/R/model-vetiver-r.qmd).
 
+```{r}
+#| collapse: true
+#| eval: false
+fs::dir_tree("_labs/lab2/R/")
+## _labs/lab2/R/
+## └── model-vetiver-r.qmd
+```
+
+## Load packages 
 
 ```{r}
 #| message: false 
@@ -53,7 +63,7 @@ duckdb_register(con, "penguins_data", penguins_data)
 dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
 ```
 
-omit missing, disconnect from DB: 
+Omit missing, disconnect from DB: 
 
 ```{r}
 #| eval: false
@@ -63,7 +73,7 @@ df <- dbGetQuery(con, "SELECT * FROM penguins") |>
 dbDisconnect(con)
 ```
 
-view top rows:
+View top rows of `df`:
 
 ```{r}
 #| eval: false
@@ -78,7 +88,9 @@ Create dummy variables (one-hot encoding) and fit linear regression model.
 #| eval: false
 X <- df |>
   select(bill_length_mm, species, sex) |>
-  dummy_cols(select_columns = c("species", "sex"), remove_first_dummy = TRUE) |>
+  dummy_cols(
+    select_columns = c("species", "sex"), 
+    remove_first_dummy = TRUE) |>
   select(-species, -sex)
 
 y <- df$body_mass_g
@@ -113,6 +125,13 @@ cat("Coefficients:", paste(coefficients, collapse = ", "), "\n")
 v <- vetiver_model(model, model_name = "penguin_model")
 ```
 
+Below we can see the model information stored in the `models/` folder:
+
+```{r}
+#| collapse: true
+fs::dir_tree("_labs/lab2/R/models/")
+```
+
 ## Save to Board
 
 ```{r}
@@ -123,8 +142,10 @@ vetiver_pin_write(model_board, v)
 
 ## Turn model into API
 
+Unlike Python, we'll need to create a plumber router from `plumber::pr()` to pass to the `vetiver_api()` (along with the deployable `vetiver_model()` object). 
+
 ```{r}
 #| eval: false
-app <- pr() |> # plumber router, such as from plumber::pr()
-  vetiver_api(v) # deployable vetiver_model() object
+app <- pr() |> 
+  vetiver_api(v)
 ```
