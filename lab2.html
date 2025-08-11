@@ -238,7 +238,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension Questions</a></li>
-  <li><a href="#sec-vetiver-basics" id="toc-sec-vetiver-basics" class="nav-link" data-scroll-target="#sec-vetiver-basics">vetiver basics</a>
+  <li><a href="#sec-pkgs-ilbs" id="toc-sec-pkgs-ilbs" class="nav-link" data-scroll-target="#sec-pkgs-ilbs">Data preparation</a>
   <ul>
   <li><a href="#using-duckdb" id="toc-using-duckdb" class="nav-link" data-scroll-target="#using-duckdb">Using <code>duckdb</code></a></li>
   <li><a href="#create-a-model" id="toc-create-a-model" class="nav-link" data-scroll-target="#create-a-model">Create a <code>model</code></a></li>
@@ -299,12 +299,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Lab 2 introduces the<a href="https://rstudio.github.io/vetiver-r/"><code>vetiver</code> package</a> for modeling.</p>
+<p>Lab 2 introduces the<a href="https://rstudio.github.io/vetiver-r/"><code>vetiver</code> package</a> for modeling in <a href="./model-vetiver.html"><code>model-vetiver.qmd</code></a>. The <code>vetiver</code> package comes in both flavors: <a href="https://vetiver.rstudio.com/">R</a> and <a href="https://rstudio.github.io/vetiver-python/">Python</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">path =</span> <span class="st">"_labs/lab2/"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab2/</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="do">## └── model-vetiver.qmd</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>If you’d like to see the same process using R, check out the <a href="./model-vetiver-r.html">R version</a>.</p>
 <section id="comprehension-questions" class="level2">
 <h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension Questions</h2>
 <ol type="1">
@@ -398,9 +399,8 @@ flowchart TD
 <p><em>5. What does it mean to “take data out of the bundle”?</em></p>
 <p>Take data out of the presentation bundle (i.e., separate it from the code) if it’s updated more frequently than the app code.</p>
 </section>
-<section id="sec-vetiver-basics" class="level2">
-<h2 class="anchored" data-anchor-id="sec-vetiver-basics">vetiver basics</h2>
-<p>The <code>vetiver</code> package comes in both flavors: <a href="https://vetiver.rstudio.com/">R</a> and <a href="https://rstudio.github.io/vetiver-python/">Python</a>.</p>
+<section id="sec-pkgs-ilbs" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pkgs-ilbs">Data preparation</h2>
 <p>We’ll use the <code>reticulate</code> package below to install the other packages in the <code>model-vetiver.qmd</code> lab.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
@@ -422,7 +422,6 @@ flowchart TD
 </div>
 <section id="using-duckdb" class="level3">
 <h3 class="anchored" data-anchor-id="using-duckdb">Using <code>duckdb</code></h3>
-<p>The code below establishes a connection to a <code>duckdb</code> database.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -462,7 +461,7 @@ NameError: name 'df' is not defined</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13528d8b0&gt;</code></pre>
+<pre><code>&lt;duckdb.duckdb.DuckDBPyConnection object at 0x1364ef8b0&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>con.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -644,7 +643,7 @@ flowchart LR
  with vetiver.model_card()
 Writing pin:
 Name: 'penguin_model'
-Version: 20250810T003453Z-aba30</code></pre>
+Version: 20250811T121250Z-aba30</code></pre>
 </div>
 </div>
 <ul>
@@ -654,7 +653,7 @@ Version: 20250810T003453Z-aba30</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpmyf0m_u1/models</code></pre>
+<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpdpam_ps5/models</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -685,7 +684,7 @@ Version: 20250810T003453Z-aba30</code></pre>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>└── penguin_model
-    └── 20250810T003453Z-aba30
+    └── 20250811T121250Z-aba30
         ├── data.txt
         └── penguin_model.joblib</code></pre>
 </div>
@@ -795,7 +794,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<p>This makes our model accessible to any application that can make web requests.</p>
+<p>This makes our model accessible to any application that can make web requests, which we will cover in the next lab.</p>
 
 
 </section>
