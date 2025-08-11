@@ -331,7 +331,7 @@
     "href": "lab3.html",
     "title": "Lab 3",
     "section": "",
-    "text": "APIs\nThe original files in _labs/lab3 are below:\nIn the previous labs, we build a model API with vetiver (also available in R). This lab continues with accessing databases and using APIs. I’ve split these files into separate folders (i.e., projects) and included RStudio project files:\nLet’s back up a bit and get an understanding of what an API does. In general, APIs are the digital plumbing that makes modern software ecosystems possible.\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\ngraph LR\n    DS[\"Data Scientist\"] --&gt; Req[\"API Request\"]\n    Req --&gt; ApiServ[\"API Server\"]\n    ApiServ --&gt; DataProcMod[\"Data Processing/Model\"]\n    DataProcMod --&gt; Res[\"Results\"]\n    Res --&gt; ApiServ\n    ApiServ --&gt; APIResp[\"API Response\"]\n    APIResp --&gt; DS\n    \n    style ApiServ fill:#e1f5fe\n    style DataProcMod fill:#f3e5f5\n\n\n APIs\nAPIs have standardized language that allows different software systems to communicate and share functionality (without needing to understand how the internal implementation works).\nWhat do they communicate?\nIn the previous lab we turned our model into a VetiverModel(), saved it to a pins board, and then created a VetiverAPI():\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"14px\"}}}%%\ngraph LR\n    subgraph DataPrep[\"Data Preparation\"]\n        Penguins[\"&lt;code&gt;penguins&lt;/code&gt;&lt;br&gt;data\"] --&gt; DuckDB[\"put in&lt;br&gt;&lt;code&gt;duckdb&lt;/code&gt;\"]\n        DuckDB\n    end\n    \n    subgraph ModTrain[\"Linear Regression\"]\n        DuckDB --&gt; LinReg[\"create&lt;br&gt;&lt;code&gt;model&lt;/code&gt;\"]\n        LinReg\n    end\n    \n    subgraph MLOps[\"MLOps\"]\n        LinReg --&gt; VetMod[\"create&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;\"]\n        VetMod --&gt; Pins[\"save to&lt;br&gt;&lt;code&gt;pins&lt;/code&gt; board\"]\n        Pins --&gt; VetAPI[\"create&lt;br&gt;&lt;code&gt;VetiverAPI()&lt;/code&gt;\"]\n    end\n    \n    style ModTrain fill:#e1f5fe\n    style MLOps fill:#f3e5f5\n    style VetAPI fill:#e8f5e8\n\n\n Our pipeline",
+    "text": "APIs\nThe original files in _labs/lab3 are below:\nIn the previous labs, we build a model API with vetiver (also available in R). This lab continues with accessing databases and using APIs. I’ve split these files into separate folders (i.e., projects) and included RStudio project files:\nLet’s back up a bit and get an understanding of what an API does. In general, APIs are the digital plumbing that makes modern software ecosystems possible.\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"16px\"}}}%%\ngraph LR\n    DS[\"Data Scientist\"] --&gt; Req[\"API Request\"]\n    Req --&gt; ApiServ[\"API Server\"]\n    ApiServ --&gt; DataProcMod[\"Data Processing/Model\"]\n    DataProcMod --&gt; Res[\"Results\"]\n    Res --&gt; ApiServ\n    ApiServ --&gt; APIResp[\"API Response\"]\n    APIResp --&gt; DS\n    \n    style ApiServ fill:#e1f5fe\n    style DataProcMod fill:#f3e5f5\n\n\n APIs\nAPIs have standardized language that allows different software systems to communicate and share functionality (without needing to understand how the internal implementation works).\nWhat do they communicate?\nIn the previous lab we turned our model into a VetiverModel(), saved it to a pins board, and then created a VetiverAPI():\n%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', \"fontSize\":\"14px\"}}}%%\ngraph LR\n    subgraph DataPrep[\"Data Preparation\"]\n        Penguins[\"&lt;code&gt;penguins&lt;/code&gt;&lt;br&gt;data\"] --&gt; DuckDB[\"put in&lt;br&gt;&lt;code&gt;duckdb&lt;/code&gt;\"]\n        DuckDB\n    end\n    \n    subgraph ModTrain[\"Linear Regression\"]\n        DuckDB --&gt; LinReg[\"create&lt;br&gt;&lt;code&gt;model&lt;/code&gt;\"]\n        LinReg\n    end\n    \n    subgraph MLOps[\"MLOps\"]\n        LinReg --&gt; VetMod[\"create&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;\"]\n        VetMod --&gt; Pins[\"save to&lt;br&gt;&lt;code&gt;pins&lt;/code&gt; board\"]\n        Pins --&gt; VetAPI[\"create&lt;br&gt;&lt;code&gt;VetiverAPI()&lt;/code&gt;\"]\n    end\n    \n    style ModTrain fill:#e1f5fe\n    style MLOps fill:#f3e5f5\n    style VetAPI fill:#e8f5e8\n\n\n Our pipeline\nBoth app-api.R and app-api.py create Shiny applications with calls to APIs. The sections below cover how to create and communicate with APIs.",
     "crumbs": [
       "Lab 3"
     ]
@@ -347,51 +347,21 @@
     ]
   },
   {
-    "objectID": "lab3.html#apps",
-    "href": "lab3.html#apps",
+    "objectID": "lab3.html#r-app-api",
+    "href": "lab3.html#r-app-api",
     "title": "Lab 3",
-    "section": "Apps",
-    "text": "Apps\nBoth app-api.R and app-api.py create Shiny applications.\n\napp-api.R\nWhen we initially launch the app, we’ll see the following error:\nWarning: Error in httr2::req_perform: Failed to perform HTTP request.\nCaused by error in `curl::curl_fetch_memory()`:\n! Could not connect to server [127.0.0.1]:\nFailed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server\n  163: &lt;Anonymous&gt;\n  162: signalCondition\n  161: signal_abort\n  160: cnd_signal\n  159: handle_resp\n  158: httr2::req_perform\n  154: eventReactiveValueFunc\n  102: pred\n  101: renderText\n  100: func\n   87: renderFunc\n   86: output$pred\n    1: runApp\n\n\napp-api.py",
+    "section": "R App API",
+    "text": "R App API\n\neda-db.qmd\n\n\napp-api.R\nWhen we initially launch the app, we’ll see the following error:\nWarning: Error in httr2::req_perform: Failed to perform HTTP request.\nCaused by error in `curl::curl_fetch_memory()`:\n! Could not connect to server [127.0.0.1]:\nFailed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server\n  163: &lt;Anonymous&gt;\n  162: signalCondition\n  161: signal_abort\n  160: cnd_signal\n  159: handle_resp\n  158: httr2::req_perform\n  154: eventReactiveValueFunc\n  102: pred\n  101: renderText\n  100: func\n   87: renderFunc\n   86: output$pred\n    1: runApp\n\n\nr-data-load.R",
     "crumbs": [
       "Lab 3"
     ]
   },
   {
-    "objectID": "lab3.html#eda",
-    "href": "lab3.html#eda",
+    "objectID": "lab3.html#python-app-api",
+    "href": "lab3.html#python-app-api",
     "title": "Lab 3",
-    "section": "EDA",
-    "text": "EDA",
-    "crumbs": [
-      "Lab 3"
-    ]
-  },
-  {
-    "objectID": "lab3.html#eda-db.qmd",
-    "href": "lab3.html#eda-db.qmd",
-    "title": "Lab 3",
-    "section": "eda-db.qmd",
-    "text": "eda-db.qmd",
-    "crumbs": [
-      "Lab 3"
-    ]
-  },
-  {
-    "objectID": "lab3.html#model-db.qmd",
-    "href": "lab3.html#model-db.qmd",
-    "title": "Lab 3",
-    "section": "model-db.qmd",
-    "text": "model-db.qmd",
-    "crumbs": [
-      "Lab 3"
-    ]
-  },
-  {
-    "objectID": "lab3.html#loading-data",
-    "href": "lab3.html#loading-data",
-    "title": "Lab 3",
-    "section": "Loading data",
-    "text": "Loading data\n\npy-data-load.py\n\n\nr-data-load.R",
+    "section": "Python App API",
+    "text": "Python App API\n\nmodel-db.qmd\n\n\napp-api.py\n\n\npy-data-load.py",
     "crumbs": [
       "Lab 3"
     ]
