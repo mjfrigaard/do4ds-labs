@@ -1,0 +1,130 @@
+# <em>R version</em> {.unnumbered}
+
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "Caution", 
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
+
+
+```{r}
+#| message: false 
+#| warning: false
+#| eval: true
+library(palmerpenguins)
+library(plumber)
+library(dplyr)
+library(duckdb)
+library(fastDummies)
+library(vetiver)
+library(pins)
+```
+
+
+## Get Data
+
+Load the `palmerpenguins` data, create a connection with `dbConnect()`, register the R data frame with `duckdb`, create the `penguins` table: 
+
+```{r}
+#| eval: false
+penguins_data <- palmerpenguins::penguins
+
+con <- dbConnect(duckdb::duckdb(), "my-db.duckdb")
+
+duckdb_register(con, "penguins_data", penguins_data)
+
+dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+```
+
+omit missing, disconnect from DB: 
+
+```{r}
+#| eval: false
+df <- dbGetQuery(con, "SELECT * FROM penguins") |>
+  na.omit()
+
+dbDisconnect(con)
+```
+
+view top rows:
+
+```{r}
+#| eval: false
+head(df, 3)
+```
+
+## Define Model and Fit
+
+Create dummy variables (one-hot encoding) and fit linear regression model.
+
+```{r}
+#| eval: false
+X <- df |>
+  select(bill_length_mm, species, sex) |>
+  dummy_cols(select_columns = c("species", "sex"), remove_first_dummy = TRUE) |>
+  select(-species, -sex)
+
+y <- df$body_mass_g
+
+model <- lm(y ~ ., data = X)
+```
+
+## Get some information
+
+```{r}
+#| eval: false
+r_squared <- summary(model)$r.squared
+intercept <- coef(model)[1]
+coefficients <- coef(model)[-1]
+column_names <- names(X)
+```
+
+```{r}
+#| eval: false
+cat("R^2:", r_squared, "\n")
+cat("Intercept:", intercept, "\n")
+cat("Columns:", paste(column_names, collapse = ", "), "\n")
+cat("Coefficients:", paste(coefficients, collapse = ", "), "\n")
+```
+
+## Turn into Vetiver Model
+
+```{r}
+#| eval: false
+#| message: false 
+#| warning: false
+v <- vetiver_model(model, model_name = "penguin_model")
+```
+
+## Save to Board
+
+```{r}
+#| eval: false
+model_board <- board_folder("./models")
+vetiver_pin_write(model_board, v)
+```
+
+## Turn model into API
+
+```{r}
+#| eval: false
+app <- pr() |> # plumber router, such as from plumber::pr()
+  vetiver_api(v) # deployable vetiver_model() object
+```

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-10">
+<meta name="dcterms.date" content="2025-08-11">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 3 – do4ds-labs</title>
@@ -66,8 +66,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./app-api-r.html" rel="next">
-<link href="./model-vetiver.html" rel="prev">
+<link href="./r-app-api.html" rel="next">
+<link href="./model-vetiver-r.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -104,6 +104,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -192,6 +196,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <a href="./model-vetiver.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">model-vetiver.qmd</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./model-vetiver-r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R version</em></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -205,32 +215,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./app-api-r.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">app-api.R</span></a>
+  <a href="./r-app-api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R App API</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./app-api-py.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">app-api.py</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./eda-db.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">eda-db.qmd</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./model-db.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">model-db.qmd</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./py-data-load-py.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">py-data-load.py</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./r-data-load-r.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">r-data-load.R</span></a>
+  <a href="./py-app-api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Python App API</em></span></a>
   </div>
 </li>
       </ul>
@@ -245,11 +237,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#app-apis" id="toc-app-apis" class="nav-link active" data-scroll-target="#app-apis">App APIs</a>
+  <li><a href="#apis" id="toc-apis" class="nav-link active" data-scroll-target="#apis">APIs</a>
   <ul>
   <li><a href="#app-api.r" id="toc-app-api.r" class="nav-link" data-scroll-target="#app-api.r">app-api.R</a></li>
   <li><a href="#app-api.py" id="toc-app-api.py" class="nav-link" data-scroll-target="#app-api.py">app-api.py</a></li>
   </ul></li>
+  <li><a href="#databases" id="toc-databases" class="nav-link" data-scroll-target="#databases">Databases</a></li>
   <li><a href="#eda-db.qmd" id="toc-eda-db.qmd" class="nav-link" data-scroll-target="#eda-db.qmd">eda-db.qmd</a></li>
   <li><a href="#model-db.qmd" id="toc-model-db.qmd" class="nav-link" data-scroll-target="#model-db.qmd">model-db.qmd</a></li>
   <li><a href="#data-load" id="toc-data-load" class="nav-link" data-scroll-target="#data-load">Data load</a>
@@ -276,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-10</p>
+      <p class="date">2025-08-11</p>
     </div>
   </div>
   
@@ -317,15 +310,121 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── py-data-load.py</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="do">## └── r-data-load.R</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>In the previous labs, we build a model API with <a href="https://rstudio.github.io/vetiver-python/stable/"><code>vetiver</code></a> (also <a href="https://rstudio.github.io/vetiver-r/">available in R</a>). This lab continues with accessing databases and using the API.</p>
-<section id="app-apis" class="level2">
-<h2 class="anchored" data-anchor-id="app-apis">App APIs</h2>
+<p>In the previous labs, we build a model API with <a href="https://rstudio.github.io/vetiver-python/stable/"><code>vetiver</code></a> (also <a href="https://rstudio.github.io/vetiver-r/">available in R</a>). This lab continues with accessing databases and using APIs. I’ve split these files into separate folders (i.e., projects) and included RStudio project files:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">path =</span> <span class="st">"_labs/lab3/Python/"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab3/Python/</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── Python.Rproj</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── app-api.py</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── model-db.qmd</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="do">## └── py-data-load.py</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">path =</span> <span class="st">"_labs/lab3/R/"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab3/R/</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── R.Rproj</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── app-api.R</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── eda-db.qmd</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="do">## └── r-data-load.R</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="apis" class="level2">
+<h2 class="anchored" data-anchor-id="apis">APIs</h2>
+<p>Let’s back up a bit and get an understanding of what an API does. In general, APIs are the digital plumbing that makes modern software ecosystems possible.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph LR
+    DS["Data Scientist"] --&gt; Req["API Request"]
+    Req --&gt; ApiServ["API Server"]
+    ApiServ --&gt; DataProcMod["Data Processing/Model"]
+    DataProcMod --&gt; Res["Results"]
+    Res --&gt; ApiServ
+    ApiServ --&gt; APIResp["API Response"]
+    APIResp --&gt; DS
+    
+    style ApiServ fill:#e1f5fe
+    style DataProcMod fill:#f3e5f5
+</pre>
+</div>
+<p></p><figcaption> APIs</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>APIs have standardized language that allows different software systems to communicate and share functionality (without needing to understand how the internal implementation works).</p>
+<p><strong>What do they communicate?</strong></p>
+<ol type="1">
+<li>What you can request (endpoints)<br>
+</li>
+<li>How to make the request (HTTP methods, parameters)<br>
+</li>
+<li>What you’ll get back (response format)<br>
+</li>
+<li>When things go wrong (error codes)</li>
+</ol>
+<p>In the previous lab we turned our model into a <code>VetiverModel()</code>, saved it to a <code>pins</code> board, and then created a <code>VetiverAPI()</code>:</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+graph LR
+    subgraph DataPrep["Data Preparation"]
+        Penguins["&lt;code&gt;penguins&lt;/code&gt;&lt;br&gt;data"] --&gt; DuckDB["put in&lt;br&gt;&lt;code&gt;duckdb&lt;/code&gt;"]
+        DuckDB
+    end
+    
+    subgraph ModTrain["Linear Regression"]
+        DuckDB --&gt; LinReg["create&lt;br&gt;&lt;code&gt;model&lt;/code&gt;"]
+        LinReg
+    end
+    
+    subgraph MLOps["MLOps"]
+        LinReg --&gt; VetMod["create&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;"]
+        VetMod --&gt; Pins["save to&lt;br&gt;&lt;code&gt;pins&lt;/code&gt; board"]
+        Pins --&gt; VetAPI["create&lt;br&gt;&lt;code&gt;VetiverAPI()&lt;/code&gt;"]
+    end
+    
+    style ModTrain fill:#e1f5fe
+    style MLOps fill:#f3e5f5
+    style VetAPI fill:#e8f5e8
+</pre>
+</div>
+<p></p><figcaption> Our pipeline</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 <section id="app-api.r" class="level3">
 <h3 class="anchored" data-anchor-id="app-api.r">app-api.R</h3>
+<p>When we initially launch the app, we’ll see the following error:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: Failed to perform HTTP request.</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Caused by error in `curl::curl_fetch_memory()`:</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>! Could not connect to server [127.0.0.1]:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  163: &lt;Anonymous&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  162: signalCondition</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  161: signal_abort</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  160: cnd_signal</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  159: handle_resp</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  158: httr2::req_perform</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  154: eventReactiveValueFunc</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  102: pred</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  101: renderText</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  100: func</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>   87: renderFunc</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>   86: output$pred</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    1: runApp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="app-api.py" class="level3">
 <h3 class="anchored" data-anchor-id="app-api.py">app-api.py</h3>
 </section>
+</section>
+<section id="databases" class="level2">
+<h2 class="anchored" data-anchor-id="databases">Databases</h2>
+<p>Most of the databases I encounter are either Microsoft SQL Server or PostgreSQL, and users connect with the <code>DBI</code> and <code>odbc</code> packages.</p>
 </section>
 <section id="eda-db.qmd" class="level2">
 <h2 class="anchored" data-anchor-id="eda-db.qmd">eda-db.qmd</h2>
@@ -804,13 +903,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./model-vetiver.html" class="pagination-link" aria-label="model-vetiver.qmd">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">model-vetiver.qmd</span></span>
+      <a href="./model-vetiver-r.html" class="pagination-link" aria-label="<em>R version</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>R version</em></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./app-api-r.html" class="pagination-link" aria-label="app-api.R">
-        <span class="nav-page-text"><span class="chapter-title">app-api.R</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./r-app-api.html" class="pagination-link" aria-label="<em>R App API</em>">
+        <span class="nav-page-text"><em>R App API</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

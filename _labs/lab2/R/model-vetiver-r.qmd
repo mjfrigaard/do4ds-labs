@@ -1,0 +1,107 @@
+---
+title: "Model (R)"
+format:
+  html:
+    code-fold: show
+    embed-resources: true
+    code-summary: 'show/hide R code translation'
+    
+execute: 
+  error: true
+---
+
+```{r}
+#| message: false 
+#| warning: false
+library(palmerpenguins)
+library(plumber)
+library(dplyr)
+library(duckdb)
+library(fastDummies)
+library(vetiver)
+library(pins)
+```
+
+
+## Get Data
+
+Load the `palmerpenguins` data, create a connection with `dbConnect()`, register the R data frame with `duckdb`, create the `penguins` table: 
+
+```{r}
+penguins_data <- palmerpenguins::penguins
+
+con <- dbConnect(duckdb::duckdb(), "my-db.duckdb")
+
+duckdb_register(con, "penguins_data", penguins_data)
+
+dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+```
+
+omit missing, disconnect from DB: 
+
+```{r}
+df <- dbGetQuery(con, "SELECT * FROM penguins") |>
+  na.omit()
+
+dbDisconnect(con)
+```
+
+view top rows:
+
+```{r}
+head(df, 3)
+```
+
+## Define Model and Fit
+
+Create dummy variables (one-hot encoding) and fit linear regression model.
+
+```{r}
+X <- df |>
+  select(bill_length_mm, species, sex) |>
+  dummy_cols(select_columns = c("species", "sex"), remove_first_dummy = TRUE) |>
+  select(-species, -sex)
+
+y <- df$body_mass_g
+
+model <- lm(y ~ ., data = X)
+```
+
+## Get some information
+
+```{r}
+r_squared <- summary(model)$r.squared
+intercept <- coef(model)[1]
+coefficients <- coef(model)[-1]
+column_names <- names(X)
+```
+
+```{r}
+#| collapse: false
+cat("R^2:", r_squared, "\n")
+cat("Intercept:", intercept, "\n")
+cat("Columns:", paste(column_names, collapse = ", "), "\n")
+cat("Coefficients:", paste(coefficients, collapse = ", "), "\n")
+```
+
+## Turn into Vetiver Model
+
+```{r}
+#| message: false 
+#| warning: false
+v <- vetiver_model(model, model_name = "penguin_model")
+```
+
+## Save to Board
+
+```{r}
+model_board <- board_folder("./models")
+vetiver_pin_write(model_board, v)
+```
+
+## Turn model into API
+
+```{r}
+app <- pr() |> # plumber router, such as from plumber::pr()
+  vetiver_api(v) # deployable vetiver_model() object
+```

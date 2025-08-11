@@ -37,15 +37,108 @@ fs::dir_tree(path = "_labs/lab3/")
 ## └── r-data-load.R
 ```
 
-In the previous labs, we build a model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using the API. 
+In the previous labs, we build a model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. I've split these files into separate folders (i.e., projects) and included RStudio project files: 
 
-## App APIs 
+```{r}
+#| collapse: true
+#| eval: true
+fs::dir_tree(path = "_labs/lab3/Python/")
+```
 
+```{r}
+#| collapse: true
+#| eval: true
+fs::dir_tree(path = "_labs/lab3/R/")
+```
 
+## APIs 
+
+Let's back up a bit and get an understanding of what an API does. In general, APIs are the digital plumbing that makes modern software ecosystems possible. 
+
+```{mermaid}
+%%| fig-cap: 'APIs'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph LR
+    DS["Data Scientist"] --> Req["API Request"]
+    Req --> ApiServ["API Server"]
+    ApiServ --> DataProcMod["Data Processing/Model"]
+    DataProcMod --> Res["Results"]
+    Res --> ApiServ
+    ApiServ --> APIResp["API Response"]
+    APIResp --> DS
+    
+    style ApiServ fill:#e1f5fe
+    style DataProcMod fill:#f3e5f5
+```
+
+APIs have standardized language that allows different software systems to communicate and share functionality (without needing to understand how the internal implementation works).
+
+**What do they communicate?**
+
+1. What you can request (endpoints)   
+2. How to make the request (HTTP methods, parameters)   
+3. What you'll get back (response format)   
+4. When things go wrong (error codes)  
+
+In the previous lab we turned our model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`:
+
+```{mermaid}
+%%| fig-cap: 'Our pipeline'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+graph LR
+    subgraph DataPrep["Data Preparation"]
+        Penguins["<code>penguins</code><br>data"] --> DuckDB["put in<br><code>duckdb</code>"]
+        DuckDB
+    end
+    
+    subgraph ModTrain["Linear Regression"]
+        DuckDB --> LinReg["create<br><code>model</code>"]
+        LinReg
+    end
+    
+    subgraph MLOps["MLOps"]
+        LinReg --> VetMod["create<br><code>VetiverModel()</code>"]
+        VetMod --> Pins["save to<br><code>pins</code> board"]
+        Pins --> VetAPI["create<br><code>VetiverAPI()</code>"]
+    end
+    
+    style ModTrain fill:#e1f5fe
+    style MLOps fill:#f3e5f5
+    style VetAPI fill:#e8f5e8
+```
 
 ### app-api.R 
 
+When we initially launch the app, we'll see the following error: 
+
+```{verbatim}
+Warning: Error in httr2::req_perform: Failed to perform HTTP request.
+Caused by error in `curl::curl_fetch_memory()`:
+! Could not connect to server [127.0.0.1]:
+Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server
+  163: <Anonymous>
+  162: signalCondition
+  161: signal_abort
+  160: cnd_signal
+  159: handle_resp
+  158: httr2::req_perform
+  154: eventReactiveValueFunc
+  102: pred
+  101: renderText
+  100: func
+   87: renderFunc
+   86: output$pred
+    1: runApp
+```
+
+
 ### app-api.py
+
+## Databases 
+
+Most of the databases I encounter are either Microsoft SQL Server or PostgreSQL, and users connect with the `DBI` and `odbc` packages. 
 
 ## eda-db.qmd
 

@@ -1,6 +1,10 @@
 # Lab 2 {.unnumbered}
 
 
+
+
+
+
 ```{r}
 #| label: common
 #| include: false
@@ -23,7 +27,15 @@ co_box(
 )
 ```
 
+
+
+
+
 Lab 2 introduces the[ `vetiver` package](https://rstudio.github.io/vetiver-r/) for modeling. 
+
+
+
+
 
 ```{r}
 #| collapse: true
@@ -33,9 +45,17 @@ fs::dir_tree(path = "_labs/lab2/")
 ## └── model-vetiver.qmd
 ```
 
+
+
+
+
 ## Comprehension Questions
 
 1. What are the layers of a three-layer application architecture? What libraries could you use to implement a three-layer architecture in R or Python?
+
+
+
+
 
 ```{=html}
 <style>
@@ -70,6 +90,10 @@ flowchart TD
         Data
     end
 ```
+
+
+
+
 
 *2. What are some questions you should explore to reduce the data requirements for your project?*
 
@@ -114,6 +138,10 @@ The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) a
 
 We'll use the `reticulate` package below to install the other packages in the `model-vetiver.qmd` lab. 
 
+
+
+
+
 ```{r}
 #| results: hide
 #| message: false 
@@ -127,7 +155,15 @@ virtualenv_install(
                 "pins"))
 ```
 
+
+
+
+
 Now we can import the Python packages/functions. 
+
+
+
+
 
 ```{python}
 from palmerpenguins import load_penguins
@@ -138,9 +174,17 @@ from sklearn import preprocessing
 import duckdb
 ```
 
+
+
+
+
 ### Using `duckdb`
 
 The code below establishes a connection to a `duckdb` database. 
+
+
+
+
 
 ```{r}
 #| label: co_box_duckdb
@@ -175,14 +219,30 @@ NameError: name 'df' is not defined
 )
 ```
 
+
+
+
+
 Below we **load the penguins data**, connect to `duckdb`, then create the table:
+
+
+
+
 
 ```{python}
 penguins_data = load_penguins()
 con = duckdb.connect('my-db.duckdb')
 ```
 
+
+
+
+
 The `load_penguins()` function put the penguins data into a DataFrame, then we can insert it into DuckDB *before* querying:
+
+
+
+
 
 ```{python}
 con.execute("CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
@@ -190,15 +250,31 @@ df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
 con.close()
 ```
 
+
+
+
+
 Confirm the data: 
+
+
+
+
 
 ```{python}
 df.head(3)
 ```
 
+
+
+
+
 ### Create a `model`
 
 The model is created below (like lab 1). 
+
+
+
+
 
 ```{python}
 X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
@@ -207,9 +283,17 @@ y = df['body_mass_g']
 model = LinearRegression().fit(X, y)
 ```
 
+
+
+
+
 ### Print `model` information
 
 This will print the model information. 
+
+
+
+
 
 ```{python}
 print(f"R^2 {model.score(X,y)}")
@@ -218,9 +302,17 @@ print(f"Columns {X.columns}")
 print(f"Coefficients {model.coef_}")
 ```
 
+
+
+
+
 ## `model` -> `VetiverModel`
 
 The model is created with `VetiverModel()`, which is a **wrapper class** that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.
+
+
+
+
 
 ```{python}
 from vetiver import VetiverModel
@@ -280,9 +372,17 @@ flowchart LR
     
 ```
 
+
+
+
+
 ### What are `pins` boards? 
 
 In this version, we're going to save our `pins` board to a temporary location (`f"{temp_dir}/models"`), but in the lab, we'll create the directory before creating the board. 
+
+
+
+
 
 ```{mermaid}
 %%| fig-cap: 'board_folder()'
@@ -316,7 +416,6 @@ flowchart LR
 
 ```
 
-
 ```{python}
 import tempfile
 from pins import board_folder
@@ -326,12 +425,20 @@ temp_dir = tempfile.mkdtemp() #<1>
 model_board = board_folder(f"{temp_dir}/models", allow_pickle_read=True) #<2> 
 vetiver_pin_write(model_board, v)
 ```
+
+
+
+
 1. Use temp directory  
 2. `allow_pickle_read` allows reading Python pickle files (needed for `scikit-learn` models) 
 
 -  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models).
 
 -  **`vetiver_pin_write()`** receives the `model_board`, which is our `board_folder` object pointing to `temp_dir/models` and `v` (our `VetiverModel` wrapping the `LinearRegression`). 
+
+
+
+
 
 ```{python}
 print(f"Model saved to: {temp_dir}/models")
@@ -360,15 +467,31 @@ def print_tree(directory, prefix="", max_depth=None, current_depth=0):
             print_tree(path, prefix + extension, max_depth, current_depth + 1)
 ```
 
+
+
+
+
 Below is a tree of the model folder: 
+
+
+
+
 
 ```{python}
 print_tree(f"{temp_dir}/models")
 ```
 
+
+
+
+
 ### What is in `penguin_model/`?
 
 The `penguin_model` board folder is described below: 
+
+
+
+
 
 ```{verbatim}
 └── penguin_model #<1> 
@@ -376,12 +499,20 @@ The `penguin_model` board folder is described below:
         ├── data.txt  #<3> 
         └── penguin_model.joblib #<4>
 ```
+
+
+
+
 1. `pin` name directory   
 2. Version directory timestamp + hash   
 3. Model metadata (what, when, how big)   
 4. Serialized model (the actual trained model + `VetiverModel` wrapper with all the prediction logic)
 
 The board folder handles versioning automatically and manages metadata about what's stored.
+
+
+
+
 
 ```{mermaid}
 %%| fig-cap: 'vetiver_pin_write()'
@@ -410,16 +541,32 @@ flowchart LR
     style VPR fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
 ```
 
+
+
+
+
 ## `VetiverModel` -> `VetiverAPI`
 
 Finally, we'll turn the model into an API. 
+
+
+
+
 
 ```{python}
 from vetiver import VetiverAPI
 app = VetiverAPI(v, check_prototype = True)
 ```
 
+
+
+
+
 **`VetiverAPI()`** creates a production-ready web API that wraps the trained model, validates inputs, and returns predictions via HTTP. 
+
+
+
+
 
 ```{mermaid}
 %%| fig-cap: 'VetiverAPI()'
@@ -446,5 +593,9 @@ flowchart LR
     style GetProto fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
     style GetMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
 ```
+
+
+
+
 
 This makes our model accessible to any application that can make web requests, which we will cover in the next lab. 
