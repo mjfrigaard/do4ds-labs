@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-11">
+<meta name="dcterms.date" content="2025-08-14">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App API – do4ds-labs</title>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -43,6 +77,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-9e0e691ba9d940ea6a8e6359c703bc08.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -70,6 +107,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -199,9 +240,20 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#sec-app-api-r" id="toc-sec-app-api-r" class="nav-link active" data-scroll-target="#sec-app-api-r">app-api.R</a></li>
-  <li><a href="#sec-r-data-load-r" id="toc-sec-r-data-load-r" class="nav-link" data-scroll-target="#sec-r-data-load-r">r-data-load.R</a></li>
-  <li><a href="#sec-eda-db.qmd" id="toc-sec-eda-db.qmd" class="nav-link" data-scroll-target="#sec-eda-db.qmd">eda-db.qmd</a></li>
+  <li><a href="#initial-launch" id="toc-initial-launch" class="nav-link active" data-scroll-target="#initial-launch">Initial launch</a></li>
+  <li><a href="#api" id="toc-api" class="nav-link" data-scroll-target="#api">API</a>
+  <ul>
+  <li><a href="#start-the-api" id="toc-start-the-api" class="nav-link" data-scroll-target="#start-the-api">Start the API</a></li>
+  </ul></li>
+  <li><a href="#app" id="toc-app" class="nav-link" data-scroll-target="#app">App</a>
+  <ul>
+  <li><a href="#reactive-values" id="toc-reactive-values" class="nav-link" data-scroll-target="#reactive-values">Reactive values</a></li>
+  <li><a href="#predictions" id="toc-predictions" class="nav-link" data-scroll-target="#predictions">Predictions</a></li>
+  </ul></li>
+  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a>
+  <ul>
+  <li><a href="#back-in-the-api" id="toc-back-in-the-api" class="nav-link" data-scroll-target="#back-in-the-api">Back in the API</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -221,7 +273,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-11</p>
+      <p class="date">2025-08-14</p>
     </div>
   </div>
   
@@ -233,8 +285,356 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="sec-app-api-r" class="level2">
-<h2 class="anchored" data-anchor-id="sec-app-api-r">app-api.R</h2>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
+<section id="initial-launch" class="level2">
+<h2 class="anchored" data-anchor-id="initial-launch">Initial launch</h2>
+<p>The application and API need a little attention to get working. When I tried to initially run the app, I get the following error:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: Failed to perform HTTP request.</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Caused by error in `curl::curl_fetch_memory()`:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>! Could not connect to server [127.0.0.1]:</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  163: &lt;Anonymous&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  162: signalCondition</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  161: signal_abort</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  160: cnd_signal</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  159: handle_resp</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  158: httr2::req_perform</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  154: eventReactiveValueFunc</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  102: pred</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  101: renderText</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  100: func</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>   87: renderFunc</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>   86: output$pred</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    1: runApp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This is because we need to have the model API running in order to make requests from the app. To do this, I recommend reorganizing the API and app files into separate directories.</p>
+<div class="sourceCode" id="annotated-cell-2"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a>_labs/lab3/R</span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a>├── api</span>
+<span id="annotated-cell-2-4"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a>│   ├── api.Rproj</span>
+<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a>│   └── mod-api.R</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-6" class="code-annotation-target"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a>├── app</span>
+<span id="annotated-cell-2-7"><a href="#annotated-cell-2-7" aria-hidden="true" tabindex="-1"></a>│   ├── app-api.R</span>
+<span id="annotated-cell-2-8"><a href="#annotated-cell-2-8" aria-hidden="true" tabindex="-1"></a>│   └── app.Rproj</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="3">3</button><span id="annotated-cell-2-9" class="code-annotation-target"><a href="#annotated-cell-2-9" aria-hidden="true" tabindex="-1"></a>├── eda-db.qmd</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="4">4</button><span id="annotated-cell-2-10" class="code-annotation-target"><a href="#annotated-cell-2-10" aria-hidden="true" tabindex="-1"></a>└── r-data-load.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="3,5" data-code-annotation="1"><code>vetiver</code> model API<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="6,8" data-code-annotation="2"><code>shiny</code> application<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="9" data-code-annotation="3">EDA of <code>palmerpenguins</code> data using <code>dplyr</code> and <code>ggplot2</code><br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="10" data-code-annotation="4">Load <code>palmerpenguins</code> data into <code>duckdb</code></span>
+</dd>
+</dl>
+</section>
+<section id="api" class="level2">
+<h2 class="anchored" data-anchor-id="api">API</h2>
+<p>The <a href="https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R"><code>labs/lab3/R/api/mod-api.R</code> file</a> contains the following:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vetiver)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pins)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to model board</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"../../../lab2/R/models/"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># read pinned vetiver model</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> vetiver<span class="sc">::</span><span class="fu">vetiver_pin_read</span>(model_board, <span class="st">"penguin_model"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># use plumber/vetiver to create router/create API</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> plumber<span class="sc">::</span><span class="fu">pr</span>() <span class="sc">|&gt;</span> vetiver<span class="sc">::</span><span class="fu">vetiver_api</span>(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="start-the-api" class="level3">
+<h3 class="anchored" data-anchor-id="start-the-api">Start the API</h3>
+<p>The API will keep running when you run the app.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>app <span class="sc">|&gt;</span> plumber<span class="sc">::</span><span class="fu">pr_run</span>(<span class="at">port =</span> <span class="dv">8080</span>, <span class="at">host =</span> <span class="st">"127.0.0.1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-plumber-router.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="plumber API for vetiver model"><img src="img/lab3-r-plumber-router.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="plumber API for vetiver model"></a></p>
+</figure>
+</div>
+<figcaption><code>plumber</code> API for <code>vetiver</code> model</figcaption>
+</figure>
+</div>
+<p>Now we have a working API! We’ll explore the UI in the sections below. Let’s launch the app.</p>
+</section>
+</section>
+<section id="app" class="level2">
+<h2 class="anchored" data-anchor-id="app">App</h2>
+<p>I’ve made a few changes to the UI layout in <code>app-api.R</code>, so when I launched the app in a new RStudio session I see the following:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-shiny-launch.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Launch app-api.R"><img src="img/lab3-r-shiny-launch.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Launch app-api.R"></a></p>
+</figure>
+</div>
+<figcaption>Launch <code>app-api.R</code></figcaption>
+</figure>
+</div>
+<p>View the UI changes below:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide UI changes to app-api.R</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">page_sidebar</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Penguin Mass Predictor"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">theme =</span> <span class="fu">bs_theme</span>(<span class="at">bootswatch =</span> <span class="st">"sketchy"</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">sidebar =</span> <span class="fu">sidebar</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sliderInput</span>(<span class="at">inputId =</span> <span class="st">"bill_length"</span>, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Bill Length (mm)"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="dv">30</span>, </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">max =</span> <span class="dv">60</span>, </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">value =</span> <span class="dv">45</span>, </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">step =</span> <span class="dv">1</span>),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(<span class="at">inputId =</span> <span class="st">"sex"</span>, </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Sex"</span>, </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"Female"</span>), </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Male"</span>),</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"species"</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Species"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Adelie"</span>),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">actionButton</span>(</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"predict"</span>, </span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Predict"</span>, </span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">"btn-primary"</span>)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">verbatimTextOutput</span>(<span class="st">"vals"</span>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="st">"pred"</span>),</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">5</span>)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>But clicking <strong>Predict</strong> originally produced the following error:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>HTTP 500 Internal Server Error.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>In the API session, we also see an error:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;error/rlang_error&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Error in `hardhat::validate_column_names()`:</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>! `data` must be a data frame or a matrix, not a list.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>These errors are pretty clear: The <code>httr2::req_body_json()</code> function is sending the data as a JSON list, but the <code>vetiver</code> API expects a data frame or a matrix structure.</p>
+<p>We can fix this in the application server by changing the format of the values sent to the API.</p>
+<section id="reactive-values" class="level3">
+<h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
+<p>Our error tells us <code>'data' should be a data frame or a matrix</code>, so we’ll convert <code>vals()</code> to a single-row <code>data.frame</code> and format the categorical values as numeric (not logical).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="predictions" class="level3">
+<h3 class="anchored" data-anchor-id="predictions">Predictions</h3>
+<p>The predictions in the server require three changes:</p>
+<ol type="1">
+<li><p>The <code>httr2::req_body_json()</code> can convert <code>vals()</code> into a JSON array structure instead of a flat object (which is the format <code>vetiver</code> expects).</p></li>
+<li><p>Add <code>httr2::req_method("POST")</code> so the <code>POST</code> method is explicit.</p></li>
+<li><p>Finally, we’ll create a <code>response</code> object and return <code>response$.pred[1]</code> (i.e., only the predictions).</p></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">eventReactive</span>(input<span class="sc">$</span>predict, {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data) <span class="sc">|&gt;</span>  </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>.pred[<span class="dv">1</span>]</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="verify" class="level2">
+<h2 class="anchored" data-anchor-id="verify">Verify</h2>
+<p>Now when we launch the app, the preview of the parameters are in a <code>data.frame</code> (not a list):</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-shiny-data-frame.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Parameters as data.frame()"><img src="img/lab3-r-shiny-data-frame.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Parameters as data.frame()"></a></p>
+</figure>
+</div>
+<figcaption>Parameters as <code>data.frame()</code></figcaption>
+</figure>
+</div>
+<p>When we click <strong>Predict</strong>, we see the value is returned:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-shiny-api-req.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="API request (with predictions returned)"><img src="img/lab3-r-shiny-api-req.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="API request (with predictions returned)"></a></p>
+</figure>
+</div>
+<figcaption>API request (with predictions returned)</figcaption>
+</figure>
+</div>
+<section id="back-in-the-api" class="level3">
+<h3 class="anchored" data-anchor-id="back-in-the-api">Back in the API</h3>
+<p>If we return to the plumber UI, we can click on <strong>Return predictions from model using 4 features</strong>, change the JSON values to match our parameters in the app, and click <strong>TRY</strong>:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-plumber-req-body.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="plumber API request body"><img src="img/lab3-r-plumber-req-body.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="plumber API request body"></a></p>
+</figure>
+</div>
+<figcaption><code>plumber</code> API request body</figcaption>
+</figure>
+</div>
+<p>And we can compare the response to the value we saw in the app:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-r-plumber-response.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="plumber API response"><img src="img/lab3-r-plumber-response.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="plumber API response"></a></p>
+</figure>
+</div>
+<figcaption><code>plumber</code> API response</figcaption>
+</figure>
+</div>
+<p>A diagram of the user inputs (i.e., the <strong>Predict</strong> button), reactives, and the API request is below:</p>
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph TD
+    subgraph Inputs["User Inputs"]
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
+    I4[/"input$predict"/]
+    end
+
+    subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
+        Req("&lt;code&gt;request()&lt;/code&gt;") --"Creates HTTP&lt;br&gt;request object"--&gt; Meth("&lt;code&gt;req_method()&lt;/code&gt;")
+        Meth --"Changes HTTP&lt;br&gt;method from&lt;br&gt;GET to POST"--&gt; BodyJson1("&lt;code&gt;req_body_json()&lt;/code&gt;")
+        BodyJson1 --"Converts data.frame&lt;br&gt;to JSON &amp; sets&lt;br&gt;request body"--&gt; Perform("&lt;code&gt;req_perform()&lt;/code&gt;")
+        Perform --"Sends HTTP&lt;br&gt;request to&lt;br&gt;server &amp;&lt;br&gt;waits for&lt;br&gt;response"--&gt; BodyJson2("&lt;code&gt;resp_body_json()&lt;/code&gt;")
+    end
+
+    subgraph PredReact["&lt;strong&gt;pred()&lt;/strong&gt;"]
+        Res(["&lt;strong&gt;response$.pred[1]&lt;/strong&gt;"])
+    end
+    
+    ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;&lt;br&gt;(in &lt;code&gt;data.frame&lt;/code&gt;)"])
+    BodyJson2 --"Extracts JSON&lt;br&gt;response body&lt;br&gt;&amp; converts to&lt;br&gt;R object"--&gt; PredReact
+    
+    I1 --&gt; ValsReact
+    I2 --&gt; ValsReact
+    I3 --&gt; ValsReact
+    I4 --"&lt;code&gt;eventReactive()&lt;/code&gt;"--&gt; Pred
+    
+    ValsReact --"as&lt;br&gt;&lt;code&gt;request_data&lt;/code&gt;"--&gt; BodyJson1
+    ValsReact --&gt; RenPrnt[\"&lt;strong&gt;renderPrint()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;vals()&lt;/code&gt;"\]
+    PredReact -.-&gt; RenTxt[\"&lt;strong&gt;renderText()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;pred()&lt;/code&gt;"\]
+
+    %% Style for functions %%
+    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    %% Style for reactives %%
+    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    
+    %% Style for result %%
+    style Res fill:#e8f5e8,stroke:#000,color:#000
+    
+    %% style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    %% style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+</pre>
+</div>
+<p></p><figcaption> Input Dependencies</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<div class="cell" data-eval="false" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+</div>
+<p></p><figcaption> App &amp; API</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>To view the original code in <code>app-api.R</code>, expand the section below:</p>
 <details>
 <summary>
 Expand to view app-api.R
@@ -316,81 +716,9 @@ shinyApp(ui = ui, server = server)</code></pre>
 </div>
 </div>
 </details>
+
+
 </section>
-<section id="sec-r-data-load-r" class="level2">
-<h2 class="anchored" data-anchor-id="sec-r-data-load-r">r-data-load.R</h2>
-<details>
-<summary>
-Expand to view r-data-load.R
-</summary>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>con &lt;- DBI::dbConnect(duckdb::duckdb(), dbdir = "my-db.duckdb")
-DBI::dbWriteTable(con, "penguins", palmerpenguins::penguins)
-DBI::dbDisconnect(con)</code></pre>
-</div>
-</div>
-</details>
-</section>
-<section id="sec-eda-db.qmd" class="level2">
-<h2 class="anchored" data-anchor-id="sec-eda-db.qmd">eda-db.qmd</h2>
-<details>
-<summary>
-Expand to view eda-db.qmd
-</summary>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>---
-title: "Penguins EDA"
-format:
-  html:
-    code-fold: true
----
-
-## *Penguin Size and Mass by Sex and Species*
-
-```{r}
-library(dplyr)
-library(ggplot2)
-library(dbplyr)
-
-con &lt;- DBI::dbConnect(
-  duckdb::duckdb(), 
-  dbdir = "my-db.duckdb"
-  )
-df &lt;- dplyr::tbl(con, "penguins")
-```
-
-```{r}
-df %&gt;%
-  group_by(species, sex) %&gt;%
-  summarise(
-    across(
-        ends_with("mm") | ends_with("g"),
-      \(x) mean(x, na.rm = TRUE)
-      )
-    ) %&gt;%
-  dplyr::collect() %&gt;%
-  knitr::kable()
-```
-
-## *Penguin Size vs Mass by Species*
-
-```{r}
-df %&gt;%
-  ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +
-  geom_point() + 
-  geom_smooth(method = "lm")
-```
-
-```{r}
-DBI::dbDisconnect(con)
-```</code></pre>
-</div>
-</div>
-</details>
-
-
 </section>
 
 </main> <!-- /main -->
@@ -863,6 +1191,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
