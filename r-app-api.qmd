@@ -75,7 +75,7 @@ _labs/lab3/R
 
 ## API 
 
-The [`labs/lab3/R/api/mod-api.R` file]() contains the following: 
+The [`labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following: 
 
 ```{r}
 #| eval: false
@@ -108,21 +108,66 @@ Now we have a working API! We'll explore the UI in the sections below. Let's lau
 
 ## App 
 
-I've moved the application file (`app-api.R`) into the following directory: 
-
-```{verbatim}
-_labs/lab3/R/app
-├── app-api.R
-└── app.Rproj
-
-1 directory, 2 files
-```
-
-### Run 
-
-After opening the `app-api.R` file in a new RStudio session and launching the app I see the following: 
+I've made a few changes to the UI layout in `app-api.R`, so when I launched the app in a new RStudio session I see the following: 
 
 ![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align='center' width='100%'}
+
+View the UI changes below: 
+
+```{r}
+#| eval: false 
+#| code-fold: true 
+#| code-summary: 'show/hide UI changes to app-api.R'
+ui <- page_sidebar(
+  title = "Penguin Mass Predictor",
+  theme = bs_theme(bootswatch = "sketchy"),
+  sidebar = sidebar(
+    sliderInput(inputId = "bill_length", 
+      label = "Bill Length (mm)",
+      min = 30, 
+      max = 60, 
+      value = 45, 
+      step = 1),
+    selectInput(inputId = "sex", 
+      label = "Sex", 
+      choices = c("Male", "Female"), 
+      selected = "Male"),
+    selectInput(
+      inputId = "species",
+      label = "Species",
+      choices = c("Adelie", "Chinstrap", "Gentoo"),
+      selected = "Adelie"),
+    actionButton(
+      inputId = "predict", 
+      label = "Predict", 
+      class = "btn-primary")
+  ),
+  
+  layout_columns(
+    card(
+      card_header("Penguin Parameters"),
+      card_body(
+      verbatimTextOutput("vals")
+      )
+    ),
+    card(
+      card_header("Predicted Mass"),
+      card_body(
+        value_box(
+          showcase_layout = "left center",
+          title = "Grams",
+          value = textOutput("pred"),
+          showcase = bs_icon("graph-up"),
+          max_height = "200px",
+          min_height = "200px",
+        )
+      )
+    ),
+    col_widths = c(7, 5)
+  )
+)
+```
+
 
 But clicking **Predict** originally produced the following error: 
 
@@ -167,7 +212,7 @@ The predictions in the server require three changes:
 
 2. Add `httr2::req_method("POST")` so the `POST` method is explicit.  
 
-3. Finally, we'll create a `response` object and only return `$.pred[1]` (i.e., the predictions).
+3. Finally, we'll create a `response` object and return `response$.pred[1]` (i.e., only the predictions).
 
 ```{r}
 #| eval: false
@@ -183,7 +228,27 @@ pred <- eventReactive(input$predict, {
   }, ignoreInit = TRUE)
 ```
 
-A diagram of the reactive flow of User inputs and the **Predict** button API request is below: 
+## Verify
+
+Now when we launch the app, the preview of the parameters are in a `data.frame` (not a list):
+
+![Parameters as `data.frame()`](img/lab3-r-shiny-data-frame.png){fig-align='center' width='100%'}
+
+When we click **Predict**, we see the value is returned: 
+
+![API request (with predictions returned)](img/lab3-r-shiny-api-req.png){fig-align='center' width='100%'}
+
+### Back in the API 
+
+If we return to the plumber UI, we can click on **Return predictions from model using 4 features**, change the JSON values to match our parameters in the app, and click **TRY**:
+
+![`plumber` API request body](img/lab3-r-plumber-req-body.png){fig-align='center' width='100%'}
+
+And we can compare the response to the value we saw in the app:
+
+![`plumber` API response](img/lab3-r-plumber-response.png){fig-align='center' width='100%'}
+
+A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below: 
 
 ```{=html}
 <style>
@@ -192,8 +257,8 @@ A diagram of the reactive flow of User inputs and the **Predict** button API req
   font-family: monospace;
   font-size: 1.5em;
   font-weight: bold;
-  color: #9753b8 !important;
-  background-color: #f6f6f6;
+  color: #d80808 !important;
+  background-color: #ffffff;
   padding: 0.2em;
 }
 </style>
@@ -202,51 +267,55 @@ A diagram of the reactive flow of User inputs and the **Predict** button API req
 ```{mermaid}
 %%| fig-cap: 'Input Dependencies'
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 graph TD
     subgraph Inputs["User Inputs"]
-    I1("input$bill_length")
-    I2("input$species")
-    I3("input$sex")
-    I4("input$predict")
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
+    I4[/"input$predict"/]
     end
 
     subgraph Pred["<strong>Predict</strong>"]
-        Req("request()") --"Creates HTTP<br>request object"--> Meth("req_method()")
-        Meth --"Changes HTTP<br>method from<br>GET to POST"--> BodyJson1("req_body_json()")
-        BodyJson1 --"Converts data.frame<br>to JSON & sets<br>request body"--> Perform("req_perform()")
-        Perform --"Sends the HTTP<br>request to<br>server & waits<br>for response"--> BodyJson2("resp_body_json()")
+        Req("<code>request()</code>") --"Creates HTTP<br>request object"--> Meth("<code>req_method()</code>")
+        Meth --"Changes HTTP<br>method from<br>GET to POST"--> BodyJson1("<code>req_body_json()</code>")
+        BodyJson1 --"Converts data.frame<br>to JSON & sets<br>request body"--> Perform("<code>req_perform()</code>")
+        Perform --"Sends HTTP<br>request to<br>server &<br>waits for<br>response"--> BodyJson2("<code>resp_body_json()</code>")
     end
-    
-    
 
-    subgraph PredReact["pred()"]
-        Res(["<code>response$.pred[1]</code>"])
+    subgraph PredReact["<strong>pred()</strong>"]
+        Res(["<strong>response$.pred[1]</strong>"])
     end
     
-    ValsReact(["vals()"])
+    ValsReact(["<strong>vals()</strong><br>(in <code>data.frame</code>)"])
+    BodyJson2 --"Extracts JSON<br>response body<br>& converts to<br>R object"--> PredReact
+    
     I1 --> ValsReact
     I2 --> ValsReact
     I3 --> ValsReact
     I4 --"<code>eventReactive()</code>"--> Pred
     
-    ValsReact --"<code>data.frame</code>"--> BodyJson1
+    ValsReact --"as<br><code>request_data</code>"--> BodyJson1
+    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><code>vals()</code>"\]
+    PredReact -.-> RenTxt[\"<strong>renderText()</strong><br><code>pred()</code>"\]
 
-    BodyJson2 --"Extracts the<br>JSON response<br>body & converts<br>to R object"--> Res
+    %% Style for functions %%
+    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    style ValsReact fill:#e1f5fe
-    style PredReact fill:#fff3e0
-    style Res fill:#e8f5e8
-    %% style Req fill:#f3e5f5
+    %% Style for reactives %%
+    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    
+    %% Style for result %%
+    style Res fill:#e8f5e8,stroke:#000,color:#000
+    
+    %% style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    %% style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
 ```
-
-## Verify
-
-How do we know this API is working? We can change the values in the 
-
-
-
-
 
 ```{mermaid}
 %%| fig-cap: 'App & API'
