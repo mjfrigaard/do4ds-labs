@@ -37,7 +37,7 @@ fs::dir_tree(path = "_labs/lab3/")
 ## └── r-data-load.R
 ```
 
-In the previous labs, we build a model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
+In the previous labs, we build a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
 
 ## APIs 
 
@@ -69,35 +69,8 @@ APIs have standardized language that allows different software systems to commun
 3. What you'll get back (response format)   
 4. When things go wrong (error codes)  
 
-In the previous lab we turned our model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`:
+We previously turned our Python model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`. I've also completed these steps in R, which can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/R/model-vetiver-r.qmd). 
 
-```{mermaid}
-%%| fig-cap: 'Our pipeline'
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
-graph LR
-    subgraph DataPrep["Data Preparation"]
-        Penguins["<code>penguins</code><br>data"] --> DuckDB["put in<br><code>duckdb</code>"]
-        DuckDB
-    end
-    
-    subgraph ModTrain["Linear Regression"]
-        DuckDB --> LinReg["create<br><code>model</code>"]
-        LinReg
-    end
-    
-    subgraph MLOps["MLOps"]
-        LinReg --> VetMod["create<br><code>VetiverModel()</code>"]
-        VetMod --> Pins["save to<br><code>pins</code> board"]
-        Pins --> VetAPI["create<br><code>VetiverAPI()</code>"]
-    end
-    
-    style ModTrain fill:#e1f5fe
-    style MLOps fill:#f3e5f5
-    style VetAPI fill:#e8f5e8
-```
-
-I've also completed these steps in R, which can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/R/model-vetiver-r.qmd). 
 
 The sections below cover how to create and communicate with APIs.  I've split each lab into separate `R/` and `Python/` folders and included RStudio project files. 
 
@@ -342,17 +315,179 @@ fs::dir_tree(path = "_labs/lab3/Python/")
 ## └── py-data-load.py
 ```
 
-### model-db.qmd
+### model-db.qmd {#sec-model-db}
 
 The [model-db.qmd](_labs/lab3/model-db.qmd) file contains the EDA from [lab 1](lab1.qmd).
 
-### app-api.py
+```{python}
+#| eval: false
+#| code-fold: false
+import duckdb
+from pandas import get_dummies
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+```
 
-`app-api.py` creates an Python Shiny application that calls the `vetiver` API. 
+```{python}
+#| eval: false
+#| code-fold: false
+con = duckdb.connect('my-db.duckdb')
+df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
+con.close()
 
-### py-data-load.py 
+df.head(3)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
+y = df['body_mass_g']
+
+model = LinearRegression().fit(X, y)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+print(f"R^2 {model.score(X,y)}")
+print(f"Intercept {model.intercept_}")
+print(f"Columns {X.columns}")
+print(f"Coefficients {model.coef_}")
+```
+
+<details>
+  <summary>Expand to view model-db.qmd</summary>
+  
+```{r}
+#| label: print-model-db-qmd
+#| echo: false
+#| code-overflow: wrap
+library(readr)
+readr::read_lines("_labs/lab3/model-db.qmd") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
+
+### app-api.py {#sec-app-api-py}
+
+`app-api.py` creates an Python Shiny application that calls the `vetiver` API.
+
+#### UI 
+
+```{python}
+#| eval: false
+#| code-fold: false
+from shiny import App, render, ui, reactive
+import requests
+
+api_url = 'http://127.0.0.1:8080/predict'
+
+app_ui = ui.page_fluid(
+    ui.panel_title("Penguin Mass Predictor"), 
+    ui.layout_sidebar(
+        ui.panel_sidebar(
+            [ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step = 0.1),
+            ui.input_select("sex", "Sex", ["Male", "Female"]),
+            ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
+            ui.input_action_button("predict", "Predict")]
+        ),
+        ui.panel_main(
+            ui.h2("Penguin Parameters"),
+            ui.output_text_verbatim("vals_out"),
+            ui.h2("Predicted Penguin Mass (g)"), 
+            ui.output_text("pred_out")
+        )
+    )   
+)
+```
 
 
+#### Server
+
+```{python}
+#| eval: false
+#| code-fold: false
+def server(input, output, session):
+    @reactive.Calc
+    def vals():
+        d = {
+            "bill_length_mm" : input.bill_length(),
+            "sex_Male" : input.sex() == "Male",
+            "species_Gentoo" : input.species() == "Gentoo", 
+            "species_Chinstrap" : input.species() == "Chinstrap"
+
+        }
+        return d
+    
+    @reactive.Calc
+    @reactive.event(input.predict)
+    def pred():
+        r = requests.post(api_url, json = vals())
+        return r.json().get('predict')[0]
+
+    @output
+    @render.text
+    def vals_out():
+        return f"{vals()}"
+
+    @output
+    @render.text
+    def pred_out():
+        return f"{round(pred())}"
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+app = App(app_ui, server)
+```
+
+<details>
+  <summary>Expand to view app-api.py</summary>
+
+```{r}
+#| label: print-app-api-py
+#| echo: false
+library(readr)
+readr::read_lines("_labs/lab3/app-api.py") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
+
+### py-data-load.py {#sec-py-data-load-py}
+
+```{python}
+#| eval: false
+#| code-fold: false
+import duckdb
+from palmerpenguins import penguins
+
+con = duckdb.connect('my-db.duckdb')
+df = penguins.load_penguins()
+con.execute('CREATE TABLE penguins AS SELECT * FROM df')
+con.close()
+```
+
+<details>
+  <summary>Expand to view py-data-load.py</summary>
+
+```{r}
+#| label: print-py-data-load-py
+#| echo: false
+#| code-overflow: wrap
+library(readr)
+readr::read_lines("_labs/lab3/py-data-load.py") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
 
 
 

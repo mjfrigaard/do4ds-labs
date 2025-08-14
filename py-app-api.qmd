@@ -1,51 +1,68 @@
 # <em>Python App API</em> {.unnumbered}
 
-## app-api.py {#sec-app-api-py}
-
-<details>
-  <summary>Expand to view app-api.py</summary>
-
 ```{r}
-#| label: print-app-api-py
-#| echo: false
-library(readr)
-readr::read_lines("_labs/lab3/app-api.py") |> 
-  base::noquote() |> 
-  writeLines()
+#| label: common
+#| include: false
+source("_common.R")
 ```
 
-</details>
-
-## py-data-load.py {#sec-py-data-load-py}
-
-<details>
-  <summary>Expand to view py-data-load.py</summary>
-
 ```{r}
-#| label: print-py-data-load-py
+#| label: co_box_rev
 #| echo: false
-#| code-overflow: wrap
-library(readr)
-readr::read_lines("_labs/lab3/py-data-load.py") |> 
-  base::noquote() |> 
-  writeLines()
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.00", 
+  header = "Caution", 
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
 ```
 
-</details>
+In [lab 2](lab2.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`:
 
-## model-db.qmd {#sec-model-db}
-
-<details>
-  <summary>Expand to view model-db.qmd</summary>
-  
-```{r}
-#| label: print-model-db-qmd
-#| echo: false
-#| code-overflow: wrap
-library(readr)
-readr::read_lines("_labs/lab3/model-db.qmd") |> 
-  base::noquote() |> 
-  writeLines()
+```{mermaid}
+%%| fig-cap: 'Our Python model pipeline'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph LR
+    subgraph DataPrep["<strong>Data Preparation</strong>"]
+        Penguins["<code>penguins</code><br>data"] --> DuckDB["put in<br><code>duckdb</code>"]
+        DuckDB
+    end
+    
+    subgraph ModTrain["<strong>Linear Regression</strong>"]
+        DuckDB --> LinReg["create <code>scikit-learn</code><br>model"]
+        LinReg
+    end
+    
+    subgraph MLOps["<strong>MLOps</strong>"]
+        LinReg --> VetMod["create<br><code>VetiverModel()</code>"]
+        VetMod --> Pins["save to<br><code>pins</code> board"]
+        Pins --> VetAPI["create<br><code>VetiverAPI()</code>"]
+    end
+    
+    style ModTrain fill:#e1f5fe
+    style MLOps fill:#f3e5f5
+    style VetAPI fill:#e8f5e8
 ```
 
-</details>
+## Initial launch
+
+## API 
+
+### Start the API
+
+## App 
+
+### Reactive values 
+
+### Predictions
+
+## Verify
+
+### Back in the API 
+
