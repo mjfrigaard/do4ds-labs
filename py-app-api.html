@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-11">
+<meta name="dcterms.date" content="2025-08-14">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App API – do4ds-labs</title>
@@ -69,6 +69,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -198,9 +202,20 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#sec-app-api-py" id="toc-sec-app-api-py" class="nav-link active" data-scroll-target="#sec-app-api-py">app-api.py</a></li>
-  <li><a href="#sec-py-data-load-py" id="toc-sec-py-data-load-py" class="nav-link" data-scroll-target="#sec-py-data-load-py">py-data-load.py</a></li>
-  <li><a href="#sec-model-db" id="toc-sec-model-db" class="nav-link" data-scroll-target="#sec-model-db">model-db.qmd</a></li>
+  <li><a href="#initial-launch" id="toc-initial-launch" class="nav-link active" data-scroll-target="#initial-launch">Initial launch</a></li>
+  <li><a href="#api" id="toc-api" class="nav-link" data-scroll-target="#api">API</a>
+  <ul>
+  <li><a href="#start-the-api" id="toc-start-the-api" class="nav-link" data-scroll-target="#start-the-api">Start the API</a></li>
+  </ul></li>
+  <li><a href="#app" id="toc-app" class="nav-link" data-scroll-target="#app">App</a>
+  <ul>
+  <li><a href="#reactive-values" id="toc-reactive-values" class="nav-link" data-scroll-target="#reactive-values">Reactive values</a></li>
+  <li><a href="#predictions" id="toc-predictions" class="nav-link" data-scroll-target="#predictions">Predictions</a></li>
+  </ul></li>
+  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a>
+  <ul>
+  <li><a href="#back-in-the-api" id="toc-back-in-the-api" class="nav-link" data-scroll-target="#back-in-the-api">Back in the API</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -220,7 +235,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-11</p>
+      <p class="date">2025-08-14</p>
     </div>
   </div>
   
@@ -232,141 +247,82 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="sec-app-api-py" class="level2">
-<h2 class="anchored" data-anchor-id="sec-app-api-py">app-api.py</h2>
-<details>
-<summary>
-Expand to view app-api.py
-</summary>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>from shiny import App, render, ui, reactive
-import requests
-
-api_url = 'http://127.0.0.1:8080/predict'
-
-app_ui = ui.page_fluid(
-    ui.panel_title("Penguin Mass Predictor"), 
-    ui.layout_sidebar(
-        ui.panel_sidebar(
-            [ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step = 0.1),
-            ui.input_select("sex", "Sex", ["Male", "Female"]),
-            ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
-            ui.input_action_button("predict", "Predict")]
-        ),
-        ui.panel_main(
-            ui.h2("Penguin Parameters"),
-            ui.output_text_verbatim("vals_out"),
-            ui.h2("Predicted Penguin Mass (g)"), 
-            ui.output_text("pred_out")
-        )
-    )   
-)
-
-def server(input, output, session):
-    @reactive.Calc
-    def vals():
-        d = {
-            "bill_length_mm" : input.bill_length(),
-            "sex_Male" : input.sex() == "Male",
-            "species_Gentoo" : input.species() == "Gentoo", 
-            "species_Chinstrap" : input.species() == "Chinstrap"
-
-        }
-        return d
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
+<p>In <a href="./lab2.html">lab 2</a>, we created a Python model with <code>scikit-learn</code>, converted it into a <code>VetiverModel</code>, saved it in a <code>pins</code> board folder, then created a <code>VetiverAPI</code>:</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph LR
+    subgraph DataPrep["&lt;strong&gt;Data Preparation&lt;/strong&gt;"]
+        Penguins["&lt;code&gt;penguins&lt;/code&gt;&lt;br&gt;data"] --&gt; DuckDB["put in&lt;br&gt;&lt;code&gt;duckdb&lt;/code&gt;"]
+        DuckDB
+    end
     
-    @reactive.Calc
-    @reactive.event(input.predict)
-    def pred():
-        r = requests.post(api_url, json = vals())
-        return r.json().get('predict')[0]
-
-    @output
-    @render.text
-    def vals_out():
-        return f"{vals()}"
-
-    @output
-    @render.text
-    def pred_out():
-        return f"{round(pred())}"
-
-app = App(app_ui, server)</code></pre>
+    subgraph ModTrain["&lt;strong&gt;Linear Regression&lt;/strong&gt;"]
+        DuckDB --&gt; LinReg["create &lt;code&gt;scikit-learn&lt;/code&gt;&lt;br&gt;model"]
+        LinReg
+    end
+    
+    subgraph MLOps["&lt;strong&gt;MLOps&lt;/strong&gt;"]
+        LinReg --&gt; VetMod["create&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;"]
+        VetMod --&gt; Pins["save to&lt;br&gt;&lt;code&gt;pins&lt;/code&gt; board"]
+        Pins --&gt; VetAPI["create&lt;br&gt;&lt;code&gt;VetiverAPI()&lt;/code&gt;"]
+    end
+    
+    style ModTrain fill:#e1f5fe
+    style MLOps fill:#f3e5f5
+    style VetAPI fill:#e8f5e8
+</pre>
+</div>
+<p></p><figcaption> Our Python model pipeline</figcaption> </figure><p></p>
 </div>
 </div>
-</details>
+</div>
+<section id="initial-launch" class="level2">
+<h2 class="anchored" data-anchor-id="initial-launch">Initial launch</h2>
 </section>
-<section id="sec-py-data-load-py" class="level2">
-<h2 class="anchored" data-anchor-id="sec-py-data-load-py">py-data-load.py</h2>
-<details>
-<summary>
-Expand to view py-data-load.py
-</summary>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>import duckdb
-from palmerpenguins import penguins
-
-con = duckdb.connect('my-db.duckdb')
-df = penguins.load_penguins()
-con.execute('CREATE TABLE penguins AS SELECT * FROM df')
-con.close()</code></pre>
-</div>
-</div>
-</details>
+<section id="api" class="level2">
+<h2 class="anchored" data-anchor-id="api">API</h2>
+<section id="start-the-api" class="level3">
+<h3 class="anchored" data-anchor-id="start-the-api">Start the API</h3>
 </section>
-<section id="sec-model-db" class="level2">
-<h2 class="anchored" data-anchor-id="sec-model-db">model-db.qmd</h2>
-<details>
-<summary>
-Expand to view model-db.qmd
-</summary>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>---
-title: "Model"
-format:
-  html:
-    code-fold: true
----
-
-```{python}
-import duckdb
-from pandas import get_dummies
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn import preprocessing
-```
-
-## Get Data
-```{python}
-con = duckdb.connect('my-db.duckdb')
-df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
-con.close()
-
-df.head(3)
-```
-
-## Define Model and Fit
-```{python}
-X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
-y = df['body_mass_g']
-
-model = LinearRegression().fit(X, y)
-```
-
-## Get some information
-```{python}
-print(f"R^2 {model.score(X,y)}")
-print(f"Intercept {model.intercept_}")
-print(f"Columns {X.columns}")
-print(f"Coefficients {model.coef_}")
-```</code></pre>
-</div>
-</div>
-</details>
+</section>
+<section id="app" class="level2">
+<h2 class="anchored" data-anchor-id="app">App</h2>
+<section id="reactive-values" class="level3">
+<h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
+</section>
+<section id="predictions" class="level3">
+<h3 class="anchored" data-anchor-id="predictions">Predictions</h3>
+</section>
+</section>
+<section id="verify" class="level2">
+<h2 class="anchored" data-anchor-id="verify">Verify</h2>
+<section id="back-in-the-api" class="level3">
+<h3 class="anchored" data-anchor-id="back-in-the-api">Back in the API</h3>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
