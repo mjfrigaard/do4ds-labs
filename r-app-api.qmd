@@ -22,7 +22,258 @@ co_box(
 )
 ```
 
-## app-api.R {#sec-app-api-r}
+## Initial launch
+
+The application and API need a little attention to get working. When I tried to initially run the app, I get the following error: 
+
+```{verbatim}
+Warning: Error in httr2::req_perform: Failed to perform HTTP request.
+Caused by error in `curl::curl_fetch_memory()`:
+! Could not connect to server [127.0.0.1]:
+Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server
+  163: <Anonymous>
+  162: signalCondition
+  161: signal_abort
+  160: cnd_signal
+  159: handle_resp
+  158: httr2::req_perform
+  154: eventReactiveValueFunc
+  102: pred
+  101: renderText
+  100: func
+   87: renderFunc
+   86: output$pred
+    1: runApp
+```
+
+This is because we need to have the model API running in order to make requests from the app. To do this, I recommend reorganizing the API and app files into separate directories. 
+
+```{r}
+#| eval: false 
+#| echo: false
+fs::dir_tree("_labs/lab3/R", recurse = 1)
+```
+
+```{verbatim}
+_labs/lab3/R
+├── R.Rproj
+├── api #<1>
+│   ├── api.Rproj
+│   └── mod-api.R #<1>
+├── app #<2>
+│   ├── app-api.R
+│   └── app.Rproj #<2>
+├── eda-db.qmd #<3>
+└── r-data-load.R #<4>
+```
+1. `vetiver` model API      
+2. `shiny` application      
+3. EDA of `palmerpenguins` data using `dplyr` and `ggplot2`   
+4. Load `palmerpenguins` data into `duckdb`     
+
+
+
+## API 
+
+The [`labs/lab3/R/api/mod-api.R` file]() contains the following: 
+
+```{r}
+#| eval: false
+# pkgs
+library(vetiver)
+library(pins)
+
+# connect to model board
+model_board <- pins::board_folder("../../../lab2/R/models/")
+
+# read pinned vetiver model
+v <- vetiver::vetiver_pin_read(model_board, "penguin_model")
+
+# use plumber/vetiver to create router/create API
+app <- plumber::pr() |> vetiver::vetiver_api(v)
+```
+
+### Start the API
+
+The API will keep running when you run the app.
+
+```{r}
+#| eval: false
+app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
+```
+
+![`plumber` API for `vetiver` model](img/lab3-r-plumber-router.png){fig-align='center' width='100%'}
+
+Now we have a working API! We'll explore the UI in the sections below. Let's launch the app. 
+
+## App 
+
+I've moved the application file (`app-api.R`) into the following directory: 
+
+```{verbatim}
+_labs/lab3/R/app
+├── app-api.R
+└── app.Rproj
+
+1 directory, 2 files
+```
+
+### Run 
+
+After opening the `app-api.R` file in a new RStudio session and launching the app I see the following: 
+
+![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align='center' width='100%'}
+
+But clicking **Predict** originally produced the following error: 
+
+```{verbatim}
+Warning: Error in httr2::req_perform: 
+HTTP 500 Internal Server Error.
+```
+
+In the API session, we also see an error: 
+
+```{verbatim}
+<error/rlang_error>
+Error in `hardhat::validate_column_names()`:
+! `data` must be a data frame or a matrix, not a list.
+```
+
+These errors are pretty clear: The `httr2::req_body_json()` function is sending the data as a JSON list, but the `vetiver` API expects a data frame or a matrix structure. 
+
+We can fix this in the application server by changing the format of the values sent to the API. 
+
+### Reactive values 
+
+Our error tells us `'data' should be a data frame or a matrix`, so we'll convert `vals()` to a single-row `data.frame` and format the categorical values as numeric (not logical).  
+
+```{r}
+#| eval: false
+  vals <- reactive({
+    data.frame(
+      bill_length_mm = input$bill_length,
+      species_Chinstrap = as.numeric(input$species == "Chinstrap"),
+      species_Gentoo = as.numeric(input$species == "Gentoo"),
+      sex_male = as.numeric(input$sex == "Male")
+    )
+  })
+```
+
+### Predictions
+
+The predictions in the server require three changes: 
+
+1.  The `httr2::req_body_json()` can convert `vals()` into a JSON array structure instead of a flat object (which is the format `vetiver` expects). 
+
+2. Add `httr2::req_method("POST")` so the `POST` method is explicit.  
+
+3. Finally, we'll create a `response` object and only return `$.pred[1]` (i.e., the predictions).
+
+```{r}
+#| eval: false
+pred <- eventReactive(input$predict, {
+    request_data <- vals()
+    response <- httr2::request(api_url) |>
+      httr2::req_method("POST") |>
+      httr2::req_body_json(request_data) |>  
+      httr2::req_perform() |>
+      httr2::resp_body_json()
+    
+    response$.pred[1]
+  }, ignoreInit = TRUE)
+```
+
+A diagram of the reactive flow of User inputs and the **Predict** button API request is below: 
+
+```{=html}
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #9753b8 !important;
+  background-color: #f6f6f6;
+  padding: 0.2em;
+}
+</style>
+```
+
+```{mermaid}
+%%| fig-cap: 'Input Dependencies'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph TD
+    subgraph Inputs["User Inputs"]
+    I1("input$bill_length")
+    I2("input$species")
+    I3("input$sex")
+    I4("input$predict")
+    end
+
+    subgraph Pred["<strong>Predict</strong>"]
+        Req("request()") --"Creates HTTP<br>request object"--> Meth("req_method()")
+        Meth --"Changes HTTP<br>method from<br>GET to POST"--> BodyJson1("req_body_json()")
+        BodyJson1 --"Converts data.frame<br>to JSON & sets<br>request body"--> Perform("req_perform()")
+        Perform --"Sends the HTTP<br>request to<br>server & waits<br>for response"--> BodyJson2("resp_body_json()")
+    end
+    
+    
+
+    subgraph PredReact["pred()"]
+        Res(["<code>response$.pred[1]</code>"])
+    end
+    
+    ValsReact(["vals()"])
+    I1 --> ValsReact
+    I2 --> ValsReact
+    I3 --> ValsReact
+    I4 --"<code>eventReactive()</code>"--> Pred
+    
+    ValsReact --"<code>data.frame</code>"--> BodyJson1
+
+    BodyJson2 --"Extracts the<br>JSON response<br>body & converts<br>to R object"--> Res
+    
+    style ValsReact fill:#e1f5fe
+    style PredReact fill:#fff3e0
+    style Res fill:#e8f5e8
+    %% style Req fill:#f3e5f5
+```
+
+## Verify
+
+How do we know this API is working? We can change the values in the 
+
+
+
+
+
+```{mermaid}
+%%| fig-cap: 'App & API'
+%%| fig-align: center
+%%| eval: false
+%%| echo: false
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+graph TB
+    subgraph Rapi["R Session: API Server"]
+        Mod["Load Model"] --> VetAPI["Create<br><code>vetiver_api()</code>"]
+        VetAPI --> Router["<code>pr_run()</code> on<br>port 8080"]
+    end
+    
+    subgraph Rapp["R Session: Shiny App"]
+        User["User Inputs"] --> Data["Format Data"]
+        Data --> Post["POST to API"]
+        Post --> Pred["Display Prediction"]
+    end
+    
+    Router -.-> Post
+    
+    style Router fill:#e8f5e8
+    style Post fill:#e1f5fe
+    style Pred fill:#fff3e0
+```
+
+To view the original code in `app-api.R`, expand the section below:
 
 <details>
   <summary>Expand to view app-api.R</summary>
@@ -39,35 +290,3 @@ readr::read_lines("_labs/lab3/app-api.R") |>
 </details>
 
 
-## r-data-load.R {#sec-r-data-load-r}
-
-<details>
-  <summary>Expand to view r-data-load.R</summary>
-
-```{r}
-#| label: print-r-data-load-R
-#| echo: false
-#| code-overflow: wrap
-library(readr)
-readr::read_lines("_labs/lab3/r-data-load.R") |> 
-  base::noquote() |> 
-  writeLines()
-```
-
-</details>
-
-## eda-db.qmd {#sec-eda-db.qmd}
-
-<details>
-  <summary>Expand to view eda-db.qmd</summary>
-  
-```{r}
-#| label: print-eda-db.qmd
-#| echo: false
-library(readr)
-readr::read_lines("_labs/lab3/eda-db.qmd") |> 
-  base::noquote() |> 
-  writeLines()
-```
-
-</details>

@@ -3,23 +3,43 @@ title: "Penguins EDA"
 format:
   html:
     code-fold: true
+    embed-resources: true
+    
+execute: 
+  warning: false
+  error: true
+  
 ---
 
 ## *Penguin Size and Mass by Sex and Species*
 
 ```{r}
+#| code-summary: 'show/hide packages/database code'
+#| collapse: true
+library(DBI) # add this
+library(duckdb) # add this
+library(palmerpenguins) # add this
 library(dplyr)
 library(ggplot2)
 library(dbplyr)
 
+# load penguins data first
+penguins_data <- palmerpenguins::penguins
+# then connect
 con <- DBI::dbConnect(
   duckdb::duckdb(), 
   dbdir = "my-db.duckdb"
-  )
-df <- dplyr::tbl(con, "penguins")
+)
+# register table
+duckdb_register(con, "penguins_data", penguins_data)
+# create table
+dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+# create df 
+df <- dbGetQuery(con, "SELECT * FROM penguins") |> na.omit()
 ```
 
 ```{r}
+#| code-summary: 'show/hide table code'
 df %>%
   group_by(species, sex) %>%
   summarise(
@@ -35,6 +55,7 @@ df %>%
 ## *Penguin Size vs Mass by Species*
 
 ```{r}
+#| code-summary: 'show/hide graph code'
 df %>%
   ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +
   geom_point() + 
@@ -42,5 +63,13 @@ df %>%
 ```
 
 ```{r}
+#| code-summary: 'show/hide database disconnection'
 DBI::dbDisconnect(con)
 ```
+
+```{r}
+#| include: false
+# remove the database
+unlink(x = "my-db.duckdb", force = TRUE)
+```
+

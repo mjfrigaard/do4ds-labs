@@ -37,19 +37,7 @@ fs::dir_tree(path = "_labs/lab3/")
 ## └── r-data-load.R
 ```
 
-In the previous labs, we build a model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. I've split these files into separate folders (i.e., projects) and included RStudio project files: 
-
-```{r}
-#| collapse: true
-#| eval: true
-fs::dir_tree(path = "_labs/lab3/Python/")
-```
-
-```{r}
-#| collapse: true
-#| eval: true
-fs::dir_tree(path = "_labs/lab3/R/")
-```
+In the previous labs, we build a model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
 
 ## APIs 
 
@@ -109,43 +97,268 @@ graph LR
     style VetAPI fill:#e8f5e8
 ```
 
-Both `app-api.R` and `app-api.py` create Shiny applications with calls to APIs. The sections below cover how to create and communicate with APIs. 
+I've also completed these steps in R, which can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/R/model-vetiver-r.qmd). 
+
+The sections below cover how to create and communicate with APIs.  I've split each lab into separate `R/` and `Python/` folders and included RStudio project files. 
 
 ## R App API
 
-### eda-db.qmd
+The R App API files can be found in the [`_labs/lab3/R/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab3/R). 
+
+```{r}
+#| collapse: true
+#| eval: false
+fs::dir_tree(path = "_labs/lab3/R/")
+## _labs/lab3/R/
+## ├── R.Rproj
+## ├── app-api.R
+## ├── eda-db.qmd
+## └── r-data-load.R
+```
+
+### eda-db.qmd {#sec-eda-db.qmd}
+
+The [`eda-db.qmd`](_labs/lab3/eda-db.qmd) file has the EDA R code from lab 1. 
+
+It begins by loading the libraries: 
+
+```{r}
+#| eval: false
+library(DBI) # add this
+library(duckdb) # add this
+library(palmerpenguins) # add this
+library(dplyr)
+library(ggplot2)
+library(dbplyr)
+```
+
+The code below creates a connection to the database, but needs to be changed slightly so the `penguins` data is registered with `duckdb` (before the queries can be run).
+
+```{r}
+#| eval: false
+# load penguins data first
+penguins_data <- palmerpenguins::penguins
+# then connect
+con <- DBI::dbConnect(
+  duckdb::duckdb(), 
+  dbdir = "my-db.duckdb"
+)
+# register table
+duckdb_register(con, "penguins_data", penguins_data)
+# create table
+dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+# create df 
+df <- dbGetQuery(con, "SELECT * FROM penguins") |> na.omit()
+```
+
+The table below displays the means of the measurements (body mass, flipper length, and bill length/depth) by species and sex:
+
+```{r}
+#| eval: false
+df %>%
+  group_by(species, sex) %>%
+  summarise(
+    across(
+        ends_with("mm") | ends_with("g"),
+      \(x) mean(x, na.rm = TRUE)
+      )
+    ) %>%
+  dplyr::collect() %>%
+  knitr::kable()
+```
+
+The graph displays the best-fit linear relationship between `bill_length_mm` and `body_mass_g` by `species`:
+
+```{r}
+#| eval: false
+df %>%
+  ggplot(
+    aes(
+    x = bill_length_mm, 
+    y = body_mass_g, 
+    color = species)
+    ) +
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+And we finish by closing the connection to the database.
+
+```{r}
+#| eval: false
+DBI::dbDisconnect(con)
+```
+
+To view the original code in `eda-db.qmd`, expand the section below:
+
+<details>
+  <summary>Expand to view eda-db.qmd</summary>
+  
+```{r}
+#| label: print-eda-db.qmd
+#| echo: false
+library(readr)
+readr::read_lines("_labs/lab3/eda-db.qmd") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
 
 ### app-api.R 
 
-When we initially launch the app, we'll see the following error: 
+`app-api.R` creates an R Shiny application that calls the `vetiver` API. The top of the file creates an `api_url`:
 
-```{verbatim}
-Warning: Error in httr2::req_perform: Failed to perform HTTP request.
-Caused by error in `curl::curl_fetch_memory()`:
-! Could not connect to server [127.0.0.1]:
-Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server
-  163: <Anonymous>
-  162: signalCondition
-  161: signal_abort
-  160: cnd_signal
-  159: handle_resp
-  158: httr2::req_perform
-  154: eventReactiveValueFunc
-  102: pred
-  101: renderText
-  100: func
-   87: renderFunc
-   86: output$pred
-    1: runApp
+```{r}
+#| eval: false
+api_url <- "http://127.0.0.1:8080/predict"
 ```
 
-### r-data-load.R
+#### UI
+
+The UI definition is below: 
+
+```{r}
+#| eval: false
+ui <- fluidPage(
+  titlePanel("Penguin Mass Predictor"),
+
+  # Model input values
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput(
+        "bill_length",
+        "Bill Length (mm)",
+        min = 30,
+        max = 60,
+        value = 45,
+        step = 0.1
+      ),
+      selectInput(
+        "sex",
+        "Sex",
+        c("Male", "Female")
+      ),
+      selectInput(
+        "species",
+        "Species",
+        c("Adelie", "Chinstrap", "Gentoo")
+      ),
+      # Get model predictions
+      actionButton(
+        "predict",
+        "Predict"
+      )
+    ),
+
+    mainPanel(
+      h2("Penguin Parameters"),
+      verbatimTextOutput("vals"),
+      h2("Predicted Penguin Mass (g)"),
+      textOutput("pred")
+    )
+  )
+)
+```
+
+#### Server
+
+The server definition is below: 
+
+```{r}
+#| eval: false
+server <- function(input, output) {
+  # Input params
+  vals <- reactive(
+    list(
+      bill_length_mm = input$bill_length,
+      species_Chinstrap = input$species == "Chinstrap",
+      species_Gentoo = input$species == "Gentoo",
+      sex_male = input$sex == "Male"
+    )
+  )
+
+  # Fetch prediction from API
+  pred <- eventReactive(
+    input$predict,
+    httr2::request(api_url) |>
+      httr2::req_body_json(vals()) |>
+      httr2::req_perform() |>
+      httr2::resp_body_json(),
+    ignoreInit = TRUE
+  )
+
+  # Render to UI
+  output$pred <- renderText(pred()$predict[[1]])
+  output$vals <- renderPrint(vals())
+}
+```
+
+```{r}
+#| eval: false
+shinyApp(ui = ui, server = server)
+```
+
+When the application is launched, we see the following: 
+
+![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align='center' width='100%'}
+
+### r-data-load.R {#sec-r-data-load-r}
+
+```{r}
+#| eval: false
+con <- DBI::dbConnect(
+  duckdb::duckdb(), 
+  dbdir = "my-db.duckdb"
+)
+
+DBI::dbWriteTable(
+  con, 
+  "penguins", 
+  palmerpenguins::penguins
+)
+
+DBI::dbDisconnect(con)
+```
+
+
+To view the original code in `r-data-load.R`, expand the section below:
+
+<details>
+  <summary>Expand to view r-data-load.R</summary>
+
+```{r}
+#| label: print-r-data-load-R
+#| echo: false
+#| code-overflow: wrap
+library(readr)
+readr::read_lines("_labs/lab3/r-data-load.R") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
 
 ## Python App API
+
+The Python App API files can be found in the [`_labs/lab3/Python/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab3/Python). 
+
+```{r}
+#| collapse: true
+#| eval: false
+fs::dir_tree(path = "_labs/lab3/Python/")
+## _labs/lab3/Python/
+## ├── Python.Rproj
+## ├── app-api.py
+## ├── model-db.qmd
+## └── py-data-load.py
+```
 
 ### model-db.qmd
 
 ### app-api.py
+
+`app-api.py` creates an Python Shiny application that calls the `vetiver` API. 
 
 ### py-data-load.py 
 
