@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-08-14">
+<meta name="dcterms.date" content="2025-08-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App API – do4ds-labs</title>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -42,6 +76,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-9e0e691ba9d940ea6a8e6359c703bc08.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -235,7 +272,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-08-14</p>
+      <p class="date">2025-08-15</p>
     </div>
   </div>
   
@@ -266,45 +303,258 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <p>In <a href="./lab2.html">lab 2</a>, we created a Python model with <code>scikit-learn</code>, converted it into a <code>VetiverModel</code>, saved it in a <code>pins</code> board folder, then created a <code>VetiverAPI</code>:</p>
+<section id="initial-launch" class="level2">
+<h2 class="anchored" data-anchor-id="initial-launch">Initial launch</h2>
+<p>In this lab, I’ll be using Positron to develop the Shiny for Python app and API. I’m still new to programming in Python, so it took a bit longer to get the Vetiver model and Shiny app working. Below are some quick tips so you don’t make the same mistakes I made:</p>
+<ol type="1">
+<li>Set up the API and app in different folders<br>
+</li>
+<li>Create and activate a Python virtual environment (<code>venv</code>) in each project<br>
+</li>
+<li>Create prototype data for API</li>
+</ol>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
-graph LR
-    subgraph DataPrep["&lt;strong&gt;Data Preparation&lt;/strong&gt;"]
-        Penguins["&lt;code&gt;penguins&lt;/code&gt;&lt;br&gt;data"] --&gt; DuckDB["put in&lt;br&gt;&lt;code&gt;duckdb&lt;/code&gt;"]
-        DuckDB
+graph TB
+    subgraph T1["&lt;strong&gt;Term 1: API Server&lt;/strong&gt;"]
+        RunApi["Run mod-api.py"] --&gt; VetMod["Vetiver Model"]
+        VetMod --&gt; FastAPI["FastAPI on :8080"]
     end
     
-    subgraph ModTrain["&lt;strong&gt;Linear Regression&lt;/strong&gt;"]
-        DuckDB --&gt; LinReg["create &lt;code&gt;scikit-learn&lt;/code&gt;&lt;br&gt;model"]
-        LinReg
+    subgraph T2["&lt;strong&gt;Term 2: API Testing&lt;/strong&gt;"]
+        Curl["curl command"] --&gt; ManPostReq["Manual POST request"]
+        ManPostReq --&gt; FastAPI
+        FastAPI --&gt; JSONReq["JSON Response Test"]
+        JSONReq --&gt; VerAPI["Verify API Works"]
     end
     
-    subgraph MLOps["&lt;strong&gt;MLOps&lt;/strong&gt;"]
-        LinReg --&gt; VetMod["create&lt;br&gt;&lt;code&gt;VetiverModel()&lt;/code&gt;"]
-        VetMod --&gt; Pins["save to&lt;br&gt;&lt;code&gt;pins&lt;/code&gt; board"]
-        Pins --&gt; VetAPI["create&lt;br&gt;&lt;code&gt;VetiverAPI()&lt;/code&gt;"]
+    subgraph T3["&lt;strong&gt;Term 3: Shiny App&lt;/strong&gt;"]
+        RunApp["Run app-api.py"] --&gt; UI["User Interface"]
+        UI --&gt; HttpPostReq["HTTP POST Request"]
+        HttpPostReq --&gt; FastAPI
+        FastAPI --&gt; JSONResp["JSON Response"]
+        JSONResp --&gt; DispPred["Display Prediction"]
     end
     
-    style ModTrain fill:#e1f5fe
-    style MLOps fill:#f3e5f5
-    style VetAPI fill:#e8f5e8
+    subgraph Browse["&lt;strong&gt;Browser Tests&lt;/strong&gt;"]
+        Http["Got to &lt;code&gt;http://&lt;/code&gt;"] --&gt; Docs["API Docs&lt;br&gt;&lt;code&gt;127.0.0.1:8080/docs/&lt;code&gt;"]
+        Http --&gt; Health["Health Check:&lt;br&gt;&lt;code&gt;127.0.0.1:8080/ping&lt;/code&gt;"]
+        Http --&gt; Info["Model Info:&lt;br&gt;&lt;code&gt;127.0.0.1:8080/metadata&lt;/code&gt;"]
+        Docs &amp; Health &amp; Info --&gt; FastAPI
+    end
+    
+    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    style FastAPI fill:#e8f5e8
+    style HttpPostReq fill:#e1f5fe
+    style ManPostReq fill:#fff3e0
+    style DispPred fill:#f3e5f5
+    style VerAPI fill:#ffebee
 </pre>
 </div>
 <p></p><figcaption> Our Python model pipeline</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
-<section id="initial-launch" class="level2">
-<h2 class="anchored" data-anchor-id="initial-launch">Initial launch</h2>
 </section>
 <section id="api" class="level2">
 <h2 class="anchored" data-anchor-id="api">API</h2>
+<p>The <code>mod-api.py</code> code below creates our Vetiver API in a dedicated Positron/Terminal session.</p>
+<p>First we’ll load the necessary libraries:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, message<span class="op">=</span><span class="st">".*urllib3 v2 only supports OpenSSL.*"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">'PINS_ALLOW_PICKLE_READ'</span>] <span class="op">=</span> <span class="st">'1'</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> vetiver</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pins</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> uvicorn</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Note that I’ve added <code>warnings</code>, <code>os</code>, <code>uvicorn</code> and <code>pandas</code> along with the core libraries for ML serving, and model storage.</p>
+<p><code>warnings.filterwarnings()</code> silences the SSL compatibility warnings between LibreSSL (macOS) and <code>urllib3</code> (this is probably specific to my machine).</p>
+<p>The <code>os.environ['PINS_ALLOW_PICKLE_READ'] = '1'</code> sets environment variable to allow reading <code>pickle</code>/<code>joblib</code> files (security override).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-1" class="code-annotation-target"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> pins.board_folder(<span class="st">"../../../lab2/model-vetiver/models/"</span>)</span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a>sklearn_model <span class="op">=</span> model_board.pin_read(<span class="st">"penguin_model"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="3">3</button><span id="annotated-cell-2-4" class="code-annotation-target"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f":-] Successfully loaded model: </span><span class="sc">{</span><span class="bu">type</span>(sklearn_model)<span class="sc">}</span><span class="ss">"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="1" data-code-annotation="1">connect to model board from lab2</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="3" data-code-annotation="2">read pinned model<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="4" data-code-annotation="3">print model type for confirmation</span>
+</dd>
+</dl>
+</div>
+</div>
+<p><a href="https://rstudio.github.io/pins-python/reference/board_folder.html#pins.board_folder"><code>pins.board_folder()</code></a> creates a connection to the file-based model registry from lab 2. It will locate the specific model version (timestamp-based folder).</p>
+<p><a href="https://rstudio.github.io/pins-python/reference/pin_read.html#pins.boards.BaseBoard.pin_read"><code>model_board.pin_read()</code></a> deserializes the <code>joblib</code> file back into a live Python object and returns the raw <code>scikit-learn</code> model (NOT a vetiver object yet).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-1" class="code-annotation-target"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">hasattr</span>(sklearn_model, <span class="st">'feature_names_in_'</span>):</span>
+<span id="annotated-cell-3-2"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a>    feature_names <span class="op">=</span> sklearn_model.feature_names_in_</span>
+<span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Model expects features: </span><span class="sc">{</span><span class="bu">list</span>(feature_names)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-3-4"><a href="#annotated-cell-3-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="2">2</button><span id="annotated-cell-3-5" class="code-annotation-target"><a href="#annotated-cell-3-5" aria-hidden="true" tabindex="-1"></a>    prototype_data <span class="op">=</span> pd.DataFrame({name: [<span class="fl">0.0</span>] <span class="cf">for</span> name <span class="kw">in</span> feature_names})</span>
+<span id="annotated-cell-3-6"><a href="#annotated-cell-3-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="3">3</button><span id="annotated-cell-3-7" class="code-annotation-target"><a href="#annotated-cell-3-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col <span class="kw">in</span> prototype_data.columns:</span>
+<span id="annotated-cell-3-8"><a href="#annotated-cell-3-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="st">'bill_length'</span> <span class="kw">in</span> col:</span>
+<span id="annotated-cell-3-9"><a href="#annotated-cell-3-9" aria-hidden="true" tabindex="-1"></a>            prototype_data[col] <span class="op">=</span> [<span class="fl">45.0</span>]</span>
+<span id="annotated-cell-3-10"><a href="#annotated-cell-3-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="st">'species_Gentoo'</span> <span class="kw">in</span> col:</span>
+<span id="annotated-cell-3-11"><a href="#annotated-cell-3-11" aria-hidden="true" tabindex="-1"></a>            prototype_data[col] <span class="op">=</span> [<span class="dv">1</span>]  </span>
+<span id="annotated-cell-3-12"><a href="#annotated-cell-3-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="st">'sex_male'</span> <span class="kw">in</span> col:</span>
+<span id="annotated-cell-3-13"><a href="#annotated-cell-3-13" aria-hidden="true" tabindex="-1"></a>            prototype_data[col] <span class="op">=</span> [<span class="dv">1</span>]  </span>
+<span id="annotated-cell-3-14"><a href="#annotated-cell-3-14" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="annotated-cell-3-15"><a href="#annotated-cell-3-15" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="annotated-cell-3-16"><a href="#annotated-cell-3-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Model doesn't have feature_names_in_, using estimated prototype"</span>)</span>
+<span id="annotated-cell-3-17"><a href="#annotated-cell-3-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="4">4</button><span id="annotated-cell-3-18" class="code-annotation-target"><a href="#annotated-cell-3-18" aria-hidden="true" tabindex="-1"></a>    prototype_data <span class="op">=</span> pd.DataFrame({</span>
+<span id="annotated-cell-3-19"><a href="#annotated-cell-3-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"bill_length_mm"</span>: [<span class="fl">45.0</span>],</span>
+<span id="annotated-cell-3-20"><a href="#annotated-cell-3-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"species_Chinstrap"</span>: [<span class="dv">0</span>],</span>
+<span id="annotated-cell-3-21"><a href="#annotated-cell-3-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">"species_Gentoo"</span>: [<span class="dv">1</span>], </span>
+<span id="annotated-cell-3-22"><a href="#annotated-cell-3-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">"sex_male"</span>: [<span class="dv">1</span>]</span>
+<span id="annotated-cell-3-23"><a href="#annotated-cell-3-23" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="annotated-cell-3-24"><a href="#annotated-cell-3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-3-25"><a href="#annotated-cell-3-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="annotated-cell-3-26"><a href="#annotated-cell-3-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Prototype data shape:"</span>, prototype_data.shape)</span>
+<span id="annotated-cell-3-27"><a href="#annotated-cell-3-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Prototype columns:"</span>, <span class="bu">list</span>(prototype_data.columns))</span>
+<span id="annotated-cell-3-28"><a href="#annotated-cell-3-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sample data:"</span>)</span>
+<span id="annotated-cell-3-29"><a href="#annotated-cell-3-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(prototype_data)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="1,3" data-code-annotation="1">check what features model expects<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-3" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="5" data-code-annotation="2">create prototype data using model’s expected features<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-3" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="7,24" data-code-annotation="3">set reasonable defaults (based on penguin data)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-3" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="18,23" data-code-annotation="4">original R model structure</span>
+</dd>
+</dl>
+</div>
+</div>
+<p><strong>What’s happening:</strong></p>
+<ul>
+<li><strong>Schema Discovery</strong>: <code>sklearn</code> models trained with pandas DataFrames retain column names<br>
+</li>
+<li><strong>Prototype Generation</strong>: Creates a sample input that matches the model’s expected format<br>
+</li>
+<li><strong>Default Values</strong>: Sets realistic values (45mm bill length, Gentoo penguin, male)<br>
+</li>
+<li><strong>Purpose</strong>: This prototype will be used for API input validation and documentation</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># wrap as VetiverModel</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> vetiver.VetiverModel(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>sklearn_model, </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    model_name<span class="op">=</span><span class="st">"penguin_model"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    prototype_data<span class="op">=</span>prototype_data</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f":-] Created VetiverModel: </span><span class="sc">{</span><span class="bu">type</span>(v)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>What’s happening:</strong></p>
+<ul>
+<li><strong>Wraps</strong> the raw model with MLOps metadata</li>
+<li><strong>Adds</strong> input validation schema based on prototype<br>
+</li>
+<li><strong>Enables</strong> automatic API generation<br>
+</li>
+<li><strong>Provides</strong> standardized prediction interface</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create VetiverAPI and extract FastAPI app</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>vetiver_api <span class="op">=</span> vetiver.VetiverAPI(v, check_prototype<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># actual FastAPI application</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> vetiver_api.app  <span class="co"># should be the FastAPI instance</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"FastAPI app type: </span><span class="sc">{</span><span class="bu">type</span>(app)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>What’s happening:</strong></p>
+<ul>
+<li><strong>VetiverAPI</strong>: Automatically generates REST API endpoints around the model<br>
+</li>
+<li><strong>Route Generation</strong>: Creates standard ML serving endpoints<br>
+</li>
+<li><strong>Input Validation</strong>: <code>check_prototype=True</code> ensures requests match training data format<br>
+</li>
+<li><strong>FastAPI Extraction</strong>: Retrieves the actual web application object for serving</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">":-] Starting Penguin Model API..."</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">":-] API Documentation: http://127.0.0.1:8080/docs"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">":-] Health Check: http://127.0.0.1:8080/ping"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">":-] Model Info: http://127.0.0.1:8080/metadata"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    uvicorn.run(app, host<span class="op">=</span><span class="st">"127.0.0.1"</span>, port<span class="op">=</span><span class="dv">8080</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph TB
+    Mod["&lt;code&gt;VetiverModel&lt;/code&gt;"] --&gt; VApiCon["&lt;code&gt;VetiverAPI&lt;/code&gt;&lt;br&gt;Constructor"]
+    VApiCon --"generates"--&gt; FastAPI["&lt;code&gt;FastAPI&lt;/code&gt;&lt;br&gt;Routes"]
+    
+    FastAPI --&gt; Post("POST /predict")
+    FastAPI --&gt; GetPing("GET /ping") 
+    FastAPI --&gt; GetMeta("GET /metadata")
+    FastAPI --&gt; GetDocs("GET /docs")
+    
+    CheckProt["&lt;code&gt;check_prototype=True&lt;/code&gt;"] --&gt; Input["Enable Input&lt;br&gt;Validation"]
+    
+    VApiCon --"creates"--&gt; VApiObj["&lt;code&gt;VetiverAPI&lt;/code&gt;&lt;br&gt;object"]
+    VApiObj --"with"--&gt; AppAttr["&lt;code&gt;.app&lt;/code&gt; attribute"]
+    AppAttr --"contains"--&gt; FastAPIApp["&lt;code&gt;FastAPI&lt;/code&gt; application"]
+    
+    style VApiCon fill:#e8f5e8,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style FastAPIApp fill:#c8e6c9,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+</pre>
+</div>
+<p></p><figcaption> mod-api.py</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 <section id="start-the-api" class="level3">
 <h3 class="anchored" data-anchor-id="start-the-api">Start the API</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab3-py-fastapi-ui.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="VetiverModel &amp; FastApi app"><img src="img/lab3-py-fastapi-ui.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="VetiverModel &amp; FastApi app"></a></p>
+</figure>
+</div>
+<figcaption>VetiverModel &amp; FastApi app</figcaption>
+</figure>
+</div>
 </section>
 </section>
 <section id="app" class="level2">
@@ -792,6 +1042,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
