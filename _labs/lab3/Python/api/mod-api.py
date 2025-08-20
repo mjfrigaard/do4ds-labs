@@ -17,26 +17,31 @@ model_board = pins.board_folder("../../../lab2/model-vetiver/models/")
 sklearn_model = model_board.pin_read("penguin_model")
 print(f":-] Successfully loaded model: {type(sklearn_model)}")
 
-# check what features model expects
+# check model for what features it expects
 if hasattr(sklearn_model, 'feature_names_in_'):
     feature_names = sklearn_model.feature_names_in_
     print(f"Model expects features: {list(feature_names)}")
     
-    # create prototype data using model's expected features
-    prototype_data = pd.DataFrame({name: [0.0] for name in feature_names})
+    # Define prototype value logic
+    def get_prototype_value(column_name):
+        """Get appropriate default value for each column type"""
+        if 'bill_length' in column_name:
+            return 45.0  # Realistic penguin bill length
+        elif 'species_Gentoo' in column_name:
+            return 1     # Default to Gentoo species
+        elif 'sex_male' in column_name:
+            return 1     # Default to male
+        else:
+            return 0     # Default for other dummy variables
     
-    # set reasonable defaults (based on penguin data)
-    for col in prototype_data.columns:
-        if 'bill_length' in col:
-            prototype_data[col] = [45.0]
-        elif 'species_Gentoo' in col:
-            prototype_data[col] = [1]  # default Gentoo
-        elif 'sex_male' in col:
-            prototype_data[col] = [1]  # default male
-            
+    # Create prototype data directly
+    prototype_data = pd.DataFrame({
+        name: [get_prototype_value(name)] for name in feature_names
+    })
+    
 else:
+    # Fallback when model doesn't have feature names
     print("Model doesn't have feature_names_in_, using estimated prototype")
-    # original R model structure
     prototype_data = pd.DataFrame({
         "bill_length_mm": [45.0],
         "species_Chinstrap": [0],

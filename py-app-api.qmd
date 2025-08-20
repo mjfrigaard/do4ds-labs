@@ -26,59 +26,64 @@ In [lab 2](lab2.qmd), we created a Python model with `scikit-learn`, converted i
 
 ## Initial launch
 
-In this lab, I'll be using Positron to develop the Shiny for Python app and API. I'm still new to programming in Python, so it took a bit longer to get the Vetiver model and Shiny app working. Below are some quick tips so you don't make the same mistakes I made: 
+In this lab, I'll be using Positron to develop the Vetiver API amd Shiny for Python app. I'm still new to programming in Python, so it took a bit longer to get the Vetiver API and Shiny app working together.
 
-1. Set up the API and app in different folders  
-2. Create and activate a Python virtual environment (`venv`) in each project    
-3. Create prototype data for API 
+Below are some pointers so you don't make the same mistakes I made:
 
-```{mermaid}
-%%| fig-cap: 'Our Python model pipeline'
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
-graph TB
-    subgraph T1["<strong>Term 1: API Server</strong>"]
-        RunApi["Run mod-api.py"] --> VetMod["Vetiver Model"]
-        VetMod --> FastAPI["FastAPI on :8080"]
-    end
-    
-    subgraph T2["<strong>Term 2: API Testing</strong>"]
-        Curl["curl command"] --> ManPostReq["Manual POST request"]
-        ManPostReq --> FastAPI
-        FastAPI --> JSONReq["JSON Response Test"]
-        JSONReq --> VerAPI["Verify API Works"]
-    end
-    
-    subgraph T3["<strong>Term 3: Shiny App</strong>"]
-        RunApp["Run app-api.py"] --> UI["User Interface"]
-        UI --> HttpPostReq["HTTP POST Request"]
-        HttpPostReq --> FastAPI
-        FastAPI --> JSONResp["JSON Response"]
-        JSONResp --> DispPred["Display Prediction"]
-    end
-    
-    subgraph Browse["<strong>Browser Tests</strong>"]
-        Http["Got to <code>http://</code>"] --> Docs["API Docs<br><code>127.0.0.1:8080/docs/<code>"]
-        Http --> Health["Health Check:<br><code>127.0.0.1:8080/ping</code>"]
-        Http --> Info["Model Info:<br><code>127.0.0.1:8080/metadata</code>"]
-        Docs & Health & Info --> FastAPI
-    end
-    
-    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    
-    style FastAPI fill:#e8f5e8
-    style HttpPostReq fill:#e1f5fe
-    style ManPostReq fill:#fff3e0
-    style DispPred fill:#f3e5f5
-    style VerAPI fill:#ffebee
-```
+1.  Set up the API and app in different folders\
+2.  Create and activate Python virtual environments (`venv`) in each project\
+3.  Create prototype data for API\
+4.  Run the API (`mod-api.py`) and confirm API is working\
+5.  Launch app and confirm API requests
 
 ## API
 
-The `mod-api.py` code below creates our Vetiver API in a dedicated Positron/Terminal session. 
+I wrote `mod-api.py` to run the Vetiver/FastAPI in a dedicated Positron/Terminal session. My version deviates quite a bit from the original Quarto document, but it's essentially creating the same thing.
 
-First we'll load the necessary libraries:
+### Libraries, warnings, and environment variables
+
+First, we'll import `warnings` use `warnings.filterwarnings()` to silence the SSL compatibility warnings between LibreSSL (macOS) and `urllib3` (this is probably specific to my machine).
+
+Then we'll include `os.environ['PINS_ALLOW_PICKLE_READ'] = '1'` to set an environment variable that allows reading `pickle`/`joblib` files (this is like a 'security override').
+
+```{r}
+#| label: co_box_pickle
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "g",
+  look = "default", 
+  hsize = "1.25", 
+  size = "1.10", 
+  header = "What is this `pickle` all about?", 
+  fold = TRUE,
+  contents = "
+<br>
+  
+***In the previous lab we set the `allow_pickle_read` to `True` when we created the `board_folder`, and now we're specifying an environment variable (`['PINS_ALLOW_PICKLE_READ'] = '1'`).***
+
+***Why?***
+
+[Pickle](https://docs.python.org/3/library/pickle.html) is Python's way of saving complex objects to files (it can save almost ANY Python object - functions, classes, even entire programs). But this also means `pickle` can save malicious code. 
+
+Because of this, the Python `pins` package blocks `pickle` files. However, the R `vetiver` package saves files in the `pickle`/`joblib` format (for cross-language compatibility). 
+
+We can use the code below because we know the file came from our previous lab (i.e., a trusted source).
+
+\`\`\`python
+# our model in lab 2
+model_board = board_folder('./my_models', allow_pickle_read=True)
+
+# reading from a known (trusted) source in lab 3
+os.environ['PINS_ALLOW_PICKLE_READ'] = '1'  # For development
+\`\`\`
+
+
+  ")
+```
+
+Third, we'll also add `uvicorn` and `pandas` to the core libraries for ML serving, and model storage.
 
 ```{python}
 #| eval: false 
@@ -96,14 +101,11 @@ import uvicorn
 import pandas as pd
 ```
 
-Note that I've added `warnings`, `os`, `uvicorn` and `pandas` along with the core libraries for ML serving, and model storage.
+### Read 'pinned' model
 
-`warnings.filterwarnings()` silences the SSL compatibility warnings between LibreSSL (macOS) and `urllib3` (this is probably specific to my machine).
+[`pins.board_folder()`](https://rstudio.github.io/pins-python/reference/board_folder.html#pins.board_folder) creates a connection to the file-based model registry from lab 2. It will locate the specific model version (using the timestamp-based folders).
 
-
-
-The `os.environ['PINS_ALLOW_PICKLE_READ'] = '1'` sets environment variable to allow reading `pickle`/`joblib` files (security override).
-
+[`model_board.pin_read()`](https://rstudio.github.io/pins-python/reference/pin_read.html#pins.boards.BaseBoard.pin_read) deserializes the `joblib` file back into a live Python object and returns the raw `scikit-learn` model (NOT a vetiver object yet).
 
 ```{python}
 #| eval: false 
@@ -111,61 +113,132 @@ The `os.environ['PINS_ALLOW_PICKLE_READ'] = '1'` sets environment variable to al
 model_board = pins.board_folder("../../../lab2/model-vetiver/models/") #<1>
 
 sklearn_model = model_board.pin_read("penguin_model") #<2>
+
 print(f":-] Successfully loaded model: {type(sklearn_model)}") #<3>
 ```
-1. connect to model board from lab2 
-2. read pinned model    
-3. print model type for confirmation 
 
-[`pins.board_folder()`](https://rstudio.github.io/pins-python/reference/board_folder.html#pins.board_folder) creates a connection to the file-based model registry from lab 2. It will locate the specific model version (timestamp-based folder). 
+1.  connect to model board from lab2
+2.  read pinned model\
+3.  print model type for confirmation
 
-[`model_board.pin_read()`](https://rstudio.github.io/pins-python/reference/pin_read.html#pins.boards.BaseBoard.pin_read) deserializes the `joblib` file back into a live Python object and returns the raw `scikit-learn` model (NOT a vetiver object yet).
+`print()` gives us a message (or some debugging info) after the model is read from the `pins` board:
+
+```{verbatim}
+:-] Successfully loaded model: <class 'sklearn.linear_model._base.LinearRegression'>
+```
+
+### Model schema
+
+The `if` condition below will check if the model remembers the names of the input columns (`feature_names_in_`) it was trained with.[^py-app-api-1]
+
+[^py-app-api-1]: `sklearn` models trained with `pandas` `DataFrames` retain column names.
 
 ```{python}
 #| eval: false 
 #| code-fold: false
-
 if hasattr(sklearn_model, 'feature_names_in_'): #<1>
     feature_names = sklearn_model.feature_names_in_
     print(f"Model expects features: {list(feature_names)}")  #<1>
+```
+
+1.  check what features model expects
+
+If so, it will store these columns we expect in `feature_names` and we'll see:
+
+```{verbatim}
+Model expects features: ['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male']
+```
+
+### Create `prototype` data
+
+Now we'll create `prototype_data` with `pandas.DataFrame()` and the fill it in the with realistic example values:
+
+```{python}
+#| eval: false 
+#| code-fold: false
+    # ... continued from above...
     
-    prototype_data = pd.DataFrame({name: [0.0] for name in feature_names}) #<2>
+    def get_prototype_value(column_name): #<1>
+        """Get appropriate default value for each column type"""
+        if 'bill_length' in column_name: #<2>
+            return 45.0  
+        elif 'species_Gentoo' in column_name:
+            return 1     
+        elif 'sex_male' in column_name:
+            return 1     
+        else:
+            return 0     #<2>
     
-    for col in prototype_data.columns: #<3>
-        if 'bill_length' in col:
-            prototype_data[col] = [45.0]
-        elif 'species_Gentoo' in col:
-            prototype_data[col] = [1]  
-        elif 'sex_male' in col:
-            prototype_data[col] = [1]  
-            
+    prototype_data = pd.DataFrame({ #<3>
+        name: [get_prototype_value(name)] for name in feature_names #<4>
+    }) #<3>
+```
+
+1.  Define prototype value logic\
+2.  set reasonable defaults (based on penguin data)\
+3.  Create prototype data directly\
+4.  Create `prototype_data` using model's expected features
+
+However, if our model *doesn't* have the `feature_names_in_`, we'll create a 'best guess' `prototype_data` (based on what we know about the `penguins` dataset).
+
+```{python}
+#| eval: false 
+#| code-fold: false
+    # ... continued from above...
 else:
     print("Model doesn't have feature_names_in_, using estimated prototype")
-    
-    prototype_data = pd.DataFrame({ #<4>
+    prototype_data = pd.DataFrame({ #<1>
         "bill_length_mm": [45.0],
         "species_Chinstrap": [0],
         "species_Gentoo": [1], 
         "sex_male": [1]
-    }) #<4>
-    #<3>
-    
+    }) #<1>
+```
+
+1.  original R model structure
+
+### Print outputs
+
+I've written four `print()` statements below to provide confirmation (or debugging info) for `prototype_data`'s 1) shape (dimensions), 2) column names, and 3) the full structure:
+
+```{python}
+#| eval: false 
+#| code-fold: false
 print("Prototype data shape:", prototype_data.shape)
+```
+
+```{verbatim}
+Prototype data shape: (1, 4)
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false
 print("Prototype columns:", list(prototype_data.columns))
+```
+
+```{verbatim}
+Prototype columns: ['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male']
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false
 print("Sample data:")
 print(prototype_data)
 ```
-1. check what features model expects    
-2. create prototype data using model's expected features    
-3. set reasonable defaults (based on penguin data)    
-4. original R model structure   
 
-**What's happening:**
+```{verbatim}
+Sample data:
+   bill_length_mm  species_Chinstrap  species_Gentoo  sex_male
+0            45.0                0.0               1         1
+```
 
-- **Schema Discovery**: `sklearn` models trained with pandas DataFrames retain column names   
-- **Prototype Generation**: Creates a sample input that matches the model's expected format   
-- **Default Values**: Sets realistic values (45mm bill length, Gentoo penguin, male)    
-- **Purpose**: This prototype will be used for API input validation and documentation   
+The `prototype_data` can be used for API input validation and documentation.
+
+### Create `VetiverModel`
+
+The code below will convert the `scikit-learn` model (`sklearn_model`) into a Vetiver Model again, using the `prototype_data`.
 
 ```{python}
 #| eval: false 
@@ -179,30 +252,79 @@ v = vetiver.VetiverModel(
 print(f":-] Created VetiverModel: {type(v)}")
 ```
 
-**What's happening:**
+If successful, we'll see the output below list `vetiver.vetiver_model.VetiverModel` as the class of `type(v)`:
 
-- **Wraps** the raw model with MLOps metadata 
-- **Adds** input validation schema based on prototype   
-- **Enables** automatic API generation      
-- **Provides** standardized prediction interface        
+```{verbatim}
+:-] Created VetiverModel: <class 'vetiver.vetiver_model.VetiverModel'>
+```
 
+Recall that `vetiver.VetiverModel()` wraps the raw model with MLOps metadata and adds the input validation schema based on `prototype_data`. This enables automatic API generation and provides a standardized prediction interface.
+
+### Create API
+
+Below we create `vetiver_api` and `app`:
+
+-   `vetiver.VetiverAPI()` automatically generates REST API endpoints around the model, generating routes with standard ML serving endpoints\
+
+-   `check_prototype=True` ensures requests match training data format.
+
+-   We can extract the `FastAPI` instance with `.app`
 
 ```{python}
 #| eval: false 
 #| code-fold: false
-# create VetiverAPI and extract FastAPI app
-vetiver_api = vetiver.VetiverAPI(v, check_prototype=True)
-# actual FastAPI application
-app = vetiver_api.app  # should be the FastAPI instance
+
+vetiver_api = vetiver.VetiverAPI(v, check_prototype=True) #<1>
+
+app = vetiver_api.app #<2>
+```
+
+1.  `VetiverAPI` converts our Vetiver model (`v`) to an API\
+2.  `.app` is the actual web application object for serving the API
+
+The `print()` statement below will tell us if the `.app` extracted the `FastAPI app`:
+
+```{python}
+#| eval: false 
+#| code-fold: false
 print(f"FastAPI app type: {type(app)}")
 ```
 
-**What's happening:**
+```{verbatim}
+FastAPI app type: <class 'fastapi.applications.FastAPI'>
+```
 
-- **VetiverAPI**: Automatically generates REST API endpoints around the model     
-- **Route Generation**: Creates standard ML serving endpoints     
-- **Input Validation**: `check_prototype=True` ensures requests match training data format    
-- **FastAPI Extraction**: Retrieves the actual web application object for serving     
+The diagram below gives an overview of how the `VetivierModel()` is converted into an API, then the `FastAPI` web application is extracted.
+
+```{mermaid}
+%%| fig-cap: 'mod-api.py'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph TB
+    Mod["<code>VetiverModel</code>"] --> VApiCon["<code>VetiverAPI</code><br>Wrapper"]
+    VApiCon --"generates"--> FastAPI["<code>FastAPI</code><br>Routes"]
+    
+    FastAPI --> Post("POST /predict")
+    FastAPI --> GetPing("GET /ping") 
+    FastAPI --> GetMeta("GET /metadata")
+    FastAPI --> GetDocs("GET /docs")
+    
+    CheckProt["<code>check_prototype=True</code>"] --> Input["Enable Input<br>Validation"]
+    
+    VApiCon --"creates"--> VApiObj("<code>VetiverAPI</code><br>object")
+    VApiObj --"with"--> AppAttr("<code>.app</code> attribute")
+    
+    AppAttr --"contains"--> FastAPIApp["<code>FastAPI</code> application"]
+    
+    style CheckProt stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:18px
+    style Mod stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:18px
+    style VApiCon fill:#e8f5e8,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:18px
+    style FastAPIApp fill:#c8e6c9,stroke:#000,color:#000,stroke-width:2px,rx:10,ry:10,font-size:18px
+```
+
+### Print outputs
+
+The print statements below will provide messages/debugging information and links to the documents/health check/metadata.
 
 ```{python}
 #| eval: false 
@@ -215,41 +337,305 @@ if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8080)
 ```
 
+### Launch the API
 
-```{mermaid}
-%%| fig-cap: 'mod-api.py'
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
-graph TB
-    Mod["<code>VetiverModel</code>"] --> VApiCon["<code>VetiverAPI</code><br>Constructor"]
-    VApiCon --"generates"--> FastAPI["<code>FastAPI</code><br>Routes"]
-    
-    FastAPI --> Post("POST /predict")
-    FastAPI --> GetPing("GET /ping") 
-    FastAPI --> GetMeta("GET /metadata")
-    FastAPI --> GetDocs("GET /docs")
-    
-    CheckProt["<code>check_prototype=True</code>"] --> Input["Enable Input<br>Validation"]
-    
-    VApiCon --"creates"--> VApiObj["<code>VetiverAPI</code><br>object"]
-    VApiObj --"with"--> AppAttr["<code>.app</code> attribute"]
-    AppAttr --"contains"--> FastAPIApp["<code>FastAPI</code> application"]
-    
-    style VApiCon fill:#e8f5e8,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style FastAPIApp fill:#c8e6c9,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+In a new Terminal, run the following:
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+python3 mod-api.py
 ```
 
-### Start the API
+Then click on the link for the API Documentation: <http://127.0.0.1:8080/docs>
 
-![VetiverModel & FastApi app](img/lab3-py-fastapi-ui.png){fig-align='center' width='100%'}
+![VetiverModel & FastApi app](img/lab3-py-fastapi-ui.png){fig-align="center" width="100%"}
 
-## App 
+The `FastAPI` UI is automatically generated and provides interactive API documentation. It can also be useful for developing the Shiny for Python app.
 
-### Reactive values 
+### FastAPI Interface
+
+The UI shows four automatically created endpoints:
+
++----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
+| Endpoint             | Description      | Purpose                                   | Return/Input                                    | Shiny Use                                |
++======================+==================+===========================================+=================================================+==========================================+
+| **GET `/ping`**      | Health check     | Verify API is running                     | **Returns**: Simple OK status                   | Connection validation before predictions |
++----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
+| **GET `/metadata`**  | Model info       | Get model details, version, training info | **Returns**: Model metadata                     | Display model info to users, debugging   |
++----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
+| **GET `/prototype`** | Input schema     | Shows expected input format               | **Returns**: Example of required data structure | Validate the app sends correct format    |
++----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
+| **POST `/predict`**  | Make predictions | The main endpoint for predictions         | **Input**: List of penguin feature records      | Core functionality of the app            |
+|                      |                  |                                           |                                                 |                                          |
+|                      |                  |                                           | **Returns**: Prediction results                 |                                          |
++----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
+
+: API Endpoints
+
+The bottom section of the UI shows the **Schema Information**:
+
+-   **HTTPValidationError**: What error responses look like\
+-   **ValidationError**: Specific field validation failures\
+-   **Prototype**: Exact input schema expected
+
+## Test the API
+
+To test, create multiple Terminal sessions: one to run the API and a second for API testing (and a third to run the Shiny App). Also, preview the API links in the browser.
+
+```{mermaid}
+%%| fig-cap: 'Vetiver API creation & testing'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+graph TD
+    subgraph T1["<strong>API Server</strong>"]
+        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<code>VetiverModel</code>"]
+        VetMod --"convert to"--> VetAPI["<code>VetiverAPI</code>"]
+        VetAPI --"extract"--> FastAPI(["<code>FastAPI</code>"])
+    end
+    
+    subgraph T2["<strong>API Testing</strong>"]
+        Curl["<code>curl</code><br>commands"] --> ManPostReq["Manual<br>POST<br>request"]
+        ManPostReq --> FastAPI
+        FastAPI --> JSONReq["JSON<br>Response<br>Test"]
+        JSONReq --> VerAPI(["Verify<br>API Works"])
+    end
+    
+   subgraph Browse["<strong>Browser</strong>"]
+        Http["`Got to <code>http://</code><code>127.0.0.1:8080/</code>`"] --"<code>/docs</code>"--> Docs(["API Docs"])
+        Http --"<code>/ping</code>"--> Health(["Health Check"])
+        Http --"<code>/metadata</code>"--> Info(["Model Info"])
+        Docs & Health & Info --> FastAPI
+    end
+
+    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    style Curl fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    
+    style VetMod fill:#ffebee
+    style ManPostReq fill:#ffebee
+
+    style JSONReq fill:#fff3e0
+    style VetAPI fill:#fff3e0
+    
+    style VerAPI fill:#e8f5e8,font-size:18px
+    style FastAPI fill:#e8f5e8,font-size:18px
+    style Docs fill:#e8f5e8,font-size:18px
+    style Health fill:#e8f5e8,font-size:18px
+    style Info fill:#e8f5e8,font-size:18px
+
+    %% subgraph T3["<strong>Shiny App</strong>"]
+    %%     RunApp["Run<br>app-api.py"] --> UI["User<br>Interface"]
+    %%     UI --> HttpPostReq["HTTP<br>POST<br>Request"]
+    %%     HttpPostReq --> FastAPI
+    %%     FastAPI --> JSONResp["JSON<br>Response"]
+    %%     JSONResp --> DispPred["Display<br>Prediction"]
+    %% end
+
+    %% style RunApp fill:#FFF,color:#000,rx:20,ry:20,font-size:16px 
+    %% style HttpPostReq fill:#e1f5fe
+    %% style DispPred fill:#f3e5f5
+```
+
+### Health check (ping)
+
+Test if API is running with a simple `ping`:
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+curl http://127.0.0.1:8080/ping
+```
+
+Expected response:
+
+``` json
+{'ping': 'pong'}
+```
+
+### Model metadata
+
+Get information about the model (version, feature names, etc.) from the API `metadata`:
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+curl http://127.0.0.1:8080/metadata
+```
+
+Expected response:
+
+``` json
+{
+  "user":{},
+  "version":null,
+  "url":null,
+  "required_pkgs":["scikit-learn"],
+  "python_version":[3,9,6,"final",0]
+}
+```
+
+### Prediction requests
+
+To make a prediction, we can click on the UI POST/predict section and view the **Request body: Example Value**
+
+```json
+[
+  {
+    "bill_length_mm": 45,
+    "species_Chinstrap": 0,
+    "species_Gentoo": 1,
+    "sex_male": 1
+  }
+]
+```
+
+Let's make a prediction for a male Adelie penguin, with a 45mm bill:
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+curl -X POST "http://127.0.0.1:8080/predict" \
+  -H "Content-Type: application/json" \
+  -d '[{
+    "bill_length_mm": 45,
+    "species_Chinstrap": 0,
+    "species_Gentoo": 0,
+    "sex_male": 1
+  }]'
+```
+
+Expected response:
+
+``` json
+{"predict":[4180.796549720755]}
+```
+
+## App
+
+Now that we've confirmed our API is running, we can launch our Shiny (for Python) app from a second Terminal (or RStudio/Positron session).
+
+```{mermaid}
+%%| fig-cap: 'Vetiver API creation & testing'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+graph TD
+    subgraph T1["<strong>API Server</strong>"]
+        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<code>VetiverModel</code>"]
+        VetMod --"convert to"--> VetAPI["<code>VetiverAPI</code>"]
+        VetAPI --"extract"--> FastAPI(["<code>FastAPI</code>"])
+    end
+    
+    subgraph T2["<strong>API Testing</strong>"]
+        Curl["<code>curl</code><br>command"] --> ManPostReq["Manual<br>POST<br>request"]
+        ManPostReq --> FastAPI
+        FastAPI --> JSONReq["JSON<br>Response<br>Test"]
+        JSONReq --> VerAPI(["Verify<br>API Works"])
+    end
+    
+   subgraph Browse["<strong>Browser</strong>"]
+        Http["`Got to <code>http://</code><code>127.0.0.1:8080/</code>`"] --"<code>/docs</code>"--> Docs(["API Docs"])
+        Http --"<code>/ping</code>"--> Health(["Health Check"])
+        Http --"<code>/metadata</code>"--> Info(["Model Info"])
+        Docs & Health & Info --> FastAPI
+    end
+
+    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    style Curl fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
+    
+    style VetMod fill:#ffebee
+    style ManPostReq fill:#ffebee
+
+    style JSONReq fill:#fff3e0
+    style VetAPI fill:#fff3e0
+    
+    style VerAPI fill:#e8f5e8,font-size:18px
+    style FastAPI fill:#e8f5e8,font-size:18px
+    style Docs fill:#e8f5e8,font-size:18px
+    style Health fill:#e8f5e8,font-size:18px
+    style Info fill:#e8f5e8,font-size:18px
+
+    subgraph T3["<strong>Shiny App</strong>"]
+       RunApp["Run<br>app-api.py"] --> UI["User<br>Interface"]
+       UI --> HttpPostReq["HTTP<br>POST<br>Request"]
+       HttpPostReq --> FastAPI
+       FastAPI --> JSONResp["JSON<br>Response"]
+       JSONResp --> DispPred["Display<br>Prediction"]
+    end
+
+    %% style RunApp fill:#FFF,color:#000,rx:20,ry:20,font-size:16px 
+    %% style HttpPostReq fill:#e1f5fe
+    %% style DispPred fill:#f3e5f5
+```
+
+### Reactive values
+
+```{python}
+#| eval: false 
+#| code-fold: show 
+#| code-summary: 'show/hide reactives'
+    @reactive.calc
+    def vals():
+        # Create data in LIST format (what API expects)
+        d = [{
+            "bill_length_mm": int(input.bill_length()),
+            "species_Chinstrap": int(input.species() == "Chinstrap"),
+            "species_Gentoo": int(input.species() == "Gentoo"),
+            "sex_male": int(input.sex() == "Male")
+        }]
+        return d
+    
+    @reactive.calc
+    def api_health_check():
+        """Check if API is responsive"""
+        try:
+            ping_url = 'http://127.0.0.1:8080/ping'
+            r = requests.get(ping_url, timeout=5)
+            if r.status_code == 200:
+                return f"✅ API is running (ping: {r.json()})"
+            else:
+                return f"⚠️ API ping failed: {r.status_code}"
+        except requests.exceptions.ConnectionError:
+            return "❌ Cannot connect to API - is it running on port 8080?"
+        except Exception as e:
+            return f"❌ API health check failed: {str(e)}"
+    
+    @reactive.calc
+    @reactive.event(input.predict)
+    def pred():
+        try:
+            data_to_send = vals()
+            print(f"\n=== PREDICTION REQUEST ===")
+            print(f"Sending data to API: {data_to_send}")
+            
+            r = requests.post(api_url, json=data_to_send, timeout=30)
+            print(f"HTTP Status Code: {r.status_code}")
+            print(f"Raw response text: {r.text}")
+            
+            if r.status_code == 200:
+                result = r.json()
+                print(f"✅ Success! Parsed response: {result}")
+                
+                # Handle different possible response formats  
+                if '.pred' in result:
+                    prediction = result['.pred'][0]
+                    return prediction
+                elif 'predict' in result:
+                    prediction = result['predict'][0]
+                    return prediction
+                else:
+                    return f"Unexpected response format: {result}"
+            else:
+                return f"API Error {r.status_code}: {r.text}"
+                
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return f"Error: {str(e)}"
+```
 
 ### Predictions
 
 ## Verify
 
-### Back in the API 
-
+### Back in the API

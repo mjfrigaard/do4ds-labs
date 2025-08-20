@@ -27,7 +27,7 @@ pip install vetiver pins fastapi uvicorn
 4. Run the api:
 
 ```bash
-python mod-api.py
+python3 mod-api.py
 ```
 
 ## Testing API

@@ -4,69 +4,117 @@ import requests
 api_url = 'http://127.0.0.1:8080/predict'
 
 app_ui = ui.page_fluid(
-    ui.panel_title("Penguin Mass Predictor"), 
-    ui.layout_sidebar(
-        ui.panel_sidebar([
+    ui.h1("Penguin Mass Predictor"),
+    ui.layout_columns(
+        ui.card(
+            ui.card_header("Inputs"),
             ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step=0.1),
             ui.input_select("sex", "Sex", ["Male", "Female"]),
             ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
             ui.input_action_button("predict", "Predict")
-        ]),
-        ui.panel_main([
-            ui.h2("Penguin Parameters"),
+        ),
+        ui.card(
+            ui.card_header("Results"),
+            ui.h3("Input Values"),
             ui.output_text_verbatim("vals_out"),
-            ui.h2("Predicted Penguin Mass (g)"), 
+            ui.h3("Species Encoding"),
+            ui.output_text("species_debug"),
+            ui.h3("API Connection"),
+            ui.output_text("api_status"),
+            ui.h3("Predicted Mass"),
             ui.output_text("pred_out")
-        ])
-    )   
+        ),
+        col_widths=[4, 8]
+    )
 )
 
 def server(input, output, session):
-    @reactive.Calc
+    @reactive.calc
     def vals():
-        d = {
-            "bill_length_mm": input.bill_length(),
-            "species_Chinstrap": 1 if input.species() == "Chinstrap" else 0,  # Convert to numeric
-            "species_Gentoo": 1 if input.species() == "Gentoo" else 0,        # Convert to numeric  
-            "sex_male": 1 if input.sex() == "Male" else 0                     # Convert to numeric (note: sex_male not sex_Male)
-        }
+        # Create data in LIST format (what API expects)
+        d = [{
+            "bill_length_mm": int(input.bill_length()),
+            "species_Chinstrap": int(input.species() == "Chinstrap"),
+            "species_Gentoo": int(input.species() == "Gentoo"),
+            "sex_male": int(input.sex() == "Male")
+        }]
         return d
     
-    @reactive.Calc
+    @reactive.calc
+    def api_health_check():
+        """Check if API is responsive"""
+        try:
+            ping_url = 'http://127.0.0.1:8080/ping'
+            r = requests.get(ping_url, timeout=5)
+            if r.status_code == 200:
+                return f"✅ API is running (ping: {r.json()})"
+            else:
+                return f"⚠️ API ping failed: {r.status_code}"
+        except requests.exceptions.ConnectionError:
+            return "❌ Cannot connect to API - is it running on port 8080?"
+        except Exception as e:
+            return f"❌ API health check failed: {str(e)}"
+    
+    @reactive.calc
     @reactive.event(input.predict)
     def pred():
         try:
-            print(f"Sending data to API: {vals()}")  # Debug print
-            r = requests.post(api_url, json=vals())
-            r.raise_for_status()  # Raise an exception for bad status codes
-            result = r.json()
-            print(f"API response: {result}")  # Debug print
+            data_to_send = vals()
+            print(f"\n=== PREDICTION REQUEST ===")
+            print(f"Sending data to API: {data_to_send}")
             
-            # Handle different possible response formats
-            if '.pred' in result:
-                return result['.pred'][0]
-            elif 'predict' in result:
-                return result['predict'][0]
-            else:
-                return f"Unexpected response format: {result}"
+            r = requests.post(api_url, json=data_to_send, timeout=30)
+            print(f"HTTP Status Code: {r.status_code}")
+            print(f"Raw response text: {r.text}")
+            
+            if r.status_code == 200:
+                result = r.json()
+                print(f"✅ Success! Parsed response: {result}")
                 
-        except requests.exceptions.RequestException as e:
-            return f"API Error: {str(e)}"
-        except (KeyError, IndexError, TypeError) as e:
-            return f"Response parsing error: {str(e)}"
+                # Handle different possible response formats  
+                if '.pred' in result:
+                    prediction = result['.pred'][0]
+                    return prediction
+                elif 'predict' in result:
+                    prediction = result['predict'][0]
+                    return prediction
+                else:
+                    return f"Unexpected response format: {result}"
+            else:
+                return f"API Error {r.status_code}: {r.text}"
+                
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return f"Error: {str(e)}"
 
-    @output
     @render.text
     def vals_out():
-        return f"{vals()}"
+        data = vals()
+        return f"{data}"
+    
+    @render.text
+    def species_debug():
+        species = input.species()
+        chinstrap = int(species == "Chinstrap")
+        gentoo = int(species == "Gentoo")
+        
+        if chinstrap == 0 and gentoo == 0:
+            return f"Selected: {species} → Adelie (reference category)"
+        elif chinstrap == 1:
+            return f"Selected: {species} → Chinstrap"
+        elif gentoo == 1:
+            return f"Selected: {species} → Gentoo"
+    
+    @render.text
+    def api_status():
+        return api_health_check()
 
-    @output
     @render.text
     def pred_out():
         result = pred()
         if isinstance(result, (int, float)):
             return f"{round(result, 1)} grams"
         else:
-            return str(result)  # Show error messages
+            return str(result)
 
 app = App(app_ui, server)
