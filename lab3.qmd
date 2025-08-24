@@ -1,4 +1,4 @@
-# Lab 3 {.unnumbered}
+# Lab 3: Databases and APIs {.unnumbered}
 
 ```{r}
 #| label: common
@@ -29,19 +29,183 @@ The original files in `_labs/lab3` are below:
 #| eval: false
 fs::dir_tree(path = "_labs/lab3/")
 ## _labs/lab3/
-## ├── app-api.R
-## ├── app-api.py
-## ├── eda-db.qmd
-## ├── model-db.qmd
-## ├── py-data-load.py
-## └── r-data-load.R
+## ├── app-api.R #<1>
+## ├── app-api.py #<2>
+## ├── eda-db.qmd #<3>
+## ├── model-db.qmd #<4>
+## ├── py-data-load.py #<5>
+## └── r-data-load.R #<6>
+```
+1. R Shiny app    
+2. Python Shiny app 
+3. R EDA Quarto file  
+4. Python EDA Quarto file  
+5. Database connection via Python   
+6. Database connection via R   
+
+In the previous labs, we build a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
+
+## Comprehension questions
+
+### Databases
+
+> ***1. Draw two mental maps for connecting to a database, one using a database driver (in a Python or R package) vs. an ODBC or JDBC driver. You should (at a minimum) include the nodes: database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.***
+
+#### Python
+
+In Python, there is a large database ecosystem (i.e., many driver options). ORM support with  [SQLAlchemy](https://www.sqlalchemy.org/) and it's flexible (i.e., it can bypass standards if needed). 
+
+```{mermaid}
+%%| fig-cap: 'Python DB Connections'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+graph TB
+    subgraph PyApp["Python App"]
+        PyCode(["Python<br>Code"])
+    end
+    
+    subgraph PyPkg["Python Packages"]
+        DBPkg("DB Package<br/>psycopg2, pymysql, sqlite3")
+        ODBCPkg("ODBC Package<br/>pyodbc")
+        JDBCPkg("JDBC Package<br/>jaydebeapi")
+    end
+    
+    subgraph Driver["Driver Layer"]
+        NatDrv("Native Driver<br/>libpq, MySQL C API")
+        ODBCDrv("ODBC Driver<br/>Vendor-specific")
+        JDBCDrv("JDBC Driver<br/>.jar files")
+    end
+    
+    subgraph System["System Layer"]
+        ODBCSys("ODBC Manager<br/>System ODBC")
+        JAVASys("Java Runtime<br/>JVM/JRE")
+    end
+    
+    subgraph DB["Database"]
+        DBServ[("<strong>Database Server</strong>")]
+    end
+    
+    %% Direct pathway (bypasses system layer)
+    PyCode --> DBPkg
+    DBPkg --> NatDrv
+    NatDrv --"`Bypass <strong>System Layer</strong>`"--> DBServ
+    
+    %% ODBC pathway
+    PyCode --> ODBCPkg
+    ODBCPkg --> ODBCDrv
+    ODBCDrv --> ODBCSys
+    ODBCSys --> DBServ
+    
+    %% JDBC pathway
+    PyCode --> JDBCPkg
+    JDBCPkg --> JDBCDrv
+    JDBCDrv --> JAVASys
+    JAVASys --> DBServ
+    
+    style PyCode fill:#f3e5f5
+    style DBPkg fill:#e1f5fe
+    style ODBCPkg fill:#fff3e0
+    style JDBCPkg fill:#e8f5e8
+    style DBServ fill:#4caf50,color:#fff
 ```
 
-In the previous labs, we build a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (also [available in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
 
-## APIs 
+#### R 
 
-Let's back up a bit and get an understanding of what an API does. In general, APIs are the digital plumbing that makes modern software ecosystems possible. 
+In R, the **`DBI` package provides a universal interface** (same code works across drivers). This is a simpler model because all paths converge on `DBI` package. There is also better integration with R's data structures (i.e., `data.frame`s).
+
+```{mermaid}
+%%| fig-cap: 'R Database Connection Pathways'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    subgraph "R App"
+        A("R<br>Code")
+    end
+    
+    subgraph "R Packages"
+        B("DB Packages<br/><code>RPostgres</code>, <code>RMySQL</code>, <code>RSQLite</code>")
+        C("ODBC Package<br/><code>odbc</code>")
+        D("JDBC Package<br/><code>RJDBC</code>")
+    end
+    
+    subgraph "R Standard Interface"
+        E("DBI<br/>Database Interface")
+    end
+    
+    subgraph "Driver Layer"
+        F("Native Driver<br/>libpq, MySQL C API")
+        G("ODBC Driver<br/>Vendor-specific")
+        H("JDBC Driver<br/>.jar files")
+    end
+    
+    subgraph "System Layer"
+        I("ODBC Manager<br/>System ODBC")
+        J("Java Runtime<br/>JVM/JRE")
+    end
+    
+    subgraph "Database"
+        K[("<strong>Database Server</strong>")]
+    end
+    
+    %% All paths go through DBI
+    A --> B
+    A --> C  
+    A --> D
+    B --> E
+    C --> E
+    D --> E
+    
+    %% Direct pathway (bypasses system layer)
+    E --> F
+    F --"bypasses system layer"--> K
+    
+    %% ODBC pathway  
+    E --> G
+    G --> I
+    I --> K
+    
+    %% JDBC pathway
+    E --> H
+    H --> J
+    J --> K
+    
+    style A fill:#f3e5f5
+    style E fill:#e1f5fe
+    style B fill:#c8e6c9
+    style C fill:#fff3e0
+    style D fill:#e8f5e8
+    style K fill:#4caf50,color:#fff
+```
+
+**Both R and Python native database drivers bypass the system layer** and connect directly to databases. The system layer is only involved when using ODBC or JDBC connections.
+
+```{mermaid}
+%%| fig-cap: 'DB Connection Mental Model Differences'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+graph TD
+    subgraph "R Philosophy"
+        A[DBI as Universal Interface] --> B[All paths converge to DBI]
+        B --> C[Consistent API regardless of driver]
+    end
+    
+    subgraph "Python Philosophy"
+        D[DB-API 2.0 as Standard] --> E[Multiple competing approaches]
+        E --> F[Choose best tool for job]
+    end
+    
+    style B fill:#e1f5fe
+    style E fill:#fff3e0
+    
+```
+
+### APIs
+
+> ***2. Draw a mental map for using an API from R and Python. You should (at a minimum) include nodes for `{requests}`/`{httr2}`, request, HTTP verb/request method, headers, query parameters, body, JSON, response, and response code.***
+
+In general, APIs are like the digital 'plumbing' that makes connections between modern software ecosystems possible. 
 
 ```{mermaid}
 %%| fig-cap: 'APIs'
@@ -69,8 +233,28 @@ APIs have standardized language that allows different software systems to commun
 3. What you'll get back (response format)   
 4. When things go wrong (error codes)  
 
-We previously turned our Python model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`. I've also completed these steps in R, which can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/R/model-vetiver-r.qmd). 
+#### Python
 
+#### R 
+
+
+
+
+> ***3. How can environment variables be used to keep secrets secure in your code?***
+
+
+
+
+### In lab 2
+
+We previously turned our Python `scikit-learn` model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`.[^lab2-with-py] 
+
+  - In R, we created a linear model (with `lm()` and `fastDummies`), converted it to a `vetiver_model()`, put it in a `board_folder()`, 'pinned' it with `vetiver_pin_write()`, then converted it into an API with `plumber::pr()` and `vetiver_api()`.[^lab2-with-r] 
+
+[^lab2-with-r]: This can be found in [`_labs/lab2/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/R/model-vetiver-r.qmd). 
+
+[^lab2-with-py]: This can be found in
+[/_labs/lab2/model-vetiver/model-vetiver.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab2/model-vetiver/model-vetiver.qmd)
 
 The sections below cover how to create and communicate with APIs.  I've split each lab into separate `R/` and `Python/` folders and included RStudio project files. 
 

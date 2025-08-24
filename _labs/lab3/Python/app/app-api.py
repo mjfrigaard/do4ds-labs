@@ -8,21 +8,21 @@ app_ui = ui.page_fluid(
     ui.layout_columns(
         ui.card(
             ui.card_header("Inputs"),
-            ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step=0.1),
-            ui.input_select("sex", "Sex", ["Male", "Female"]),
-            ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
-            ui.input_action_button("predict", "Predict")
+            ui.input_slider(id="bill_length", label="Bill Length (mm)", min=30, max=60, value=45, step=0.1),
+            ui.input_select(id="sex", label="Sex", choices=["Male", "Female"]),
+            ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),
+            ui.input_action_button(id="predict", label="Predict")
         ),
         ui.card(
             ui.card_header("Results"),
             ui.h3("Input Values"),
-            ui.output_text_verbatim("vals_out"),
+            ui.output_text_verbatim(id="vals_out"),
             ui.h3("Species Encoding"),
-            ui.output_text("species_debug"),
+            ui.output_text(id="species_debug"),
             ui.h3("API Connection"),
-            ui.output_text("api_status"),
+            ui.output_text(id="api_status"),
             ui.h3("Predicted Mass"),
-            ui.output_text("pred_out")
+            ui.output_text(id="pred_out")
         ),
         col_widths=[4, 8]
     )

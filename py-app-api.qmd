@@ -1,4 +1,4 @@
-# <em>Python App API</em> {.unnumbered}
+# <em>Python App & API</em> {.unnumbered}
 
 ```{r}
 #| label: common
@@ -24,11 +24,11 @@ co_box(
 
 In [lab 2](lab2.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`:
 
-## Initial launch
+## Set up
 
 In this lab, I'll be using Positron to develop the Vetiver API amd Shiny for Python app. I'm still new to programming in Python, so it took a bit longer to get the Vetiver API and Shiny app working together.
 
-Below are some pointers so you don't make the same mistakes I made:
+Below are a few pointers to help you avoid making some of the mistakes I made:
 
 1.  Set up the API and app in different folders\
 2.  Create and activate Python virtual environments (`venv`) in each project\
@@ -38,7 +38,50 @@ Below are some pointers so you don't make the same mistakes I made:
 
 ## API
 
-I wrote `mod-api.py` to run the Vetiver/FastAPI in a dedicated Positron/Terminal session. My version deviates quite a bit from the original Quarto document, but it's essentially creating the same thing.
+[`Python/api/mod-api.py`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/Python/api/mod-api.py) will run the `Vetiver`/`FastAPI` in a dedicated Positron/Terminal session. This version deviates quite a bit from the original Quarto document, but it's essentially creating the same thing.
+
+```{mermaid}
+%%| fig-cap: 'Vetiver API creation'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+graph TD
+    subgraph T1["<strong>API Server</strong>"]
+        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<code>VetiverModel</code>"]
+        VetMod --"convert to"--> VetAPI["<code>VetiverAPI</code>"]
+        VetAPI --"extract"--> FastAPI(["<code>FastAPI</code>"])
+    end
+    
+   subgraph Browse["<strong>Browser</strong>"]
+        Http["`Got to <code>http://</code><code>127.0.0.1:8080/</code>`"] --"<code>/docs</code>"--> Docs(["API Docs"])
+        Http --"<code>/ping</code>"--> Health(["Health Check"])
+        Http --"<code>/metadata</code>"--> Info(["Model Info"])
+        Docs & Health & Info --> FastAPI
+    end
+
+    style Http fill:#FFF,color:#000,stroke:#333,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    style RunApi fill:#FFF,color:#000,stroke:#333,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    
+    style VetMod fill:#ffebee
+    style VetAPI fill:#fff3e0
+    
+    style FastAPI fill:#e8f5e8,font-size:18px
+    style Docs fill:#e8f5e8,font-size:18px
+    style Health fill:#e8f5e8,font-size:18px
+    style Info fill:#e8f5e8,font-size:18px
+
+    %% subgraphs
+    %% style Function fill:#FFF,color:#000,stroke:#333,font-size:14px %%
+    %% style BrowserStep stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:14px  %%
+    %% style Debugger fill:#F8F8FA,color:#000,stroke:#4CB7DB,stroke-width:3px,rx:10,ry:10,font-size:14px %%
+    
+    %% nodes 
+    %% style Running fill:#FFF,color:#000,stroke:#333,rx:10,ry:10,font-size:14px %%
+    %% style Encounter fill:#4CBB9D,color:#FFFFFF,stroke:none,rx:10,ry:10,font-size:14px %%
+    %% style Step1 fill:#4CB7DB,color:#000,stroke:none,rx:15,ry:15,font-size:14px %%
+    %% style Step2 fill:#4CB7DB,color:#000,stroke:none,rx:10,ry:10,font-size:14px %%
+    %% style ExitBrowser fill:#4CBB9D,color:#FFFFFF,stroke:none,rx:20,ry:10,font-size:14px %%
+    %% style Resume fill:#FFF,color:#000,stroke:#333,rx:10,ry:10,font-size:14px %%
+```
 
 ### Libraries, warnings, and environment variables
 
@@ -373,11 +416,11 @@ The UI shows four automatically created endpoints:
 
 : API Endpoints
 
-The bottom section of the UI shows the **Schema Information**:
+The bottom three sections of the FastAPI UI shows the **Schema Information**:
 
--   **HTTPValidationError**: What error responses look like\
--   **ValidationError**: Specific field validation failures\
--   **Prototype**: Exact input schema expected
+-   **HTTPValidationError**: What error responses look like   
+-   **ValidationError**: Specific field validation failures   
+-   **Prototype**: Exact input schema expected    
 
 ## Test the API
 
@@ -437,7 +480,7 @@ graph TD
     %% style DispPred fill:#f3e5f5
 ```
 
-### Health check (ping)
+### `ping` (health check)
 
 Test if API is running with a simple `ping`:
 
@@ -513,10 +556,10 @@ Expected response:
 
 ## App
 
-Now that we've confirmed our API is running, we can launch our Shiny (for Python) app from a second Terminal (or RStudio/Positron session).
+Now that we've confirmed our API is running, we can launch our Shiny (for Python) app from it's own Terminal (or RStudio/Positron session). 
 
 ```{mermaid}
-%%| fig-cap: 'Vetiver API creation & testing'
+%%| fig-cap: 'Shiny App, Vetiver API Server, & API testing'
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 graph TD
@@ -561,29 +604,94 @@ graph TD
        UI --> HttpPostReq["HTTP<br>POST<br>Request"]
        HttpPostReq --> FastAPI
        FastAPI --> JSONResp["JSON<br>Response"]
-       JSONResp --> DispPred["Display<br>Prediction"]
+       JSONResp --> DispPred(["Display<br>Prediction"])
     end
 
-    %% style RunApp fill:#FFF,color:#000,rx:20,ry:20,font-size:16px 
-    %% style HttpPostReq fill:#e1f5fe
-    %% style DispPred fill:#f3e5f5
+    style RunApp fill:#FFF,color:#000
+    style UI fill:#ffebee,color:#000
+    style HttpPostReq fill:#fff3e0,color:#000
+    style JSONResp fill:#fff3e0,color:#000
+    style DispPred fill:#e8f5e8,font-size:18px
 ```
 
-### Reactive values
+I'm going to dive a little into the syntax differences between Shiny (R) and Shiny for Python. The application in this lab uses the Shiny for Python Core syntax mode[^core-vs-express], which looks more like Shiny for R. 
+
+[^core-vs-express]: Read more about Shiny's two syntax modes: [express vs. core](https://shiny.posit.co/py/docs/express-vs-core.html). 
+
+At the top of the `app-api.py` script, we import the libraries and provide the `api_url`:
+
+```{python}
+#| eval: false 
+#| code-fold: show 
+from shiny import App, render, ui, reactive
+import requests
+
+api_url = 'http://127.0.0.1:8080/predict'
+```
+
+
+
+### UI 
+
+In the UI, the syntax for layout and inputs look similar to R, but have a few key differences: 
+
+1. R's assignment operator (`<-`) has been replaced with the equal sign (`=`)   
+2. 
+
+```{python}
+#| eval: false 
+#| code-fold: show 
+#| code-summary: 'show/hide UI inputs'
+app_ui = ui.page_fluid(
+    ui.h1("Penguin Mass Predictor"),
+    ui.layout_columns(
+        ui.card(
+            ui.card_header("Inputs"),
+            ui.input_slider(id="bill_length", label="Bill Length (mm)", min=30, max=60, value=45, step=0.1),
+            ui.input_select(id="sex", label="Sex", choices=["Male", "Female"]),
+            ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),
+            ui.input_action_button(id="predict", label="Predict")
+        ),
+        ui.card(
+            ui.card_header("Results"),
+            ui.h3("Input Values"),
+            ui.output_text_verbatim(id="vals_out"),
+            ui.h3("Species Encoding"),
+            ui.output_text(id="species_debug"),
+            ui.h3("API Connection"),
+            ui.output_text(id="api_status"),
+            ui.h3("Predicted Mass"),
+            ui.output_text(id="pred_out")
+        ),
+        col_widths=[4, 8]
+    )
+)
+```
+
+### Server
+
+In the server, we 
+
+#### Reactive values
+
+#### Outputs 
+
+
 
 ```{python}
 #| eval: false 
 #| code-fold: show 
 #| code-summary: 'show/hide reactives'
+
+def server(input, output, session):
     @reactive.calc
     def vals():
-        # Create data in LIST format (what API expects)
-        d = [{
+        d = [{ #<1>
             "bill_length_mm": int(input.bill_length()),
             "species_Chinstrap": int(input.species() == "Chinstrap"),
             "species_Gentoo": int(input.species() == "Gentoo"),
             "sex_male": int(input.sex() == "Male")
-        }]
+        }] #<1>
         return d
     
     @reactive.calc
@@ -617,8 +725,8 @@ graph TD
                 result = r.json()
                 print(f"✅ Success! Parsed response: {result}")
                 
-                # Handle different possible response formats  
-                if '.pred' in result:
+                
+                if '.pred' in result: # <2>
                     prediction = result['.pred'][0]
                     return prediction
                 elif 'predict' in result:
@@ -627,12 +735,44 @@ graph TD
                 else:
                     return f"Unexpected response format: {result}"
             else:
-                return f"API Error {r.status_code}: {r.text}"
+                return f"API Error {r.status_code}: {r.text}" # <2>
                 
         except Exception as e:
             print(f"❌ Error: {e}")
             return f"Error: {str(e)}"
+          
+    @render.text
+    def vals_out():
+        data = vals()
+        return f"{data}"
+    
+    @render.text
+    def species_debug():
+        species = input.species()
+        chinstrap = int(species == "Chinstrap")
+        gentoo = int(species == "Gentoo")
+        
+        if chinstrap == 0 and gentoo == 0:
+            return f"Selected: {species} → Adelie (reference category)"
+        elif chinstrap == 1:
+            return f"Selected: {species} → Chinstrap"
+        elif gentoo == 1:
+            return f"Selected: {species} → Gentoo"
+    
+    @render.text
+    def api_status():
+        return api_health_check()
+
+    @render.text
+    def pred_out():
+        result = pred()
+        if isinstance(result, (int, float)):
+            return f"{round(result, 1)} grams"
+        else:
+            return str(result)
 ```
+1. Create data in LIST format (what API expects)   
+2. Handle different possible response formats  
 
 ### Predictions
 
