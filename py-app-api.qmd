@@ -614,7 +614,7 @@ graph TD
     style DispPred fill:#e8f5e8,font-size:18px
 ```
 
-I'm going to dive a little into the syntax differences between Shiny (R) and Shiny for Python. The application in this lab uses the Shiny for Python Core syntax mode[^core-vs-express], which looks more like Shiny for R. 
+I'm going to dive a little into the [syntax differences](https://shiny.posit.co/py/docs/comp-r-shiny.html#syntax-differences) between Shiny (R) and Shiny for Python. The application in this lab uses the Shiny for Python Core syntax mode[^core-vs-express], which looks more like Shiny for R. 
 
 [^core-vs-express]: Read more about Shiny's two syntax modes: [express vs. core](https://shiny.posit.co/py/docs/express-vs-core.html). 
 
@@ -629,14 +629,25 @@ import requests
 api_url = 'http://127.0.0.1:8080/predict'
 ```
 
+| **Component** | **Python**                 | **R**            |
+| ------------- | -------------------------- | ---------------- |
+| Assignment    | `=`                        | `<-`             |
 
 
 ### UI 
 
 In the UI, the syntax for layout and inputs look similar to R, but have a few key differences: 
 
-1. R's assignment operator (`<-`) has been replaced with the equal sign (`=`)   
-2. 
+| **Component** | **Python**                 | **R**            |
+| ------------- | -------------------------- | ---------------- |
+| Text input    | `ui.input_text()`          | `textInput()`    |
+| Slider        | `ui.input_slider()`        | `sliderInput()`  |
+| Select box    | `ui.input_select()`        | `selectInput()`  |
+| Action button | `ui.input_action_button()` | `actionButton()` |
+| Text output   | `ui.output_text()`         | `textOutput()`   |
+
+Python uses module prefix (`ui.`), while R uses function suffix (`Input`, `Output`).
+
 
 ```{python}
 #| eval: false 
@@ -670,63 +681,116 @@ app_ui = ui.page_fluid(
 
 ### Server
 
-In the server, we 
+The server code looks much different than R, but the documentation provides excellent explanations for [creating reactives](https://shiny.posit.co/py/docs/comp-r-shiny.html#reactive-programming) and [rendering outputs](https://shiny.posit.co/py/docs/comp-r-shiny.html#connecting-outputs). I've included mermaid diagrams for the sections below because I'm still learning the Python for Shiny syntax and it's reactive model. 
 
 #### Reactive values
 
-#### Outputs 
-
-
+The reactive calculations (*expressions*) and reactive effects (*observers*) are indicated with function [decorators](https://shiny.posit.co/py/docs/comp-r-shiny.html#decorators) (`@reactive.calc` and `@reactive.event`). The inputs are accessed in the server with `input.` (not `input$`).
 
 ```{python}
 #| eval: false 
 #| code-fold: show 
-#| code-summary: 'show/hide reactives'
-
-def server(input, output, session):
-    @reactive.calc
-    def vals():
-        d = [{ #<1>
+#| code-summary: 'show/hide Python syntax'
+# UI code 
+  ui.output_text_verbatim(id="vals_out"),
+# server code
+    @reactive.calc #<1>
+    def vals(): #<2>
+        d = [{
             "bill_length_mm": int(input.bill_length()),
             "species_Chinstrap": int(input.species() == "Chinstrap"),
             "species_Gentoo": int(input.species() == "Gentoo"),
             "sex_male": int(input.sex() == "Male")
-        }] #<1>
-        return d
+        }]
+        return d #<2>
+      
+    @render.text #<3>
+    def vals_out(): #<4>
+        data = vals() 
+        return f"{data}"  #<5>
+```
+1. Equivalent to `reactive()`     
+2. Equivalent to `vals() <-`  
+3. Equivalent to `renderPrint()`  and assigning it to `output$vals`  
+4. Function name (`vals_out()`) = output ID (`"vals_out"`)    
+5. f-string interpolation   
+
+Shiny for Python outputs also use decorators (i.e., `@render.text`), and instead of using R's `*Output(outputId)` + `output$outputId <- render*()` syntax, Python matches the output ID (`id="vals_out"`) with the function name (`def vals_out():`).
+
+Expand the R code below to compare:
+
+```{r}
+#| eval: false 
+#| code-fold: true 
+#| code-summary: 'show/hide R syntax'
+# UI code 
+  verbatimTextOutput(outputId = "vals")
+# server code
+  vals <- reactive({
+    data.frame(
+      bill_length_mm = input$bill_length,
+      species_Chinstrap = as.numeric(input$species == "Chinstrap"),
+      species_Gentoo = as.numeric(input$species == "Gentoo"),
+      sex_male = as.numeric(input$sex == "Male")
+    )
+  })
+  
+  output$vals <- renderPrint({
+    vals()
+    })
+```
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    subgraph "Python Decorators"
+        A["<code>@reactive.calc</code>"] --> B[Function<br>definition]
+        C["<code>@reactive.event</code>"] --> D["Event-driven<br>reactives"]
+        E["<code>@render.text</code>"] --> F["Output<br>rendering"]
+    end
     
-    @reactive.calc
-    def api_health_check():
-        """Check if API is responsive"""
-        try:
-            ping_url = 'http://127.0.0.1:8080/ping'
-            r = requests.get(ping_url, timeout=5)
-            if r.status_code == 200:
-                return f"✅ API is running (ping: {r.json()})"
-            else:
-                return f"⚠️ API ping failed: {r.status_code}"
-        except requests.exceptions.ConnectionError:
-            return "❌ Cannot connect to API - is it running on port 8080?"
-        except Exception as e:
-            return f"❌ API health check failed: {str(e)}"
+    %% style A fill:#e1f5fe
+```
+
+### Predictions
+
+The predictions in the server are handled by `requests.post()`, which attempts to send `vals()` (as `data_to_send`) with the following error handling:    
+
+* Python stacks the decorators vertically, with each decorator adding behavior. In this case, `@reactive.event()` listens to changes to `input.predict`.      
+    * *`def pred()` is a standard Python function definition*.    
+
+* The debugging strategy uses explicit logging at each step, with `print()` and F-string formatting for readable outputs.   
+    * *This manual instrumentation uses the console output for development debugging.*  
+
+* `try` and the initial `if` are used to check the status code explicitly. The following logic handles different response formats.     
+    * *These provide granular control over each error condition and returns a different message based on the specific error.*   
     
-    @reactive.calc
-    @reactive.event(input.predict)
+
+```{python}
+#| eval: false 
+#| code-fold: show 
+#| code-summary: 'show/hide outputs'
+def server(input, output, session):
+  
+    @reactive.calc #<1>
+    @reactive.event(input.predict) #<2>
     def pred():
         try:
             data_to_send = vals()
-            print(f"\n=== PREDICTION REQUEST ===")
-            print(f"Sending data to API: {data_to_send}")
+            print(f"\n=== PREDICTION REQUEST ===") #<3>
+            print(f"Sending data to API: {data_to_send}") #<3>
             
             r = requests.post(api_url, json=data_to_send, timeout=30)
-            print(f"HTTP Status Code: {r.status_code}")
-            print(f"Raw response text: {r.text}")
+            print(f"HTTP Status Code: {r.status_code}") #<3>
+            print(f"Raw response text: {r.text}") #<3>
             
-            if r.status_code == 200:
+            if r.status_code == 200: # <4>
                 result = r.json()
                 print(f"✅ Success! Parsed response: {result}")
                 
                 
-                if '.pred' in result: # <2>
+                if '.pred' in result: 
                     prediction = result['.pred'][0]
                     return prediction
                 elif 'predict' in result:
@@ -735,47 +799,152 @@ def server(input, output, session):
                 else:
                     return f"Unexpected response format: {result}"
             else:
-                return f"API Error {r.status_code}: {r.text}" # <2>
-                
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            return f"Error: {str(e)}"
-          
-    @render.text
-    def vals_out():
-        data = vals()
-        return f"{data}"
-    
-    @render.text
-    def species_debug():
-        species = input.species()
-        chinstrap = int(species == "Chinstrap")
-        gentoo = int(species == "Gentoo")
-        
-        if chinstrap == 0 and gentoo == 0:
-            return f"Selected: {species} → Adelie (reference category)"
-        elif chinstrap == 1:
-            return f"Selected: {species} → Chinstrap"
-        elif gentoo == 1:
-            return f"Selected: {species} → Gentoo"
-    
-    @render.text
-    def api_status():
-        return api_health_check()
-
-    @render.text
-    def pred_out():
-        result = pred()
-        if isinstance(result, (int, float)):
-            return f"{round(result, 1)} grams"
-        else:
-            return str(result)
+                return f"API Error {r.status_code}: {r.text}" # <4>
 ```
-1. Create data in LIST format (what API expects)   
-2. Handle different possible response formats  
+1. Stacked decorators   
+2. Function executes when `input.predict` changes   
+3. Explicit print statements   
+4. Handle different possible responses 
 
-### Predictions
+The request itself is handled by `requests.post()`, which takes our URL, the data, and a timeout value. To contrast this with R, the `httr2` package performs the request with a series of function calls, then handles the errors with `tryCatch()` and pattern matching (`grepl()`): 
+
+```{r}
+#| eval: false 
+#| code-fold: true 
+#| code-summary: 'show/hide httr2 function calls'
+pred <- reactive({
+    tryCatch({
+    showNotification("Predicting penguin mass...", 
+                     type = "default", duration = 10)
+        
+    request_data <- vals()
+    response <- httr2::request(api_url) |>
+      httr2::req_method("POST") |>
+      httr2::req_body_json(request_data, auto_unbox = FALSE) |>  
+      httr2::req_perform() |>
+      httr2::resp_body_json()
+        
+    showNotification("✅ Prediction successful!", 
+                     type = "default", duration = 10)
+        
+    response$.pred[1]
+        
+    }, error = function(e) {
+      error_msg <- conditionMessage(e)
+      
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
+        user_msg <- "API not available - is the server running on port 8080?"
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
+        user_msg <- "Request timed out - API may be overloaded"
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
+      }
+      
+      showNotification(paste("❌", user_msg), type = "warn", duration = 10)
+      
+      paste("❌", user_msg)
+      })
+    }) |> 
+    bindEvent(input$predict, ignoreInit = TRUE)
+```
+
+
+I've tried to summarize Python's general reactive philosophy in the diagram below:
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    subgraph Py["Python Philosophy"]
+        A["Explicit over<br>Implicit"] --> A1["Decorators to make<br>behavior clear"]
+        A --> A2["Type conversion<br>is explicit"]
+        A --> A3["Error handling<br>is explicit"]
+        A --> A4["Method calls<br>with parentheses"]
+    end
+    
+    style A fill:#e1f5fe
+    
+```
 
 ## Verify
 
+Now when we launch the app, a preview of the parameters are in the list/JSON format we created them in: 
+
+![Parameters as JSON](img/lab3-python-shiny-json.png){fig-align="center" width="100%"}
+
+When we click **Predict**, we see notifications and the value is returned:
+
+![API request (with predictions returned)](img/lab3-python-shiny-response.png){fig-align="center" width="100%"}
+
 ### Back in the API
+
+If we return to the FastAPI UI, we can click on **POST / predict**, **Try it out**, then change the JSON values to match our parameters in the app, and click **Execute**:
+
+![`FastAPI` request body](img/lab3-py-fast-req-body.png){fig-align="center" width="100%"}
+
+And we can compare the response to the value we saw in the app:
+
+![`FastAPI` response](img/lab3-py-fast-resp-body.png){fig-align="center" width="100%"}
+
+A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below:
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A["<code>requests.post()</code>"] --> B["All parameters<br/>in single call"]
+	B --> C["<strong>Response<br>Object</strong>"]
+	D["Parameter-Based"] --> E["Headers, params,<br>json (all specified together)"]
+	E --> F["Single function call"]
+
+style A fill:#fff3e0
+style C fill:#e8f5e8
+
+```
+
+## Finishing touches
+
+To keep the Python environments in each directory self-contained and reproducible, we will 'freeze' the dependencies in a `requirements.txt` in each folder.
+
+```bash
+pip freeze > requirements.txt
+cat requirements.txt
+```
+
+### `Python/api/` files
+
+```{verbatim}
+├── .env
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   ├── pyvenv.cfg
+│   └── share
+├── .gitignore
+├── .Rhistory
+├── api.Rproj
+├── mod-api.py
+├── README.md
+└── requirements.txt
+
+6 directories, 7 files
+```
+
+### `Python/app/` files
+
+```{verbatim}
+├── .env
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   ├── pyvenv.cfg
+│   └── share
+├── .gitignore
+├── .Rhistory
+├── app-api.py
+├── app.Rproj
+├── README.md
+└── requirements.txt
+
+6 directories, 7 files
+```

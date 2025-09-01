@@ -34,7 +34,7 @@ ui <- page_sidebar(
     card(
       card_header("Penguin Parameters"),
       card_body(
-      verbatimTextOutput("vals")
+      verbatimTextOutput(outputId = "vals")
       )
     ),
     card(
@@ -43,7 +43,7 @@ ui <- page_sidebar(
         value_box(
           showcase_layout = "left center",
           title = "Grams",
-          value = textOutput("pred"),
+          value = textOutput(outputId = "pred"),
           showcase = bs_icon("graph-up"),
           max_height = "200px",
           min_height = "200px",
@@ -62,22 +62,59 @@ server <- function(input, output) {
       species_Chinstrap = as.numeric(input$species == "Chinstrap"),
       species_Gentoo = as.numeric(input$species == "Gentoo"),
       sex_male = as.numeric(input$sex == "Male")
-    )
+      )
   })
-
-  pred <- eventReactive(input$predict, {
-      request_data <- vals()
-      response <- httr2::request(api_url) |>
-        httr2::req_method("POST") |>
-        httr2::req_body_json(request_data, auto_unbox = FALSE) |>  
-        httr2::req_perform() |>
-        httr2::resp_body_json()
+  
+  pred <- reactive({
+    tryCatch({
+      # loading notification
+    showNotification("Predicting penguin mass...", 
+                     type = "default", duration = 10)
+        
+    request_data <- vals()
+    response <- httr2::request(api_url) |>
+      httr2::req_method("POST") |>
+      httr2::req_body_json(request_data, auto_unbox = FALSE) |>  
+      httr2::req_perform() |>
+      httr2::resp_body_json()
+        
+    # success notification
+    showNotification("✅ Prediction successful!", 
+                     type = "default", duration = 10)
+        
+    response$.pred[1]
+        
+    }, error = function(e) {
+      error_msg <- conditionMessage(e)
       
-      response$.pred[1]
-    }, ignoreInit = TRUE)
+      # error message
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
+        user_msg <- "API not available - is the server running on port 8080?"
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
+        user_msg <- "Request timed out - API may be overloaded"
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
+      }
+      
+      # error notification
+      showNotification(paste("❌", user_msg), type = "warn", duration = 10)
+      
+      # display error message
+      paste("❌", user_msg)
+      })
+    }) |> 
+    bindEvent(input$predict, ignoreInit = TRUE)
 
   output$pred <- renderText({
-    round(pred(), 1)
+    prediction <- pred()
+    
+    # check for prediction 
+    if (is.numeric(prediction)) {
+      paste(round(prediction, 1), "grams")
+    } else {
+      # error message 
+      prediction
+    }
   })
   
   output$vals <- renderPrint({

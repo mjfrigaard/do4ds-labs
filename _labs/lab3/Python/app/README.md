@@ -46,7 +46,7 @@ Launch API:
 
 ```bash
 cd api/
-source .env/bin/activate
+# source .env/bin/activate # if not activated 
 python3 mod-api.py
 ```
 

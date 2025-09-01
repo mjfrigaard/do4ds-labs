@@ -51,7 +51,7 @@ In the previous labs, we build a Python model API with [`vetiver`](https://rstud
 
 > ***1. Draw two mental maps for connecting to a database, one using a database driver (in a Python or R package) vs. an ODBC or JDBC driver. You should (at a minimum) include the nodes: database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.***
 
-#### Python
+#### Python and databases 
 
 In Python, there is a large database ecosystem (i.e., many driver options). ORM support with  [SQLAlchemy](https://www.sqlalchemy.org/) and it's flexible (i.e., it can bypass standards if needed). 
 
@@ -61,13 +61,13 @@ In Python, there is a large database ecosystem (i.e., many driver options). ORM 
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 graph TB
     subgraph PyApp["Python App"]
-        PyCode(["Python<br>Code"])
+        PyCode(["<code>app-api.py</code>"])
     end
     
     subgraph PyPkg["Python Packages"]
-        DBPkg("DB Package<br/>psycopg2, pymysql, sqlite3")
-        ODBCPkg("ODBC Package<br/>pyodbc")
-        JDBCPkg("JDBC Package<br/>jaydebeapi")
+        DBPkg("DB Package<br/><code>psycopg2</code>, <code>pymysql</code>, <code>sqlite3</code>")
+        ODBCPkg("ODBC Package<br/><code>pyodbc</code>")
+        JDBCPkg("JDBC Package<br/><code>jaydebeapi</code>")
     end
     
     subgraph Driver["Driver Layer"]
@@ -110,7 +110,7 @@ graph TB
 ```
 
 
-#### R 
+#### R and databases 
 
 In R, the **`DBI` package provides a universal interface** (same code works across drivers). This is a simpler model because all paths converge on `DBI` package. There is also better integration with R's data structures (i.e., `data.frame`s).
 
@@ -121,7 +121,7 @@ In R, the **`DBI` package provides a universal interface** (same code works acro
 
 graph TB
     subgraph "R App"
-        A("R<br>Code")
+        A("<code>app-api.R</code>")
     end
     
     subgraph "R Packages"
@@ -179,7 +179,7 @@ graph TB
     style K fill:#4caf50,color:#fff
 ```
 
-**Both R and Python native database drivers bypass the system layer** and connect directly to databases. The system layer is only involved when using ODBC or JDBC connections.
+Both R and Python native database drivers bypass the system layer and connect directly to databases. The system layer is only involved when using ODBC or JDBC connections.
 
 ```{mermaid}
 %%| fig-cap: 'DB Connection Mental Model Differences'
@@ -233,12 +233,67 @@ APIs have standardized language that allows different software systems to commun
 3. What you'll get back (response format)   
 4. When things go wrong (error codes)  
 
-#### Python
+#### Python APIs
 
-#### R 
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
+graph LR
+	subgraph "Python APIs"
+		A2[Python Code] --> B2[requests package]
+		B2 --> C2[requests.method call]
+		C2 --> D2[method parameter<br/>GET/POST/PUT/DELETE]
+		C2 --> E2[headers parameter<br/>dict of headers]
+		C2 --> F2[params parameter<br/>URL query parameters]
+		C2 --> G2[json parameter<br/>Request payload]
+		D2 --> H2[HTTP Request]
+		E2 --> H2
+		F2 --> H2
+		G2 --> H2
+		H2 --> I2[API Server]
+		I2 --> J2[HTTP Response]
+		J2 --> K2[response.status_code<br/>200, 404, 500, etc.]
+		J2 --> L2[response.headers<br/>Response metadata]
+		J2 --> M2[response.json<br/>JSON parsing]
+		K2 --> N2[Python Response Object]
+		L2 --> N2
+		M2 --> N2
+	end
 
+style B2 fill:#fff3e0
+style I2 fill:#e8f5e8
+```
 
+#### R APIs
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+	subgraph RApi["R APIs"]
+		A1["R Code"] --> B1["<code>httr2</code><br>package"]
+		B1 --> C1["<code>request()</code> object"]
+		C1 --> D1["<code>req_method()</code><br/>GET/POST/PUT/DELETE"]
+		C1 --> E1["<code>req_headers()</code><br/>Content-Type, Auth, etc."]
+		C1 --> F1["<code>req_url_query()</code><br/>?param=value&key=data"]
+		C1 --> G1["<code>req_body_json()</code><br/>Request payload"]
+		D1 --> H1["HTTP Request"]
+		E1 --> H1
+		F1 --> H1
+		G1 --> H1
+		H1 --> I1["API Server"]
+		I1 --> J1["HTTP Response"]
+		J1 --> K1["<code>resp_status()</code><br/>200, 404, 500, etc."]
+		J1 --> L1["<code>resp_headers()</code><br/>Response metadata"]
+		J1 --> M1["<code>resp_body_json()</code><br/>JSON parsing"]
+		K1 --> N1["R Response Object"]
+		L1 --> N1
+		M1 --> N1
+	end
+	
+style B1 fill:#e1f5fe
+style I1 fill:#e8f5e8
+```
 
 > ***3. How can environment variables be used to keep secrets secure in your code?***
 
@@ -256,9 +311,198 @@ We previously turned our Python `scikit-learn` model into a `VetiverModel()`, sa
 [^lab2-with-py]: This can be found in
 [/_labs/lab2/model-vetiver/model-vetiver.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab2/model-vetiver/model-vetiver.qmd)
 
-The sections below cover how to create and communicate with APIs.  I've split each lab into separate `R/` and `Python/` folders and included RStudio project files. 
+The sections below cover how to create and communicate with APIs.  I've split each lab into separate `Python/` and `R/` folders (and included RStudio project files). 
 
-## R App API
+## Python Shiny App 
+
+The original Python App files can be found in the [`_labs/lab3/Python/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab3/Python). 
+
+```{r}
+#| collapse: true
+#| eval: false
+fs::dir_tree(path = "_labs/lab3/Python/")
+## _labs/lab3/Python/
+## ├── Python.Rproj
+## ├── app-api.py
+## ├── model-db.qmd
+## └── py-data-load.py
+```
+
+### Model EDA {#sec-model-db}
+
+The [model-db.qmd](_labs/lab3/model-db.qmd) file contains the EDA from [lab 1](lab1.qmd).
+
+```{python}
+#| eval: false
+#| code-fold: false
+import duckdb
+from pandas import get_dummies
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+con = duckdb.connect('my-db.duckdb')
+df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
+con.close()
+
+df.head(3)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
+y = df['body_mass_g']
+
+model = LinearRegression().fit(X, y)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+print(f"R^2 {model.score(X,y)}")
+print(f"Intercept {model.intercept_}")
+print(f"Columns {X.columns}")
+print(f"Coefficients {model.coef_}")
+```
+
+<details>
+  <summary>Expand to view model-db.qmd</summary>
+  
+```{r}
+#| label: print-model-db-qmd
+#| echo: false
+#| code-overflow: wrap
+library(readr)
+readr::read_lines("_labs/lab3/model-db.qmd") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
+
+### Original app file {#sec-app-api-py}
+
+`app-api.py` creates an Python Shiny application that calls the `vetiver` API.
+
+#### UI 
+
+```{python}
+#| eval: false
+#| code-fold: false
+from shiny import App, render, ui, reactive
+import requests
+
+api_url = 'http://127.0.0.1:8080/predict'
+
+app_ui = ui.page_fluid(
+    ui.panel_title("Penguin Mass Predictor"), 
+    ui.layout_sidebar(
+        ui.panel_sidebar(
+            [ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step = 0.1),
+            ui.input_select("sex", "Sex", ["Male", "Female"]),
+            ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
+            ui.input_action_button("predict", "Predict")]
+        ),
+        ui.panel_main(
+            ui.h2("Penguin Parameters"),
+            ui.output_text_verbatim("vals_out"),
+            ui.h2("Predicted Penguin Mass (g)"), 
+            ui.output_text("pred_out")
+        )
+    )   
+)
+```
+
+
+#### Server
+
+```{python}
+#| eval: false
+#| code-fold: false
+def server(input, output, session):
+    @reactive.Calc
+    def vals():
+        d = {
+            "bill_length_mm" : input.bill_length(),
+            "sex_Male" : input.sex() == "Male",
+            "species_Gentoo" : input.species() == "Gentoo", 
+            "species_Chinstrap" : input.species() == "Chinstrap"
+
+        }
+        return d
+    
+    @reactive.Calc
+    @reactive.event(input.predict)
+    def pred():
+        r = requests.post(api_url, json = vals())
+        return r.json().get('predict')[0]
+
+    @output
+    @render.text
+    def vals_out():
+        return f"{vals()}"
+
+    @output
+    @render.text
+    def pred_out():
+        return f"{round(pred())}"
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+app = App(app_ui, server)
+```
+
+<details>
+  <summary>Expand to view app-api.py</summary>
+
+```{r}
+#| label: print-app-api-py
+#| echo: false
+library(readr)
+readr::read_lines("_labs/lab3/app-api.py") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
+
+### Data load {#sec-py-data-load-py}
+
+```{python}
+#| eval: false
+#| code-fold: false
+import duckdb
+from palmerpenguins import penguins
+
+con = duckdb.connect('my-db.duckdb')
+df = penguins.load_penguins()
+con.execute('CREATE TABLE penguins AS SELECT * FROM df')
+con.close()
+```
+
+<details>
+  <summary>Expand to view py-data-load.py</summary>
+
+```{r}
+#| label: print-py-data-load-py
+#| echo: false
+#| code-overflow: wrap
+library(readr)
+readr::read_lines("_labs/lab3/py-data-load.py") |> 
+  base::noquote() |> 
+  writeLines()
+```
+
+</details>
+
+## R Shiny App
 
 The R App API files can be found in the [`_labs/lab3/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab3/). 
 
@@ -272,7 +516,7 @@ fs::dir_tree(path = "_labs/lab3/")
 ## └── r-data-load.R
 ```
 
-### eda-db.qmd {#sec-eda-db.qmd}
+### Model EDA {#sec-eda-db.qmd}
 
 The [`eda-db.qmd`](_labs/lab3/eda-db.qmd) file has the EDA R code from lab 1. 
 
@@ -361,7 +605,7 @@ readr::read_lines("_labs/lab3/eda-db.qmd") |>
 
 </details>
 
-### app-api.R 
+### Original app file
 
 `app-api.R` creates an R Shiny application that calls the `vetiver` API. The top of the file creates an `api_url`:
 
@@ -455,7 +699,7 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 ```
 
-### r-data-load.R {#sec-r-data-load-r}
+### Data load {#sec-r-data-load-r}
 
 ```{r}
 #| eval: false
@@ -483,196 +727,4 @@ readr::read_lines("_labs/lab3/r-data-load.R") |>
 ```
 
 </details>
-
-## Python App API
-
-The Python App API files can be found in the [`_labs/lab3/Python/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab3/Python). 
-
-```{r}
-#| collapse: true
-#| eval: false
-fs::dir_tree(path = "_labs/lab3/Python/")
-## _labs/lab3/Python/
-## ├── Python.Rproj
-## ├── app-api.py
-## ├── model-db.qmd
-## └── py-data-load.py
-```
-
-### model-db.qmd {#sec-model-db}
-
-The [model-db.qmd](_labs/lab3/model-db.qmd) file contains the EDA from [lab 1](lab1.qmd).
-
-```{python}
-#| eval: false
-#| code-fold: false
-import duckdb
-from pandas import get_dummies
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn import preprocessing
-```
-
-```{python}
-#| eval: false
-#| code-fold: false
-con = duckdb.connect('my-db.duckdb')
-df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
-con.close()
-
-df.head(3)
-```
-
-```{python}
-#| eval: false
-#| code-fold: false
-X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
-y = df['body_mass_g']
-
-model = LinearRegression().fit(X, y)
-```
-
-```{python}
-#| eval: false
-#| code-fold: false
-print(f"R^2 {model.score(X,y)}")
-print(f"Intercept {model.intercept_}")
-print(f"Columns {X.columns}")
-print(f"Coefficients {model.coef_}")
-```
-
-<details>
-  <summary>Expand to view model-db.qmd</summary>
-  
-```{r}
-#| label: print-model-db-qmd
-#| echo: false
-#| code-overflow: wrap
-library(readr)
-readr::read_lines("_labs/lab3/model-db.qmd") |> 
-  base::noquote() |> 
-  writeLines()
-```
-
-</details>
-
-### app-api.py {#sec-app-api-py}
-
-`app-api.py` creates an Python Shiny application that calls the `vetiver` API.
-
-#### UI 
-
-```{python}
-#| eval: false
-#| code-fold: false
-from shiny import App, render, ui, reactive
-import requests
-
-api_url = 'http://127.0.0.1:8080/predict'
-
-app_ui = ui.page_fluid(
-    ui.panel_title("Penguin Mass Predictor"), 
-    ui.layout_sidebar(
-        ui.panel_sidebar(
-            [ui.input_slider("bill_length", "Bill Length (mm)", 30, 60, 45, step = 0.1),
-            ui.input_select("sex", "Sex", ["Male", "Female"]),
-            ui.input_select("species", "Species", ["Adelie", "Chinstrap", "Gentoo"]),
-            ui.input_action_button("predict", "Predict")]
-        ),
-        ui.panel_main(
-            ui.h2("Penguin Parameters"),
-            ui.output_text_verbatim("vals_out"),
-            ui.h2("Predicted Penguin Mass (g)"), 
-            ui.output_text("pred_out")
-        )
-    )   
-)
-```
-
-
-#### Server
-
-```{python}
-#| eval: false
-#| code-fold: false
-def server(input, output, session):
-    @reactive.Calc
-    def vals():
-        d = {
-            "bill_length_mm" : input.bill_length(),
-            "sex_Male" : input.sex() == "Male",
-            "species_Gentoo" : input.species() == "Gentoo", 
-            "species_Chinstrap" : input.species() == "Chinstrap"
-
-        }
-        return d
-    
-    @reactive.Calc
-    @reactive.event(input.predict)
-    def pred():
-        r = requests.post(api_url, json = vals())
-        return r.json().get('predict')[0]
-
-    @output
-    @render.text
-    def vals_out():
-        return f"{vals()}"
-
-    @output
-    @render.text
-    def pred_out():
-        return f"{round(pred())}"
-```
-
-```{python}
-#| eval: false
-#| code-fold: false
-app = App(app_ui, server)
-```
-
-<details>
-  <summary>Expand to view app-api.py</summary>
-
-```{r}
-#| label: print-app-api-py
-#| echo: false
-library(readr)
-readr::read_lines("_labs/lab3/app-api.py") |> 
-  base::noquote() |> 
-  writeLines()
-```
-
-</details>
-
-### py-data-load.py {#sec-py-data-load-py}
-
-```{python}
-#| eval: false
-#| code-fold: false
-import duckdb
-from palmerpenguins import penguins
-
-con = duckdb.connect('my-db.duckdb')
-df = penguins.load_penguins()
-con.execute('CREATE TABLE penguins AS SELECT * FROM df')
-con.close()
-```
-
-<details>
-  <summary>Expand to view py-data-load.py</summary>
-
-```{r}
-#| label: print-py-data-load-py
-#| echo: false
-#| code-overflow: wrap
-library(readr)
-readr::read_lines("_labs/lab3/py-data-load.py") |> 
-  base::noquote() |> 
-  writeLines()
-```
-
-</details>
-
-
-
 

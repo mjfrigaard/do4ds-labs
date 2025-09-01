@@ -24,7 +24,7 @@ co_box(
 
 ## Initial launch
 
-The application and API need a little attention to get working. When I tried to initially run the app, I get the following error: 
+The application and API need a little attention to get working. When I tried to initially run the app, I get the following error:
 
 ```{verbatim}
 Warning: Error in httr2::req_perform: Failed to perform HTTP request.
@@ -46,7 +46,7 @@ Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server
     1: runApp
 ```
 
-This is because we need to have the model API running in order to make requests from the app. To do this, I recommend reorganizing the API and app files into separate directories. 
+This is because we need to have the model API running in order to make requests from the app. To do this, I recommend reorganizing the API and app files into separate directories.
 
 ```{r}
 #| eval: false 
@@ -66,16 +66,15 @@ _labs/lab3/R
 ├── eda-db.qmd #<3>
 └── r-data-load.R #<4>
 ```
-1. `vetiver` model API      
-2. `shiny` application      
-3. EDA of `palmerpenguins` data using `dplyr` and `ggplot2`   
-4. Load `palmerpenguins` data into `duckdb`     
 
+1.  `vetiver` model API\
+2.  `shiny` application\
+3.  EDA of `palmerpenguins` data using `dplyr` and `ggplot2`\
+4.  Load `palmerpenguins` data into `duckdb`
 
+## API
 
-## API 
-
-The [`labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following: 
+The [`labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following:
 
 ```{r}
 #| eval: false
@@ -102,22 +101,25 @@ The API will keep running when you run the app.
 app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
 ```
 
-![`plumber` API for `vetiver` model](img/lab3-r-plumber-router.png){fig-align='center' width='100%'}
+![`plumber` API for `vetiver` model](img/lab3-r-plumber-router.png){fig-align="center" width="100%"}
 
-Now we have a working API! We'll explore the UI in the sections below. Let's launch the app. 
+Now we have a working API! We'll explore the UI in the sections below. Let's launch the app.
 
-## App 
+## App
 
-I've made a few changes to the UI layout in `app-api.R`, so when I launched the app in a new RStudio session I see the following: 
+I've made a few changes to the UI layout in `app-api.R`, so when I launched the app in a new RStudio session I see the following:
 
-![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align='center' width='100%'}
+![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align="center" width="100%"}
 
-View the UI changes below: 
+View the UI changes below:
 
 ```{r}
 #| eval: false 
 #| code-fold: true 
 #| code-summary: 'show/hide UI changes to app-api.R'
+
+api_url <- "http://127.0.0.1:8080/predict"
+
 ui <- page_sidebar(
   title = "Penguin Mass Predictor",
   theme = bs_theme(bootswatch = "sketchy"),
@@ -168,15 +170,14 @@ ui <- page_sidebar(
 )
 ```
 
-
-But clicking **Predict** originally produced the following error: 
+But clicking **Predict** originally produced the following error:
 
 ```{verbatim}
 Warning: Error in httr2::req_perform: 
 HTTP 500 Internal Server Error.
 ```
 
-In the API session, we also see an error: 
+In the API session, we also see an error:
 
 ```{verbatim}
 <error/rlang_error>
@@ -184,13 +185,13 @@ Error in `hardhat::validate_column_names()`:
 ! `data` must be a data frame or a matrix, not a list.
 ```
 
-These errors are pretty clear: The `httr2::req_body_json()` function is sending the data as a JSON list, but the `vetiver` API expects a data frame or a matrix structure. 
+These errors are pretty clear: The `httr2::req_body_json()` function is sending the data as a JSON list, but the `vetiver` API expects a data frame or a matrix structure.
 
-We can fix this in the application server by changing the format of the values sent to the API. 
+We can fix this in the application server by changing the format of the values sent to the API.
 
-### Reactive values 
+### Reactive values
 
-Our error tells us `'data' should be a data frame or a matrix`, so we'll convert `vals()` to a single-row `data.frame` and format the categorical values as numeric (not logical).  
+Our error tells us `'data' should be a data frame or a matrix`, so we'll convert `vals()` to a single-row `data.frame` and format the categorical values as numeric (not logical).
 
 ```{r}
 #| eval: false
@@ -206,49 +207,233 @@ Our error tells us `'data' should be a data frame or a matrix`, so we'll convert
 
 ### Predictions
 
-The predictions in the server require three changes: 
-
-1.  The `httr2::req_body_json()` can convert `vals()` into a JSON array structure instead of a flat object (which is the format `vetiver` expects). 
-
-2. Add `httr2::req_method("POST")` so the `POST` method is explicit.  
-
-3. Finally, we'll create a `response` object and return `response$.pred[1]` (i.e., only the predictions).
+The predictions in the server creates a `response` object and returns `response$.pred[1]` (i.e., only the predictions).
 
 ```{r}
 #| eval: false
-pred <- eventReactive(input$predict, {
+#| code-fold: false
+ pred <- reactive({
+    tryCatch({
+    showNotification("Predicting penguin mass...", 
+                     type = "default", duration = 10)
+        
     request_data <- vals()
-    response <- httr2::request(api_url) |>
+    response <- httr2::request(api_url) |> #<1>
       httr2::req_method("POST") |>
-      httr2::req_body_json(request_data) |>  
+      httr2::req_body_json(request_data, auto_unbox = FALSE) |>  #<2>
       httr2::req_perform() |>
       httr2::resp_body_json()
-    
+        
+    showNotification("✅ Prediction successful!", 
+                     type = "default", duration = 10)
+        
     response$.pred[1]
-  }, ignoreInit = TRUE)
+        
+    }, error = function(e) {
+      error_msg <- conditionMessage(e)
+      
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
+        user_msg <- "API not available - is the server running on port 8080?"
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
+        user_msg <- "Request timed out - API may be overloaded"
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
+      }
+      
+      showNotification(paste("❌", user_msg), type = "warn", duration = 10)
+      
+      paste("❌", user_msg)
+      })
+    }) |> 
+    bindEvent(input$predict, ignoreInit = TRUE)
+```
+1. `app_url` is "http://127.0.0.1:8080/predict"   
+2. Converts `vals()/request_data` into a JSON array structure instead of a flat object (which is the format `vetiver` expects)   
+
+
+### R API Request/Response Flow
+
+The sections below cover the `httr2` functions used in the Shiny API app. 
+
+#### The `request()`
+
+`httr2::request()` creates the initial request (`response`) object that all other functions will modify:
+
+-   Stores the base URL
+
+-   Sets default HTTP method (`GET`)
+
+-   Initializes empty headers, query parameters, and body
+
+-   Returns a modifiable request object
+
+```{r}
+#| eval: false
+#| code-fold: false
+# creates a base request with URL
+response <- httr2::request(api_url)
 ```
 
-## Verify
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-Now when we launch the app, the preview of the parameters are in a `data.frame` (not a list):
+graph TD
+	A("<code>request()</code> URL") --> B["Creates base<br>request object"]
+	B --> C["Contains URL and<br>default settings"]
 
-![Parameters as `data.frame()`](img/lab3-r-shiny-data-frame.png){fig-align='center' width='100%'}
+style A fill:#e1f5fe
 
-When we click **Predict**, we see the value is returned: 
+```
 
-![API request (with predictions returned)](img/lab3-r-shiny-api-req.png){fig-align='center' width='100%'}
+#### `req_method()` 
 
-### Back in the API 
+*verb specification*
 
-If we return to the plumber UI, we can click on **Return predictions from model using 4 features**, change the JSON values to match our parameters in the app, and click **TRY**:
+`httr2::req_method()` specifies which HTTP method to use for the request.
 
-![`plumber` API request body](img/lab3-r-plumber-req-body.png){fig-align='center' width='100%'}
+-   **`GET`**: Retrieve data (no body allowed)
 
-And we can compare the response to the value we saw in the app:
+-   **`POST`**: Send new data (body allowed)
 
-![`plumber` API response](img/lab3-r-plumber-response.png){fig-align='center' width='100%'}
+-   **`PUT`**: Update existing data (body allowed)
 
-A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below: 
+-   **`DELETE`**: Remove data (usually no body)
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[Request Object] --> B["<code>req_method()</code>"]
+	B --> C[Sets HTTP verb]
+	C --> D[GET/POST/PUT/DELETE/PATCH]
+
+style B fill:#fff3e0
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+response <- httr2::request(api_url) |>
+  httr2::req_method("POST") # sending data
+```
+
+#### `req_body_json()`
+
+*request body*
+
+`httr2::req_body_json()` converts R objects to JSON and includes them in the request body.
+
+-   Converts R `list`s/`data.frame`s to JSON format
+
+-   Sets `Content-Type: application/json` header automatically
+
+-   Includes the JSON in the HTTP request body
+
+-   Used primarily with `POST`/`PUT` requests
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[R Object] --> B["<code>req_body_json()</code>"]
+	B --> C["Converts to JSON"]
+	C --> D["Adds to request body"]
+
+style B fill:#ffecb3
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+vals <- reactive({
+  data.frame(
+    bill_length_mm = input$bill_length,
+    species_Chinstrap = as.numeric(input$species == "Chinstrap"),
+    species_Gentoo = as.numeric(input$species == "Gentoo"),
+    sex_male = as.numeric(input$sex == "Male")
+  )
+})
+
+response <- httr2::request(api_url) |>
+  httr2::req_method("POST") |> # sending data
+  httr2::req_body_json(request_data, auto_unbox = FALSE)
+```
+
+#### `req_perform()`
+
+*execute request*
+
+`httr2::req_perform()` actually sends the HTTP request to the server and returns a response:
+
+What happens:\
+1. Combines all request components (method, headers, query, body)\
+2. Opens network connection to server\
+3. Sends HTTP request\
+4. Waits for server response\
+5. Returns response object for processing
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A["Complete Request<br>Object"] --> B["<code>req_perform()</code>"]
+	B --> C["Sends HTTP request"]
+	C --> D["Returns response<br>object"]
+
+style B fill:#ff9800
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+response <- httr2::request(api_url) |>
+  httr2::req_method("POST") |> # sending data
+  httr2::req_body_json(request_data, auto_unbox = FALSE) |> 
+  httr2::req_perform()
+```
+
+
+
+#### `resp_body_json()`
+
+*JSON response parsing*
+
+`httr2::resp_body_json()` parses JSON response body into R objects.
+
+- Converts JSON arrays to R vectors/lists
+
+- Converts JSON objects to R named lists
+
+- Handles nested JSON structures
+
+- Automatically converts data types (numbers, booleans, strings)
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+
+A[JSON Response Body] --> B["<code>resp_body_json</code>"]
+B --> C[Parses JSON to R objects]
+C --> D[Lists, data.frames, etc.]
+
+style B fill:#9c27b0
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+response <- httr2::request(api_url) |>
+  httr2::req_method("POST") |> # sending data
+  httr2::req_body_json(request_data, auto_unbox = FALSE) |> 
+  httr2::req_perform() |> 
+  httr2::resp_body_json()
+```
+
+A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below:
 
 ```{=html}
 <style>
@@ -317,43 +502,68 @@ graph TD
     %% style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
 ```
 
+
+## Verify
+
+Now when we launch the app, the preview of the parameters are in a `data.frame` (not a list):
+
+![Parameters as `data.frame()`](img/lab3-r-shiny-data-frame.png){fig-align="center" width="100%"}
+
+When we click **Predict**, we see notifications and the value is returned:
+
+![API request (with predictions returned)](img/lab3-r-shiny-api-req.png){fig-align="center" width="100%"}
+
+### Back in the API
+
+If we return to the plumber UI, we can click on **Return predictions from model using 4 features**, change the JSON values to match our parameters in the app, and click **TRY**:
+
+![`plumber` API request body](img/lab3-r-plumber-req-body.png){fig-align="center" width="100%"}
+
+And we can compare the response to the value we saw in the app:
+
+![`plumber` API response](img/lab3-r-plumber-response.png){fig-align="center" width="100%"}
+
+A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request/response is below:
+
 ```{mermaid}
-%%| fig-cap: 'App & API'
-%%| fig-align: center
-%%| eval: false
-%%| echo: false
-%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
-graph TB
-    subgraph Rapi["R Session: API Server"]
-        Mod["Load Model"] --> VetAPI["Create<br><code>vetiver_api()</code>"]
-        VetAPI --> Router["<code>pr_run()</code> on<br>port 8080"]
-    end
-    
-    subgraph Rapp["R Session: Shiny App"]
-        User["User Inputs"] --> Data["Format Data"]
-        Data --> Post["POST to API"]
-        Post --> Pred["Display Prediction"]
-    end
-    
-    Router -.-> Post
-    
-    style Router fill:#e8f5e8
-    style Post fill:#e1f5fe
-    style Pred fill:#fff3e0
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+	subgraph RApi["R APIs (Shiny App)"]
+	A1["Shiny R Code"] --> A2["<code>vals()</code><br/>Reactive data"]
+	A2 --> B1["<code>httr2</code><br>package"]
+	B1 --> C1["<code>request(api_url)</code><br/>Creates request object"]
+	C1 --> D1["<code>req_method('POST')</code><br/>Sets HTTP verb"]
+	C1 --> G1["<code>req_body_json(request_data)</code><br/>Penguin features payload"]
+	D1 --> H0["<code>req_perform()</code><br><strong>Executes HTTP request</strong>"]
+	G1 --> H0
+	H0 --> H1["HTTP POST Request"]
+	H1 --> I1["<strong>Vetiver API Server<br><code>localhost:8080/predict</code></strong>"]
+	I1 --> J1["HTTP Response"]
+	J1 --> M1["<code>resp_body_json()</code><br><strong>Parses JSON response</strong>"]
+	M1 --> N1["<code>response$.pred[1]</code><br><strong>Extract prediction</strong>"]
+	N1 --> O1["Return to Shiny<br>Display in UI"]
+end
+
+style B1 fill:#e1f5fe
+style I1 fill:#e8f5e8,color:#000
+style H0 fill:#ff9800,color:#000
+style M1 fill:#9c27b0,color:#fff
+style N1 fill:#4caf50,color:#fff
 ```
 
-## Finishing touches 
+## Finishing touches
 
-To keep the R environment in each directory self-contained and reproducible, we should initiate a `renv` repo in each folder. 
+To keep the R environment in each directory self-contained and reproducible, we should initiate a `renv` repo in each folder.
 
 ```{r}
 #| eval: false 
 renv::init()
 ```
 
-This results in the following files: 
+This results in the following files:
 
-### `R/api/` files 
+### `R/api/` files
 
 ```{verbatim}
 ├── api.Rproj
@@ -367,7 +577,7 @@ This results in the following files:
 3 directories, 5 files
 ```
 
-### `R/app/` files 
+### `R/app/` files
 
 ```{verbatim}
 ├── app-api.R
@@ -381,11 +591,11 @@ This results in the following files:
 3 directories, 5 files
 ```
 
-
 To view the original code in `app-api.R`, expand the section below:
 
 <details>
-  <summary>Expand to view the original app-api.R</summary>
+
+<summary>Expand to view the original app-api.R</summary>
 
 ```{r}
 #| label: print-app-api-R
@@ -397,5 +607,152 @@ readr::read_lines("_labs/lab3/app-api.R") |>
 ```
 
 </details>
+
+## More `httr2` functions
+
+Below are more `httr2` functions for communicating with APIs.  
+
+### HTTP headers
+
+`httr2::req_headers()` adds HTTP headers that provide metadata about the request:
+
+-   **`Content-Type`**: Tells server what format we're sending
+
+-   **`Authorization`**: Provides authentication credentials
+
+-   **`Accept`**: Tells server what response format we prefer
+
+-   **`User-Agent`**: Identifies our client application
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[Request Object] --> B["<code>req_headers()</code>"]
+	B --> C["Adds metadata<br>to request"]
+	C --> D["Authentication,<br>Content-Type, etc."]
+
+style B fill:#e8f5e8
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+req |> req_headers(
+    "Content-Type" = "application/json", # what format is the data?
+    "Authorization" = "Bearer abc123", # auth token
+    "User-Agent" = "R-httr2-client/1.0", # client identification
+    "Accept" = "application/json" # what format to return?
+)
+```
+
+
+### Query parameters
+
+`httr2::req_url_query()` adds query parameters to the URL (the part after `?`):
+
+-   **`GET` requests**: Primary way to send parameters
+
+-   **Filtering data**: `?category=electronics&price_max=100`
+
+-   **Pagination**: `?page=2&per_page=50`
+
+-   **API options**: `?format=json&verbose=true`
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[Base URL] --> B["<code>req_url_query()</code>"]
+	B --> C["Adds<br><code>?param=value&key=data</code>"]
+	C --> D["<code>https://</code><code>api.com/data?species=Adelie&limit=10</code>"]
+
+style B fill:#c8e6c9
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+req |> req_url_query(
+    species = "Adelie", # filter by species
+    limit = 10, # limit results
+    include_na = "false" # drop missing values
+)
+# result: https://api.com/penguins?species=Adelie&limit=10&include_na=false
+```
+
+### Status codes
+
+`httr2::resp_status()` extracts the HTTP status code to determine if request succeeded.
+
+- **200**: OK (success)
+
+- **201**: Created (successful POST)
+
+- **400**: Bad Request (client error)
+
+- **401**: Unauthorized (authentication failed)
+
+- **404**: Not Found (resource doesn't exist)
+
+- **500**: Internal Server Error (server problem)
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[Response Object] --> B["<code>resp_status()</code>"]
+	B --> C["Extracts status<br>code"]
+	C --> D["200, 404, 500, etc."]
+
+style B fill:#4caf50
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+status <- resp_status(response)
+if (status == 200) {
+    print("Success!")
+} else if (status == 404) {
+    print("Not found")
+} else if (status >= 500) {
+    print("Server error")
+}
+```
+
+### Response headers
+
+`httr2::resp_headers()` extracts HTTP headers from the response for metadata. Useful response headers include:
+
+- **Content-Type**: Format of response body
+
+- **Content-Length**: Size of response
+
+- **Cache-Control**: Caching instructions
+
+- **Set-Cookie**: Cookies to store
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A[Response Object] --> B["<code>resp_headers()</code>"]
+	B --> C["Extracts response<br>metadata"]
+	C --> D["Content-Type,<br>Content-Length, etc."]
+
+style B fill:#2196f3
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+headers <- resp_headers(response)
+content_type <- headers$`content-type` # "application/json"
+content_length <- headers$`content-length` # "1234"
+server_info <- headers$server # "nginx/1.18.0"
+```
 
 
