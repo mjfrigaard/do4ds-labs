@@ -1139,12 +1139,15 @@ graph TD
 
 graph TD
     subgraph "Python Decorators"
-        A["&lt;code&gt;@reactive.calc&lt;/code&gt;"] --&gt; B[Function&lt;br&gt;definition]
-        C["&lt;code&gt;@reactive.event&lt;/code&gt;"] --&gt; D["Event-driven&lt;br&gt;reactives"]
-        E["&lt;code&gt;@render.text&lt;/code&gt;"] --&gt; F["Output&lt;br&gt;rendering"]
+        A("&lt;code&gt;@reactive.calc&lt;/code&gt;") --&gt; B[Function&lt;br&gt;definition]
+        C("&lt;code&gt;@reactive.event&lt;/code&gt;") --&gt; D["Event-driven&lt;br&gt;reactives"]
+        E("&lt;code&gt;@render.text&lt;/code&gt;") --&gt; F["Output&lt;br&gt;rendering"]
     end
     
     %% style A fill:#e1f5fe
+    style A fill:#ffebee,color:#000,font-size:18px
+    style C fill:#e8f5e8,color:#000,font-size:18px
+    style E fill:#fff3e0,color:#000,font-size:18px
 </pre>
 </div>
 <p></p></figure><p></p>
@@ -1277,13 +1280,13 @@ graph TD
 
 graph TB
     subgraph Py["Python Philosophy"]
-        A["Explicit over&lt;br&gt;Implicit"] --&gt; A1["Decorators to make&lt;br&gt;behavior clear"]
+        A["&lt;strong&gt;Explicit over&lt;br&gt;Implicit&lt;/strong&gt;"] --&gt; A1["Decorators to make&lt;br&gt;behavior clear"]
         A --&gt; A2["Type conversion&lt;br&gt;is explicit"]
         A --&gt; A3["Error handling&lt;br&gt;is explicit"]
         A --&gt; A4["Method calls&lt;br&gt;with parentheses"]
     end
     
-    style A fill:#e1f5fe
+    style A color:#000,font-size:18px
     
 </pre>
 </div>
@@ -1347,17 +1350,49 @@ graph TB
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 graph TD
-    A["&lt;code&gt;requests.post()&lt;/code&gt;"] --&gt; B["All parameters&lt;br/&gt;in single call"]
-    B --&gt; C["&lt;strong&gt;Response&lt;br&gt;Object&lt;/strong&gt;"]
-    D["Parameter-Based"] --&gt; E["Headers, params,&lt;br&gt;json (all specified together)"]
-    E --&gt; F["Single function call"]
+    subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
+    I1[/"input.bill_length()"/]
+    I2[/"input.species()"/]
+    I3[/"input.sex()"/]
+    I4[/"input.predict()"/]
+    end
 
-style A fill:#fff3e0
-style C fill:#e8f5e8
+    subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
+        Req("&lt;code&gt;request.post()&lt;/code&gt;") --"Sends HTTP request to server API, waits for response, returns"--&gt; PredR("&lt;code&gt;pred()&lt;/code&gt;")
+    end
 
+    subgraph PredOutReact["&lt;strong&gt;pred_out()&lt;/strong&gt;"]
+        Res(["&lt;strong&gt;result&lt;/strong&gt;"])
+    end
+    
+    ValsReact(["&lt;strong&gt;vals()&lt;/code&gt;"])
+    PredR --"Checks format,&lt;br&gt;round, add&lt;br&gt; string"--&gt; PredOutReact
+    
+    I1 --&gt; ValsReact
+    I2 --&gt; ValsReact
+    I3 --&gt; ValsReact
+    
+    I4 --"&lt;code&gt;@reactive.event()&lt;/code&gt;"--&gt; Req
+    
+    ValsReact --"as &lt;code&gt;data_to_send&lt;/code&gt;"--&gt; Req
+    ValsReact --&gt; ValsOut("&lt;code&gt;vals_out()&lt;/code&gt;") -- "&lt;code&gt;data = vals()&lt;/code&gt;" --&gt; RenPrnt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;data&lt;/code&gt;"\]
+    PredOutReact --&gt; RenTxt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;result&lt;/code&gt;"\]
+
+    %% Style for functions %%
+    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style PredR fill:#ffebee,color:#000,font-size:18px
+    
+    %% Style for reactives %%
+    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style ValsOut fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredOutReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    
+    %% Style for result %%
+    style Res fill:#e8f5e8,stroke:#000,color:#000
+    
+    
 </pre>
 </div>
 <p></p></figure><p></p>
