@@ -22,3 +22,31 @@ co_box(
 )
 ```
 
+A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request/response is below:
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+	subgraph RApi["R Shiny App"]
+	A1["Shiny R Code"] --> A2["<code>vals()</code><br/>Reactive data"]
+	A2 --> B1["<code>httr2</code><br>package"]
+	B1 --> C1["<code>request(api_url)</code><br/>Creates request object"]
+	C1 --> D1["<code>req_method('POST')</code><br/>Sets HTTP verb"]
+	C1 --> G1["<code>req_body_json(request_data)</code><br/>Penguin features payload"]
+	D1 --> H0["<code>req_perform()</code><br><strong>Executes HTTP request</strong>"]
+	G1 --> H0
+	H0 --> H1["HTTP POST Request"]
+	H1 --> I1["<strong>Vetiver API Server<br><code>localhost:8080/predict</code></strong>"]
+	I1 --> J1["HTTP Response"]
+	J1 --> M1["<code>resp_body_json()</code><br><strong>Parses JSON response</strong>"]
+	M1 --> N1["<code>response$.pred[1]</code><br><strong>Extract prediction</strong>"]
+	N1 --> O1["Return to Shiny<br>Display in UI"]
+end
+
+style B1 fill:#e1f5fe
+style I1 fill:#e8f5e8,color:#000
+style H0 fill:#ff9800,color:#000
+style M1 fill:#9c27b0,color:#fff
+style N1 fill:#4caf50,color:#fff
+```

@@ -70,6 +70,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -263,6 +267,42 @@ ul.task-list li input[type="checkbox"] {
 <div style="font-size: 1.00em; color: #282b2d;">
 <p>This section is being revised. Thank you for your patience.</p>
 </div>
+</div>
+</div>
+</div>
+<p>A diagram of the user inputs (i.e., the <strong>Predict</strong> button), reactives, and the API request/response is below:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph RApi["R Shiny App"]
+    A1["Shiny R Code"] --&gt; A2["&lt;code&gt;vals()&lt;/code&gt;&lt;br/&gt;Reactive data"]
+    A2 --&gt; B1["&lt;code&gt;httr2&lt;/code&gt;&lt;br&gt;package"]
+    B1 --&gt; C1["&lt;code&gt;request(api_url)&lt;/code&gt;&lt;br/&gt;Creates request object"]
+    C1 --&gt; D1["&lt;code&gt;req_method('POST')&lt;/code&gt;&lt;br/&gt;Sets HTTP verb"]
+    C1 --&gt; G1["&lt;code&gt;req_body_json(request_data)&lt;/code&gt;&lt;br/&gt;Penguin features payload"]
+    D1 --&gt; H0["&lt;code&gt;req_perform()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Executes HTTP request&lt;/strong&gt;"]
+    G1 --&gt; H0
+    H0 --&gt; H1["HTTP POST Request"]
+    H1 --&gt; I1["&lt;strong&gt;Vetiver API Server&lt;br&gt;&lt;code&gt;localhost:8080/predict&lt;/code&gt;&lt;/strong&gt;"]
+    I1 --&gt; J1["HTTP Response"]
+    J1 --&gt; M1["&lt;code&gt;resp_body_json()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Parses JSON response&lt;/strong&gt;"]
+    M1 --&gt; N1["&lt;code&gt;response$.pred[1]&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Extract prediction&lt;/strong&gt;"]
+    N1 --&gt; O1["Return to Shiny&lt;br&gt;Display in UI"]
+end
+
+style B1 fill:#e1f5fe
+style I1 fill:#e8f5e8,color:#000
+style H0 fill:#ff9800,color:#000
+style M1 fill:#9c27b0,color:#fff
+style N1 fill:#4caf50,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
 </div>
 </div>
 </div>
