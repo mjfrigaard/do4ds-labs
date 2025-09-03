@@ -43,13 +43,97 @@ fs::dir_tree(path = "_labs/lab4/")
 
 > 1. *What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?*
 
+Logging is a record of "*What Happened*"--it captures discrete events and detailed narratives of what occurred in the system at specific points in time.
+
+Monitoring is usually a dashboard of "*How Is It Performing*"--tracking quantitative metrics and system health indicators over time to understand trends and current state.
+
+```{mermaid}
+%%| fig-cap: 'Logging vs. Monitoring'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph "LOG: events"
+        L1[/"Discrete Events"/]
+        L2[/"Detailed Context"/]
+        L3[/"Historical Investigation"/]
+        L4[/"Text-Based Messages"/]
+        L5(["<strong>When/What/Who/Why</strong>"])
+    end
+    
+    subgraph "MONITOR: metrics"
+        M1[/"Quantitative Metrics"/]
+        M2[/"Real-time Status"/]
+        M3[/"Trend Analysis"/]
+        M4[/"Numerical Data"/]
+        M5(["<strong>How Much/How Fast/How Often</strong>"])
+    end
+    
+    subgraph "Common Use Cases"
+        LC[\"Root Cause Analysis"\]
+        LC2[\"Debugging Specific Issues"\]
+        LC3[\"Compliance Auditing"\]
+        LC4[\"Security Investigation"\]
+        
+        MC[\"Performance Optimization"\]
+        MC2[\"Capacity Planning"\]
+        MC3[\"SLA Monitoring"\]
+        MC4[\"Real-time Alerting"\]
+    end
+    
+    L1 --> LC
+    L2 --> LC2
+    L3 --> LC3
+    L4 --> LC4
+    
+    M1 --> MC
+    M2 --> MC2
+    M3 --> MC3
+    M4 --> MC4
+    
+    classDef logging fill:#e3f2fd
+    classDef monitoring fill:#f3e5f5
+    classDef usecase fill:#f1f8e9
+    
+    class L1,L2,L3,L4,L5 logging
+    class M1,M2,M3,M4,M5 monitoring
+    class LC,LC2,LC3,LC4,MC,MC2,MC3,MC4 usecase
+```
+
+
+| Aspect        | Logging                        | Monitoring                     |
+| ------------- | ------------------------------ | ------------------------------ |
+| **Data Type** | Discrete events, text messages | Metrics, counters, gauges      |
+| **When Used** | After something happens        | Continuously                   |
+| **Purpose**   | Debugging, investigation       | Performance tracking, alerting |
+| **Format**    | Structured/unstructured text   | Numerical time-series data     |
+| **Storage**   | Log files, log databases       | Time-series databases          |
+| **Analysis**  | Search, filter, correlate      | Aggregate, trend, threshold    |
+
 
 
 ### What not to log
 
 > 2. *Logging is generally good, but what are some things you should be careful not to log?*
 
+Critical data we should make sure not to log includes: 
 
+1. Sensitive Personal Information (PII)   
+    - Email addresses, phone numbers, names   
+    - Social Security Numbers, passport numbers   
+    - Addresses, birth dates    
+    - Medical information (HIPAA protected)   
+
+2. Authentication Credentials     
+    - Passwords (plaintext or hashed)     
+    - API keys and tokens   
+    - Database connection strings with credentials    
+    - OAuth tokens and refresh tokens   
+
+3. Financial Information    
+    - Credit card numbers     
+    - Bank account numbers    
+    - Routing numbers   
 
 ### Log levels 
 
@@ -67,6 +151,48 @@ fs::dir_tree(path = "_labs/lab4/")
 
 
 > *The numeric values that are going into your computational function.*
+
+## Observability
+
+While we cannot prevent code failures (or when they occur), we can create [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that 1) **accept failure as inevitable** (rather than trying to prevent it), 2) **implement comprehensive monitoring and logging**, and 3) **enable rapid diagnosis** (by using logs to reconstruct failure pathways).
+
+
+To do this, data scientist and developers need to emit meaningful logs and metrics from their code. As system admins, we need to ensure new data science work can be easily integrated within our organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
+
+This provides 1) operational peace of mind (the ability to detect and resolve issues quickly), 2) value demonstration (shows decision makers who uses your work and how), and 3) team validation (prove the team's impact and justify resources.
+
+```{mermaid}
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+sequenceDiagram
+    participant DS as Data Science<br>Code
+    participant Emit as Emission<br>Layer
+    participant Collect as Collection
+    participant Process as Processing
+    participant Store as Storage
+    participant Alert as Alerting
+    participant Dashboard as Dashboards
+    participant Team as DevOps<br>Team
+    
+    Note over DS: User makes<br>prediction<br>request
+    
+    DS->>Emit: log_info("prediction started")
+    DS->>Emit: emit_metric("response_time", 1.2)
+    
+    Collect->>Emit: Scrape logs<br>& metrics
+    Collect->>Process: Logs & metrics to<br>processing pipeline
+    
+    Process->>Store: Parse &<br>enrich data
+    Store->>Alert: Check alert<br>conditions
+    Store->>Dashboard: Update real-time<br>displays
+    
+    alt Response time > 5 seconds
+        Alert->>Team: Send notifications
+        Team->>Dashboard: Investigate<br>using logs
+    end
+    
+    Dashboard-->>Team: Show trends<br>and KPIs
+```
 
 ## Logging in R 
 

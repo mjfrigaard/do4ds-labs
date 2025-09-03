@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-01">
+<meta name="dcterms.date" content="2025-09-03">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App Logging – do4ds-labs</title>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -221,8 +255,24 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#configure" id="toc-configure" class="nav-link active" data-scroll-target="#configure">Configure</a></li>
+  <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
+  <li><a href="#server" id="toc-server" class="nav-link" data-scroll-target="#server">Server</a>
+  <ul>
+  <li><a href="#app-startup" id="toc-app-startup" class="nav-link" data-scroll-target="#app-startup">App startup</a></li>
+  <li><a href="#log-file-reading" id="toc-log-file-reading" class="nav-link" data-scroll-target="#log-file-reading">Log file reading</a></li>
+  <li><a href="#user-interactions" id="toc-user-interactions" class="nav-link" data-scroll-target="#user-interactions">User interactions</a></li>
+  <li><a href="#reactive-values" id="toc-reactive-values" class="nav-link" data-scroll-target="#reactive-values">Reactive values</a></li>
+  <li><a href="#api-health-check" id="toc-api-health-check" class="nav-link" data-scroll-target="#api-health-check">API health check</a></li>
+  <li><a href="#predictions" id="toc-predictions" class="nav-link" data-scroll-target="#predictions">Predictions</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -240,7 +290,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-01</p>
+      <p class="date">2025-09-03</p>
     </div>
   </div>
   
@@ -270,44 +320,399 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<p>A diagram of the user inputs (i.e., the <strong>Predict</strong> button), reactives, and the API request/response is below:</p>
-<div class="cell" data-layout-align="default">
+<p>This lab covers how to use logging to monitor events in the application and the API. For a refresher, I’ve included an updated diagram from the previous lab of Shiny App and API architecture (i.e., the reactives (user inputs and the <strong>Predict</strong> button), the <code>httr2</code> API request/response, and the <code>plumber</code> API).:</p>
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+<div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph LR
-    subgraph RApi["R Shiny App"]
-    A1["Shiny R Code"] --&gt; A2["&lt;code&gt;vals()&lt;/code&gt;&lt;br/&gt;Reactive data"]
-    A2 --&gt; B1["&lt;code&gt;httr2&lt;/code&gt;&lt;br&gt;package"]
-    B1 --&gt; C1["&lt;code&gt;request(api_url)&lt;/code&gt;&lt;br/&gt;Creates request object"]
-    C1 --&gt; D1["&lt;code&gt;req_method('POST')&lt;/code&gt;&lt;br/&gt;Sets HTTP verb"]
-    C1 --&gt; G1["&lt;code&gt;req_body_json(request_data)&lt;/code&gt;&lt;br/&gt;Penguin features payload"]
-    D1 --&gt; H0["&lt;code&gt;req_perform()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Executes HTTP request&lt;/strong&gt;"]
-    G1 --&gt; H0
-    H0 --&gt; H1["HTTP POST Request"]
-    H1 --&gt; I1["&lt;strong&gt;Vetiver API Server&lt;br&gt;&lt;code&gt;localhost:8080/predict&lt;/code&gt;&lt;/strong&gt;"]
-    I1 --&gt; J1["HTTP Response"]
-    J1 --&gt; M1["&lt;code&gt;resp_body_json()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Parses JSON response&lt;/strong&gt;"]
-    M1 --&gt; N1["&lt;code&gt;response$.pred[1]&lt;/code&gt;&lt;br&gt;&lt;strong&gt;Extract prediction&lt;/strong&gt;"]
-    N1 --&gt; O1["Return to Shiny&lt;br&gt;Display in UI"]
-end
+graph TD
+    subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
+    I4[/"input$predict"/]
+    end
 
-style B1 fill:#e1f5fe
-style I1 fill:#e8f5e8,color:#000
-style H0 fill:#ff9800,color:#000
-style M1 fill:#9c27b0,color:#fff
-style N1 fill:#4caf50,color:#fff
+    subgraph API["&lt;strong&gt;plumber API&lt;/strong&gt;"]
+      ModBoard("&lt;code&gt;pins::board_folder()&lt;/code&gt;")
+      ModPin("&lt;code&gt;vetiver::vetiver_pin_read()&lt;/code&gt;")
+      ModRout("&lt;code&gt;plumber::pr()&lt;/code&gt;") 
+      ModApi("&lt;code&gt;vetiver::vetiver_api()&lt;/code&gt;") 
+      ApiServ(["Launch&lt;br&gt;API Server"])
+      ModBoard --"&lt;em&gt;connect to model board&lt;/em&gt;"--&gt; ModPin 
+      ModPin --"&lt;em&gt;read pinned vetiver model&lt;/em&gt;"--&gt; ModRout 
+      ModRout --"&lt;em&gt;create router&lt;/em&gt;"--&gt; ModApi 
+      ModApi --"&lt;em&gt;start API server&lt;/em&gt;"--&gt; ApiServ
+    end
+
+    subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
+        Req("&lt;code&gt;httr2::request()&lt;/code&gt;") --"&lt;em&gt;Creates HTTP&lt;br&gt;request object&lt;/em&gt;"--&gt; Meth("&lt;code&gt;httr2::req_method()&lt;/code&gt;")
+        Meth --"&lt;em&gt;Changes HTTP&lt;br&gt;method from&lt;br&gt;GET to POST&lt;/em&gt;"--&gt; BodyJson1("&lt;code&gt;httr2::req_body_json()&lt;/code&gt;")
+        BodyJson1 --"&lt;em&gt;Converts data.frame&lt;br&gt;to JSON &amp; sets&lt;br&gt;request body&lt;/em&gt;"--&gt; Perform("&lt;code&gt;httr2::req_perform()&lt;/code&gt;")
+        BodyJson2("&lt;code&gt;httr2::resp_body_json()&lt;/code&gt;")
+    end
+
+    Perform --"&lt;em&gt;Sends HTTP&lt;br&gt;request to&lt;br&gt;server &amp;&lt;br&gt;waits for&lt;br&gt;response&lt;/em&gt;"--&gt; API 
+    API --&gt; BodyJson2
+
+    subgraph PredReact["&lt;strong&gt;pred()&lt;/strong&gt;"]
+        Res(["&lt;strong&gt;response$.pred[1]&lt;/strong&gt;"])
+    end
+    
+    ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;&lt;br&gt;(in &lt;code&gt;data.frame&lt;/code&gt;)"])
+    BodyJson2 --"&lt;em&gt;Extracts JSON&lt;br&gt;response body&lt;br&gt;&amp; converts to&lt;br&gt;R object&lt;/em&gt;"--&gt; PredReact
+    
+    I1 --&gt; ValsReact
+    I2 --&gt; ValsReact
+    I3 --&gt; ValsReact
+    I4 --"&lt;em&gt;&lt;code&gt;reactive()&lt;/code&gt; &amp; &lt;br&gt;&lt;code&gt;bindEvent()&lt;/code&gt;&lt;/em&gt;"---&gt; Pred
+    
+    ValsReact --"&lt;em&gt;as&lt;br&gt;&lt;code&gt;request_data&lt;/code&gt;&lt;/em&gt;"--&gt; BodyJson1
+    ValsReact --&gt; RenPrnt[\"&lt;strong&gt;renderPrint()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;vals()&lt;/code&gt;"\]
+    PredReact -.-&gt; RenTxt[\"&lt;strong&gt;renderText()&lt;/strong&gt;&lt;br&gt;&lt;code&gt;pred()&lt;/code&gt;"\]
+
+    %% Style for functions %%
+    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    %% Style for reactives %%
+    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    
+    %% Style for result %%
+    style ApiServ fill:#e8f5e8,stroke:#000,color:#000
+    style Res fill:#e8f5e8,stroke:#000,color:#000
 </pre>
 </div>
-<p></p></figure><p></p>
+<p></p><figcaption> Shiny R App and plumber API</figcaption> </figure><p></p>
 </div>
 </div>
+</div>
+<section id="configure" class="level2">
+<h2 class="anchored" data-anchor-id="configure">Configure</h2>
+<p>Below we load the packages for app design (<code>bslib</code>, <code>bsicons</code>), the making the API request (<code>httr2</code>), and monitoring and logging (<code>logger</code> and <code>jsonlite</code>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bslib)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bsicons)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr2)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(logger)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># configure logging </span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_threshold</span>(<span class="at">level =</span> <span class="st">"DEBUG"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_appender</span>(<span class="at">appender =</span> <span class="fu">appender_tee</span>(<span class="at">file =</span> <span class="st">"shiny_app.log"</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_formatter</span>(logger<span class="sc">::</span>formatter_glue_or_sprintf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The</p>
+</section>
+<section id="ui" class="level2">
+<h2 class="anchored" data-anchor-id="ui">UI</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">div</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">style =</span> <span class="st">"position: fixed; top: 10px; right: 10px; z-index: 1000;"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">textOutput</span>(<span class="st">"log_status"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">verbatimTextOutput</span>(<span class="at">outputId =</span> <span class="st">"vals"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="at">outputId =</span> <span class="st">"pred"</span>),</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">6</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">row_heights =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"System Status"</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"API Status:"</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">textOutput</span>(<span class="st">"api_health"</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"Recent Logs:"</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">div</span>(</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;"</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>          <span class="fu">verbatimTextOutput</span>(<span class="st">"recent_logs"</span>, <span class="at">placeholder =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h6</span>(</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>          <span class="st">"Last updated:"</span>, </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            <span class="fu">textOutput</span>(<span class="st">"log_timestamp"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">style =</span> <span class="st">"max-height: 350px; overflow-y: auto;"</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">12</span>), <span class="co"># full width </span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="st">"300px"</span> </span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="server" class="level2">
+<h2 class="anchored" data-anchor-id="server">Server</h2>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+graph TD
+    A[/"Log File: &lt;br&gt;&lt;code&gt;shiny_app.log&lt;/code&gt;"/] --&gt;|"&lt;em&gt;file changes&lt;/em&gt;"| B["Read with: &lt;br&gt;&lt;code&gt;reactiveFileReader()&lt;/code&gt;"]
+    B --&gt;|"&lt;em&gt;polls every 1000ms&lt;/em&gt;"| C["Check file modification time"]
+    C --&gt;|"&lt;em&gt;if changed&lt;/em&gt;"| D["Read entire file"]
+    D --&gt; E["Extract last&lt;br&gt;5 lines"]
+    E --&gt; F["Update UI display"]
+    
+    G(["User Actions"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H["Log using: &lt;br&gt;&lt;code&gt;logger::log_info/warn/error()&lt;/code&gt;"]
+    H --&gt;|"&lt;em&gt;writes to&lt;/em&gt;"| A
+    
+    I(["API Calls"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
+    J(["Input Validation"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
+    K(["Session Events"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
+    
+    B --&gt; L["Store metadata"]
+    L --&gt; M["File modification time"]
+    L --&gt; N["Total line count"]
+    L --&gt; O["Lines content"]
+    
+    F --&gt; P(["&lt;code&gt;recent_logs&lt;/code&gt; &lt;strong&gt;output&lt;/strong&gt;"])
+    M --&gt; Q(["&lt;code&gt;log_timestamp&lt;/code&gt; &lt;strong&gt;output&lt;/strong&gt;"])
+    
+    style G fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style I fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style J fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style K fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    style P fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    style Q fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    
+</pre>
+</div>
+<p></p><figcaption> Logging in Server</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<section id="app-startup" class="level3">
+<h3 class="anchored" data-anchor-id="app-startup">App startup</h3>
+<p>Log app startup within observer to access session data (high priority to run early)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observe</span>({</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">priority =</span> <span class="dv">1000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="log-file-reading" class="level3">
+<h3 class="anchored" data-anchor-id="log-file-reading">Log file reading</h3>
+<p>Reactive file reader for log monitoring, polls the log file every 1000ms (1 second) for changes:</p>
+<ul>
+<li>Read all lines and get file modification time<br>
+</li>
+<li>Return both content and timestamp</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>log_file_content <span class="ot">&lt;-</span> <span class="fu">reactiveFileReader</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">intervalMillis =</span> <span class="dv">1000</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">session =</span> session,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filePath =</span> <span class="st">"shiny_app.log"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">readFunc =</span> <span class="cf">function</span>(filePath) {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(filePath)) {</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      lines <span class="ot">&lt;-</span> <span class="fu">readLines</span>(filePath, <span class="at">warn =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      mod_time <span class="ot">&lt;-</span> <span class="fu">file.mtime</span>(filePath)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> lines,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_modified =</span> mod_time,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="fu">length</span>(lines)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> <span class="fu">character</span>(<span class="dv">0</span>),</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_modified =</span> <span class="fu">Sys.time</span>(),</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="dv">0</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="user-interactions" class="level3">
+<h3 class="anchored" data-anchor-id="user-interactions">User interactions</h3>
+<p>Track user interactions (<code>throttle</code> to avoid excessive logging).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">observe</span>({</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">throttle</span>(<span class="dv">2000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="reactive-values" class="level3">
+<h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
+<p>Reactive values (with validation)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  bill_length <span class="ot">&lt;-</span> input<span class="sc">$</span>bill_length</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  species <span class="ot">&lt;-</span> input<span class="sc">$</span>species</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  sex <span class="ot">&lt;-</span> input<span class="sc">$</span>sex</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># input validation (with warnings)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (bill_length <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">||</span> bill_length <span class="sc">&gt;</span> <span class="dv">60</span>) {</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}"</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(species) <span class="sc">||</span> <span class="fu">is.null</span>(sex)) {</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}"</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> bill_length,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}"</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="api-health-check" class="level3">
+<h3 class="anchored" data-anchor-id="api-health-check">API health check</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>api_health <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Checking API health - Session: {session$token}"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(<span class="st">"http://127.0.0.1:8080/ping"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (httr2<span class="sc">::</span><span class="fu">resp_status</span>(response) <span class="sc">==</span> <span class="dv">200</span>) {</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"API health check successful - Session: {session$token}"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"✅ API Online"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}"</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"⚠️ API Issues"</span>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API health check failed - Session: {session$token} - error: {conditionMessage(e)}"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">"❌ API Offline"</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="predictions" class="level3">
+<h3 class="anchored" data-anchor-id="predictions">Predictions</h3>
+<p>Enhanced prediction with logging</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    request_start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.null</span>(request_data)) {</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Cannot make prediction with invalid inputs - Session: {session$token}"</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"❌ Invalid inputs"</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}"</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">30</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>      response_data <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">resp_body_json</span>(response)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}"</span>)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>      <span class="co"># performance monitoring</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (response_time <span class="sc">&gt;</span> <span class="dv">5</span>) {</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Slow API response - Session: {session$token} - response_time_sec: {response_time}"</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"✅ Prediction successful!"</span>, </span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="st">"message"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(response_data<span class="sc">$</span>.pred[<span class="dv">1</span>])</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}"</span>)</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>      <span class="co"># classify error types for better monitoring</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API connection refused - Session: {session$token}"</span>)</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API timeout occurred - Session: {session$token}"</span>)</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Unknown API error - Session: {session$token} - error: {error_msg}"</span>)</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg), <span class="at">type =</span> <span class="st">"error"</span>, <span class="at">duration =</span> <span class="dv">5</span>)</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg))</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span> </span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># log app startup at global level</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(<span class="at">ui =</span> ui, <span class="at">server =</span> server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

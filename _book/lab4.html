@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-01">
+<meta name="dcterms.date" content="2025-09-03">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 4: Logging and Monitoring – do4ds-labs</title>
@@ -104,6 +104,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -262,6 +266,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#what-not-to-log" id="toc-what-not-to-log" class="nav-link" data-scroll-target="#what-not-to-log">What not to log</a></li>
   <li><a href="#log-levels" id="toc-log-levels" class="nav-link" data-scroll-target="#log-levels">Log levels</a></li>
   </ul></li>
+  <li><a href="#observability" id="toc-observability" class="nav-link" data-scroll-target="#observability">Observability</a></li>
   <li><a href="#logging-in-r" id="toc-logging-in-r" class="nav-link" data-scroll-target="#logging-in-r">Logging in R</a></li>
   <li><a href="#logging-in-python" id="toc-logging-in-python" class="nav-link" data-scroll-target="#logging-in-python">Logging in Python</a></li>
   </ul>
@@ -283,7 +288,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-01</p>
+      <p class="date">2025-09-03</p>
     </div>
   </div>
   
@@ -342,6 +347,113 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><em>What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?</em></li>
 </ol>
 </blockquote>
+<p>Logging is a record of “<em>What Happened</em>”–it captures discrete events and detailed narratives of what occurred in the system at specific points in time.</p>
+<p>Monitoring is usually a dashboard of “<em>How Is It Performing</em>”–tracking quantitative metrics and system health indicators over time to understand trends and current state.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph "LOG: events"
+        L1[/"Discrete Events"/]
+        L2[/"Detailed Context"/]
+        L3[/"Historical Investigation"/]
+        L4[/"Text-Based Messages"/]
+        L5(["&lt;strong&gt;When/What/Who/Why&lt;/strong&gt;"])
+    end
+    
+    subgraph "MONITOR: metrics"
+        M1[/"Quantitative Metrics"/]
+        M2[/"Real-time Status"/]
+        M3[/"Trend Analysis"/]
+        M4[/"Numerical Data"/]
+        M5(["&lt;strong&gt;How Much/How Fast/How Often&lt;/strong&gt;"])
+    end
+    
+    subgraph "Common Use Cases"
+        LC[\"Root Cause Analysis"\]
+        LC2[\"Debugging Specific Issues"\]
+        LC3[\"Compliance Auditing"\]
+        LC4[\"Security Investigation"\]
+        
+        MC[\"Performance Optimization"\]
+        MC2[\"Capacity Planning"\]
+        MC3[\"SLA Monitoring"\]
+        MC4[\"Real-time Alerting"\]
+    end
+    
+    L1 --&gt; LC
+    L2 --&gt; LC2
+    L3 --&gt; LC3
+    L4 --&gt; LC4
+    
+    M1 --&gt; MC
+    M2 --&gt; MC2
+    M3 --&gt; MC3
+    M4 --&gt; MC4
+    
+    classDef logging fill:#e3f2fd
+    classDef monitoring fill:#f3e5f5
+    classDef usecase fill:#f1f8e9
+    
+    class L1,L2,L3,L4,L5 logging
+    class M1,M2,M3,M4,M5 monitoring
+    class LC,LC2,LC3,LC4,MC,MC2,MC3,MC4 usecase
+</pre>
+</div>
+<p></p><figcaption> Logging vs.&nbsp;Monitoring</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 41%">
+<col style="width: 41%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>Logging</th>
+<th>Monitoring</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Data Type</strong></td>
+<td>Discrete events, text messages</td>
+<td>Metrics, counters, gauges</td>
+</tr>
+<tr class="even">
+<td><strong>When Used</strong></td>
+<td>After something happens</td>
+<td>Continuously</td>
+</tr>
+<tr class="odd">
+<td><strong>Purpose</strong></td>
+<td>Debugging, investigation</td>
+<td>Performance tracking, alerting</td>
+</tr>
+<tr class="even">
+<td><strong>Format</strong></td>
+<td>Structured/unstructured text</td>
+<td>Numerical time-series data</td>
+</tr>
+<tr class="odd">
+<td><strong>Storage</strong></td>
+<td>Log files, log databases</td>
+<td>Time-series databases</td>
+</tr>
+<tr class="even">
+<td><strong>Analysis</strong></td>
+<td>Search, filter, correlate</td>
+<td>Aggregate, trend, threshold</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="what-not-to-log" class="level3">
 <h3 class="anchored" data-anchor-id="what-not-to-log">What not to log</h3>
@@ -350,6 +462,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><em>Logging is generally good, but what are some things you should be careful not to log?</em></li>
 </ol>
 </blockquote>
+<p>Critical data we should make sure not to log includes:</p>
+<ol type="1">
+<li>Sensitive Personal Information (PII)
+<ul>
+<li>Email addresses, phone numbers, names<br>
+</li>
+<li>Social Security Numbers, passport numbers<br>
+</li>
+<li>Addresses, birth dates<br>
+</li>
+<li>Medical information (HIPAA protected)</li>
+</ul></li>
+<li>Authentication Credentials
+<ul>
+<li>Passwords (plaintext or hashed)<br>
+</li>
+<li>API keys and tokens<br>
+</li>
+<li>Database connection strings with credentials<br>
+</li>
+<li>OAuth tokens and refresh tokens</li>
+</ul></li>
+<li>Financial Information
+<ul>
+<li>Credit card numbers<br>
+</li>
+<li>Bank account numbers<br>
+</li>
+<li>Routing numbers</li>
+</ul></li>
+</ol>
 </section>
 <section id="log-levels" class="level3">
 <h3 class="anchored" data-anchor-id="log-levels">Log levels</h3>
@@ -368,6 +511,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><em>The numeric values that are going into your computational function.</em></p>
 </blockquote>
 </section>
+</section>
+<section id="observability" class="level2">
+<h2 class="anchored" data-anchor-id="observability">Observability</h2>
+<p>While we cannot prevent code failures (or when they occur), we can create <a href="https://en.wikipedia.org/wiki/Observability_(software)"><strong>observable systems</strong></a> that 1) <strong>accept failure as inevitable</strong> (rather than trying to prevent it), 2) <strong>implement comprehensive monitoring and logging</strong>, and 3) <strong>enable rapid diagnosis</strong> (by using logs to reconstruct failure pathways).</p>
+<p>To do this, data scientist and developers need to emit meaningful logs and metrics from their code. As system admins, we need to ensure new data science work can be easily integrated within our organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).</p>
+<p>This provides 1) operational peace of mind (the ability to detect and resolve issues quickly), 2) value demonstration (shows decision makers who uses your work and how), and 3) team validation (prove the team’s impact and justify resources.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+sequenceDiagram
+    participant DS as Data Science&lt;br&gt;Code
+    participant Emit as Emission&lt;br&gt;Layer
+    participant Collect as Collection
+    participant Process as Processing
+    participant Store as Storage
+    participant Alert as Alerting
+    participant Dashboard as Dashboards
+    participant Team as DevOps&lt;br&gt;Team
+    
+    Note over DS: User makes&lt;br&gt;prediction&lt;br&gt;request
+    
+    DS-&gt;&gt;Emit: log_info("prediction started")
+    DS-&gt;&gt;Emit: emit_metric("response_time", 1.2)
+    
+    Collect-&gt;&gt;Emit: Scrape logs&lt;br&gt;&amp; metrics
+    Collect-&gt;&gt;Process: Logs &amp; metrics to&lt;br&gt;processing pipeline
+    
+    Process-&gt;&gt;Store: Parse &amp;&lt;br&gt;enrich data
+    Store-&gt;&gt;Alert: Check alert&lt;br&gt;conditions
+    Store-&gt;&gt;Dashboard: Update real-time&lt;br&gt;displays
+    
+    alt Response time &gt; 5 seconds
+        Alert-&gt;&gt;Team: Send notifications
+        Team-&gt;&gt;Dashboard: Investigate&lt;br&gt;using logs
+    end
+    
+    Dashboard--&gt;&gt;Team: Show trends&lt;br&gt;and KPIs
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
 </section>
 <section id="logging-in-r" class="level2">
 <h2 class="anchored" data-anchor-id="logging-in-r">Logging in R</h2>

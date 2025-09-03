@@ -22,31 +22,599 @@ co_box(
 )
 ```
 
-A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request/response is below:
+This lab covers how to use logging to monitor events in the application and the API. For a refresher, I've included an updated diagram from the previous lab of Shiny App and API architecture (i.e., the reactives (user inputs and the **Predict** button), the `httr2` API request/response, and the `plumber` API).:
+
+```{=html}
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+```
 
 ```{mermaid}
+%%| fig-cap: 'Shiny R App and plumber API'
+%%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph LR
-	subgraph RApi["R Shiny App"]
-	A1["Shiny R Code"] --> A2["<code>vals()</code><br/>Reactive data"]
-	A2 --> B1["<code>httr2</code><br>package"]
-	B1 --> C1["<code>request(api_url)</code><br/>Creates request object"]
-	C1 --> D1["<code>req_method('POST')</code><br/>Sets HTTP verb"]
-	C1 --> G1["<code>req_body_json(request_data)</code><br/>Penguin features payload"]
-	D1 --> H0["<code>req_perform()</code><br><strong>Executes HTTP request</strong>"]
-	G1 --> H0
-	H0 --> H1["HTTP POST Request"]
-	H1 --> I1["<strong>Vetiver API Server<br><code>localhost:8080/predict</code></strong>"]
-	I1 --> J1["HTTP Response"]
-	J1 --> M1["<code>resp_body_json()</code><br><strong>Parses JSON response</strong>"]
-	M1 --> N1["<code>response$.pred[1]</code><br><strong>Extract prediction</strong>"]
-	N1 --> O1["Return to Shiny<br>Display in UI"]
-end
+graph TD
+    subgraph Inputs["<strong>User Inputs</strong>"]
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
+    I4[/"input$predict"/]
+    end
 
-style B1 fill:#e1f5fe
-style I1 fill:#e8f5e8,color:#000
-style H0 fill:#ff9800,color:#000
-style M1 fill:#9c27b0,color:#fff
-style N1 fill:#4caf50,color:#fff
+    subgraph API["<strong>plumber API</strong>"]
+      ModBoard("<code>pins::board_folder()</code>")
+      ModPin("<code>vetiver::vetiver_pin_read()</code>")
+      ModRout("<code>plumber::pr()</code>") 
+      ModApi("<code>vetiver::vetiver_api()</code>") 
+      ApiServ(["Launch<br>API Server"])
+      ModBoard --"<em>connect to model board</em>"--> ModPin 
+      ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
+      ModRout --"<em>create router</em>"--> ModApi 
+      ModApi --"<em>start API server</em>"--> ApiServ
+    end
+
+    subgraph Pred["<strong>Predict</strong>"]
+        Req("<code>httr2::request()</code>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<code>httr2::req_method()</code>")
+        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<code>httr2::req_body_json()</code>")
+        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<code>httr2::req_perform()</code>")
+        BodyJson2("<code>httr2::resp_body_json()</code>")
+    end
+
+    Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
+    API --> BodyJson2
+
+
+    subgraph PredReact["<strong>pred()</strong>"]
+        Res(["<strong>response$.pred[1]</strong>"])
+    end
+    
+    ValsReact(["<strong>vals()</strong><br>(in <code>data.frame</code>)"])
+    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> PredReact
+    
+    I1 --> ValsReact
+    I2 --> ValsReact
+    I3 --> ValsReact
+    I4 --"<em><code>reactive()</code> & <br><code>bindEvent()</code></em>"---> Pred
+    
+    ValsReact --"<em>as<br><code>request_data</code></em>"--> BodyJson1
+    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><code>vals()</code>"\]
+    PredReact -.-> RenTxt[\"<strong>renderText()</strong><br><code>pred()</code>"\]
+
+    %% Style for functions %%
+    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    %% Style for reactives %%
+    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    
+    %% Style for result %%
+    style ApiServ fill:#e8f5e8,stroke:#000,color:#000
+    style Res fill:#e8f5e8,stroke:#000,color:#000
 ```
+
+
+## Configure 
+
+Below we load the packages for app design (`bslib`, `bsicons`), the making the API request (`httr2`), and monitoring and logging (`logger` and `jsonlite`):
+
+```{r}
+#| eval: false
+#| code-fold: false
+library(shiny)
+library(bslib)
+library(bsicons)
+library(httr2)
+library(logger)
+library(jsonlite)
+
+# configure logging 
+logger::log_threshold(level = "DEBUG")
+logger::log_appender(appender = appender_tee(file = "shiny_app.log"))
+logger::log_formatter(logger::formatter_glue_or_sprintf)
+```
+
+The 
+
+
+## UI 
+
+
+```{r}
+#| label: header
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+  div(
+    style = "position: fixed; top: 10px; right: 10px; z-index: 1000;",
+    textOutput("log_status", inline = TRUE)
+  )
+```
+
+```{r}
+#| label: main-content
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+  layout_columns(
+    card(
+      card_header("Penguin Parameters"),
+      card_body(
+        verbatimTextOutput(outputId = "vals")
+      )
+    ),
+    card(
+      card_header("Predicted Mass"),
+      card_body(
+        value_box(
+          showcase_layout = "left center",
+          title = "Grams",
+          value = textOutput(outputId = "pred"),
+          showcase = bs_icon("graph-up"),
+          max_height = "200px",
+          min_height = "200px",
+        )
+      )
+    ),
+    col_widths = c(6, 6),
+    row_heights = c(3, 1),
+  )
+```
+
+```{r}
+#| label: sys-status
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+  layout_columns(
+    card(
+      card_header("System Status"),
+      card_body(
+        h5("API Status:"),
+        textOutput("api_health"),
+        h5("Recent Logs:"),
+        div(
+          style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
+          verbatimTextOutput("recent_logs", placeholder = TRUE)
+        ),
+        h6(
+          "Last updated:", 
+            textOutput("log_timestamp", inline = TRUE)
+          ),
+        style = "max-height: 350px; overflow-y: auto;"
+      )
+    ),
+    col_widths = c(12), # full width 
+    height = "300px" 
+  )
+```
+
+
+```{r}
+#| eval: false
+#| code-fold: false
+#| include: false 
+# session tracking ----
+api_url <- "http://127.0.0.1:8080/predict"
+
+ui <- page_sidebar(
+  title = "Penguin Mass Predictor",
+  theme = bs_theme(bootswatch = "sketchy"),
+  
+  # logging status indicator ----
+  div(
+    style = "position: fixed; top: 10px; right: 10px; z-index: 1000;",
+    textOutput("log_status", inline = TRUE)
+  ),
+  
+  sidebar = sidebar(
+    sliderInput(inputId = "bill_length", 
+      label = "Bill Length (mm)",
+      min = 30, 
+      max = 60, 
+      value = 45, 
+      step = 1),
+    selectInput(inputId = "sex", 
+      label = "Sex", 
+      choices = c("Male", "Female"), 
+      selected = "Male"),
+    selectInput(
+      inputId = "species",
+      label = "Species",
+      choices = c("Adelie", "Chinstrap", "Gentoo"),
+      selected = "Adelie"),
+    actionButton(
+      inputId = "predict", 
+      label = "Predict", 
+      class = "btn-primary")
+  ),
+  
+  # main content -----
+  layout_columns(
+    card(
+      card_header("Penguin Parameters"),
+      card_body(
+        verbatimTextOutput(outputId = "vals")
+      )
+    ),
+    card(
+      card_header("Predicted Mass"),
+      card_body(
+        value_box(
+          showcase_layout = "left center",
+          title = "Grams",
+          value = textOutput(outputId = "pred"),
+          showcase = bs_icon("graph-up"),
+          max_height = "200px",
+          min_height = "200px",
+        )
+      )
+    ),
+    col_widths = c(6, 6),
+    row_heights = c(3, 1),
+  ),
+  
+  # sys status ----
+  layout_columns(
+    card(
+      card_header("System Status"),
+      card_body(
+        h5("API Status:"),
+        textOutput("api_health"),
+        h5("Recent Logs:"),
+        div(
+          style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
+          verbatimTextOutput("recent_logs", placeholder = TRUE)
+        ),
+        h6(
+          "Last updated:", 
+            textOutput("log_timestamp", inline = TRUE)
+          ),
+        style = "max-height: 350px; overflow-y: auto;"
+      )
+    ),
+    col_widths = c(12), # full width 
+    height = "300px" 
+  )
+)
+```
+
+
+## Server 
+
+```{mermaid}
+%%| fig-cap: 'Logging in Server'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+graph TD
+    A[/"Log File: <br><code>shiny_app.log</code>"/] -->|"<em>file changes</em>"| B["Read with: <br><code>reactiveFileReader()</code>"]
+    B -->|"<em>polls every 1000ms</em>"| C["Check file modification time"]
+    C -->|"<em>if changed</em>"| D["Read entire file"]
+    D --> E["Extract last<br>5 lines"]
+    E --> F["Update UI display"]
+    
+    G(["User Actions"]) -->|"<em>generate logs</em>"| H["Log using: <br><code>logger::log_info/warn/error()</code>"]
+    H -->|"<em>writes to</em>"| A
+    
+    I(["API Calls"]) -->|"<em>generate logs</em>"| H
+    J(["Input Validation"]) -->|"<em>generate logs</em>"| H
+    K(["Session Events"]) -->|"<em>generate logs</em>"| H
+    
+    B --> L["Store metadata"]
+    L --> M["File modification time"]
+    L --> N["Total line count"]
+    L --> O["Lines content"]
+    
+    F --> P(["<code>recent_logs</code> <strong>output</strong>"])
+    M --> Q(["<code>log_timestamp</code> <strong>output</strong>"])
+    
+    style G fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style I fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style J fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style K fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    
+    style P fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    style Q fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    
+```
+
+### App startup
+
+Log app startup within observer to access session data (high priority to run early)
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+  observe({
+    logger::log_info("Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}")
+  }, priority = 1000)  
+```
+
+### Log file reading
+
+Reactive file reader for log monitoring, polls the log file every 1000ms (1 second) for changes:    
+
+*  Read all lines and get file modification time     
+*  Return both content and timestamp   
+
+```{r}
+#| eval: false 
+#| code-fold: false
+log_file_content <- reactiveFileReader(
+  intervalMillis = 1000,
+  session = session,
+  filePath = "shiny_app.log",
+  readFunc = function(filePath) {
+    
+    if (file.exists(filePath)) {
+      
+      lines <- readLines(filePath, warn = FALSE)
+      mod_time <- file.mtime(filePath)
+      list(
+        lines = lines,
+        last_modified = mod_time,
+        total_lines = length(lines)
+      )
+      
+    } else {
+      
+      list(
+        lines = character(0),
+        last_modified = Sys.time(),
+        total_lines = 0
+      )
+      
+    }
+  }
+)
+```
+
+### User interactions
+
+Track user interactions (`throttle` to avoid excessive logging).
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+observe({
+  logger::log_debug("User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}")
+}) |> 
+  throttle(2000)  
+```
+
+### Reactive values 
+
+Reactive values (with validation)
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+vals <- reactive({
+  bill_length <- input$bill_length
+  species <- input$species
+  sex <- input$sex
+  
+  # input validation (with warnings)
+  if (bill_length < 30 || bill_length > 60) {
+    logger::log_warn("Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}")
+  }
+  
+  if (is.null(species) || is.null(sex)) {
+    logger::log_error("Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}")
+    return(NULL)
+  }
+  
+  data <- data.frame(
+    bill_length_mm = bill_length,
+    species_Chinstrap = as.numeric(species == "Chinstrap"),
+    species_Gentoo = as.numeric(species == "Gentoo"),
+    sex_male = as.numeric(sex == "Male")
+  )
+  
+  logger::log_debug("Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}")
+  
+  return(data)
+})
+```
+
+
+### API health check
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+api_health <- reactive({
+  tryCatch({
+    logger::log_debug("Checking API health - Session: {session$token}")
+    
+    response <- httr2::request("http://127.0.0.1:8080/ping") |>
+      httr2::req_timeout(5) |>
+      httr2::req_perform()
+    
+    if (httr2::resp_status(response) == 200) {
+      logger::log_info("API health check successful - Session: {session$token}")
+      return("✅ API Online")
+    } else {
+      logger::log_warn("API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}")
+      return("⚠️ API Issues")
+    }
+  }, error = function(e) {
+    logger::log_error("API health check failed - Session: {session$token} - error: {conditionMessage(e)}")
+    return("❌ API Offline")
+  })
+})
+```
+
+
+### Predictions 
+
+Enhanced prediction with logging
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+  pred <- reactive({
+    request_start <- Sys.time()
+    request_data <- vals()
+    
+    if (is.null(request_data)) {
+      logger::log_error("Cannot make prediction with invalid inputs - Session: {session$token}")
+      return("❌ Invalid inputs")
+    }
+    
+    logger::log_info("Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}")
+    
+    tryCatch({
+      showNotification("Predicting penguin mass...", 
+                       type = "default", duration = 3)
+      
+      response <- httr2::request(api_url) |>
+        httr2::req_method("POST") |>
+        httr2::req_body_json(request_data, auto_unbox = FALSE) |>
+        httr2::req_timeout(30) |>
+        httr2::req_perform()
+      
+      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs"))
+      response_data <- httr2::resp_body_json(response)
+      
+      logger::log_info("Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}")
+      
+      # performance monitoring
+      if (response_time > 5) {
+        logger::log_warn("Slow API response - Session: {session$token} - response_time_sec: {response_time}")
+      }
+      
+      showNotification("✅ Prediction successful!", 
+                       type = "message", duration = 3)
+      
+      return(response_data$.pred[1])
+      
+    }, error = function(e) {
+      error_msg <- conditionMessage(e)
+      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs"))
+      
+      logger::log_error("Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}")
+      
+      # classify error types for better monitoring
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
+        user_msg <- "API not available - is the server running on port 8080?"
+        logger::log_error("API connection refused - Session: {session$token}")
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
+        user_msg <- "Request timed out - API may be overloaded"
+        logger::log_warn("API timeout occurred - Session: {session$token}")
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
+        logger::log_error("Unknown API error - Session: {session$token} - error: {error_msg}")
+      }
+      
+      showNotification(paste("❌", user_msg), type = "error", duration = 5)
+      return(paste("❌", user_msg))
+    })
+  }) |> 
+    bindEvent(input$predict, ignoreInit = TRUE)
+```
+
+
+
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| include: false
+server <- function(input, output, session) {
+
+  # outputs with logging
+  output$pred <- renderText({
+    prediction <- pred()
+    
+    if (is.numeric(prediction)) {
+      result <- paste(round(prediction, 1), "grams")
+      logger::log_info("Displaying prediction to user - Session: {session$token} - display_value: {result}")
+      return(result)
+    } else {
+      logger::log_debug("Displaying error message to user - Session: {session$token} - message: {prediction}")
+      return(prediction)
+    }
+  })
+  
+  output$vals <- renderPrint({
+    data <- vals()
+    if (!is.null(data)) {
+      logger::log_debug("Displaying input values to user - Session: {session$token}")
+      return(data)
+    } else {
+      return("Invalid inputs")
+    }
+  })
+  
+  output$api_health <- renderText({
+    api_health()
+  })
+  
+  output$log_status <- renderText({
+    paste("Session:", substr(session$token, 1, 8))
+  })
+  
+  # reactive log display that updates when file changes ----
+  output$recent_logs <- renderText({
+    log_data <- log_file_content()
+    
+    if (length(log_data$lines) > 0) {
+      # get last 5 lines
+      recent_lines <- if (log_data$total_lines > 5) {
+        tail(log_data$lines, 5)
+      } else {
+        log_data$lines
+      }
+      
+      # log that we're updating the display (at DEBUG level to avoid spam)
+      logger::log_debug("Updating recent logs display - Session: {session$token} - showing {length(recent_lines)} lines")
+      
+      paste(recent_lines, collapse = "\n")
+    } else {
+      "No logs available"
+    }
+  })
+  
+  # timestamp of last log update ----
+  output$log_timestamp <- renderText({
+    log_data <- log_file_content()
+    format(log_data$last_modified, "%H:%M:%S")
+  })
+  
+  # log session end
+  session$onSessionEnded(function() {
+    logger::log_info("User session ended - Session: {session$token}")
+  })
+}
+```
+
+```{r}
+#| eval: false 
+#| code-fold: false
+
+# log app startup at global level
+logger::log_info("Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}")
+
+shinyApp(ui = ui, server = server)
+```
+
