@@ -303,15 +303,15 @@ server <- function(input, output, session) {
   })
   
   # timestamp of last log update ----
-  # output$log_timestamp <- renderText({
-  #   log_data <- log_file_content()
-  #   format(log_data$last_mod, "%H:%M:%S")
-  # })
+  output$log_timestamp <- renderText({
+    log_data <- log_file_content()
+    format(log_data$last_mod, "%H:%M:%S")
+  })
   
 # log session end  ----
-#   session$onSessionEnded(function() {
-#     logger::log_info("User session ended - Session: {session$token}")
-#   })
+  session$onSessionEnded(function() {
+    logger::log_info("User session ended - Session: {session$token}")
+  })
 }
 
 # log app startup at global level ----
