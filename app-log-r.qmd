@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-This lab covers how to use logging to monitor events in the application and the API. For a refresher, I've included an updated diagram from the previous lab of Shiny App and API architecture (i.e., the reactives (user inputs and the **Predict** button), the `httr2` API request/response, and the `plumber` API).:
+This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. For a refresher, I've included a diagram of the Shiny App and API from the previous lab (i.e., the reactives (user inputs and the **Predict** button), the `httr2` API request/response, and the `plumber` API):
 
 ```{=html}
 <style>
@@ -107,9 +107,11 @@ graph TD
 ```
 
 
-## Configure 
+## Packages 
 
-Below we load the packages for app design (`bslib`, `bsicons`), making the API request (`httr2`), and logging and monitoring (`logger` and `jsonlite`):
+Below we load the packages for app design (`bslib`, `bsicons`), making the API request (`httr2`), and logging and monitoring (`logger` and `jsonlite`). 
+
+I chose the [`logger` package](https://daroczig.github.io/logger/index.html) instead of the example from the text ([`log4r`](https://github.com/r-lib/log4r)) because I'm more familiar with it's lightweight and I'm more [familiar with it's features](https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger). 
 
 ```{r}
 #| eval: false
@@ -120,35 +122,80 @@ library(bsicons)
 library(httr2)
 library(logger)
 library(jsonlite)
+```
 
-# configure logging 
+### Configure logging 
+
+Below we'll configure the log level and assign the [`log_appender()`](https://daroczig.github.io/logger/reference/log_appender.html) with the [`appender_tee()`](https://daroczig.github.io/logger/reference/appender_tee.html).[^app-tee] 
+
+[^app-tee]: [`appender_tee()`](https://daroczig.github.io/logger/reference/appender_tee.html) determines where the logs will be stored and "*appends log messages to both console and a file*."
+
+`logger` also gives us control over the format of the log file with [`log_formatter()`](https://daroczig.github.io/logger/reference/log_formatter.html) (I've found using the [`glue` or `sprintf`](https://daroczig.github.io/logger/reference/formatter_glue_or_sprintf.html) formatter makes the logs more UI friendly). 
+
+```{r}
+#| eval: false
+#| code-fold: false
 logger::log_threshold(level = "DEBUG")
 logger::log_appender(appender = appender_tee(file = "shiny_app.log"))
 logger::log_formatter(logger::formatter_glue_or_sprintf)
 ```
 
-The 
 
+## Displaying logs
 
-## UI 
+First we should think about what logs (if any) we want displayed in the UI. I'm a big fan of having verbose logs and making them accessible in the UI. 
 
+### Session Token
+
+We'll start by putting a `log_status` output in the upper right-hand corner of the display.
+
+#### UI
+
+A custom `div()` is a good option here (with some minimal styling):
 
 ```{r}
-#| label: header
+#| label: token
+#| eval: false
+#| code-fold: false
+#| code-overflow: scroll
+  div(
+    style = "position: fixed; top: 10px; right: 10px; z-index: 1000; color: #fff;",
+    strong("Session", textOutput("log_status", inline = TRUE))
+  )
+```
+
+#### Server
+
+This output is generated from the `session$token`:
+
+```{r}
+#| label: token-server
 #| eval: false
 #| code-fold: false
 #| code-overflow: wrap
-  div(
-    style = "position: fixed; top: 10px; right: 10px; z-index: 1000;",
-    textOutput("log_status", inline = TRUE)
-  )
+  output$log_status <- renderText({
+    paste("Token:", substr(session$token, 1, 8))
+  })
 ```
+
+![](img/lab4-div-session-token.png){width='100%' fig-align='center'}
+
+### Params and Predictions
+
+The parameter display and predictions from the API remain largely unchanged here, other than to make room for the **System Status** `column` and `card`. 
+
+![Penguin Parameters and Predicted Mass](img/lab4-predictions-wireframe.png)
+
+#### UI
+
+The params and predictions are displayed in two `bslib::cards()` and include a `value_box()` and `bs_icon()` for the response from the API.
 
 ```{r}
 #| label: main-content
 #| eval: false
-#| code-fold: false
-#| code-overflow: wrap
+#| code-fold: true
+#| code-summary: 'show/hide UI Penguin Parameters'
+#| code-overflow: scroll
   layout_columns(
     card(
       card_header("Penguin Parameters"),
@@ -174,8 +221,152 @@ The
   )
 ```
 
+Note that I've added values for `col_widths` and `row_heights`. 
+
+#### Server
+
+**Reactive values**
+
+In the server, we create the reactive `vals()` to be displayed in the **Penguin Parameters** section. I've included warning and error logs for input validation, and a single debugging log to examine the data sent to the API: 
+
 ```{r}
-#| label: sys-status
+#| label: main-vals-server
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+vals <- reactive({
+    bill_length <- input$bill_length #<1>
+    species <- input$species
+    sex <- input$sex #<1>
+    
+    if (bill_length < 30 || bill_length > 60) { #<2>
+      logger::log_warn("Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}") #<2>
+    }
+    
+    if (is.null(species) || is.null(sex)) { #<3>
+      logger::log_error("Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}") 
+      return(NULL)
+    } #<3>
+    
+    data <- data.frame( #<4>
+      bill_length_mm = bill_length,
+      species_Chinstrap = as.numeric(species == "Chinstrap"),
+      species_Gentoo = as.numeric(species == "Gentoo"),
+      sex_male = as.numeric(sex == "Male")
+    ) #<4>
+    
+    logger::log_debug("Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}") #<5>
+    
+    return(data) #<6>
+  })
+```
+1. Raw reactive values        
+2. Logs incorrect input values that can lead to bad predictions or user confusion.    
+3. Logs critical input validation failures that prevent the application from functioning.   
+4. Convert reactives into a `data.frame`.      
+5. Logs formatted input data structure sent to the API. 
+6. Returns `data.frame`   
+
+
+**Predictions**
+
+I've added logs to the predictions reactive values below. As you can see, the majority of the logs are errors and warning, but I've also included notifications (`showNotification()`) for major events, too. 
+
+```{r}
+#| label: main-pred-server
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+pred <- reactive({
+    request_start <- Sys.time() #<1>
+    request_data <- vals() #<2>
+    
+    if (is.null(request_data)) {
+      logger::log_error("Cannot make prediction with invalid inputs - Session: {session$token}") #<3>
+      return("❌ Invalid inputs")
+    }
+    
+    logger::log_info("Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}") #<4>
+    
+    tryCatch({ #<5>
+      showNotification("Predicting penguin mass...", #<6>
+                       type = "default", duration = 3) #<6>
+      
+      response <- httr2::request(api_url) |> #<7>
+        httr2::req_method("POST") |>
+        httr2::req_body_json(request_data, auto_unbox = FALSE) |>
+        httr2::req_timeout(30) |>
+        httr2::req_perform() #<7>
+      
+      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs")) #<8>
+      response_data <- httr2::resp_body_json(response) #<9>
+      
+      logger::log_info("Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}") #<10>
+      
+      if (response_time > 5) { #<11>
+        logger::log_warn("Slow API response - Session: {session$token} - response_time_sec: {response_time}") 
+      } #<11>
+      
+      showNotification("✅ Prediction successful!",  #<12> 
+        type = "message", duration = 3) #<12>
+      
+      return(response_data$.pred[1]) #<13>
+      
+    }, error = function(e) {
+      error_msg <- conditionMessage(e) # <14> 
+      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs")) #<15> 
+      
+      logger::log_error("Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}") #<16>
+      
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) { #<17>
+        user_msg <- "API not available - is the server running on port 8080?"
+        logger::log_error("API connection refused - Session: {session$token}") #<17>
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) { #<18>
+        user_msg <- "Request timed out - API may be overloaded"
+        logger::log_warn("API timeout occurred - Session: {session$token}") #<18>
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
+        logger::log_error("Unknown API error - Session: {session$token} - error: {error_msg}") #<19>
+      }
+      
+      showNotification(paste("❌", user_msg), type = "error", duration = 5) #<20>
+      
+      return(paste("❌", user_msg))
+    }) #<5>
+  }) |> 
+    bindEvent(input$predict, ignoreInit = TRUE) #<21> 
+```
+1. Record API request start time      
+2. Reactive values from UI    
+3. Logs when/if the prediction requests fail because of data validation issues (critical application logic problems).   
+4.  Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.    
+5. Handles all possible API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.    
+6. Notification for predicting penguin mass   
+7. `httr2` API request  
+8. Record API response time   
+9. API prediction response data  
+10. Logs successful predictions and performance metrics/results 
+11. Logs performance issues that could impact user experience and/or indicate need for system optimization.   
+12. Notification for successful prediction    
+13. Prediction values  
+14. `tryCatch()` error message  
+15. API Response time  
+16. Logs complete prediction failures with diagnostic information for troubleshooting critical application functionality.   
+17. Logs when the API is unreachable, indicating critical system failure.  
+18. Logs API timeout events that suggest network issues or API overload.
+19. Logs unexpected API errors that don't match known failure patterns. 
+20. Notification for error  
+21. Trigger when Predict button is clicked. 
+
+
+### System Status
+
+In the System Status display, I want to 1) send a `ping` to the API and return the result as **API Status**, 2) print the most recent logs from the log file we specified above in the `logger::log_appender()` function.
+
+I'll also add a timestamp for the last time the application (in **Last updated**):
+
+```{r}
+#| label: sys-status-ui
 #| eval: false
 #| code-fold: false
 #| code-overflow: wrap
@@ -183,154 +374,285 @@ The
     card(
       card_header("System Status"),
       card_body(
-        h5("API Status:"),
-        textOutput("api_health"),
-        h5("Recent Logs:"),
+        h5("API Status:"), #<1>
+        textOutput("api_health"),#<1>
+        h5("Recent Logs:"),#<2>
         div(
           style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
           verbatimTextOutput("recent_logs", placeholder = TRUE)
-        ),
-        h6(
-          "Last updated:", 
+        ),#<2>
+        h6("Last updated:", #<3>
             textOutput("log_timestamp", inline = TRUE)
           ),
-        style = "max-height: 350px; overflow-y: auto;"
+        style = "max-height: 350px; overflow-y: auto;" #<3>
       )
     ),
-    col_widths = c(12), # full width 
-    height = "300px" 
+    col_widths = c(12), #<4> 
+    height = "300px" #<5>
   )
 ```
+1. Results from `ping` sent to API  
+2. Log display from `shiny_log.log` file 
+3. Last modification time of `shiny_log.log` file     
+4. Full width  
+5. Fixed height  
 
+![](img/lab4-system-status-wireframe.png){width='100%' fig-align='center'}
+
+#### API Status
+
+The status of the `ping` sent to the API can return one of three results: `✅ API Online` (response = 200), `⚠️ API Issues` (non-200 status), `❌ API Offline` (non-response). 
 
 ```{r}
+#| label: api_health
 #| eval: false
 #| code-fold: false
-#| include: false 
-# session tracking ----
-api_url <- "http://127.0.0.1:8080/predict"
-
-ui <- page_sidebar(
-  title = "Penguin Mass Predictor",
-  theme = bs_theme(bootswatch = "sketchy"),
-  
-  # logging status indicator ----
-  div(
-    style = "position: fixed; top: 10px; right: 10px; z-index: 1000;",
-    textOutput("log_status", inline = TRUE)
-  ),
-  
-  sidebar = sidebar(
-    sliderInput(inputId = "bill_length", 
-      label = "Bill Length (mm)",
-      min = 30, 
-      max = 60, 
-      value = 45, 
-      step = 1),
-    selectInput(inputId = "sex", 
-      label = "Sex", 
-      choices = c("Male", "Female"), 
-      selected = "Male"),
-    selectInput(
-      inputId = "species",
-      label = "Species",
-      choices = c("Adelie", "Chinstrap", "Gentoo"),
-      selected = "Adelie"),
-    actionButton(
-      inputId = "predict", 
-      label = "Predict", 
-      class = "btn-primary")
-  ),
-  
-  # main content -----
-  layout_columns(
-    card(
-      card_header("Penguin Parameters"),
-      card_body(
-        verbatimTextOutput(outputId = "vals")
-      )
-    ),
-    card(
-      card_header("Predicted Mass"),
-      card_body(
-        value_box(
-          showcase_layout = "left center",
-          title = "Grams",
-          value = textOutput(outputId = "pred"),
-          showcase = bs_icon("graph-up"),
-          max_height = "200px",
-          min_height = "200px",
-        )
-      )
-    ),
-    col_widths = c(6, 6),
-    row_heights = c(3, 1),
-  ),
-  
-  # sys status ----
-  layout_columns(
-    card(
-      card_header("System Status"),
-      card_body(
-        h5("API Status:"),
-        textOutput("api_health"),
-        h5("Recent Logs:"),
-        div(
-          style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
-          verbatimTextOutput("recent_logs", placeholder = TRUE)
-        ),
-        h6(
-          "Last updated:", 
-            textOutput("log_timestamp", inline = TRUE)
-          ),
-        style = "max-height: 350px; overflow-y: auto;"
-      )
-    ),
-    col_widths = c(12), # full width 
-    height = "300px" 
-  )
-)
+#| code-overflow: wrap
+api_health <- reactive({
+  tryCatch({
+    logger::log_debug("Checking API health - Session: {session$token}") #<1>
+    response <- httr2::request("http://127.0.0.1:8080/ping") |> #<2>
+      httr2::req_timeout(5) |>
+      httr2::req_perform() #<2>
+    if (httr2::resp_status(response) == 200) { #<3>
+      logger::log_info("API health check successful - Session: {session$token}") 
+      return("✅ API Online") #<3>
+    } else {
+      logger::log_warn("API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}") #<4>
+      return("⚠️ API Issues") #<4>
+    }
+  }, error = function(e) { #<5>
+    logger::log_error("API health check failed - Session: {session$token} - error: {conditionMessage(e)}") 
+    return("❌ API Offline") #<5>
+  })
+})
 ```
+1. Logs when health checks are initiated to track frequency and timing.   
+2. `ping` sent to API     
+3. Logs the external API is responding normally.   
+4. Logs to API degradation or partial failures that may impact user experience.   
+5. Logs complete API connectivity failures that render the application non-functional.  
 
 
-## Server 
+
+::: {layout-ncol=2 layout-valign="top"}
+
+When we initially launch, we see the offline status is accurate (the API isn't running): 
+
+![](img/lab4-api-health-check-offline.png){width='100%' fig-align='center'}
+
+When we run the API, we can see the `ping` responds with an online status: 
+
+![](img/lab4-api-health-check-online.png){width='100%' fig-align='center'}
+
+:::
+
+
+#### Recent Logs
+
+Recall that all the events we've captured with the  `logger::log_*()` functions are written to the log file (`shiny_log.log`). If we want to display some of the most recent logs in the UI, we can use Shiny's [`reactiveFileReader()`](https://shiny.posit.co/r/reference/shiny/latest/reactivefilereader.html) and configure it to poll the log file every 1 second (1000ms) for changes:
 
 ```{mermaid}
 %%| fig-cap: 'Logging in Server'
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+%%| fig-width: 7.0
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph TD
-    A[/"Log File: <br><code>shiny_app.log</code>"/] -->|"<em>file changes</em>"| B["Read with: <br><code>reactiveFileReader()</code>"]
-    B -->|"<em>polls every 1000ms</em>"| C["Check file modification time"]
-    C -->|"<em>if changed</em>"| D["Read entire file"]
-    D --> E["Extract last<br>5 lines"]
-    E --> F["Update UI display"]
+flowchart TD
+
+ subgraph User["Log Generation"]
+        Q(["User<br>inputs"])
+        R(["API<br>calls"])
+        S(["System<br>events"])
+        %% T@{ shape: rect, label: "<code>logger::log_</code>*<br>functions" }
+        T["<code>logger::log_</code>*<br>functions"]
+  end
+
+    Q --> T
+    R --> T
+    S --> T
+    T -- "<em>Written to</em>"--> A
+
+ subgraph FileSys["File System"]
+        %% A@{ shape: lin-doc, label: "<code>shiny_app.log</code>" }
+        A[\"Log file: <code>shiny_app.log</code>"\]
+        A1("Modification<br>Time")
+        A2("File<br>Contents")
+  end
+    A --> A1 & A2
+    A -."<em>changes trigger</em>".-> B
+
+ subgraph ReactFile["Reactive File"]
+        %% B@{ shape: subproc, label: "<code>reactiveFileReader()</code>" }
+        B{{"<code>reactiveFileReader() </code>"}}
+        C{"Log file<br>exists?"}
+        D("<strong>lines<br>last_mod<br>total_lines</strong>")
+        E("<strong>lines</strong>:<code>character(0)</code><br><strong>last_mod</strong>:<code>Sys.time()</code><br><strong>total_lines</strong>:<code>0</code>")
+  end
     
-    G(["User Actions"]) -->|"<em>generate logs</em>"| H["Log using: <br><code>logger::log_info/warn/error()</code>"]
-    H -->|"<em>writes to</em>"| A
+    B --"<em>checks every 1 second</em>"--> C
+    C -- Yes (returns list)--> D
+    C -- No (returns empty list)--> E
+
+    style Q fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style R fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style S fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    I(["API Calls"]) -->|"<em>generate logs</em>"| H
-    J(["Input Validation"]) -->|"<em>generate logs</em>"| H
-    K(["Session Events"]) -->|"<em>generate logs</em>"| H
+    style T fill:#4ac590,color:#000,rx:20,ry:20,font-size:18px
     
-    B --> L["Store metadata"]
-    L --> M["File modification time"]
-    L --> N["Total line count"]
-    L --> O["Lines content"]
+    style A fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    F --> P(["<code>recent_logs</code> <strong>output</strong>"])
-    M --> Q(["<code>log_timestamp</code> <strong>output</strong>"])
+    style A1 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
+    style A2 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
+
+    style B fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,font-size:18px
     
-    style G fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style I fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style J fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style K fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    
-    style P fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
-    style Q fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    style C fill:#f2b857,stroke:#000,color:#000,font-size:18px
+    style D fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
+    style E fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
     
 ```
+
+The reactive returned from `reactiveFileReader()` will contain a list with the log line (`lines`), the time this file was last modified (`last_mod`), and a count of the total number of lines in the log file (`total_lines`). 
+
+```{r}
+#| label: log_file_content
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+log_file_content <- reactiveFileReader(
+  intervalMillis = 1000,
+  session = session,
+  filePath = "shiny_app.log",
+  readFunc = function(filePath) {
+    
+    if (file.exists(filePath)) { #<1>
+      lines <- readLines(filePath, warn = FALSE) 
+      mod_time <- file.mtime(filePath) #<1>
+      
+      list( #<2>
+        lines = lines,
+        last_mod = mod_time,
+        total_lines = length(lines)
+      ) #<2>
+    
+    } else {
+      list( #<3>
+        lines = character(0),
+        last_mod = Sys.time(),
+        total_lines = 0
+      ) #<3>
+    }
+    
+  }
+)
+```
+1. Read all lines and get file modification time. 
+2. Return both content and timestamp.  
+3. Return empty list.  
+
+To make this display more manageable, we'll limit the number of extracted logs to the five most recent line (unless there are less than five total lines in the log file). We'll format the logs to be displayed in the  `verbatimTextOutput()` and include a message if the log file is empty. 
+
+```{mermaid}
+%%| fig-cap: 'Displaying logs'
+%%| fig-align: center
+%%| fig-width: 7.0
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+flowchart TD
+
+  A{{"<code>reactiveFileReader()</code> "}}
+
+ subgraph LogProc["Log Processing"]
+        H(["Reads <code>shiny_app.log</code>"])
+        I{"More than 5 lines in <code>total_lines</code>?"}
+        J("Print last 5 lines")
+        K("Print all lines")
+        L["Format: <code>paste(lines,</code><br><code>collapse = '\\n')</code>"]
+        M["Return:<br><code>'No logs available'</code>"]
+  end
+
+    A --> H
+    H --> I
+    I -- "<em>Yes</em" --> J
+    I -- "<em>No</em>" --> K
+    J --> L
+    K --> L
+    H -- "<em>No lines</em>"--> M
+
+ subgraph UI["UI Rendering"]
+	 N[/"<code>log_file_content()</code>"/]
+	 subgraph P["Display in <code>div</code>"]
+		 O["<code>verbatimTextOutput(recent_logs)</code>"]
+	 end
+  end
+  
+  L & M --> N
+  N --> P
+
+  style A fill:#d08300,stroke:#d08300,color:#ffffff,rx:12,ry:12,text-align:center
+  style H fill:#216654,stroke:#216654,color:#ffffff,rx:12,ry:12,text-align:center
+  
+  style L fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  style M fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  
+  style N fill:#772f98,color:#fff,text-align:center
+  style O fill:#cc66d3,color:000,text-align:center
+
+```
+
+```{r}
+#| label: recent_logs
+#| eval: false
+#| code-fold: false
+#| code-overflow: wrap
+  output$recent_logs <- renderText({
+    log_data <- log_file_content()
+    
+    if (length(log_data$lines) > 0) {  #<1>
+      recent_lines <- if (log_data$total_lines > 5) {
+        tail(log_data$lines, 5)
+      } else {
+        log_data$lines
+      }  #<1>
+      
+      logger::log_debug("Updating recent logs display - Session: {session$token} - showing {length(recent_lines)} lines") #<2>
+      
+      paste(recent_lines, collapse = "\n") #<3>
+    } else {
+      "No logs available"
+    }
+  })
+```
+1. Get last 5 lines of log file or complete log file    
+2. Log that we're updating the display (at `DEBUG` level to avoid spam)     
+3. Format the recent logs before displaying in the UI.  
+
+If the API is running, we should see the results of the API health check and the app start-up/initialization:
+
+```{verbatim}
+INFO [2025-09-09 13:22:10] Shiny app started - Session: 8f018f03ac7f1339dc2f826077156264 - Host: localhost
+INFO [2025-09-09 13:22:10] API health check successful - Session: 8f018f03ac7f1339dc2f826077156264
+INFO [2025-09-09 13:27:40] Shiny application initialized - timestamp: 2025-09-09 13:27:40.00443 - r_version: R version 4.5.1 (2025-06-13)
+INFO [2025-09-09 13:27:41] Shiny app started - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - Host: localhost
+INFO [2025-09-09 13:27:41] API health check successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8
+```
+
+
+![](img/lab4-api-recent-logs-display.png){width='100%' fig-align='center'}
+
+When we click **Predict** and send the request to the API, the log file is updated with: 
+
+```{verbatim}
+INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: [{"bill_length_mm":45,"species_Chinstrap":0,"species_Gentoo":0,"sex_male":1}]
+INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - response_time_sec: 0.619 - prediction: 4180.7965
+INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams
+```
+
+![](img/lab4-api-recent-logs-predictions.png){width='100%' fig-align='center'}
+
+
+#### Last updated
 
 ### App startup
 
@@ -345,44 +667,7 @@ Log app startup within observer to access session data (high priority to run ear
   }, priority = 1000)  
 ```
 
-### Log file reading
 
-Reactive file reader for log monitoring, polls the log file every 1000ms (1 second) for changes:    
-
-*  Read all lines and get file modification time     
-*  Return both content and timestamp   
-
-```{r}
-#| eval: false 
-#| code-fold: false
-log_file_content <- reactiveFileReader(
-  intervalMillis = 1000,
-  session = session,
-  filePath = "shiny_app.log",
-  readFunc = function(filePath) {
-    
-    if (file.exists(filePath)) {
-      
-      lines <- readLines(filePath, warn = FALSE)
-      mod_time <- file.mtime(filePath)
-      list(
-        lines = lines,
-        last_modified = mod_time,
-        total_lines = length(lines)
-      )
-      
-    } else {
-      
-      list(
-        lines = character(0),
-        last_modified = Sys.time(),
-        total_lines = 0
-      )
-      
-    }
-  }
-)
-```
 
 ### User interactions
 
@@ -396,225 +681,5 @@ observe({
   logger::log_debug("User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}")
 }) |> 
   throttle(2000)  
-```
-
-### Reactive values 
-
-Reactive values (with validation)
-
-```{r}
-#| eval: false 
-#| code-fold: false
-#| code-overflow: wrap
-vals <- reactive({
-  bill_length <- input$bill_length
-  species <- input$species
-  sex <- input$sex
-  
-  # input validation (with warnings)
-  if (bill_length < 30 || bill_length > 60) {
-    logger::log_warn("Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}")
-  }
-  
-  if (is.null(species) || is.null(sex)) {
-    logger::log_error("Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}")
-    return(NULL)
-  }
-  
-  data <- data.frame(
-    bill_length_mm = bill_length,
-    species_Chinstrap = as.numeric(species == "Chinstrap"),
-    species_Gentoo = as.numeric(species == "Gentoo"),
-    sex_male = as.numeric(sex == "Male")
-  )
-  
-  logger::log_debug("Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}")
-  
-  return(data)
-})
-```
-
-
-### API health check
-
-```{r}
-#| eval: false 
-#| code-fold: false
-#| code-overflow: wrap
-api_health <- reactive({
-  tryCatch({
-    logger::log_debug("Checking API health - Session: {session$token}")
-    
-    response <- httr2::request("http://127.0.0.1:8080/ping") |>
-      httr2::req_timeout(5) |>
-      httr2::req_perform()
-    
-    if (httr2::resp_status(response) == 200) {
-      logger::log_info("API health check successful - Session: {session$token}")
-      return("✅ API Online")
-    } else {
-      logger::log_warn("API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}")
-      return("⚠️ API Issues")
-    }
-  }, error = function(e) {
-    logger::log_error("API health check failed - Session: {session$token} - error: {conditionMessage(e)}")
-    return("❌ API Offline")
-  })
-})
-```
-
-
-### Predictions 
-
-Enhanced prediction with logging
-
-```{r}
-#| eval: false 
-#| code-fold: false
-#| code-overflow: wrap
-  pred <- reactive({
-    request_start <- Sys.time()
-    request_data <- vals()
-    
-    if (is.null(request_data)) {
-      logger::log_error("Cannot make prediction with invalid inputs - Session: {session$token}")
-      return("❌ Invalid inputs")
-    }
-    
-    logger::log_info("Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}")
-    
-    tryCatch({
-      showNotification("Predicting penguin mass...", 
-                       type = "default", duration = 3)
-      
-      response <- httr2::request(api_url) |>
-        httr2::req_method("POST") |>
-        httr2::req_body_json(request_data, auto_unbox = FALSE) |>
-        httr2::req_timeout(30) |>
-        httr2::req_perform()
-      
-      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs"))
-      response_data <- httr2::resp_body_json(response)
-      
-      logger::log_info("Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}")
-      
-      # performance monitoring
-      if (response_time > 5) {
-        logger::log_warn("Slow API response - Session: {session$token} - response_time_sec: {response_time}")
-      }
-      
-      showNotification("✅ Prediction successful!", 
-                       type = "message", duration = 3)
-      
-      return(response_data$.pred[1])
-      
-    }, error = function(e) {
-      error_msg <- conditionMessage(e)
-      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs"))
-      
-      logger::log_error("Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}")
-      
-      # classify error types for better monitoring
-      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
-        user_msg <- "API not available - is the server running on port 8080?"
-        logger::log_error("API connection refused - Session: {session$token}")
-      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
-        user_msg <- "Request timed out - API may be overloaded"
-        logger::log_warn("API timeout occurred - Session: {session$token}")
-      } else {
-        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
-        logger::log_error("Unknown API error - Session: {session$token} - error: {error_msg}")
-      }
-      
-      showNotification(paste("❌", user_msg), type = "error", duration = 5)
-      return(paste("❌", user_msg))
-    })
-  }) |> 
-    bindEvent(input$predict, ignoreInit = TRUE)
-```
-
-
-
-
-```{r}
-#| eval: false 
-#| code-fold: false
-#| include: false
-server <- function(input, output, session) {
-
-  # outputs with logging
-  output$pred <- renderText({
-    prediction <- pred()
-    
-    if (is.numeric(prediction)) {
-      result <- paste(round(prediction, 1), "grams")
-      logger::log_info("Displaying prediction to user - Session: {session$token} - display_value: {result}")
-      return(result)
-    } else {
-      logger::log_debug("Displaying error message to user - Session: {session$token} - message: {prediction}")
-      return(prediction)
-    }
-  })
-  
-  output$vals <- renderPrint({
-    data <- vals()
-    if (!is.null(data)) {
-      logger::log_debug("Displaying input values to user - Session: {session$token}")
-      return(data)
-    } else {
-      return("Invalid inputs")
-    }
-  })
-  
-  output$api_health <- renderText({
-    api_health()
-  })
-  
-  output$log_status <- renderText({
-    paste("Session:", substr(session$token, 1, 8))
-  })
-  
-  # reactive log display that updates when file changes ----
-  output$recent_logs <- renderText({
-    log_data <- log_file_content()
-    
-    if (length(log_data$lines) > 0) {
-      # get last 5 lines
-      recent_lines <- if (log_data$total_lines > 5) {
-        tail(log_data$lines, 5)
-      } else {
-        log_data$lines
-      }
-      
-      # log that we're updating the display (at DEBUG level to avoid spam)
-      logger::log_debug("Updating recent logs display - Session: {session$token} - showing {length(recent_lines)} lines")
-      
-      paste(recent_lines, collapse = "\n")
-    } else {
-      "No logs available"
-    }
-  })
-  
-  # timestamp of last log update ----
-  output$log_timestamp <- renderText({
-    log_data <- log_file_content()
-    format(log_data$last_modified, "%H:%M:%S")
-  })
-  
-  # log session end
-  session$onSessionEnded(function() {
-    logger::log_info("User session ended - Session: {session$token}")
-  })
-}
-```
-
-```{r}
-#| eval: false 
-#| code-fold: false
-
-# log app startup at global level
-logger::log_info("Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}")
-
-shinyApp(ui = ui, server = server)
 ```
 

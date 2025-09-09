@@ -43,42 +43,43 @@ fs::dir_tree(path = "_labs/lab4/")
 
 > *What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?*
 
-Logging is a record of "*What Happened*"--it captures discrete events and detailed narratives of what occurred in the system at specific points in time.
+Logging is a record of "***What happened***"--logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.
 
-Monitoring is usually a dashboard of "*How Is It Performing*"--tracking quantitative metrics and system health indicators over time to understand trends and current state.
+Monitoring is usually a display of "***How is it performing***"--tracking quantitative metrics and system health indicators over time to understand trends and current state.
 
 ```{mermaid}
 %%| fig-cap: 'Logging vs. Monitoring'
 %%| fig-align: center
+%%| fig-width: 6.5
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph "LOG: events"
-        L1[/"Discrete Events"/]
-        L2[/"Detailed Context"/]
-        L3[/"Historical Investigation"/]
-        L4[/"Text-Based Messages"/]
-        L5(["<strong>When/What/Who/Why</strong>"])
+        L1[/"Discrete<br>Events"/]
+        L2[/"Detailed<br>Context"/]
+        L3[/"Historical<br>Investigation"/]
+        L4[/"Text-Based<br>Messages"/]
+        L5("<strong>When/What/Who/Why</strong>")
     end
     
     subgraph "MONITOR: metrics"
-        M1[/"Quantitative Metrics"/]
-        M2[/"Real-time Status"/]
-        M3[/"Trend Analysis"/]
-        M4[/"Numerical Data"/]
-        M5(["<strong>How Much/How Fast/How Often</strong>"])
+        M1[/"Quantitative<br>Metrics"/]
+        M2[/"Real-time<br>Status"/]
+        M3[/"Trend<br>Analysis"/]
+        M4[/"Numerical<br>Data"/]
+        M5("<strong>How Much/How Fast/<br>How Often</strong>")
     end
     
     subgraph "Common Use Cases"
-        LC[\"Root Cause Analysis"\]
-        LC2[\"Debugging Specific Issues"\]
-        LC3[\"Compliance Auditing"\]
-        LC4[\"Security Investigation"\]
+        LC(["Root Cause<br>Analysis"])
+        LC2(["Debugging Specific<br>Issues"])
+        LC3(["Compliance<br>Auditing"])
+        LC4(["Security<br>Investigation"])
         
-        MC[\"Performance Optimization"\]
-        MC2[\"Capacity Planning"\]
-        MC3[\"SLA Monitoring"\]
-        MC4[\"Real-time Alerting"\]
+        MC(["Performance<br>Optimization"])
+        MC2(["Capacity<br>Planning"])
+        MC3(["SLA Monitoring"])
+        MC4(["Real-time<br>Alerting"])
     end
     
     L1 --> LC
@@ -91,9 +92,9 @@ graph LR
     M3 --> MC3
     M4 --> MC4
     
-    classDef logging fill:#e3f2fd
-    classDef monitoring fill:#f3e5f5
-    classDef usecase fill:#f1f8e9
+    classDef logging fill:#e3f2fd,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
+    classDef monitoring fill:#f3e5f5,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
+    classDef usecase fill:#f1f8e9,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
     
     class L1,L2,L3,L4,L5 logging
     class M1,M2,M3,M4,M5 monitoring
@@ -135,6 +136,28 @@ Critical data we should make sure not to log includes:
     - Bank account numbers    
     - Routing numbers   
 
+Industry specific guidelines on logging are available below: 
+
+1. Financial Services:  
+    - Never log account numbers in full     
+    - Mask payment card data    
+    - Avoid logging transaction details in plain text   
+        - Source: [FFIEC IT Examination Handbook](https://ithandbook.ffiec.gov/it-booklets/information-security.aspx)
+
+2. Healthcare   
+    - De-identify all patient data in logs      
+    - Remove [18 HIPAA identifiers](https://www.luc.edu/its/aboutus/itspoliciesguidelines/hipaainformation/the18hipaaidentifiers/)      
+    - Implement access controls for log files   
+        - Source: [HHS Security Risk Assessment](https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html)
+
+3. Government/Defense     
+    - Classify log data appropriately     
+    - Implement need-to-know access       
+    - Encrypt logs containing sensitive information     
+        - Source: [NIST SP 800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
+
+
+
 ### Log levels 
 
 > *At what level would you log each of the following events:*
@@ -154,13 +177,13 @@ Critical data we should make sure not to log includes:
 
 ## Observability
 
-While we cannot prevent code failures (or when they occur), we can create [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that 1) **accept failure as inevitable** (rather than trying to prevent it), 2) **implement comprehensive monitoring and logging**, and 3) **enable rapid diagnosis** (by using logs to reconstruct failure pathways).
+We can't prevent code failures (or when they happen), but we *can* create [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that 1) **accept failure is inevitable** (rather than trying to prevent it), 2) **implement comprehensive monitoring and logging**, and 3) **enable rapid diagnosis** (i.e., using logs and metrics to reconstruct what failed and why).
 
-
-To do this, data scientist and developers need to emit meaningful logs and metrics from their code. As system admins, we need to ensure new data science work can be easily integrated within our organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
+To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
 
 ```{mermaid}
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+%%| fig-width: 7.5
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"20px"}}}%%
 
 sequenceDiagram
     participant DS as Data Science<br>Code
@@ -192,7 +215,13 @@ sequenceDiagram
     Display-->>Team: Show trends<br>and KPIs
 ```
 
-This provides 1) operational peace of mind (the ability to detect and resolve issues quickly), 2) value demonstration (shows decision makers who uses your work and how), and 3) team validation (prove the team's impact and justify resources).
+This will give us: 
+
+1) Operational peace of mind (the ability to detect and resolve issues quickly)
+
+2) Value demonstration (shows decision makers who uses the work and how) 
+
+3) Team validation (prove the team's impact and justify resources)
 
 ## Logging in R 
 

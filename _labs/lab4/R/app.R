@@ -19,8 +19,8 @@ ui <- page_sidebar(
   
   # logging status indicator ----
   div(
-    style = "position: fixed; top: 10px; right: 10px; z-index: 1000;",
-    textOutput("log_status", inline = TRUE)
+    style = "position: fixed; top: 10px; right: 10px; z-index: 1000; color: #fff;",
+    strong("Session", textOutput("log_status", inline = TRUE))
   ),
   
   sidebar = sidebar(
@@ -62,12 +62,12 @@ ui <- page_sidebar(
           value = textOutput(outputId = "pred"),
           showcase = bs_icon("graph-up"),
           max_height = "200px",
-          min_height = "200px",
+          min_height = "200px"
         )
       )
     ),
     col_widths = c(6, 6),
-    row_heights = c(3, 1),
+    row_heights = c(3, 1)
   ),
   
   # system Status ----
@@ -118,33 +118,34 @@ server <- function(input, output, session) {
         # return both content and timestamp
         list(
           lines = lines,
-          last_modified = mod_time,
+          last_mod = mod_time,
           total_lines = length(lines)
         )
       } else {
         list(
           lines = character(0),
-          last_modified = Sys.time(),
+          last_mod = Sys.time(),
           total_lines = 0
         )
       }
     }
   )
   
-  # track user interactions (with throttling)
+  # user interactions ----
   observe({
     logger::log_debug("User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}")
   }) |> 
     # throttle to avoid excessive logging
     throttle(2000)  
   
-  # reactive values (with validation)
+  # reactive vales ----
   vals <- reactive({
     bill_length <- input$bill_length
     species <- input$species
     sex <- input$sex
+    # with validation 
     
-    # input validation (with warnings)
+    # input validation (with warnings) ----
     if (bill_length < 30 || bill_length > 60) {
       logger::log_warn("Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}")
     }
@@ -166,15 +167,13 @@ server <- function(input, output, session) {
     return(data)
   })
   
-  # API health check
+  # api health check ----
   api_health <- reactive({
     tryCatch({
       logger::log_debug("Checking API health - Session: {session$token}")
-      
       response <- httr2::request("http://127.0.0.1:8080/ping") |>
         httr2::req_timeout(5) |>
         httr2::req_perform()
-      
       if (httr2::resp_status(response) == 200) {
         logger::log_info("API health check successful - Session: {session$token}")
         return("✅ API Online")
@@ -188,7 +187,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # enhanced prediction with logging
+  # prediction with logging ----
   pred <- reactive({
     request_start <- Sys.time()
     request_data <- vals()
@@ -249,10 +248,9 @@ server <- function(input, output, session) {
   }) |> 
     bindEvent(input$predict, ignoreInit = TRUE)
 
-  # outputs with logging
+  # outputs with logging ----
   output$pred <- renderText({
     prediction <- pred()
-    
     if (is.numeric(prediction)) {
       result <- paste(round(prediction, 1), "grams")
       logger::log_info("Displaying prediction to user - Session: {session$token} - display_value: {result}")
@@ -278,10 +276,11 @@ server <- function(input, output, session) {
   })
   
   output$log_status <- renderText({
-    paste("Session:", substr(session$token, 1, 8))
+    paste("Token:", substr(session$token, 1, 8))
   })
   
-  # reactive log display that updates when file changes ----
+  # reactive log display  ---- 
+  # updates when file changes 
   output$recent_logs <- renderText({
     log_data <- log_file_content()
     
@@ -293,7 +292,8 @@ server <- function(input, output, session) {
         log_data$lines
       }
       
-      # log that we're updating the display (at DEBUG level to avoid spam)
+      # log that we're updating the display  ---- 
+      # (at DEBUG level to avoid spam)
       logger::log_debug("Updating recent logs display - Session: {session$token} - showing {length(recent_lines)} lines")
       
       paste(recent_lines, collapse = "\n")
@@ -303,18 +303,18 @@ server <- function(input, output, session) {
   })
   
   # timestamp of last log update ----
-  output$log_timestamp <- renderText({
-    log_data <- log_file_content()
-    format(log_data$last_modified, "%H:%M:%S")
-  })
+  # output$log_timestamp <- renderText({
+  #   log_data <- log_file_content()
+  #   format(log_data$last_mod, "%H:%M:%S")
+  # })
   
-  # log session end
-  session$onSessionEnded(function() {
-    logger::log_info("User session ended - Session: {session$token}")
-  })
+# log session end  ----
+#   session$onSessionEnded(function() {
+#     logger::log_info("User session ended - Session: {session$token}")
+#   })
 }
 
-# log app startup at global level
+# log app startup at global level ----
 logger::log_info("Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}")
 
 shinyApp(ui = ui, server = server)
