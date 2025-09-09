@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-03">
+<meta name="dcterms.date" content="2025-09-09">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App Logging – DO4DS: Lab Solutions</title>
@@ -77,6 +77,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-9e0e691ba9d940ea6a8e6359c703bc08.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -260,16 +263,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#configure" id="toc-configure" class="nav-link active" data-scroll-target="#configure">Configure</a></li>
-  <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
-  <li><a href="#server" id="toc-server" class="nav-link" data-scroll-target="#server">Server</a>
+  <li><a href="#packages" id="toc-packages" class="nav-link active" data-scroll-target="#packages">Packages</a>
   <ul>
+  <li><a href="#configure-logging" id="toc-configure-logging" class="nav-link" data-scroll-target="#configure-logging">Configure logging</a></li>
+  </ul></li>
+  <li><a href="#displaying-logs" id="toc-displaying-logs" class="nav-link" data-scroll-target="#displaying-logs">Displaying logs</a>
+  <ul>
+  <li><a href="#session-token" id="toc-session-token" class="nav-link" data-scroll-target="#session-token">Session Token</a>
+  <ul class="collapse">
+  <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
+  <li><a href="#server" id="toc-server" class="nav-link" data-scroll-target="#server">Server</a></li>
+  </ul></li>
+  <li><a href="#params-and-predictions" id="toc-params-and-predictions" class="nav-link" data-scroll-target="#params-and-predictions">Params and Predictions</a>
+  <ul class="collapse">
+  <li><a href="#ui-1" id="toc-ui-1" class="nav-link" data-scroll-target="#ui-1">UI</a></li>
+  <li><a href="#server-1" id="toc-server-1" class="nav-link" data-scroll-target="#server-1">Server</a></li>
+  </ul></li>
+  <li><a href="#system-status" id="toc-system-status" class="nav-link" data-scroll-target="#system-status">System Status</a>
+  <ul class="collapse">
+  <li><a href="#api-status" id="toc-api-status" class="nav-link" data-scroll-target="#api-status">API Status</a></li>
+  <li><a href="#recent-logs" id="toc-recent-logs" class="nav-link" data-scroll-target="#recent-logs">Recent Logs</a></li>
+  <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated">Last updated</a></li>
+  </ul></li>
   <li><a href="#app-startup" id="toc-app-startup" class="nav-link" data-scroll-target="#app-startup">App startup</a></li>
-  <li><a href="#log-file-reading" id="toc-log-file-reading" class="nav-link" data-scroll-target="#log-file-reading">Log file reading</a></li>
   <li><a href="#user-interactions" id="toc-user-interactions" class="nav-link" data-scroll-target="#user-interactions">User interactions</a></li>
-  <li><a href="#reactive-values" id="toc-reactive-values" class="nav-link" data-scroll-target="#reactive-values">Reactive values</a></li>
-  <li><a href="#api-health-check" id="toc-api-health-check" class="nav-link" data-scroll-target="#api-health-check">API health check</a></li>
-  <li><a href="#predictions" id="toc-predictions" class="nav-link" data-scroll-target="#predictions">Predictions</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -290,7 +307,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-03</p>
+      <p class="date">2025-09-09</p>
     </div>
   </div>
   
@@ -320,7 +337,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>This lab covers how to use logging to monitor events in the application and the API. For a refresher, I’ve included an updated diagram from the previous lab of Shiny App and API architecture (i.e., the reactives (user inputs and the <strong>Predict</strong> button), the <code>httr2</code> API request/response, and the <code>plumber</code> API).:</p>
+<p>This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. For a refresher, I’ve included a diagram of the Shiny App and API from the previous lab (i.e., the reactives (user inputs and the <strong>Predict</strong> button), the <code>httr2</code> API request/response, and the <code>plumber</code> API):</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -405,119 +422,535 @@ graph TD
 </div>
 </div>
 </div>
-<section id="configure" class="level2">
-<h2 class="anchored" data-anchor-id="configure">Configure</h2>
-<p>Below we load the packages for app design (<code>bslib</code>, <code>bsicons</code>), the making the API request (<code>httr2</code>), and monitoring and logging (<code>logger</code> and <code>jsonlite</code>):</p>
+<section id="packages" class="level2">
+<h2 class="anchored" data-anchor-id="packages">Packages</h2>
+<p>Below we load the packages for app design (<code>bslib</code>, <code>bsicons</code>), making the API request (<code>httr2</code>), and logging and monitoring (<code>logger</code> and <code>jsonlite</code>).</p>
+<p>I chose the <a href="https://daroczig.github.io/logger/index.html"><code>logger</code> package</a> instead of the example from the text (<a href="https://github.com/r-lib/log4r"><code>log4r</code></a>) because I’m more familiar with it’s lightweight and I’m more <a href="https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger">familiar with it’s features</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bslib)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bsicons)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr2)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(logger)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># configure logging </span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_threshold</span>(<span class="at">level =</span> <span class="st">"DEBUG"</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_appender</span>(<span class="at">appender =</span> <span class="fu">appender_tee</span>(<span class="at">file =</span> <span class="st">"shiny_app.log"</span>))</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_formatter</span>(logger<span class="sc">::</span>formatter_glue_or_sprintf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The</p>
-</section>
-<section id="ui" class="level2">
-<h2 class="anchored" data-anchor-id="ui">UI</h2>
+<section id="configure-logging" class="level3">
+<h3 class="anchored" data-anchor-id="configure-logging">Configure logging</h3>
+<p>Below we’ll configure the log level and assign the <a href="https://daroczig.github.io/logger/reference/log_appender.html"><code>log_appender()</code></a> with the <a href="https://daroczig.github.io/logger/reference/appender_tee.html"><code>appender_tee()</code></a>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p><code>logger</code> also gives us control over the format of the log file with <a href="https://daroczig.github.io/logger/reference/log_formatter.html"><code>log_formatter()</code></a> (I’ve found using the <a href="https://daroczig.github.io/logger/reference/formatter_glue_or_sprintf.html"><code>glue</code> or <code>sprintf</code></a> formatter makes the logs more UI friendly).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">div</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">style =</span> <span class="st">"position: fixed; top: 10px; right: 10px; z-index: 1000;"</span>,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">textOutput</span>(<span class="st">"log_status"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">verbatimTextOutput</span>(<span class="at">outputId =</span> <span class="st">"vals"</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="at">outputId =</span> <span class="st">"pred"</span>),</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">6</span>),</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">row_heights =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>),</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"System Status"</span>),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"API Status:"</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">textOutput</span>(<span class="st">"api_health"</span>),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"Recent Logs:"</span>),</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">div</span>(</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;"</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>          <span class="fu">verbatimTextOutput</span>(<span class="st">"recent_logs"</span>, <span class="at">placeholder =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h6</span>(</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>          <span class="st">"Last updated:"</span>, </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            <span class="fu">textOutput</span>(<span class="st">"log_timestamp"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>          ),</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">style =</span> <span class="st">"max-height: 350px; overflow-y: auto;"</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">12</span>), <span class="co"># full width </span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="st">"300px"</span> </span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_threshold</span>(<span class="at">level =</span> <span class="st">"DEBUG"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_appender</span>(<span class="at">appender =</span> <span class="fu">appender_tee</span>(<span class="at">file =</span> <span class="st">"shiny_app.log"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_formatter</span>(logger<span class="sc">::</span>formatter_glue_or_sprintf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="server" class="level2">
-<h2 class="anchored" data-anchor-id="server">Server</h2>
-<div class="cell" data-layout-align="center">
+</section>
+<section id="displaying-logs" class="level2">
+<h2 class="anchored" data-anchor-id="displaying-logs">Displaying logs</h2>
+<p>First we should think about what logs (if any) we want displayed in the UI. I’m a big fan of having verbose logs and making them accessible in the UI.</p>
+<section id="session-token" class="level3">
+<h3 class="anchored" data-anchor-id="session-token">Session Token</h3>
+<p>We’ll start by putting a <code>log_status</code> output in the upper right-hand corner of the display.</p>
+<section id="ui" class="level4">
+<h4 class="anchored" data-anchor-id="ui">UI</h4>
+<p>A custom <code>div()</code> is a good option here (with some minimal styling):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-overflow-scroll code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">div</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">style =</span> <span class="st">"position: fixed; top: 10px; right: 10px; z-index: 1000; color: #fff;"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">strong</span>(<span class="st">"Session"</span>, <span class="fu">textOutput</span>(<span class="st">"log_status"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="server" class="level4">
+<h4 class="anchored" data-anchor-id="server">Server</h4>
+<p>This output is generated from the <code>session$token</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>log_status <span class="ot">&lt;-</span> <span class="fu">renderText</span>({</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="st">"Token:"</span>, <span class="fu">substr</span>(session<span class="sc">$</span>token, <span class="dv">1</span>, <span class="dv">8</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-div-session-token.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab4-div-session-token.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="params-and-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="params-and-predictions">Params and Predictions</h3>
+<p>The parameter display and predictions from the API remain largely unchanged here, other than to make room for the <strong>System Status</strong> <code>column</code> and <code>card</code>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-predictions-wireframe.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Penguin Parameters and Predicted Mass"><img src="img/lab4-predictions-wireframe.png" class="img-fluid figure-img" alt="Penguin Parameters and Predicted Mass"></a></p>
+<figcaption>Penguin Parameters and Predicted Mass</figcaption>
+</figure>
+</div>
+<section id="ui-1" class="level4">
+<h4 class="anchored" data-anchor-id="ui-1">UI</h4>
+<p>The params and predictions are displayed in two <code>bslib::cards()</code> and include a <code>value_box()</code> and <code>bs_icon()</code> for the response from the API.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide UI Penguin Parameters</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-overflow-scroll code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">verbatimTextOutput</span>(<span class="at">outputId =</span> <span class="st">"vals"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="at">outputId =</span> <span class="st">"pred"</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">6</span>),</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">row_heights =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Note that I’ve added values for <code>col_widths</code> and <code>row_heights</code>.</p>
+</section>
+<section id="server-1" class="level4">
+<h4 class="anchored" data-anchor-id="server-1">Server</h4>
+<p><strong>Reactive values</strong></p>
+<p>In the server, we create the reactive <code>vals()</code> to be displayed in the <strong>Penguin Parameters</strong> section. I’ve included warning and error logs for input validation, and a single debugging log to examine the data sent to the API:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="1">1</button><span id="annotated-cell-6-2" class="code-annotation-target"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a>    bill_length <span class="ot">&lt;-</span> input<span class="sc">$</span>bill_length</span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>    species <span class="ot">&lt;-</span> input<span class="sc">$</span>species</span>
+<span id="annotated-cell-6-4"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a>    sex <span class="ot">&lt;-</span> input<span class="sc">$</span>sex</span>
+<span id="annotated-cell-6-5"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="2">2</button><span id="annotated-cell-6-6" class="code-annotation-target"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (bill_length <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">||</span> bill_length <span class="sc">&gt;</span> <span class="dv">60</span>) {</span>
+<span id="annotated-cell-6-7"><a href="#annotated-cell-6-7" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}"</span>)</span>
+<span id="annotated-cell-6-8"><a href="#annotated-cell-6-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-6-9"><a href="#annotated-cell-6-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="3">3</button><span id="annotated-cell-6-10" class="code-annotation-target"><a href="#annotated-cell-6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.null</span>(species) <span class="sc">||</span> <span class="fu">is.null</span>(sex)) {</span>
+<span id="annotated-cell-6-11"><a href="#annotated-cell-6-11" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}"</span>) </span>
+<span id="annotated-cell-6-12"><a href="#annotated-cell-6-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="annotated-cell-6-13"><a href="#annotated-cell-6-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-6-14"><a href="#annotated-cell-6-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="4">4</button><span id="annotated-cell-6-15" class="code-annotation-target"><a href="#annotated-cell-6-15" aria-hidden="true" tabindex="-1"></a>    data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="annotated-cell-6-16"><a href="#annotated-cell-6-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> bill_length,</span>
+<span id="annotated-cell-6-17"><a href="#annotated-cell-6-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="annotated-cell-6-18"><a href="#annotated-cell-6-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="annotated-cell-6-19"><a href="#annotated-cell-6-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
+<span id="annotated-cell-6-20"><a href="#annotated-cell-6-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-6-21"><a href="#annotated-cell-6-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="5">5</button><span id="annotated-cell-6-22" class="code-annotation-target"><a href="#annotated-cell-6-22" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}"</span>)</span>
+<span id="annotated-cell-6-23"><a href="#annotated-cell-6-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="6">6</button><span id="annotated-cell-6-24" class="code-annotation-target"><a href="#annotated-cell-6-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(data)</span>
+<span id="annotated-cell-6-25"><a href="#annotated-cell-6-25" aria-hidden="true" tabindex="-1"></a>  })</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="2,4" data-code-annotation="1">Raw reactive values<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="6,7" data-code-annotation="2">Logs incorrect input values that can lead to bad predictions or user confusion.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="10,13" data-code-annotation="3">Logs critical input validation failures that prevent the application from functioning.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="15,20" data-code-annotation="4">Convert reactives into a <code>data.frame</code>.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="22" data-code-annotation="5">Logs formatted input data structure sent to the API.</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="24" data-code-annotation="6">Returns <code>data.frame</code></span>
+</dd>
+</dl>
+</div>
+</div>
+<p><strong>Predictions</strong></p>
+<p>I’ve added logs to the predictions reactive values below. As you can see, the majority of the logs are errors and warning, but I’ve also included notifications (<code>showNotification()</code>) for major events, too.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-7"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-7-1"><a href="#annotated-cell-7-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="1">1</button><span id="annotated-cell-7-2" class="code-annotation-target"><a href="#annotated-cell-7-2" aria-hidden="true" tabindex="-1"></a>    request_start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="2">2</button><span id="annotated-cell-7-3" class="code-annotation-target"><a href="#annotated-cell-7-3" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
+<span id="annotated-cell-7-4"><a href="#annotated-cell-7-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="annotated-cell-7-5"><a href="#annotated-cell-7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.null</span>(request_data)) {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="3">3</button><span id="annotated-cell-7-6" class="code-annotation-target"><a href="#annotated-cell-7-6" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Cannot make prediction with invalid inputs - Session: {session$token}"</span>)</span>
+<span id="annotated-cell-7-7"><a href="#annotated-cell-7-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"❌ Invalid inputs"</span>)</span>
+<span id="annotated-cell-7-8"><a href="#annotated-cell-7-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-7-9"><a href="#annotated-cell-7-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="4">4</button><span id="annotated-cell-7-10" class="code-annotation-target"><a href="#annotated-cell-7-10" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}"</span>)</span>
+<span id="annotated-cell-7-11"><a href="#annotated-cell-7-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="5">5</button><span id="annotated-cell-7-12" class="code-annotation-target"><a href="#annotated-cell-7-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="6">6</button><span id="annotated-cell-7-13" class="code-annotation-target"><a href="#annotated-cell-7-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>,</span>
+<span id="annotated-cell-7-14"><a href="#annotated-cell-7-14" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
+<span id="annotated-cell-7-15"><a href="#annotated-cell-7-15" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="7">7</button><span id="annotated-cell-7-16" class="code-annotation-target"><a href="#annotated-cell-7-16" aria-hidden="true" tabindex="-1"></a>      response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-7-17"><a href="#annotated-cell-7-17" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-7-18"><a href="#annotated-cell-7-18" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-7-19"><a href="#annotated-cell-7-19" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">30</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-7-20"><a href="#annotated-cell-7-20" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
+<span id="annotated-cell-7-21"><a href="#annotated-cell-7-21" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="8">8</button><span id="annotated-cell-7-22" class="code-annotation-target"><a href="#annotated-cell-7-22" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="9">9</button><span id="annotated-cell-7-23" class="code-annotation-target"><a href="#annotated-cell-7-23" aria-hidden="true" tabindex="-1"></a>      response_data <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">resp_body_json</span>(response)</span>
+<span id="annotated-cell-7-24"><a href="#annotated-cell-7-24" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="10">10</button><span id="annotated-cell-7-25" class="code-annotation-target"><a href="#annotated-cell-7-25" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}"</span>)</span>
+<span id="annotated-cell-7-26"><a href="#annotated-cell-7-26" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="11">11</button><span id="annotated-cell-7-27" class="code-annotation-target"><a href="#annotated-cell-7-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (response_time <span class="sc">&gt;</span> <span class="dv">5</span>) {</span>
+<span id="annotated-cell-7-28"><a href="#annotated-cell-7-28" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Slow API response - Session: {session$token} - response_time_sec: {response_time}"</span>) </span>
+<span id="annotated-cell-7-29"><a href="#annotated-cell-7-29" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="annotated-cell-7-30"><a href="#annotated-cell-7-30" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="12">12</button><span id="annotated-cell-7-31" class="code-annotation-target"><a href="#annotated-cell-7-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"✅ Prediction successful!"</span>,</span>
+<span id="annotated-cell-7-32"><a href="#annotated-cell-7-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"message"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
+<span id="annotated-cell-7-33"><a href="#annotated-cell-7-33" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="13">13</button><span id="annotated-cell-7-34" class="code-annotation-target"><a href="#annotated-cell-7-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(response_data<span class="sc">$</span>.pred[<span class="dv">1</span>])</span>
+<span id="annotated-cell-7-35"><a href="#annotated-cell-7-35" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="annotated-cell-7-36"><a href="#annotated-cell-7-36" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="14">14</button><span id="annotated-cell-7-37" class="code-annotation-target"><a href="#annotated-cell-7-37" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="15">15</button><span id="annotated-cell-7-38" class="code-annotation-target"><a href="#annotated-cell-7-38" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
+<span id="annotated-cell-7-39"><a href="#annotated-cell-7-39" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="16">16</button><span id="annotated-cell-7-40" class="code-annotation-target"><a href="#annotated-cell-7-40" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}"</span>)</span>
+<span id="annotated-cell-7-41"><a href="#annotated-cell-7-41" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="17">17</button><span id="annotated-cell-7-42" class="code-annotation-target"><a href="#annotated-cell-7-42" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-7-43"><a href="#annotated-cell-7-43" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
+<span id="annotated-cell-7-44"><a href="#annotated-cell-7-44" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API connection refused - Session: {session$token}"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="18">18</button><span id="annotated-cell-7-45" class="code-annotation-target"><a href="#annotated-cell-7-45" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-7-46"><a href="#annotated-cell-7-46" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="annotated-cell-7-47"><a href="#annotated-cell-7-47" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API timeout occurred - Session: {session$token}"</span>)</span>
+<span id="annotated-cell-7-48"><a href="#annotated-cell-7-48" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="annotated-cell-7-49"><a href="#annotated-cell-7-49" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="19">19</button><span id="annotated-cell-7-50" class="code-annotation-target"><a href="#annotated-cell-7-50" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Unknown API error - Session: {session$token} - error: {error_msg}"</span>)</span>
+<span id="annotated-cell-7-51"><a href="#annotated-cell-7-51" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="annotated-cell-7-52"><a href="#annotated-cell-7-52" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="20">20</button><span id="annotated-cell-7-53" class="code-annotation-target"><a href="#annotated-cell-7-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg), <span class="at">type =</span> <span class="st">"error"</span>, <span class="at">duration =</span> <span class="dv">5</span>)</span>
+<span id="annotated-cell-7-54"><a href="#annotated-cell-7-54" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="annotated-cell-7-55"><a href="#annotated-cell-7-55" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg))</span>
+<span id="annotated-cell-7-56"><a href="#annotated-cell-7-56" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="annotated-cell-7-57"><a href="#annotated-cell-7-57" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span> </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="21">21</button><span id="annotated-cell-7-58" class="code-annotation-target"><a href="#annotated-cell-7-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-7" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="2" data-code-annotation="1">Record API request start time<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="3" data-code-annotation="2">Reactive values from UI<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="6" data-code-annotation="3">Logs when/if the prediction requests fail because of data validation issues (critical application logic problems).<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="10" data-code-annotation="4">Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="12,56" data-code-annotation="5">Handles all possible API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="13,14" data-code-annotation="6">Notification for predicting penguin mass<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="16,20" data-code-annotation="7"><code>httr2</code> API request<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="22" data-code-annotation="8">Record API response time<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="23" data-code-annotation="9">API prediction response data<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="10">10</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="25" data-code-annotation="10">Logs successful predictions and performance metrics/results</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="11">11</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="27,29" data-code-annotation="11">Logs performance issues that could impact user experience and/or indicate need for system optimization.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="12">12</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="31,32" data-code-annotation="12">Notification for successful prediction<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="13">13</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="34" data-code-annotation="13">Prediction values<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="14">14</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="37" data-code-annotation="14"><code>tryCatch()</code> error message<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="15">15</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="38" data-code-annotation="15">API Response time<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="16">16</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="40" data-code-annotation="16">Logs complete prediction failures with diagnostic information for troubleshooting critical application functionality.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="17">17</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="42,44" data-code-annotation="17">Logs when the API is unreachable, indicating critical system failure.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="18">18</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="45,47" data-code-annotation="18">Logs API timeout events that suggest network issues or API overload.</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="19">19</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="50" data-code-annotation="19">Logs unexpected API errors that don’t match known failure patterns.</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="20">20</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="53" data-code-annotation="20">Notification for error<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="21">21</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="58" data-code-annotation="21">Trigger when Predict button is clicked.</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+</section>
+<section id="system-status" class="level3">
+<h3 class="anchored" data-anchor-id="system-status">System Status</h3>
+<p>In the System Status display, I want to 1) send a <code>ping</code> to the API and return the result as <strong>API Status</strong>, 2) print the most recent logs from the log file we specified above in the <code>logger::log_appender()</code> function.</p>
+<p>I’ll also add a timestamp for the last time the application (in <strong>Last updated</strong>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-8"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="annotated-cell-8-2"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"System Status"</span>),</span>
+<span id="annotated-cell-8-4"><a href="#annotated-cell-8-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="1">1</button><span id="annotated-cell-8-5" class="code-annotation-target"><a href="#annotated-cell-8-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"API Status:"</span>),</span>
+<span id="annotated-cell-8-6"><a href="#annotated-cell-8-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">textOutput</span>(<span class="st">"api_health"</span>),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="2">2</button><span id="annotated-cell-8-7" class="code-annotation-target"><a href="#annotated-cell-8-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h5</span>(<span class="st">"Recent Logs:"</span>),</span>
+<span id="annotated-cell-8-8"><a href="#annotated-cell-8-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">div</span>(</span>
+<span id="annotated-cell-8-9"><a href="#annotated-cell-8-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;"</span>,</span>
+<span id="annotated-cell-8-10"><a href="#annotated-cell-8-10" aria-hidden="true" tabindex="-1"></a>          <span class="fu">verbatimTextOutput</span>(<span class="st">"recent_logs"</span>, <span class="at">placeholder =</span> <span class="cn">TRUE</span>)</span>
+<span id="annotated-cell-8-11"><a href="#annotated-cell-8-11" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="3">3</button><span id="annotated-cell-8-12" class="code-annotation-target"><a href="#annotated-cell-8-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">h6</span>(<span class="st">"Last updated:"</span>,</span>
+<span id="annotated-cell-8-13"><a href="#annotated-cell-8-13" aria-hidden="true" tabindex="-1"></a>            <span class="fu">textOutput</span>(<span class="st">"log_timestamp"</span>, <span class="at">inline =</span> <span class="cn">TRUE</span>)</span>
+<span id="annotated-cell-8-14"><a href="#annotated-cell-8-14" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="annotated-cell-8-15"><a href="#annotated-cell-8-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">style =</span> <span class="st">"max-height: 350px; overflow-y: auto;"</span></span>
+<span id="annotated-cell-8-16"><a href="#annotated-cell-8-16" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="annotated-cell-8-17"><a href="#annotated-cell-8-17" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="4">4</button><span id="annotated-cell-8-18" class="code-annotation-target"><a href="#annotated-cell-8-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">12</span>),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="5">5</button><span id="annotated-cell-8-19" class="code-annotation-target"><a href="#annotated-cell-8-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="st">"300px"</span></span>
+<span id="annotated-cell-8-20"><a href="#annotated-cell-8-20" aria-hidden="true" tabindex="-1"></a>  )</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-8" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="5,6" data-code-annotation="1">Results from <code>ping</code> sent to API<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="7,11" data-code-annotation="2">Log display from <code>shiny_log.log</code> file</span>
+</dd>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="12,15" data-code-annotation="3">Last modification time of <code>shiny_log.log</code> file<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="18" data-code-annotation="4">Full width<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="19" data-code-annotation="5">Fixed height</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-system-status-wireframe.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="img/lab4-system-status-wireframe.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<section id="api-status" class="level4">
+<h4 class="anchored" data-anchor-id="api-status">API Status</h4>
+<p>The status of the <code>ping</code> sent to the API can return one of three results: <code>✅ API Online</code> (response = 200), <code>⚠️ API Issues</code> (non-200 status), <code>❌ API Offline</code> (non-response).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a>api_health <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="annotated-cell-9-2"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-3" class="code-annotation-target"><a href="#annotated-cell-9-3" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Checking API health - Session: {session$token}"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="2">2</button><span id="annotated-cell-9-4" class="code-annotation-target"><a href="#annotated-cell-9-4" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(<span class="st">"http://127.0.0.1:8080/ping"</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-9-5"><a href="#annotated-cell-9-5" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">5</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-9-6"><a href="#annotated-cell-9-6" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="3">3</button><span id="annotated-cell-9-7" class="code-annotation-target"><a href="#annotated-cell-9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (httr2<span class="sc">::</span><span class="fu">resp_status</span>(response) <span class="sc">==</span> <span class="dv">200</span>) {</span>
+<span id="annotated-cell-9-8"><a href="#annotated-cell-9-8" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"API health check successful - Session: {session$token}"</span>) </span>
+<span id="annotated-cell-9-9"><a href="#annotated-cell-9-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"✅ API Online"</span>)</span>
+<span id="annotated-cell-9-10"><a href="#annotated-cell-9-10" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="4">4</button><span id="annotated-cell-9-11" class="code-annotation-target"><a href="#annotated-cell-9-11" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}"</span>)</span>
+<span id="annotated-cell-9-12"><a href="#annotated-cell-9-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"⚠️ API Issues"</span>)</span>
+<span id="annotated-cell-9-13"><a href="#annotated-cell-9-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="5">5</button><span id="annotated-cell-9-14" class="code-annotation-target"><a href="#annotated-cell-9-14" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-9-15"><a href="#annotated-cell-9-15" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API health check failed - Session: {session$token} - error: {conditionMessage(e)}"</span>) </span>
+<span id="annotated-cell-9-16"><a href="#annotated-cell-9-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">"❌ API Offline"</span>)</span>
+<span id="annotated-cell-9-17"><a href="#annotated-cell-9-17" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="annotated-cell-9-18"><a href="#annotated-cell-9-18" aria-hidden="true" tabindex="-1"></a>})</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-9" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="3" data-code-annotation="1">Logs when health checks are initiated to track frequency and timing.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-9" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="4,6" data-code-annotation="2"><code>ping</code> sent to API<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-9" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="7,9" data-code-annotation="3">Logs the external API is responding normally.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-9" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="11,12" data-code-annotation="4">Logs to API degradation or partial failures that may impact user experience.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-9" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="14,16" data-code-annotation="5">Logs complete API connectivity failures that render the application non-functional.</span>
+</dd>
+</dl>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p>When we initially launch, we see the offline status is accurate (the API isn’t running):</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-api-health-check-offline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="img/lab4-api-health-check-offline.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p>When we run the API, we can see the <code>ping</code> responds with an online status:</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-api-health-check-online.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="img/lab4-api-health-check-online.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="recent-logs" class="level4">
+<h4 class="anchored" data-anchor-id="recent-logs">Recent Logs</h4>
+<p>Recall that all the events we’ve captured with the <code>logger::log_*()</code> functions are written to the log file (<code>shiny_log.log</code>). If we want to display some of the most recent logs in the UI, we can use Shiny’s <a href="https://shiny.posit.co/r/reference/shiny/latest/reactivefilereader.html"><code>reactiveFileReader()</code></a> and configure it to poll the log file every 1 second (1000ms) for changes:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph TD
-    A[/"Log File: &lt;br&gt;&lt;code&gt;shiny_app.log&lt;/code&gt;"/] --&gt;|"&lt;em&gt;file changes&lt;/em&gt;"| B["Read with: &lt;br&gt;&lt;code&gt;reactiveFileReader()&lt;/code&gt;"]
-    B --&gt;|"&lt;em&gt;polls every 1000ms&lt;/em&gt;"| C["Check file modification time"]
-    C --&gt;|"&lt;em&gt;if changed&lt;/em&gt;"| D["Read entire file"]
-    D --&gt; E["Extract last&lt;br&gt;5 lines"]
-    E --&gt; F["Update UI display"]
+flowchart TD
+
+ subgraph User["Log Generation"]
+        Q(["User&lt;br&gt;inputs"])
+        R(["API&lt;br&gt;calls"])
+        S(["System&lt;br&gt;events"])
+        %% T@{ shape: rect, label: "&lt;code&gt;logger::log_&lt;/code&gt;*&lt;br&gt;functions" }
+        T["&lt;code&gt;logger::log_&lt;/code&gt;*&lt;br&gt;functions"]
+  end
+
+    Q --&gt; T
+    R --&gt; T
+    S --&gt; T
+    T -- "&lt;em&gt;Written to&lt;/em&gt;"--&gt; A
+
+ subgraph FileSys["File System"]
+        %% A@{ shape: lin-doc, label: "&lt;code&gt;shiny_app.log&lt;/code&gt;" }
+        A[\"Log file: &lt;code&gt;shiny_app.log&lt;/code&gt;"\]
+        A1("Modification&lt;br&gt;Time")
+        A2("File&lt;br&gt;Contents")
+  end
+    A --&gt; A1 &amp; A2
+    A -."&lt;em&gt;changes trigger&lt;/em&gt;".-&gt; B
+
+ subgraph ReactFile["Reactive File"]
+        %% B@{ shape: subproc, label: "&lt;code&gt;reactiveFileReader()&lt;/code&gt;" }
+        B{{"&lt;code&gt;reactiveFileReader() &lt;/code&gt;"}}
+        C{"Log file&lt;br&gt;exists?"}
+        D("&lt;strong&gt;lines&lt;br&gt;last_mod&lt;br&gt;total_lines&lt;/strong&gt;")
+        E("&lt;strong&gt;lines&lt;/strong&gt;:&lt;code&gt;character(0)&lt;/code&gt;&lt;br&gt;&lt;strong&gt;last_mod&lt;/strong&gt;:&lt;code&gt;Sys.time()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;total_lines&lt;/strong&gt;:&lt;code&gt;0&lt;/code&gt;")
+  end
     
-    G(["User Actions"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H["Log using: &lt;br&gt;&lt;code&gt;logger::log_info/warn/error()&lt;/code&gt;"]
-    H --&gt;|"&lt;em&gt;writes to&lt;/em&gt;"| A
+    B --"&lt;em&gt;checks every 1 second&lt;/em&gt;"--&gt; C
+    C -- Yes (returns list)--&gt; D
+    C -- No (returns empty list)--&gt; E
+
+    style Q fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style R fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    style S fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    I(["API Calls"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
-    J(["Input Validation"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
-    K(["Session Events"]) --&gt;|"&lt;em&gt;generate logs&lt;/em&gt;"| H
+    style T fill:#4ac590,color:#000,rx:20,ry:20,font-size:18px
     
-    B --&gt; L["Store metadata"]
-    L --&gt; M["File modification time"]
-    L --&gt; N["Total line count"]
-    L --&gt; O["Lines content"]
+    style A fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    F --&gt; P(["&lt;code&gt;recent_logs&lt;/code&gt; &lt;strong&gt;output&lt;/strong&gt;"])
-    M --&gt; Q(["&lt;code&gt;log_timestamp&lt;/code&gt; &lt;strong&gt;output&lt;/strong&gt;"])
+    style A1 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
+    style A2 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
+
+    style B fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,font-size:18px
     
-    style G fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style I fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style J fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style K fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    
-    style P fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
-    style Q fill:#e8f5e8,stroke:#000,color:#000,font-size:20px
+    style C fill:#f2b857,stroke:#000,color:#000,font-size:18px
+    style D fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
+    style E fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
     
 </pre>
 </div>
@@ -525,193 +958,195 @@ graph TD
 </div>
 </div>
 </div>
+<p>The reactive returned from <code>reactiveFileReader()</code> will contain a list with the log line (<code>lines</code>), the time this file was last modified (<code>last_mod</code>), and a count of the total number of lines in the log file (<code>total_lines</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-10"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-10-1"><a href="#annotated-cell-10-1" aria-hidden="true" tabindex="-1"></a>log_file_content <span class="ot">&lt;-</span> <span class="fu">reactiveFileReader</span>(</span>
+<span id="annotated-cell-10-2"><a href="#annotated-cell-10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">intervalMillis =</span> <span class="dv">1000</span>,</span>
+<span id="annotated-cell-10-3"><a href="#annotated-cell-10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">session =</span> session,</span>
+<span id="annotated-cell-10-4"><a href="#annotated-cell-10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filePath =</span> <span class="st">"shiny_app.log"</span>,</span>
+<span id="annotated-cell-10-5"><a href="#annotated-cell-10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">readFunc =</span> <span class="cf">function</span>(filePath) {</span>
+<span id="annotated-cell-10-6"><a href="#annotated-cell-10-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-10" data-target-annotation="1">1</button><span id="annotated-cell-10-7" class="code-annotation-target"><a href="#annotated-cell-10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(filePath)) {</span>
+<span id="annotated-cell-10-8"><a href="#annotated-cell-10-8" aria-hidden="true" tabindex="-1"></a>      lines <span class="ot">&lt;-</span> <span class="fu">readLines</span>(filePath, <span class="at">warn =</span> <span class="cn">FALSE</span>) </span>
+<span id="annotated-cell-10-9"><a href="#annotated-cell-10-9" aria-hidden="true" tabindex="-1"></a>      mod_time <span class="ot">&lt;-</span> <span class="fu">file.mtime</span>(filePath)</span>
+<span id="annotated-cell-10-10"><a href="#annotated-cell-10-10" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-10" data-target-annotation="2">2</button><span id="annotated-cell-10-11" class="code-annotation-target"><a href="#annotated-cell-10-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
+<span id="annotated-cell-10-12"><a href="#annotated-cell-10-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> lines,</span>
+<span id="annotated-cell-10-13"><a href="#annotated-cell-10-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_mod =</span> mod_time,</span>
+<span id="annotated-cell-10-14"><a href="#annotated-cell-10-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="fu">length</span>(lines)</span>
+<span id="annotated-cell-10-15"><a href="#annotated-cell-10-15" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="annotated-cell-10-16"><a href="#annotated-cell-10-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="annotated-cell-10-17"><a href="#annotated-cell-10-17" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-10" data-target-annotation="3">3</button><span id="annotated-cell-10-18" class="code-annotation-target"><a href="#annotated-cell-10-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
+<span id="annotated-cell-10-19"><a href="#annotated-cell-10-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> <span class="fu">character</span>(<span class="dv">0</span>),</span>
+<span id="annotated-cell-10-20"><a href="#annotated-cell-10-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_mod =</span> <span class="fu">Sys.time</span>(),</span>
+<span id="annotated-cell-10-21"><a href="#annotated-cell-10-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="dv">0</span></span>
+<span id="annotated-cell-10-22"><a href="#annotated-cell-10-22" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="annotated-cell-10-23"><a href="#annotated-cell-10-23" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-10-24"><a href="#annotated-cell-10-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="annotated-cell-10-25"><a href="#annotated-cell-10-25" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="annotated-cell-10-26"><a href="#annotated-cell-10-26" aria-hidden="true" tabindex="-1"></a>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-10" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-10" data-code-lines="7,9" data-code-annotation="1">Read all lines and get file modification time.</span>
+</dd>
+<dt data-target-cell="annotated-cell-10" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-10" data-code-lines="11,15" data-code-annotation="2">Return both content and timestamp.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-10" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-10" data-code-lines="18,22" data-code-annotation="3">Return empty list.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>To make this display more manageable, we’ll limit the number of extracted logs to the five most recent line (unless there are less than five total lines in the log file). We’ll format the logs to be displayed in the <code>verbatimTextOutput()</code> and include a message if the log file is empty.</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+flowchart TD
+
+  A{{"&lt;code&gt;reactiveFileReader()&lt;/code&gt; "}}
+
+ subgraph LogProc["Log Processing"]
+        H(["Reads &lt;code&gt;shiny_app.log&lt;/code&gt;"])
+        I{"More than 5 lines in &lt;code&gt;total_lines&lt;/code&gt;?"}
+        J("Print last 5 lines")
+        K("Print all lines")
+        L["Format: &lt;code&gt;paste(lines,&lt;/code&gt;&lt;br&gt;&lt;code&gt;collapse = '\\n')&lt;/code&gt;"]
+        M["Return:&lt;br&gt;&lt;code&gt;'No logs available'&lt;/code&gt;"]
+  end
+
+    A --&gt; H
+    H --&gt; I
+    I -- "&lt;em&gt;Yes&lt;/em" --&gt; J
+    I -- "&lt;em&gt;No&lt;/em&gt;" --&gt; K
+    J --&gt; L
+    K --&gt; L
+    H -- "&lt;em&gt;No lines&lt;/em&gt;"--&gt; M
+
+ subgraph UI["UI Rendering"]
+     N[/"&lt;code&gt;log_file_content()&lt;/code&gt;"/]
+     subgraph P["Display in &lt;code&gt;div&lt;/code&gt;"]
+         O["&lt;code&gt;verbatimTextOutput(recent_logs)&lt;/code&gt;"]
+     end
+  end
+  
+  L &amp; M --&gt; N
+  N --&gt; P
+
+  style A fill:#d08300,stroke:#d08300,color:#ffffff,rx:12,ry:12,text-align:center
+  style H fill:#216654,stroke:#216654,color:#ffffff,rx:12,ry:12,text-align:center
+  
+  style L fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  style M fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  
+  style N fill:#772f98,color:#fff,text-align:center
+  style O fill:#cc66d3,color:000,text-align:center
+
+</pre>
+</div>
+<p></p><figcaption> Displaying logs</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-11"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-11-1"><a href="#annotated-cell-11-1" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>recent_logs <span class="ot">&lt;-</span> <span class="fu">renderText</span>({</span>
+<span id="annotated-cell-11-2"><a href="#annotated-cell-11-2" aria-hidden="true" tabindex="-1"></a>    log_data <span class="ot">&lt;-</span> <span class="fu">log_file_content</span>()</span>
+<span id="annotated-cell-11-3"><a href="#annotated-cell-11-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="1">1</button><span id="annotated-cell-11-4" class="code-annotation-target"><a href="#annotated-cell-11-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(log_data<span class="sc">$</span>lines) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="annotated-cell-11-5"><a href="#annotated-cell-11-5" aria-hidden="true" tabindex="-1"></a>      recent_lines <span class="ot">&lt;-</span> <span class="cf">if</span> (log_data<span class="sc">$</span>total_lines <span class="sc">&gt;</span> <span class="dv">5</span>) {</span>
+<span id="annotated-cell-11-6"><a href="#annotated-cell-11-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">tail</span>(log_data<span class="sc">$</span>lines, <span class="dv">5</span>)</span>
+<span id="annotated-cell-11-7"><a href="#annotated-cell-11-7" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="annotated-cell-11-8"><a href="#annotated-cell-11-8" aria-hidden="true" tabindex="-1"></a>        log_data<span class="sc">$</span>lines</span>
+<span id="annotated-cell-11-9"><a href="#annotated-cell-11-9" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="annotated-cell-11-10"><a href="#annotated-cell-11-10" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="2">2</button><span id="annotated-cell-11-11" class="code-annotation-target"><a href="#annotated-cell-11-11" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Updating recent logs display - Session: {session$token} - showing {length(recent_lines)} lines"</span>)</span>
+<span id="annotated-cell-11-12"><a href="#annotated-cell-11-12" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="3">3</button><span id="annotated-cell-11-13" class="code-annotation-target"><a href="#annotated-cell-11-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(recent_lines, <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="annotated-cell-11-14"><a href="#annotated-cell-11-14" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="annotated-cell-11-15"><a href="#annotated-cell-11-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">"No logs available"</span></span>
+<span id="annotated-cell-11-16"><a href="#annotated-cell-11-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-11-17"><a href="#annotated-cell-11-17" aria-hidden="true" tabindex="-1"></a>  })</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-11" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-11" data-code-lines="4,9" data-code-annotation="1">Get last 5 lines of log file or complete log file<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-11" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-11" data-code-lines="11" data-code-annotation="2">Log that we’re updating the display (at <code>DEBUG</code> level to avoid spam)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-11" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-11" data-code-lines="13" data-code-annotation="3">Format the recent logs before displaying in the UI.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>If the API is running, we should see the results of the API health check and the app start-up/initialization:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:22:10] Shiny app started - Session: 8f018f03ac7f1339dc2f826077156264 - Host: localhost</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:22:10] API health check successful - Session: 8f018f03ac7f1339dc2f826077156264</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:27:40] Shiny application initialized - timestamp: 2025-09-09 13:27:40.00443 - r_version: R version 4.5.1 (2025-06-13)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:27:41] Shiny app started - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - Host: localhost</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:27:41] API health check successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-api-recent-logs-display.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="img/lab4-api-recent-logs-display.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<p>When we click <strong>Predict</strong> and send the request to the API, the log file is updated with:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: [{"bill_length_mm":45,"species_Chinstrap":0,"species_Gentoo":0,"sex_male":1}]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - response_time_sec: 0.619 - prediction: 4180.7965</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-api-recent-logs-predictions.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="img/lab4-api-recent-logs-predictions.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="last-updated" class="level4">
+<h4 class="anchored" data-anchor-id="last-updated">Last updated</h4>
+</section>
+</section>
 <section id="app-startup" class="level3">
 <h3 class="anchored" data-anchor-id="app-startup">App startup</h3>
 <p>Log app startup within observer to access session data (high priority to run early)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observe</span>({</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}"</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">priority =</span> <span class="dv">1000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="log-file-reading" class="level3">
-<h3 class="anchored" data-anchor-id="log-file-reading">Log file reading</h3>
-<p>Reactive file reader for log monitoring, polls the log file every 1000ms (1 second) for changes:</p>
-<ul>
-<li>Read all lines and get file modification time<br>
-</li>
-<li>Return both content and timestamp</li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>log_file_content <span class="ot">&lt;-</span> <span class="fu">reactiveFileReader</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">intervalMillis =</span> <span class="dv">1000</span>,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">session =</span> session,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filePath =</span> <span class="st">"shiny_app.log"</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">readFunc =</span> <span class="cf">function</span>(filePath) {</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(filePath)) {</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      lines <span class="ot">&lt;-</span> <span class="fu">readLines</span>(filePath, <span class="at">warn =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      mod_time <span class="ot">&lt;-</span> <span class="fu">file.mtime</span>(filePath)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> lines,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_modified =</span> mod_time,</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="fu">length</span>(lines)</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">lines =</span> <span class="fu">character</span>(<span class="dv">0</span>),</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">last_modified =</span> <span class="fu">Sys.time</span>(),</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">total_lines =</span> <span class="dv">0</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observe</span>({</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">priority =</span> <span class="dv">1000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="user-interactions" class="level3">
 <h3 class="anchored" data-anchor-id="user-interactions">User interactions</h3>
 <p>Track user interactions (<code>throttle</code> to avoid excessive logging).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">observe</span>({</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">throttle</span>(<span class="dv">2000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="reactive-values" class="level3">
-<h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
-<p>Reactive values (with validation)</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  bill_length <span class="ot">&lt;-</span> input<span class="sc">$</span>bill_length</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  species <span class="ot">&lt;-</span> input<span class="sc">$</span>species</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  sex <span class="ot">&lt;-</span> input<span class="sc">$</span>sex</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># input validation (with warnings)</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (bill_length <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">||</span> bill_length <span class="sc">&gt;</span> <span class="dv">60</span>) {</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}"</span>)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(species) <span class="sc">||</span> <span class="fu">is.null</span>(sex)) {</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}"</span>)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> bill_length,</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}"</span>)</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data)</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="api-health-check" class="level3">
-<h3 class="anchored" data-anchor-id="api-health-check">API health check</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>api_health <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"Checking API health - Session: {session$token}"</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(<span class="st">"http://127.0.0.1:8080/ping"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">5</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (httr2<span class="sc">::</span><span class="fu">resp_status</span>(response) <span class="sc">==</span> <span class="dv">200</span>) {</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"API health check successful - Session: {session$token}"</span>)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"✅ API Online"</span>)</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API health check returned non-200 status - Session: {session$token} - status: {httr2::resp_status(response)}"</span>)</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"⚠️ API Issues"</span>)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API health check failed - Session: {session$token} - error: {conditionMessage(e)}"</span>)</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">"❌ API Offline"</span>)</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="predictions" class="level3">
-<h3 class="anchored" data-anchor-id="predictions">Predictions</h3>
-<p>Enhanced prediction with logging</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    request_start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.null</span>(request_data)) {</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Cannot make prediction with invalid inputs - Session: {session$token}"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="st">"❌ Invalid inputs"</span>)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}"</span>)</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, </span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">30</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>      response_data <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">resp_body_json</span>(response)</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}"</span>)</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>      <span class="co"># performance monitoring</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (response_time <span class="sc">&gt;</span> <span class="dv">5</span>) {</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"Slow API response - Session: {session$token} - response_time_sec: {response_time}"</span>)</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"✅ Prediction successful!"</span>, </span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="st">"message"</span>, <span class="at">duration =</span> <span class="dv">3</span>)</span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(response_data<span class="sc">$</span>.pred[<span class="dv">1</span>])</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>      response_time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(<span class="fu">Sys.time</span>(), request_start, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>      logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}"</span>)</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>      <span class="co"># classify error types for better monitoring</span></span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"API connection refused - Session: {session$token}"</span>)</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_warn</span>(<span class="st">"API timeout occurred - Session: {session$token}"</span>)</span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>        logger<span class="sc">::</span><span class="fu">log_error</span>(<span class="st">"Unknown API error - Session: {session$token} - error: {error_msg}"</span>)</span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg), <span class="at">type =</span> <span class="st">"error"</span>, <span class="at">duration =</span> <span class="dv">5</span>)</span>
-<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg))</span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span> </span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># log app startup at global level</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(<span class="at">ui =</span> ui, <span class="at">server =</span> server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">observe</span>({</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">throttle</span>(<span class="dv">2000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
 </section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://daroczig.github.io/logger/reference/appender_tee.html"><code>appender_tee()</code></a> determines where the logs will be stored and “<em>appends log messages to both console and a file</em>.”<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->
@@ -1184,6 +1619,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
