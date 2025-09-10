@@ -79,7 +79,7 @@ ui <- page_sidebar(
         textOutput("api_health"),
         h5("Recent Logs:"),
         div(
-          style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
+          style = "font-family: 'Ubuntu Mono', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
           verbatimTextOutput("recent_logs", placeholder = TRUE)
         ),
         h6(
@@ -305,7 +305,7 @@ server <- function(input, output, session) {
   # timestamp of last log update ----
   output$log_timestamp <- renderText({
     log_data <- log_file_content()
-    format(log_data$last_mod, "%H:%M:%S")
+    format(log_data$last_mod, "%Y-%m-%d %H:%M:%S")
   })
   
 # log session end  ----

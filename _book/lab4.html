@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-05">
+<meta name="dcterms.date" content="2025-09-09">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 4: Logging and Monitoring – DO4DS: Lab Solutions</title>
@@ -288,7 +288,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-05</p>
+      <p class="date">2025-09-09</p>
     </div>
   </div>
   
@@ -393,9 +393,9 @@ graph LR
     M3 --&gt; MC3
     M4 --&gt; MC4
     
-    classDef logging fill:#e3f2fd,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
-    classDef monitoring fill:#f3e5f5,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
-    classDef usecase fill:#f1f8e9,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
+    classDef logging fill:#e3f2fd,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
+    classDef monitoring fill:#f3e5f5,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
+    classDef usecase fill:#f1f8e9,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
     
     class L1,L2,L3,L4,L5 logging
     class M1,M2,M3,M4,M5 monitoring
@@ -546,41 +546,51 @@ graph LR
 <h2 class="anchored" data-anchor-id="observability">Observability</h2>
 <p>We can’t prevent code failures (or when they happen), but we <em>can</em> create <a href="https://en.wikipedia.org/wiki/Observability_(software)"><strong>observable systems</strong></a> that 1) <strong>accept failure is inevitable</strong> (rather than trying to prevent it), 2) <strong>implement comprehensive monitoring and logging</strong>, and 3) <strong>enable rapid diagnosis</strong> (i.e., using logs and metrics to reconstruct what failed and why).</p>
 <p>To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).</p>
-<div class="cell" data-fig-width="7.5" data-layout-align="default">
+<div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"20px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-sequenceDiagram
-    participant DS as Data Science&lt;br&gt;Code
-    participant Emit as Emit
-    participant Collect as Collect
-    participant Process as Process
-    participant Store as Store
-    participant Alert as Alert
-    participant Display as Display
-    participant Team as DevOps&lt;br&gt;Team
-    
-    Note over DS: User makes&lt;br&gt;prediction&lt;br&gt;request
-    
-    DS-&gt;&gt;Emit: log_info("prediction started")
-    DS-&gt;&gt;Emit: emit_metric("response_time", 1.2)
-    
-    Collect-&gt;&gt;Emit: Scrape logs&lt;br&gt;&amp; metrics
-    Collect-&gt;&gt;Process: Logs &amp; metrics to&lt;br&gt;processing pipeline
-    
-    Process-&gt;&gt;Store: Parse &amp;&lt;br&gt;enrich data
-    Store-&gt;&gt;Alert: Check alert&lt;br&gt;conditions
-    Store-&gt;&gt;Display: Update real-time&lt;br&gt;displays
-    
-    alt Response time &gt; 5 seconds
-        Alert-&gt;&gt;Team: Send notifications
-        Team-&gt;&gt;Display: Investigate&lt;br&gt;using logs
+graph TD
+    subgraph DatSci["Data Scientists"]
+        A("Generate&lt;br&gt;Logs")
+        B("Emit Metrics")
     end
     
-    Display--&gt;&gt;Team: Show trends&lt;br&gt;and KPIs
+    subgraph SysAdmin["System Admins"]
+        C["Collect &amp;&lt;br&gt;Aggregate"]
+        D["Store &amp;&lt;br&gt;Process"]
+        E["Monitor &amp;&lt;br&gt;Alert"]
+    end
+    
+    subgraph Out["Outcomes"]
+        F(["Detect&lt;br&gt;Issues"])
+        G(["Diagnose&lt;br&gt;Problems"])
+        H(["Rapid&lt;br&gt;Recovery"])
+    end
+    
+    A ---&gt; C
+    B ---&gt; C
+    C --&gt; D
+    D --&gt; E
+    E --&gt; F
+    F --&gt; G
+    G --&gt; H
+    
+    classDef ds fill:#e3f2fd,stroke:#000,stroke-width:1px
+    classDef admin fill:#fff3cd,stroke:#000,stroke-width:1px
+    classDef outcome fill:#e8f5e8,stroke:#000,stroke-width:1px
+    
+    style DatSci stroke:#0085d6,stroke-width:3px,font-size:16px
+    style SysAdmin stroke:#fbe42d,stroke-width:3px,font-size:16px
+    style Out stroke:#328a72,stroke-width:3px,font-size:16px
+
+    class A,B ds
+    class C,D,E admin
+    class F,G,H outcome
+    
 </pre>
 </div>
 <p></p></figure><p></p>

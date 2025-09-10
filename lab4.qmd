@@ -92,9 +92,9 @@ graph LR
     M3 --> MC3
     M4 --> MC4
     
-    classDef logging fill:#e3f2fd,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
-    classDef monitoring fill:#f3e5f5,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
-    classDef usecase fill:#f1f8e9,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:14px
+    classDef logging fill:#e3f2fd,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
+    classDef monitoring fill:#f3e5f5,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
+    classDef usecase fill:#f1f8e9,stroke:#333,stroke-width:2px,rx:6,ry:6,text-align:center,font-size:13px
     
     class L1,L2,L3,L4,L5 logging
     class M1,M2,M3,M4,M5 monitoring
@@ -182,37 +182,48 @@ We can't prevent code failures (or when they happen), but we *can* create [**obs
 To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
 
 ```{mermaid}
-%%| fig-width: 7.5
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"20px"}}}%%
+%%| fig-width: 8.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-sequenceDiagram
-    participant DS as Data Science<br>Code
-    participant Emit as Emit
-    participant Collect as Collect
-    participant Process as Process
-    participant Store as Store
-    participant Alert as Alert
-    participant Display as Display
-    participant Team as DevOps<br>Team
-    
-    Note over DS: User makes<br>prediction<br>request
-    
-    DS->>Emit: log_info("prediction started")
-    DS->>Emit: emit_metric("response_time", 1.2)
-    
-    Collect->>Emit: Scrape logs<br>& metrics
-    Collect->>Process: Logs & metrics to<br>processing pipeline
-    
-    Process->>Store: Parse &<br>enrich data
-    Store->>Alert: Check alert<br>conditions
-    Store->>Display: Update real-time<br>displays
-    
-    alt Response time > 5 seconds
-        Alert->>Team: Send notifications
-        Team->>Display: Investigate<br>using logs
+graph TD
+    subgraph DatSci["Data Scientists"]
+        A("Generate<br>Logs")
+        B("Emit Metrics")
     end
     
-    Display-->>Team: Show trends<br>and KPIs
+    subgraph SysAdmin["System Admins"]
+        C["Collect &<br>Aggregate"]
+        D["Store &<br>Process"]
+        E["Monitor &<br>Alert"]
+    end
+    
+    subgraph Out["Outcomes"]
+        F(["Detect<br>Issues"])
+        G(["Diagnose<br>Problems"])
+        H(["Rapid<br>Recovery"])
+    end
+    
+    A ---> C
+    B ---> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    
+    classDef ds fill:#e3f2fd,stroke:#000,stroke-width:1px
+    classDef admin fill:#fff3cd,stroke:#000,stroke-width:1px
+    classDef outcome fill:#e8f5e8,stroke:#000,stroke-width:1px
+    
+    style DatSci stroke:#0085d6,stroke-width:3px,font-size:16px
+    style SysAdmin stroke:#fbe42d,stroke-width:3px,font-size:16px
+    style Out stroke:#328a72,stroke-width:3px,font-size:16px
+
+    class A,B ds
+    class C,D,E admin
+    class F,G,H outcome
+    
 ```
 
 This will give us: 

@@ -45,17 +45,24 @@ This lab covers how to use logging and monitoring to track events inside data sc
 
 graph TD
     subgraph Inputs["<strong>User Inputs</strong>"]
-    I1[/"input$bill_length"/]
-    I2[/"input$species"/]
-    I3[/"input$sex"/]
-    I4[/"input$predict"/]
+    I1[/"<strong>input$bill_length</strong>"/]
+    I2[/"<strong>input$species</strong>"/]
+    I3[/"<strong>input$sex</strong>"/]
+    I4[/"<strong>input$predict</strong>"/]
     end
+    
+    %% Style for inputs %%
+    style I1 fill:#fdd9bb,color:#000,font-size:18px
+    style I2 fill:#fdd9bb,color:#000,font-size:18px
+    style I3 fill:#fdd9bb,color:#000,font-size:18px
+    style I4 fill:#f9a0a0,color:#000,font-size:18px
+    
 
     subgraph API["<strong>plumber API</strong>"]
-      ModBoard("<code>pins::board_folder()</code>")
-      ModPin("<code>vetiver::vetiver_pin_read()</code>")
-      ModRout("<code>plumber::pr()</code>") 
-      ModApi("<code>vetiver::vetiver_api()</code>") 
+      ModBoard("<strong>pins::board_folder()</strong>")
+      ModPin("<strong>vetiver::vetiver_pin_read()</strong>")
+      ModRout("<strong>plumber::pr()</strong>") 
+      ModApi("<strong>vetiver::vetiver_api()</strong>") 
       ApiServ(["Launch<br>API Server"])
       ModBoard --"<em>connect to model board</em>"--> ModPin 
       ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
@@ -63,47 +70,54 @@ graph TD
       ModApi --"<em>start API server</em>"--> ApiServ
     end
 
+    %% Style for API %%
+    style ModBoard fill:#d1f0d2,color:#000,font-size:18px
+    style ModPin fill:#d1f0d2,color:#000,font-size:18px
+    style ModRout fill:#d1f0d2,color:#000,font-size:18px
+    style ModApi fill:#d1f0d2,color:#000,font-size:18px
+    style ApiServ fill:#b3e7b4,font-size:18px
+
     subgraph Pred["<strong>Predict</strong>"]
-        Req("<code>httr2::request()</code>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<code>httr2::req_method()</code>")
-        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<code>httr2::req_body_json()</code>")
-        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<code>httr2::req_perform()</code>")
-        BodyJson2("<code>httr2::resp_body_json()</code>")
+        Req("<strong>httr2::request()</strong>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<strong>httr2::req_method()</strong>")
+        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<strong>httr2::req_body_json()</strong>")
+        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<strong>httr2::req_perform()</strong>")
+        BodyJson2("<strong>httr2::resp_body_json()</strong>")
     end
+
+    %% Style for httr2 %%
+    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#82ecf3,color:#000,rx:20,ry:20,font-size:18px
 
     Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
     API --> BodyJson2
+   
+    Res(["<strong>response$.pred[1]</strong>"])
+    ValsReact(["<strong>vals()</strong><br>(in <strong>data.frame</strong>)"])
 
+    %% Style for reactives %%
+    style Res fill:#f6ae0e,color:#000,font-size:18px
+    style ValsReact fill:#f6ae0e,color:#000,font-size:18px
 
-    subgraph PredReact["<strong>pred()</strong>"]
-        Res(["<strong>response$.pred[1]</strong>"])
-    end
-    
-    ValsReact(["<strong>vals()</strong><br>(in <code>data.frame</code>)"])
-    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> PredReact
+    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> Res
     
     I1 --> ValsReact
     I2 --> ValsReact
     I3 --> ValsReact
-    I4 --"<em><code>reactive()</code> & <br><code>bindEvent()</code></em>"---> Pred
+    I4 --"<em><strong>reactive()</strong> & <br><strong>bindEvent()</strong></em>"---> Pred
     
-    ValsReact --"<em>as<br><code>request_data</code></em>"--> BodyJson1
-    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><code>vals()</code>"\]
-    PredReact -.-> RenTxt[\"<strong>renderText()</strong><br><code>pred()</code>"\]
+    ValsReact --"<em>as<br><strong>request_data</strong></em>"--> BodyJson1
+    
+    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><strong>vals()</strong>"\]
+    Res -.-> RenTxt[\"<strong>renderText()</strong><br><strong>pred()</strong>"\]
+    
+    style RenTxt fill:#49297e,color:#fff,font-size:18px
+    style RenPrnt fill:#49297e,color:#fff,font-size:18px
 
-    %% Style for functions %%
-    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+
     
-    %% Style for reactives %%
-    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    
-    %% Style for result %%
-    style ApiServ fill:#e8f5e8,stroke:#000,color:#000
-    style Res fill:#e8f5e8,stroke:#000,color:#000
 ```
 
 
@@ -140,14 +154,40 @@ logger::log_appender(appender = appender_tee(file = "shiny_app.log"))
 logger::log_formatter(logger::formatter_glue_or_sprintf)
 ```
 
+### App startup
 
-## Displaying logs
+Log app startup within observer to access session data (high priority to run early)
 
-First we should think about what logs (if any) we want displayed in the UI. I'm a big fan of having verbose logs and making them accessible in the UI. 
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+  observe({
+    logger::log_info("Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}")
+  }, priority = 1000)  
+```
 
-### Session Token
 
-We'll start by putting a `log_status` output in the upper right-hand corner of the display.
+### User interactions
+
+Track user interactions (`throttle` to avoid excessive logging).
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+observe({
+  logger::log_debug("User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}")
+}) |> 
+  throttle(2000)  
+```
+
+
+### Session token
+
+We'll display  **Session Token** (a subset of `session$token` as `log_status`) in the upper right-hand corner of the UI.  
+
+![](img/lab4-div-session.png){width='100%' fig-align='center'}
 
 #### UI
 
@@ -166,7 +206,7 @@ A custom `div()` is a good option here (with some minimal styling):
 
 #### Server
 
-This output is generated from the `session$token`:
+This output is generated from `substr(session$token, 1, 8)`:
 
 ```{r}
 #| label: token-server
@@ -184,7 +224,7 @@ This output is generated from the `session$token`:
 
 The parameter display and predictions from the API remain largely unchanged here, other than to make room for the **System Status** `column` and `card`. 
 
-![Penguin Parameters and Predicted Mass](img/lab4-predictions-wireframe.png)
+![](img/lab4-predictions-wireframe.png){width='100%' fig-align='center'}
 
 #### UI
 
@@ -266,6 +306,10 @@ vals <- reactive({
 4. Convert reactives into a `data.frame`.      
 5. Logs formatted input data structure sent to the API. 
 6. Returns `data.frame`   
+
+The `vals()` are printed to the UI in a `data.frame`:
+
+![](img/lab4-predictions-vals.png){width='100%' fig-align='center'}
 
 
 **Predictions**
@@ -358,16 +402,19 @@ pred <- reactive({
 20. Notification for error  
 21. Trigger when Predict button is clicked. 
 
+After clicking **Predict**, the response from the API displays the predicted penguin mass in grams:
+
+![](img/lab4-predictions-pred.png){width='100%' fig-align='center'}
 
 ### System Status
 
-In the **System Status** display, I want to 1) send a `ping` to the API and return the result as **API Status**, 2) print a subset of **Recent Logs** from the log file we specified above in the `logger::log_appender()` function, and 3) include a timestamp displaying when the log file was **Last updated**. 
+In the **System Status** display, we'll 1) send a `ping` to the API and return the result as **API Status**, 2) print a subset of **Recent Logs** from the log file specified above in the `logger::log_appender()` function, and 3) include a timestamp displaying when the log file was **Last updated**. 
 
 ![](img/lab4-system-status-wireframe.png){width='100%' fig-align='center'}
 
 #### UI
 
-The **System Status** section in the UI can be included as a `card()` in the `layout_columns()` (as long as we set the `col_widths` and a fixed `height`):
+We can make room for a **System Status** section in the UI as a `card()` using `layout_columns()` (as long as we set the `col_widths` and a fixed `height`). The `div()` for the logs also gets some custom styling:
 
 ```{r}
 #| label: sys-status-ui
@@ -382,7 +429,7 @@ The **System Status** section in the UI can be included as a `card()` in the `la
         textOutput("api_health"),#<1>
         h5("Recent Logs:"),#<2>
         div(
-          style = "font-family: 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
+          style = "font-family: 'Ubuntu Mono', monospace; font-size: 13px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
           verbatimTextOutput("recent_logs", placeholder = TRUE)
         ),#<2>
         h6("Last updated:", #<3>
@@ -438,7 +485,7 @@ api_health <- reactive({
 5. Logs complete API connectivity failures that render the application non-functional.  
 
 
-::: {layout-ncol=2 layout-valign="top"}
+:::{layout="[35,65]" layout-valign="top"}
 
 When we initially launch, we see the offline status is accurate (the API isn't running): 
 
@@ -453,7 +500,7 @@ When we run the API, we can see the `ping` responds with an online status:
 
 #### Recent Logs
 
-Recall that all the events we've captured with the  `logger::log_*()` functions are written to the log file (`shiny_log.log`). If we want to display some of the most recent logs in the UI, we can use Shiny's [`reactiveFileReader()`](https://shiny.posit.co/r/reference/shiny/latest/reactivefilereader.html) and configure it to poll the log file every 1 second (1000ms) for changes:
+All the events captured with  `logger::log_*()` functions are written to the log file (`shiny_log.log`). To display the most recent logs in the UI, we can use Shiny's [`reactiveFileReader()`](https://shiny.posit.co/r/reference/shiny/latest/reactivefilereader.html) and configure it to poll our log file every 1 second (1000ms) for changes:
 
 ```{mermaid}
 %%| fig-cap: 'Logging in Server'
@@ -554,7 +601,7 @@ log_file_content <- reactiveFileReader(
 2. Return both content and timestamp.  
 3. Return empty list.  
 
-To make this display more manageable, we'll limit the number of extracted logs to the five most recent line (unless there are less than five total lines in the log file). We'll format the logs to be displayed in the  `verbatimTextOutput()` and include a message if the log file is empty. 
+To make this display more manageable, we'll limit the number of extracted logs to the five most recent lines (unless there are less than five total lines in the log file). We'll also format the logs to be displayed in the  `verbatimTextOutput()` and include a message if the log file is empty. 
 
 ```{mermaid}
 %%| fig-cap: 'Displaying logs'
@@ -631,7 +678,7 @@ flowchart TD
 2. Log that we're updating the display (at `DEBUG` level to avoid spam)     
 3. Format the recent logs before displaying in the UI.  
 
-If the API is running, we should see the results of the API health check and the app start-up/initialization:
+If the API is running, the log file will contain the status of the health check and the app start-up/initialization message:
 
 ```{verbatim}
 INFO [2025-09-09 13:22:10] Shiny app started - Session: 8f018f03ac7f1339dc2f826077156264 - Host: localhost
@@ -641,10 +688,11 @@ INFO [2025-09-09 13:27:41] Shiny app started - Session: 40ba19c3b213c5aa6c8589dc
 INFO [2025-09-09 13:27:41] API health check successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8
 ```
 
+We can these logs show up in the UI:
 
 ![](img/lab4-api-recent-logs-display.png){width='100%' fig-align='center'}
 
-When we click **Predict** and send the request to the API, the log file is updated with: 
+When a user clicks on **Predict**, the values are sent in a request to the API, a response is returned, and the log file is updated with: 
 
 ```{verbatim}
 INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: [{"bill_length_mm":45,"species_Chinstrap":0,"species_Gentoo":0,"sex_male":1}]
@@ -652,37 +700,42 @@ INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c85
 INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams
 ```
 
+We can also see out UI updates with the recent logs: 
+
 ![](img/lab4-api-recent-logs-predictions.png){width='100%' fig-align='center'}
+
+
+Finally, we should see the log file included in our Shiny app directory: 
+
+```{verbatim}
+├── app.R
+├── R.Rproj
+├── README.md
+├── renv
+├── renv.lock
+└── shiny_app.log #<1>
+
+2 directories, 5 files
+```
+1. New log file!    
 
 
 #### Last updated
 
-### App startup
-
-Log app startup within observer to access session data (high priority to run early)
+The final **Last updated** section includes the time and date the `log_file_content()` reactive was last updated. 
 
 ```{r}
-#| eval: false 
+#| label: log_timestamp-server
+#| eval: false
 #| code-fold: false
 #| code-overflow: wrap
-  observe({
-    logger::log_info("Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}")
-  }, priority = 1000)  
+output$log_timestamp <- renderText({
+  log_data <- log_file_content()
+  format(log_data$last_mod, "%Y-%m-%d %H:%M:%S")
+})
 ```
 
 
+![Click on image to enlarge](img/lab4-last-updated.png){width='100%' fig-align='center'}
 
-### User interactions
-
-Track user interactions (`throttle` to avoid excessive logging).
-
-```{r}
-#| eval: false 
-#| code-fold: false
-#| code-overflow: wrap
-observe({
-  logger::log_debug("User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}")
-}) |> 
-  throttle(2000)  
-```
 

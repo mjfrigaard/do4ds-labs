@@ -280,7 +280,7 @@ response <- httr2::request(api_url)
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A("<code>request()</code> URL") --> B["Creates base<br>request object"]
+	A("<strong>request()</strong> URL") --> B["Creates base<br>request object"]
 	B --> C["Contains URL and<br>default settings"]
 
 style A fill:#e1f5fe
@@ -307,7 +307,7 @@ style A fill:#e1f5fe
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[Request Object] --> B["<code>req_method()</code>"]
+	A[Request Object] --> B["<strong>req_method()</strong>"]
 	B --> C[Sets HTTP verb]
 	C --> D[GET/POST/PUT/DELETE/PATCH]
 
@@ -341,7 +341,7 @@ response <- httr2::request(api_url) |>
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[R Object] --> B["<code>req_body_json()</code>"]
+	A[R Object] --> B["<strong>req_body_json()</strong>"]
 	B --> C["Converts to JSON"]
 	C --> D["Adds to request body"]
 
@@ -385,11 +385,11 @@ What happens:\
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A["Complete Request<br>Object"] --> B["<code>req_perform()</code>"]
+	A["Complete Request<br>Object"] --> B["<strong>req_perform()</strong>"]
 	B --> C["Sends HTTP request"]
 	C --> D["Returns response<br>object"]
 
-style B fill:#ff9800
+style B fill:#ff9800,color:#000
 
 ```
 
@@ -425,11 +425,11 @@ response <- httr2::request(api_url) |>
 
 graph TD
 
-A[JSON Response Body] --> B["<code>resp_body_json</code>"]
+A[JSON Response Body] --> B["<strong>resp_body_json()</strong>"]
 B --> C[Parses JSON to R objects]
 C --> D[Lists, data.frames, etc.]
 
-style B fill:#9c27b0
+style B fill:#9c27b0,color:#fff
 
 ```
 
@@ -483,6 +483,7 @@ A diagram of the user inputs (i.e., the **Predict** button), reactives, and the 
 %%| fig-cap: 'Input Dependencies'
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 graph TD
     subgraph Inputs["<strong>User Inputs</strong>"]
     I1[/"input$bill_length"/]
@@ -490,43 +491,73 @@ graph TD
     I3[/"input$sex"/]
     I4[/"input$predict"/]
     end
+    
+    %% Style for inputs %%
+    style I1 fill:#fdd9bb,color:#000,font-size:18px
+    style I2 fill:#fdd9bb,color:#000,font-size:18px
+    style I3 fill:#fdd9bb,color:#000,font-size:18px
+    style I4 fill:#f9a0a0,color:#000,font-size:18px
+    
+
+    subgraph API["<strong>plumber API</strong>"]
+      ModBoard("<strong>pins::board_folder()</strong>")
+      ModPin("<strong>vetiver::vetiver_pin_read()</strong>")
+      ModRout("<strong>plumber::pr()</strong>") 
+      ModApi("<strong>vetiver::vetiver_api()</strong>") 
+      ApiServ(["Launch<br>API Server"])
+      ModBoard --"<em>connect to model board</em>"--> ModPin 
+      ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
+      ModRout --"<em>create router</em>"--> ModApi 
+      ModApi --"<em>start API server</em>"--> ApiServ
+    end
+
+    %% Style for API %%
+    style ModBoard fill:#d1f0d2,color:#000,font-size:18px
+    style ModPin fill:#d1f0d2,color:#000,font-size:18px
+    style ModRout fill:#d1f0d2,color:#000,font-size:18px
+    style ModApi fill:#d1f0d2,color:#000,font-size:18px
+    style ApiServ fill:#b3e7b4,font-size:18px
 
     subgraph Pred["<strong>Predict</strong>"]
-        Req("<code>request()</code>") --"Creates HTTP<br>request object"--> Meth("<code>req_method()</code>")
-        Meth --"Changes HTTP<br>method from<br>GET to POST"--> BodyJson1("<code>req_body_json()</code>")
-        BodyJson1 --"Converts data.frame<br>to JSON & sets<br>request body"--> Perform("<code>req_perform()</code>")
-        Perform --"Sends HTTP<br>request to<br>server &<br>waits for<br>response"--> BodyJson2("<code>resp_body_json()</code>")
+        Req("<strong>httr2::request()</strong>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<strong>httr2::req_method()</strong>")
+        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<strong>httr2::req_body_json()</strong>")
+        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<strong>httr2::req_perform()</strong>")
+        BodyJson2("<strong>httr2::resp_body_json()</strong>")
     end
 
-    subgraph PredReact["<strong>pred()</strong>"]
-        Res(["<strong>response$.pred[1]</strong>"])
-    end
-    
-    ValsReact(["<strong>vals()</strong><br>(in <code>data.frame</code>)"])
-    BodyJson2 --"Extracts JSON<br>response body<br>& converts to<br>R object"--> PredReact
+    %% Style for httr2 %%
+    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style Meth fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson1 fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style Perform fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style BodyJson2 fill:#82ecf3,color:#000,rx:20,ry:20,font-size:18px
+
+    Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
+    API --> BodyJson2
+   
+    Res(["<strong>response$.pred[1]</strong>"])
+    ValsReact(["<strong>vals()</strong><br>(in <strong>data.frame</strong>)"])
+
+    %% Style for reactives %%
+    style Res fill:#f6ae0e,color:#000,font-size:18px
+    style ValsReact fill:#f6ae0e,color:#000,font-size:18px
+
+    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> Res
     
     I1 --> ValsReact
     I2 --> ValsReact
     I3 --> ValsReact
-    I4 --"<code>reactive()</code> & <br><code>bindEvent()</code>"---> Pred
+    I4 --"<em><strong>reactive()</strong> & <br><strong>bindEvent()</strong></em>"---> Pred
     
-    ValsReact --"as<br><code>request_data</code>"--> BodyJson1
-    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><code>vals()</code>"\]
-    PredReact -.-> RenTxt[\"<strong>renderText()</strong><br><code>pred()</code>"\]
+    ValsReact --"<em>as<br><strong>request_data</strong></em>"--> BodyJson1
+    
+    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><strong>vals()</strong>"\]
+    Res -.-> RenTxt[\"<strong>renderText()</strong><br><strong>pred()</strong>"\]
+    
+    style RenTxt fill:#49297e,color:#fff,font-size:18px
+    style RenPrnt fill:#49297e,color:#fff,font-size:18px
 
-    %% Style for functions %%
-    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style Meth fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson1 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style Perform fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson2 fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    
-    %% Style for reactives %%
-    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style PredReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    
-    %% Style for result %%
-    style Res fill:#e8f5e8,stroke:#000,color:#000
+
 ```
 
 ## Finishing touches
@@ -607,7 +638,7 @@ Below are more `httr2` functions for communicating with APIs.
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[Request Object] --> B["<code>req_headers()</code>"]
+	A[Request Object] --> B["<strong>req_headers()</strong>"]
 	B --> C["Adds metadata<br>to request"]
 	C --> D["Authentication,<br>Content-Type, etc."]
 
@@ -645,9 +676,9 @@ req |> req_headers(
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[Base URL] --> B["<code>req_url_query()</code>"]
-	B --> C["Adds<br><code>?param=value&key=data</code>"]
-	C --> D["<code>https://</code><code>api.com/data?species=Adelie&limit=10</code>"]
+	A[Base URL] --> B["<strong>req_url_query()</strong>"]
+	B --> C["Adds<br><strong>?param=value&key=data</strong>"]
+	C --> D["<strong>https://</strong><strong>api.com/data?species=Adelie&limit=10</strong>"]
 
 style B fill:#c8e6c9
 ```
@@ -685,11 +716,11 @@ req |> req_url_query(
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[Response Object] --> B["<code>resp_status()</code>"]
+	A[Response Object] --> B["<strong>resp_status()</strong>"]
 	B --> C["Extracts status<br>code"]
 	C --> D["200, 404, 500, etc."]
 
-style B fill:#4caf50
+style B fill:#4caf50,color:#fff
 
 ```
 
@@ -724,11 +755,12 @@ if (status == 200) {
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A[Response Object] --> B["<code>resp_headers()</code>"]
+	A[Response Object] --> B["<strong>resp_headers()</strong>"]
 	B --> C["Extracts response<br>metadata"]
 	C --> D["Content-Type,<br>Content-Length, etc."]
 
-style B fill:#2196f3
+style B fill:#2196f3,color:#fff
+
 ```
 
 ```{r}
