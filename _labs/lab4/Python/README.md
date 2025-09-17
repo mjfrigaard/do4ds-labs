@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ```bash
 # verify install
 python -c "import shiny; print('✅ Shiny installed:', shiny.__version__)"
-python -c "import requests; print('✅ Requests installed:', requests.__version__)
+python -c "import requests; print('✅ Requests installed:', requests.__version__)"
 ```
 
 Should show: 
@@ -45,15 +45,14 @@ Should show:
 
 Launch API:
 
-In a separate Terminal, run the API:
+In a separate Terminal, launch the API by navigating to `do4ds-labs/_labs/lab3/Python/api/` and entering:
 
 ```bash
-cd ../../lab3/Python/api/
 # source .env/bin/activate # if not activated 
 python3 mod-api.py
 ```
 
-Run app:
+Run app using: 
 
 ```bash
 shiny run app-log.py --host 127.0.0.1 --port 3000 --reload

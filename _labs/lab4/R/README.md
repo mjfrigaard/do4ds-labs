@@ -4,15 +4,15 @@ This directory contains an R Shiny app to demonstrate logging from lab 4 of [Dev
 
 ## Running app
 
-To run the application, the api from lab 3 must be running: 
+To run the application, launch the api from lab 3 by navigating to `do4ds-labs/_labs/lab3/R/api/` and running `mod-api.R`.
 
 ```r
-# nevigate to ~/projects/books/do4ds-labs/_labs/lab3/R/api/
-# run mod-api.R
+source("do4ds-labs/_labs/lab3/R/api/mod-api.R")
 ```
 
+run the app:
+
 ```r
-# run the app
 install.packages('shiny')
 shiny::runApp(appDir = ".")
 ```

@@ -156,7 +156,7 @@ logger::log_formatter(logger::formatter_glue_or_sprintf)
 
 ### App startup
 
-Log app startup within observer to access session data (high priority to run early)
+We'll start by logging the application startup within an observer to access session data (high `priority` to run early). 
 
 ```{r}
 #| eval: false 
@@ -167,10 +167,14 @@ Log app startup within observer to access session data (high priority to run ear
   }, priority = 1000)  
 ```
 
+This log records when a new user session begins with the session token and client information for user tracking and session management.
+
 
 ### User interactions
 
-Track user interactions (`throttle` to avoid excessive logging).
+We'll also track user interactions (but `throttle` to avoid excessive logging).[^throttle]
+
+[^throttle]: "*Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.* - see the [`shiny::throttle()`](https://shiny.posit.co/r/reference/shiny/latest/debounce.html) documentation for more info."
 
 ```{r}
 #| eval: false 
@@ -181,6 +185,8 @@ observe({
 }) |> 
   throttle(2000)  
 ```
+
+This log captures user input changes for debugging user interaction flows and input validation issues.
 
 
 ### Session token
@@ -402,6 +408,8 @@ pred <- reactive({
 20. Notification for error  
 21. Trigger when Predict button is clicked. 
 
+The `tryCatch()` handles all possible API communication failures (network issues, timeouts, malformed responses, etc.) and provides meaningful error messages (instead of crashing the application).
+
 After clicking **Predict**, the response from the API displays the predicted penguin mass in grams:
 
 ![](img/lab4-predictions-pred.png){width='100%' fig-align='center'}
@@ -484,6 +492,7 @@ api_health <- reactive({
 4. Logs to API degradation or partial failures that may impact user experience.   
 5. Logs complete API connectivity failures that render the application non-functional.  
 
+The `tryCatch()` prevents the application from crashing when the external API is unreachable or returns unexpected responses. This ensures 'graceful' failures of our health check display.
 
 :::{layout="[35,65]" layout-valign="top"}
 
@@ -514,8 +523,8 @@ flowchart TD
         Q(["User<br>inputs"])
         R(["API<br>calls"])
         S(["System<br>events"])
-        %% T@{ shape: rect, label: "<code>logger::log_</code>*<br>functions" }
-        T["<code>logger::log_</code>*<br>functions"]
+        %% T@{ shape: rect, label: "<strong>logger::log_</strong>*<br>functions" }
+        T["<strong>logger::log_</strong>*<br>functions"]
   end
 
     Q --> T
@@ -524,8 +533,8 @@ flowchart TD
     T -- "<em>Written to</em>"--> A
 
  subgraph FileSys["File System"]
-        %% A@{ shape: lin-doc, label: "<code>shiny_app.log</code>" }
-        A[\"Log file: <code>shiny_app.log</code>"\]
+        %% A@{ shape: lin-doc, label: "<strong>shiny_app.log</strong>" }
+        A[\"Log file: <strong>shiny_app.log</strong>"\]
         A1("Modification<br>Time")
         A2("File<br>Contents")
   end
@@ -533,11 +542,11 @@ flowchart TD
     A -."<em>changes trigger</em>".-> B
 
  subgraph ReactFile["Reactive File"]
-        %% B@{ shape: subproc, label: "<code>reactiveFileReader()</code>" }
-        B{{"<code>reactiveFileReader() </code>"}}
+        %% B@{ shape: subproc, label: "<strong>reactiveFileReader()</strong>" }
+        B{{"<strong>reactiveFileReader() </strong>"}}
         C{"Log file<br>exists?"}
         D("<strong>lines<br>last_mod<br>total_lines</strong>")
-        E("<strong>lines</strong>:<code>character(0)</code><br><strong>last_mod</strong>:<code>Sys.time()</code><br><strong>total_lines</strong>:<code>0</code>")
+        E("<strong>lines</strong>:<strong>character(0)</strong><br><strong>last_mod</strong>:<strong>Sys.time()</strong><br><strong>total_lines</strong>:<strong>0</strong>")
   end
     
     B --"<em>checks every 1 second</em>"--> C
@@ -611,15 +620,15 @@ To make this display more manageable, we'll limit the number of extracted logs t
 
 flowchart TD
 
-  A{{"<code>reactiveFileReader()</code> "}}
+  A{{"<strong>reactiveFileReader()</strong> "}}
 
  subgraph LogProc["Log Processing"]
-        H(["Reads <code>shiny_app.log</code>"])
-        I{"More than 5 lines in <code>total_lines</code>?"}
+        H(["Reads <strong>shiny_app.log</strong>"])
+        I{"More than 5 lines in <strong>total_lines</strong>?"}
         J("Print last 5 lines")
         K("Print all lines")
-        L["Format: <code>paste(lines,</code><br><code>collapse = '\\n')</code>"]
-        M["Return:<br><code>'No logs available'</code>"]
+        L["Format: <strong>paste(lines,</strong><br><strong>collapse = '\\n')</strong>"]
+        M["Return:<br><strong>'No logs available'</strong>"]
   end
 
     A --> H
@@ -631,23 +640,23 @@ flowchart TD
     H -- "<em>No lines</em>"--> M
 
  subgraph UI["UI Rendering"]
-	 N[/"<code>log_file_content()</code>"/]
-	 subgraph P["Display in <code>div</code>"]
-		 O["<code>verbatimTextOutput(recent_logs)</code>"]
-	 end
+     N[/"<strong>log_file_content()</strong>"/]
+     subgraph P["Display in <strong>div</strong>"]
+         O["<strong>verbatimTextOutput(recent_logs)</strong>"]
+     end
   end
   
   L & M --> N
   N --> P
 
-  style A fill:#d08300,stroke:#d08300,color:#ffffff,rx:12,ry:12,text-align:center
-  style H fill:#216654,stroke:#216654,color:#ffffff,rx:12,ry:12,text-align:center
+  style A fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,text-align:center
+  style H fill:#216654,stroke:#216654,color:#fff,rx:12,ry:12,text-align:center
   
-  style L fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
-  style M fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  style L fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
+  style M fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
   
   style N fill:#772f98,color:#fff,text-align:center
-  style O fill:#cc66d3,color:000,text-align:center
+  style O fill:#cc66d3,color:#000,text-align:center
 
 ```
 
@@ -737,5 +746,39 @@ output$log_timestamp <- renderText({
 
 
 ![Click on image to enlarge](img/lab4-last-updated.png){width='100%' fig-align='center'}
+
+## Finishing touches 
+
+To finish off our app, we'll include a `README.md` with instructions for launching the API and application together and capture dependencies with `renv`. 
+
+```{r}
+#| eval: false
+#| code-fold: false
+install.packages('renv')
+renv::init()
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+renv::snapshot()
+```
+
+The final application folder contains the following: 
+
+```{verbatim}
+├── .gitignore
+├── .Rhistory
+├── .Rprofile
+├── .Rproj.user/
+├── app.R
+├── R.Rproj
+├── README.md
+├── renv/
+├── renv.lock
+└── shiny_app.log
+
+3 directories, 8 files
+```
 
 

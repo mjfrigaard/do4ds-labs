@@ -44,43 +44,31 @@ Below are a few pointers to help you avoid making some of the mistakes I made:
 %%| fig-cap: 'Vetiver API creation'
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
 graph TD
     subgraph T1["<strong>API Server</strong>"]
-        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<strong>VetiverModel</strong>"]
+        RunApi(["Run<br>mod-api.py"]) --"create"--> VetMod["<strong>VetiverModel</strong>"]
         VetMod --"convert to"--> VetAPI["<strong>VetiverAPI</strong>"]
         VetAPI --"extract"--> FastAPI(["<strong>FastAPI</strong>"])
     end
     
+    style RunApi fill:#d8e4ff,color:#000,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    
    subgraph Browse["<strong>Browser</strong>"]
-        Http["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"] --"<strong>/docs</strong>"--> Docs(["API Docs"])
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<strong>/docs</strong>"--> Docs(["API Docs"])
         Http --"<strong>/ping</strong>"--> Health(["Health Check"])
         Http --"<strong>/metadata</strong>"--> Info(["Model Info"])
         Docs & Health & Info --> FastAPI
     end
 
-    style Http fill:#FFF,color:#000,stroke:#333,stroke-width:1px,rx:20,ry:20,font-size:16px 
-    style RunApi fill:#FFF,color:#000,stroke:#333,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    style Http fill:#d8e4ff,color:#000,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
     
-    style VetMod fill:#ffebee
-    style VetAPI fill:#fff3e0
-    
-    style FastAPI fill:#e8f5e8,font-size:18px
-    style Docs fill:#e8f5e8,font-size:18px
-    style Health fill:#e8f5e8,font-size:18px
-    style Info fill:#e8f5e8,font-size:18px
+    style FastAPI fill:#31e981,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    style Docs fill:#31e981,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    style Health fill:#31e981,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
+    style Info fill:#31e981,stroke:#000,stroke-width:1px,rx:20,ry:20,font-size:16px 
 
-    %% subgraphs
-    %% style Function fill:#FFF,color:#000,stroke:#333,font-size:14px %%
-    %% style BrowserStep stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:14px  %%
-    %% style Debugger fill:#F8F8FA,color:#000,stroke:#4CB7DB,stroke-width:3px,rx:10,ry:10,font-size:14px %%
-    
-    %% nodes 
-    %% style Running fill:#FFF,color:#000,stroke:#333,rx:10,ry:10,font-size:14px %%
-    %% style Encounter fill:#4CBB9D,color:#FFFFFF,stroke:none,rx:10,ry:10,font-size:14px %%
-    %% style Step1 fill:#4CB7DB,color:#000,stroke:none,rx:15,ry:15,font-size:14px %%
-    %% style Step2 fill:#4CB7DB,color:#000,stroke:none,rx:10,ry:10,font-size:14px %%
-    %% style ExitBrowser fill:#4CBB9D,color:#FFFFFF,stroke:none,rx:20,ry:10,font-size:14px %%
-    %% style Resume fill:#FFF,color:#000,stroke:#333,rx:10,ry:10,font-size:14px %%
+
 ```
 
 ### Libraries, warnings, and environment variables
@@ -345,25 +333,29 @@ The diagram below gives an overview of how the `VetivierModel()` is converted in
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
 graph TB
-    Mod["<strong>VetiverModel</strong>"] --> VApiCon["<strong>VetiverAPI</strong><br>Wrapper"]
+    Mod(["<strong>VetiverModel</strong>"]) --> VApiCon["<strong>VetiverAPI</strong><br>Wrapper"]
     VApiCon --"generates"--> FastAPI["<strong>FastAPI</strong><br>Routes"]
     
-    FastAPI --> Post("POST /predict")
-    FastAPI --> GetPing("GET /ping") 
-    FastAPI --> GetMeta("GET /metadata")
-    FastAPI --> GetDocs("GET /docs")
+    FastAPI --> Post(["POST /predict"])
+    FastAPI --> GetPing(["GET /ping"]) 
+    FastAPI --> GetMeta(["GET /metadata"])
+    FastAPI --> GetDocs(["GET /docs"])
     
-    CheckProt["<strong>check_prototype=True</strong>"] --> Input["Enable Input<br>Validation"]
+    CheckProt(["<strong>check_prototype=True</strong>"]) --> Input["Enable Input<br>Validation"]
     
     VApiCon --"creates"--> VApiObj("<strong>VetiverAPI</strong><br>object")
     VApiObj --"with"--> AppAttr("<strong>.app</strong> attribute")
     
-    AppAttr --"contains"--> FastAPIApp["<strong>FastAPI</strong> application"]
-    
-    style CheckProt stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:18px
-    style Mod stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:18px
-    style VApiCon fill:#e8f5e8,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:18px
-    style FastAPIApp fill:#c8e6c9,stroke:#000,color:#000,stroke-width:2px,rx:10,ry:10,font-size:18px
+    AppAttr --"contains"--> FastAPIApp(["<strong>FastAPI</strong> application"])
+
+    style CheckProt fill:#d8e4ff,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+    style Mod fill:#d8e4ff,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+
+    style Post fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+    style GetPing fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+    style GetMeta fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+    style GetDocs fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
+    style FastAPIApp fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:16px
 ```
 
 ### Print outputs
@@ -430,56 +422,43 @@ To test, create multiple Terminal sessions: one to run the API and a second for 
 ```{mermaid}
 %%| fig-cap: 'Vetiver API creation & testing'
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
 graph TD
-    subgraph T1["<strong>API Server</strong>"]
-        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<strong>VetiverModel</strong>"]
+    subgraph T1["<strong>API</strong>"]
+        RunApi(["Run<br>mod-api.py"]) --"create"--> VetMod["<strong>VetiverModel</strong>"]
         VetMod --"convert to"--> VetAPI["<strong>VetiverAPI</strong>"]
         VetAPI --"extract"--> FastAPI(["<strong>FastAPI</strong>"])
     end
+
+    style T1 font-size:14px
     
-    subgraph T2["<strong>API Testing</strong>"]
-        Curl["<strong>curl</strong><br>commands"] --> ManPostReq["Manual<br>POST<br>request"]
+    subgraph T2["<strong>Test</strong>"]
+        Curl(["<strong>curl</strong><br>commands"]) --> ManPostReq["Manual<br>POST<br>request"]
         ManPostReq --> FastAPI
         FastAPI --> JSONReq["JSON<br>Response<br>Test"]
         JSONReq --> VerAPI(["Verify<br>API Works"])
     end
+
+    style T2 font-size:14px
     
    subgraph Browse["<strong>Browser</strong>"]
-        Http["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"] --"<strong>/docs</strong>"--> Docs(["API Docs"])
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<strong>/docs</strong>"--> Docs(["API Docs"])
         Http --"<strong>/ping</strong>"--> Health(["Health Check"])
         Http --"<strong>/metadata</strong>"--> Info(["Model Info"])
         Docs & Health & Info --> FastAPI
     end
 
-    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    style Curl fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    
-    style VetMod fill:#ffebee
-    style ManPostReq fill:#ffebee
+    style RunApi fill:#d8e4ff,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style Curl fill:#d8e4ff,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style Http fill:#d8e4ff,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
 
-    style JSONReq fill:#fff3e0
-    style VetAPI fill:#fff3e0
-    
-    style VerAPI fill:#e8f5e8,font-size:18px
-    style FastAPI fill:#e8f5e8,font-size:18px
-    style Docs fill:#e8f5e8,font-size:18px
-    style Health fill:#e8f5e8,font-size:18px
-    style Info fill:#e8f5e8,font-size:18px
+    style VerAPI fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style Info fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style Health fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style Docs fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
+    style FastAPI fill:#31e981,stroke:#000,color:#000,stroke-width:2px,rx:12,ry:12,font-size:14px
 
-    %% subgraph T3["<strong>Shiny App</strong>"]
-    %%     RunApp["Run<br>app-api.py"] --> UI["User<br>Interface"]
-    %%     UI --> HttpPostReq["HTTP<br>POST<br>Request"]
-    %%     HttpPostReq --> FastAPI
-    %%     FastAPI --> JSONResp["JSON<br>Response"]
-    %%     JSONResp --> DispPred["Display<br>Prediction"]
-    %% end
-
-    %% style RunApp fill:#FFF,color:#000,rx:20,ry:20,font-size:16px 
-    %% style HttpPostReq fill:#e1f5fe
-    %% style DispPred fill:#f3e5f5
 ```
 
 ### `ping` (health check)
@@ -567,54 +546,47 @@ Now that we've confirmed our API is running, we can launch our Shiny (for Python
 
 graph TD
     subgraph T1["<strong>API Server</strong>"]
-        RunApi["Run<br>mod-api.py"] --"create"--> VetMod["<strong>VetiverModel</strong>"]
+        RunApi(["Run<br>mod-api.py"]) --"create"--> VetMod["<strong>VetiverModel</strong>"]
         VetMod --"convert to"--> VetAPI["<strong>VetiverAPI</strong>"]
         VetAPI --"extract"--> FastAPI(["<strong>FastAPI</strong>"])
     end
+
+    style RunApi fill:#d8e4ff,color:#000,rx:20,ry:20,font-size:14px
     
     subgraph T2["<strong>API Testing</strong>"]
-        Curl["<strong>curl</strong><br>command"] --> ManPostReq["Manual<br>POST<br>request"]
+        Curl(["<strong>curl</strong><br>command"]) --> ManPostReq["Manual<br>POST<br>request"]
         ManPostReq --> FastAPI
         FastAPI --> JSONReq["JSON<br>Response<br>Test"]
         JSONReq --> VerAPI(["Verify<br>API Works"])
     end
-    
-   subgraph Browse["<strong>Browser</strong>"]
-        Http["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"] --"<strong>/docs</strong>"--> Docs(["API Docs"])
-        Http --"<strong>/ping</strong>"--> Health(["Health Check"])
-        Http --"<strong>/metadata</strong>"--> Info(["Model Info"])
-        Docs & Health & Info --> FastAPI
-    end
 
-    style Http fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    style RunApi fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    style Curl fill:#FFF,color:#000,rx:20,ry:20,font-size:16px
-    
-    style VetMod fill:#ffebee
-    style ManPostReq fill:#ffebee
-
-    style JSONReq fill:#fff3e0
-    style VetAPI fill:#fff3e0
-    
-    style VerAPI fill:#e8f5e8,font-size:18px
-    style FastAPI fill:#e8f5e8,font-size:18px
-    style Docs fill:#e8f5e8,font-size:18px
-    style Health fill:#e8f5e8,font-size:18px
-    style Info fill:#e8f5e8,font-size:18px
+    style Curl fill:#d8e4ff,color:#000,rx:20,ry:20,font-size:14px
 
     subgraph T3["<strong>Shiny App</strong>"]
-       RunApp["Run<br>app-api.py"] --> UI["User<br>Interface"]
+       RunApp(["Run<br>app-api.py"]) --> UI["User<br>Interface"]
        UI --> HttpPostReq["HTTP<br>POST<br>Request"]
        HttpPostReq --> FastAPI
        FastAPI --> JSONResp["JSON<br>Response"]
        JSONResp --> DispPred(["Display<br>Prediction"])
     end
 
-    style RunApp fill:#FFF,color:#000
-    style UI fill:#ffebee,color:#000
-    style HttpPostReq fill:#fff3e0,color:#000
-    style JSONResp fill:#fff3e0,color:#000
-    style DispPred fill:#e8f5e8,font-size:18px
+    style RunApp fill:#d8e4ff,color:#000,rx:20,ry:20,font-size:14px
+    
+   subgraph Browse["<strong>Browser</strong>"]
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<strong>/docs</strong>"--> Docs(["API Docs"])
+        Http --"<strong>/ping</strong>"--> Health(["Health Check"])
+        Http --"<strong>/metadata</strong>"--> Info(["Model Info"])
+        Docs & Health & Info --> FastAPI
+    end
+
+    style Http fill:#d8e4ff,color:#000,rx:20,ry:20,font-size:14px
+
+    style FastAPI fill:#31e981,font-size:14px
+    style VerAPI fill:#31e981,font-size:14px
+    style Docs fill:#31e981,font-size:14px
+    style Health fill:#31e981,font-size:14px
+    style Info fill:#31e981,font-size:14px
+    style DispPred fill:#31e981,font-size:14px
 ```
 
 I'm going to dive a little into the [syntax differences](https://shiny.posit.co/py/docs/comp-r-shiny.html#syntax-differences) between Shiny (R) and Shiny for Python. The application in this lab uses the Shiny for Python Core syntax mode[^core-vs-express], which looks more like Shiny for R. 
@@ -754,9 +726,9 @@ graph TD
     end
     
     %% style A fill:#e1f5fe
-    style A fill:#ffebee,color:#000,font-size:18px
-    style C fill:#e8f5e8,color:#000,font-size:18px
-    style E fill:#fff3e0,color:#000,font-size:18px
+    style A fill:#d8e4ff,color:#000
+    style C fill:#d8e4ff,color:#000
+    style E fill:#d8e4ff,color:#000
 ```
 
 ### Predictions
@@ -861,13 +833,13 @@ I've tried to summarize Python's general reactive philosophy in the diagram belo
 
 graph TB
     subgraph Py["Python Philosophy"]
-        A["<strong>Explicit over<br>Implicit</strong>"] --> A1["Decorators to make<br>behavior clear"]
-        A --> A2["Type conversion<br>is explicit"]
-        A --> A3["Error handling<br>is explicit"]
-        A --> A4["Method calls<br>with parentheses"]
+        A("<strong>Explicit over<br>Implicit</strong>") --> A1("Decorators to make<br>behavior clear")
+        A --> A2("Type conversion<br>is explicit")
+        A --> A3("Error handling<br>is explicit")
+        A --> A4("Method calls<br>with parentheses")
     end
     
-    style A color:#000,font-size:18px
+    style A fill:#d8e4ff,color:#000,font-size:16px
     
 ```
 
@@ -902,8 +874,13 @@ flowchart TD
         I1[/"input.bill_length()"/]
         I2[/"input.species()"/]
         I3[/"input.sex()"/]
-        I4[/"input.predict()"/]
+        I4[/"<strong>input.predict()</strong>"/]
   end
+    style I1 fill:#d8e4ff
+    style I2 fill:#d8e4ff
+    style I3 fill:#d8e4ff
+    style I4 fill:#d8e4ff
+
  subgraph Pred["<strong>Predict</strong>"]
         PredR("<strong>pred()</strong>")
         Req("<strong>request.post()</strong>")
@@ -922,12 +899,11 @@ flowchart TD
     ValsOut -- "<strong>data = vals()</strong>" --> RenPrnt[\"<strong>@render.text()</strong><br><strong>data</strong>"\]
     PredOutReact --> RenTxt[\"<strong>@render.text()</strong><br><strong>result</strong>"\]
     
-    style Req fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style PredR fill:#ffebee,color:#000,font-size:18px
-    style Res fill:#e8f5e8,stroke:#000,color:#000
-    style ValsReact fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style PredOutReact fill:#fff3e0,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style ValsOut fill:#e1f5fe,stroke:#000,color:#000,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style PredR fill:#35605a,color:#fff
+    style ValsReact fill:#35605a,color:#fff
+
+    style RenTxt fill:#31e981
+    style RenPrnt fill:#31e981
 ```
 
 ## Finishing touches

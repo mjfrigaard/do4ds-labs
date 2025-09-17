@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-01">
+<meta name="dcterms.date" content="2025-09-16">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App Logging – DO4DS: Lab Solutions</title>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -42,6 +76,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-9e0e691ba9d940ea6a8e6359c703bc08.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -69,6 +106,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -216,8 +257,36 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#packages" id="toc-packages" class="nav-link active" data-scroll-target="#packages">Packages</a>
+  <ul>
+  <li><a href="#configure-logging" id="toc-configure-logging" class="nav-link" data-scroll-target="#configure-logging">Configure logging</a></li>
+  <li><a href="#api-configuration" id="toc-api-configuration" class="nav-link" data-scroll-target="#api-configuration">API configuration</a></li>
+  <li><a href="#session-token" id="toc-session-token" class="nav-link" data-scroll-target="#session-token">Session token</a>
+  <ul class="collapse">
+  <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
+  <li><a href="#server" id="toc-server" class="nav-link" data-scroll-target="#server">Server</a></li>
+  </ul></li>
+  <li><a href="#params-and-predictions" id="toc-params-and-predictions" class="nav-link" data-scroll-target="#params-and-predictions">Params and Predictions</a>
+  <ul class="collapse">
+  <li><a href="#ui-1" id="toc-ui-1" class="nav-link" data-scroll-target="#ui-1">UI</a></li>
+  <li><a href="#server-1" id="toc-server-1" class="nav-link" data-scroll-target="#server-1">Server</a></li>
+  </ul></li>
+  <li><a href="#system-status" id="toc-system-status" class="nav-link" data-scroll-target="#system-status">System Status</a>
+  <ul class="collapse">
+  <li><a href="#ui-2" id="toc-ui-2" class="nav-link" data-scroll-target="#ui-2">UI</a></li>
+  <li><a href="#api-connection" id="toc-api-connection" class="nav-link" data-scroll-target="#api-connection">API Connection</a></li>
+  <li><a href="#recent-application-logs" id="toc-recent-application-logs" class="nav-link" data-scroll-target="#recent-application-logs">Recent Application Logs</a></li>
+  <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated">Last updated</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -235,7 +304,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-01</p>
+      <p class="date">2025-09-16</p>
     </div>
   </div>
   
@@ -265,8 +334,772 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>The Shiny for Python application from <a href="./py-app-api.html">lab 3</a> will be updated with logging and performance metrics. The diagram below illustrates the model, API, and application architecture.</p>
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+flowchart TD
+   subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
+          I1[/"&lt;strong&gt;input.bill_length()&lt;/strong&gt;"/]
+          I2[/"&lt;strong&gt;input.species()&lt;/strong&gt;"/]
+          I3[/"&lt;strong&gt;input.sex()&lt;/strong&gt;"/]
+          I4[/"&lt;strong&gt;input.predict()&lt;/strong&gt;"/]
+    end
+  
+    %% Style for inputs %%
+    style I1 fill:#fdd9bb,color:#000,font-size:18px
+    style I2 fill:#fdd9bb,color:#000,font-size:18px
+    style I3 fill:#fdd9bb,color:#000,font-size:18px
+    style I4 fill:#c83030,color:#fff,font-size:18px
+    
+   subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
+          PredR("&lt;strong&gt;pred()&lt;/strong&gt;")
+          Req("&lt;strong&gt;request.post()&lt;/strong&gt;")
+    end
+  
+    %% Style for predictions %%
+    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style PredR fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:18px
+  
+   subgraph PredOutReact["&lt;strong&gt;pred_out()&lt;/strong&gt;"]
+          Res(["&lt;strong&gt;result&lt;/strong&gt;"])
+    end
+  
+    style ValsOut fill:#f6ae0e,font-size:18px
+  
+    Req -- Sends HTTP request to server API, waits for response, returns --&gt; PredR
+    PredR -- Checks format,&lt;br&gt;round, add&lt;br&gt; string --&gt; PredOutReact
+    I1 --&gt; ValsReact("&lt;strong&gt;vals()&lt;/strong&gt;")
+    I2 --&gt; ValsReact
+    I3 --&gt; ValsReact
+    I4 -- "&lt;em&gt;&lt;strong&gt;@reactive.event()&lt;/em&gt;&lt;/strong&gt;" --&gt; Req
+    ValsReact -- "as &lt;em&gt;&lt;strong&gt;data_to_send&lt;/em&gt;&lt;/strong&gt;" --&gt; Req
+    ValsReact --&gt; ValsOut(["&lt;strong&gt;vals_out()&lt;/strong&gt;"])
+    ValsOut -- "&lt;em&gt;&lt;strong&gt;data = vals()&lt;/em&gt;&lt;/strong&gt;" --&gt; RenPrnt[\"&lt;strong&gt;@render.text()&lt;br&gt;data&lt;/strong&gt;"\]
+    PredOutReact --&gt; RenTxt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;result&lt;/strong&gt;"\]
+    
+    style ValsReact fill:#fdd9bb,color:#000,font-size:18px
+    style Res fill:#f6ae0e,color:#000,font-size:18px
+    
+    style RenTxt fill:#49297e,color:#fff,font-size:18px
+    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+
+</pre>
+</div>
+<p></p><figcaption> Python Shiny App and API</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>You can access the code for this application in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab4/Python">this folder on GitHub</a>.</p>
+<section id="packages" class="level2">
+<h2 class="anchored" data-anchor-id="packages">Packages</h2>
+<p>In the top of our <code>app-log.py</code> file, we load the following packages.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> shiny <span class="im">import</span> App, render, ui, reactive</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> logging</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="configure-logging" class="level3">
+<h3 class="anchored" data-anchor-id="configure-logging">Configure logging</h3>
+<p>Below we configure the logging in the application with <code>logging</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <code>Path("logs")</code> creates a <a href="https://docs.python.org/3/library/pathlib.html#basic-use"><code>pathlib.Path</code> object</a>, which is our log directory (<code>log_dir</code>). The <code>log_file</code> is created by joining paths with <code>/</code>, which automatically handles path separators for different operating systems.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> setup_logging():</span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Configure logging with file and console output"""</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a>    log_dir <span class="op">=</span> Path(<span class="st">"logs"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-4" class="code-annotation-target"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a>    log_dir.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="3">3</button><span id="annotated-cell-2-6" class="code-annotation-target"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a>    log_file <span class="op">=</span> log_dir <span class="op">/</span> <span class="st">"shiny_app.log"</span></span>
+<span id="annotated-cell-2-7"><a href="#annotated-cell-2-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="4">4</button><span id="annotated-cell-2-8" class="code-annotation-target"><a href="#annotated-cell-2-8" aria-hidden="true" tabindex="-1"></a>    logging.basicConfig(</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="5">5</button><span id="annotated-cell-2-9" class="code-annotation-target"><a href="#annotated-cell-2-9" aria-hidden="true" tabindex="-1"></a>        level<span class="op">=</span>logging.INFO,</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="6">6</button><span id="annotated-cell-2-10" class="code-annotation-target"><a href="#annotated-cell-2-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">format</span><span class="op">=</span><span class="st">'</span><span class="sc">%(asctime)s</span><span class="st"> - </span><span class="sc">%(levelname)s</span><span class="st"> - </span><span class="sc">%(message)s</span><span class="st">'</span>,</span>
+<span id="annotated-cell-2-11"><a href="#annotated-cell-2-11" aria-hidden="true" tabindex="-1"></a>        handlers<span class="op">=</span>[</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="7">7</button><span id="annotated-cell-2-12" class="code-annotation-target"><a href="#annotated-cell-2-12" aria-hidden="true" tabindex="-1"></a>            logging.FileHandler(log_file, mode<span class="op">=</span><span class="st">'a'</span>),</span>
+<span id="annotated-cell-2-13"><a href="#annotated-cell-2-13" aria-hidden="true" tabindex="-1"></a>            logging.StreamHandler()</span>
+<span id="annotated-cell-2-14"><a href="#annotated-cell-2-14" aria-hidden="true" tabindex="-1"></a>        ]</span>
+<span id="annotated-cell-2-15"><a href="#annotated-cell-2-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-2-16"><a href="#annotated-cell-2-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="8">8</button><span id="annotated-cell-2-17" class="code-annotation-target"><a href="#annotated-cell-2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">str</span>(log_file)</span>
+<span id="annotated-cell-2-18"><a href="#annotated-cell-2-18" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="9">9</button><span id="annotated-cell-2-19" class="code-annotation-target"><a href="#annotated-cell-2-19" aria-hidden="true" tabindex="-1"></a>log_file_path <span class="op">=</span> setup_logging()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="10">10</button><span id="annotated-cell-2-20" class="code-annotation-target"><a href="#annotated-cell-2-20" aria-hidden="true" tabindex="-1"></a>logging.info(<span class="st">"Shiny for Python application initialized"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="3" data-code-annotation="1">creates a <code>pathlib.Path</code> object, which is more powerful than a string.</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="4" data-code-annotation="2">creates directory if it doesn’t exist (won’t raise an error if directory already exists)</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="6" data-code-annotation="3">Joins paths using <code>/</code> operator (equivalent to <code>os.path.join(log_dir, "filename")</code>)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="8,15" data-code-annotation="4">Configuration for log level, file format, and handlers.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="9" data-code-annotation="5">Only <code>INFO</code>, <code>WARNING</code>, <code>ERROR</code>, and <code>CRITICAL</code> messages are logged).<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="10" data-code-annotation="6">Every log entry has the same format (<code>timestamp</code> - <code>level</code> - <code>message</code>)</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="12" data-code-annotation="7">Logs accumulate across application restarts<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="17" data-code-annotation="8">Convert <code>Path</code> object to string<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="19" data-code-annotation="9">Store the path (kater used for file monitoring)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="10">10</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="20" data-code-annotation="10">Log app initialization with <code>logging.info()</code></span>
+</dd>
+</dl>
+</div>
+</div>
+<p><a href="https://docs.python.org/3/library/logging.html#logging.basicConfig"><code>logging.basicConfig()</code></a> “<em>does basic configuration for the logging system.</em>” We specify the <code>level</code>, <code>format</code>, and <code>handlers</code>.</p>
+<ul>
+<li><p><code>level</code>: <code>logging.INFO</code> is the “<em>root logger level</em>.” This means <code>DEBUG</code> messages are ignored.</p></li>
+<li><p><code>format</code>: “<em>Defaults to attributes <code>levelname</code>, <code>name</code> and <code>message</code> separated by colons</em>.”</p></li>
+</ul>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    LogMessage([Log&lt;br&gt;created]) --&gt; Logger(Python&lt;br&gt;logger)
+    Logger --&gt; FileHandler(&lt;strong&gt;logging.FileHandler&lt;/strong&gt;)
+    Logger --&gt; ConsoleHandler(&lt;strong&gt;logging.StreamHandler&lt;/strong&gt;)
+    
+    subgraph FH["FileHandler"]
+        FH1["&lt;strong&gt;mode='a'&lt;/strong&gt;&lt;br&gt;(append mode)"]
+        FH2["Creates file if doesn't exist"]
+        FH3(["Writes to: &lt;strong&gt;logs/shiny_app.log&lt;/strong&gt;"])
+    end
+
+    FileHandler -.-&gt; FH1 &amp; FH2 &amp; FH3
+    
+    subgraph SH["StreamHandler"]
+        SH1["Default: &lt;strong&gt;sys.stderr&lt;/strong&gt;"]
+        SH2(["Outputs to console/terminal"])
+        SH3["Real-time display"]
+    end
+
+    ConsoleHandler -.-&gt; SH1 &amp; SH2 &amp; SH3
+    
+    style FileHandler fill:#b3e7b4,color:#000,rx:20,ry:20,font-size:16px
+    style FH1 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    style FH2 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    style FH3 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    
+    style ConsoleHandler fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:16px
+    style SH1 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    style SH2 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    style SH3 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    
+    style FH font-size:16px
+    style SH font-size:16px
+    
+</pre>
+</div>
+<p></p><figcaption> Python logging</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p><code>handlers</code>: these are ‘<em>an iterable of already created handlers to add to the root logger.</em>’</p>
+<ul>
+<li><a href="https://docs.python.org/3/library/logging.handlers.html#logging.FileHandler"><code>FileHandler()</code></a> “<em>sends logging output to a disk file. It inherits the output functionality from <code>StreamHandler</code>.</em>”
+<ul>
+<li><code>mode='a'</code> means previous log entries are preserved<br>
+</li>
+</ul></li>
+<li><a href="https://docs.python.org/3/library/logging.handlers.html#logging.StreamHandler"><code>StreamHandler()</code></a> “<em>sends logging output to streams such as <code>sys.stdout</code>, <code>sys.stderr</code> or any file-like object (or, more precisely, any object which supports <code>write()</code> and <code>flush()</code> methods).</em>”</li>
+</ul>
+<p>This results in the following log in the <strong>Console</strong>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>2025-09-15 06:58:53,346 - INFO - New session started - Session: py_79024</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>And our log file is created in the following directory:</p>
+<div class="sourceCode" id="annotated-cell-4"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>├── app-log.py</span>
+<span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a>├── logs</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="1">1</button><span id="annotated-cell-4-3" class="code-annotation-target"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a>│   └── shiny_app.log</span>
+<span id="annotated-cell-4-4"><a href="#annotated-cell-4-4" aria-hidden="true" tabindex="-1"></a>├── Python.Rproj</span>
+<span id="annotated-cell-4-5"><a href="#annotated-cell-4-5" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="annotated-cell-4-6"><a href="#annotated-cell-4-6" aria-hidden="true" tabindex="-1"></a>└── requirements.txt</span>
+<span id="annotated-cell-4-7"><a href="#annotated-cell-4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-4-8"><a href="#annotated-cell-4-8" aria-hidden="true" tabindex="-1"></a>2 directories, 5 files</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-4" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="3" data-code-annotation="1">New log file!</span>
+</dd>
+</dl>
+</section>
+<section id="api-configuration" class="level3">
+<h3 class="anchored" data-anchor-id="api-configuration">API configuration</h3>
+<p>Below we define the URLs for the API and <code>ping</code> (for the health check).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>api_url <span class="op">=</span> <span class="st">'http://127.0.0.1:8080/predict'</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ping_url <span class="op">=</span> <span class="st">'http://127.0.0.1:8080/ping'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="session-token" class="level3">
+<h3 class="anchored" data-anchor-id="session-token">Session token</h3>
+<p>At the top of our application we’re going to create a <code>ui.div()</code> for displaying the <code>session</code> id.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<section id="ui" class="level4">
+<h4 class="anchored" data-anchor-id="ui">UI</h4>
+<p>Inside the <code>ui.div()</code>, we’ll add some custom CSS styling so the <strong>Session</strong> has persistent visibility (i.e., the element stays visible when the user is scrolling).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ui.div(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    ui.strong(<span class="st">"Session: "</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"session_display"</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    style<span class="op">=</span><span class="st">"position: fixed; top: 10px; right: 10px; z-index: 1000; color: #333; background: #fff; padding: 5px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-div-session.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab4-py-div-session.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<p>The <a href="https://shiny.posit.co/py/api/core/ui.output_text.html"><code>ui.output_text()</code></a> contains an <code>id</code> for the <code>session_display</code>.</p>
+</section>
+<section id="server" class="level4">
+<h4 class="anchored" data-anchor-id="server">Server</h4>
+<p>In the server, we start by creating the <code>session_id</code> object with f-string formatting (<code>f"py_{result}"</code>). This prepends <code>py_</code> to the output (i.e., <code>py_result</code>).<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> The <code>py_</code> prefix is like as a namespace identifier so it’s clear these are Python-generated session IDs (not R, JavaScript, etc.), and provides a consistent format for parsing/filtering logs later.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span style="font-weight: bold; font-size: 1.15em;"><strong>LLM: Session ID Expression Breakdown</strong></span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>I asked Claude ‘How should I create a unique session ID for my Shiny for Python applicaion’ and received the answer below:</p>
+<ul>
+<li><p><code>time.time()</code> is a Python function that returns the current time as a floating-point number representing seconds since the Unix epoch (January 1, 1970, 00:00:00 UTC). The return value includes fractional seconds with microsecond precision, so we get something like <code>1694438318.619247</code> where the decimal portion represents microseconds.</p></li>
+<li><p>Multiplying by 1000 (<code>* 1000</code>) converts the seconds-based timestamp into milliseconds. This transforms <code>1694438318.619247</code> into <code>1694438318619.247</code>, effectively <em>moving the decimal point three places to the right</em>. The fractional part now represents sub-millisecond precision (microseconds), but we’re primarily interested in the whole number milliseconds.</p></li>
+<li><p><code>int()</code> truncates the floating-point number to an integer, discarding the fractional microsecond portion (<code>int(1694438318619.247)</code> becomes <code>1694438318619</code>). This <em>gives us millisecond precision for uniqueness and eliminates the floating-point arithmetic</em> that could cause issues in string formatting or comparisons.</p></li>
+<li><p>The modulo operation (<code>% 100000</code>) with 100,000 takes the remainder when dividing by 100,000. <em>This effectively keeps only the last 5 digits of the timestamp</em>. For example, <code>1694438318619 % 100000 = 18619</code>. This serves multiple purposes:</p>
+<ul>
+<li>it keeps the ID short and human-readable<br>
+</li>
+<li>prevents extremely long session IDs that could cause UI layout issues<br>
+</li>
+<li>maintains reasonable uniqueness since the last 5 digits of a millisecond timestamp cycle through all possibilities</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> server(<span class="bu">input</span>, output, session):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    session_id <span class="op">=</span> <span class="ss">f"py_</span><span class="sc">{</span><span class="bu">int</span>(time.time() <span class="op">*</span> <span class="dv">1000</span>) <span class="op">%</span> <span class="dv">100000</span><span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    logging.info(<span class="ss">f"New session started - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The first log (<code>logging.info</code>) tells us the Shiny session has started.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>2025-09-14 21:29:39,024 - INFO - New session started - Session: py_79024</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>To render the <code>session_id</code>, we define <code>session_display()</code> under the <a href="https://shiny.posit.co/py/api/core/render.text.html"><code>@render.text</code></a> decorator and link this to the <code>id</code> we created in the <a href="https://shiny.posit.co/py/api/core/ui.output_text.html"><code>ui.output_text()</code></a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> session_display():</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> session_id[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-div-session-render.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="img/lab4-py-div-session-render.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    Decorator(["&lt;strong&gt;@render.text&lt;/strong&gt;"]) --"&lt;em&gt;defines&lt;/em&gt;"--&gt; Function("&lt;strong&gt;session_display()&lt;/strong&gt;")
+    Function --&gt; Registration[["Registers with Shiny's&lt;br&gt;reactive system"]]
+    Registration --"&lt;em&gt;binds to&lt;/em&gt;"--&gt; UIBinding("&lt;strong&gt;ui.output_text('session_display')&lt;/strong&gt;")
+    UIBinding --&gt; AutoUpdate(["&lt;strong&gt;Automatically updates&lt;br&gt;UI when called&lt;/strong&gt;"])
+    
+    %% Style for inputs %%
+    style Decorator fill:#49297e,color:#fff,font-size:18px
+    style Registration font-size:14px
+    style Function fill:#f6ae0e,color:#000,rx:20,ry:20,font-size:14px
+    style UIBinding fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:14px
+    style AutoUpdate fill:#cce8cf,color:#000,font-size:14px
+
+</pre>
+</div>
+<p></p><figcaption> Session ID</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="params-and-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="params-and-predictions">Params and Predictions</h3>
+<p>The model parameter inputs (penguin bill length, sex, and species) are described below. The inputs are passed to the API when the <strong>Predict</strong> button is clicked, and a model prediction is returned. The UI for this section of the application hasn’t changed much from the <a href="./py-app-api.html">previous lab</a>, but I’ve included a section for logging and monitoring.</p>
+<section id="ui-1" class="level4">
+<h4 class="anchored" data-anchor-id="ui-1">UI</h4>
+<p>A diagram of the UI hierarchy is below:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph "UI Hierarchy"
+        Card["ui.card() - &lt;strong&gt;'Results'&lt;/strong&gt; container"]
+        Header["ui.card_header() - &lt;strong&gt;Results&lt;/strong&gt;"]
+        InputSection[&lt;strong&gt;Input Values&lt;/strong&gt; section]
+        PredSection[&lt;strong&gt;Predicted Mass&lt;/strong&gt; section]
+    end
+    
+    subgraph "Input Values"
+        InputHeader["ui.h3() - &lt;strong&gt;Input Values&lt;/strong&gt;"]
+        InputDiv["ui.div() - &lt;em&gt;Styled container&lt;/em&gt;"]
+        InputOutput("ui.output_text() &lt;strong&gt;vals_out()&lt;/strong&gt;")
+    end
+    
+    subgraph "Predictions"
+        PredHeader["ui.h3() - &lt;strong&gt;Predicted Mass&lt;/strong&gt;"]
+        PredDiv["ui.div()"]
+        PredOutput("ui.output_text() &lt;strong&gt;pred_out()&lt;/strong&gt;")
+    end
+    
+    Card --&gt; Header
+    Card --&gt; InputSection
+    Card --&gt; PredSection
+    InputSection --&gt; InputHeader
+    InputSection --&gt; InputDiv
+    InputDiv --&gt; InputOutput
+    PredSection --&gt; PredHeader
+    PredSection --"&lt;em&gt;Styled container&lt;/em&gt;"--&gt; PredDiv
+    PredDiv --&gt; PredOutput
+    
+    %% Style for inputs %%
+    %%style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
+    %%style InputSex fill:#fdd9bb,color:#000,font-size:14px
+    %% style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
+
+    %% Style for outputs %%
+    style PredOutput fill:#fdd9bb,color:#000,font-size:14px
+    style InputOutput fill:#fdd9bb,color:#000,font-size:14px
+    
+    
+</pre>
+</div>
+<p></p><figcaption> Predictions (UI)</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The input values are stored in a <code>ui.card()</code> and include the four reactives: <code>input.bill_length()</code>, <code>input.sex()</code>. <code>input.species()</code>, and <code>input.predict()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ui.layout_columns(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    ui.card(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        ui.card_header(<span class="st">"Inputs"</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        ui.input_slider(<span class="bu">id</span><span class="op">=</span><span class="st">"bill_length"</span>, label<span class="op">=</span><span class="st">"Bill Length (mm)"</span>, <span class="bu">min</span><span class="op">=</span><span class="dv">30</span>, <span class="bu">max</span><span class="op">=</span><span class="dv">60</span>, value<span class="op">=</span><span class="dv">45</span>, step<span class="op">=</span><span class="fl">0.1</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        ui.input_select(<span class="bu">id</span><span class="op">=</span><span class="st">"sex"</span>, label<span class="op">=</span><span class="st">"Sex"</span>, choices<span class="op">=</span>[<span class="st">"Male"</span>, <span class="st">"Female"</span>]),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        ui.input_select(<span class="bu">id</span><span class="op">=</span><span class="st">"species"</span>, label<span class="op">=</span><span class="st">"Species"</span>, choices<span class="op">=</span>[<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>]),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        ui.input_action_button(<span class="bu">id</span><span class="op">=</span><span class="st">"predict"</span>, label<span class="op">=</span><span class="st">"Predict"</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Results and Predicted Mass sections omitted...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-param-inputs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="img/lab4-py-param-inputs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<p>Instead of using a sidebar, we place a second <code>ui.card()</code> inside <code>ui.layout_columns()</code> titled <strong>Results</strong> and include the <strong>Input Values</strong> and <strong>Predicted Mass</strong> sections . We can set the <code>ui.card()</code> widths with <code>col_widths=[4, 8]</code>, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the <strong>System Status</strong> section we’ll add below).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>  ui.layout_columns(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inputs section omitted...</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        ui.card(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            ui.card_header(<span class="st">"Results"</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            ui.h3(<span class="st">"Input Values"</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            ui.div(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                ui.output_text(<span class="st">"vals_out"</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            ui.h3(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>            ui.div(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>                ui.output_text(<span class="st">"pred_out"</span>),</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>                style<span class="op">=</span><span class="st">"font-size: 24px; font-weight: bold; text-align: center; padding: 15px; color: #0066cc;"</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    col_widths<span class="op">=</span>[<span class="dv">4</span>, <span class="dv">8</span>]</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-input-vals-prediction.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="img/lab4-py-input-vals-prediction.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<p>These outputs won’t render until we add the corresponding server components.</p>
+</section>
+<section id="server-1" class="level4">
+<h4 class="anchored" data-anchor-id="server-1">Server</h4>
+<p><strong>Input Values</strong></p>
+<p>The reactive values are printed under the <strong>Input Values</strong> section. This display is a plain-text representation of the values being sent to the API.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-12"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-12-1"><a href="#annotated-cell-12-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<span id="annotated-cell-12-2"><a href="#annotated-cell-12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals():</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="1">1</button><span id="annotated-cell-12-3" class="code-annotation-target"><a href="#annotated-cell-12-3" aria-hidden="true" tabindex="-1"></a>        bill_length <span class="op">=</span> <span class="bu">input</span>.bill_length()</span>
+<span id="annotated-cell-12-4"><a href="#annotated-cell-12-4" aria-hidden="true" tabindex="-1"></a>        species <span class="op">=</span> <span class="bu">input</span>.species()</span>
+<span id="annotated-cell-12-5"><a href="#annotated-cell-12-5" aria-hidden="true" tabindex="-1"></a>        sex <span class="op">=</span> <span class="bu">input</span>.sex()</span>
+<span id="annotated-cell-12-6"><a href="#annotated-cell-12-6" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="2">2</button><span id="annotated-cell-12-7" class="code-annotation-target"><a href="#annotated-cell-12-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> bill_length <span class="op">&lt;</span> <span class="dv">30</span> <span class="kw">or</span> bill_length <span class="op">&gt;</span> <span class="dv">60</span>:</span>
+<span id="annotated-cell-12-8"><a href="#annotated-cell-12-8" aria-hidden="true" tabindex="-1"></a>            logging.warning(<span class="ss">f"Bill length out of typical range - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - bill_length: </span><span class="sc">{</span>bill_length<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-12-9"><a href="#annotated-cell-12-9" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="3">3</button><span id="annotated-cell-12-10" class="code-annotation-target"><a href="#annotated-cell-12-10" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> [{</span>
+<span id="annotated-cell-12-11"><a href="#annotated-cell-12-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">"bill_length_mm"</span>: <span class="bu">float</span>(bill_length),</span>
+<span id="annotated-cell-12-12"><a href="#annotated-cell-12-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Chinstrap"</span>: <span class="bu">int</span>(species <span class="op">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="annotated-cell-12-13"><a href="#annotated-cell-12-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Gentoo"</span>: <span class="bu">int</span>(species <span class="op">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="annotated-cell-12-14"><a href="#annotated-cell-12-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">"sex_male"</span>: <span class="bu">int</span>(sex <span class="op">==</span> <span class="st">"Male"</span>)</span>
+<span id="annotated-cell-12-15"><a href="#annotated-cell-12-15" aria-hidden="true" tabindex="-1"></a>        }]</span>
+<span id="annotated-cell-12-16"><a href="#annotated-cell-12-16" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="4">4</button><span id="annotated-cell-12-17" class="code-annotation-target"><a href="#annotated-cell-12-17" aria-hidden="true" tabindex="-1"></a>        logging.debug(<span class="ss">f"Input data prepared - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - data: </span><span class="sc">{</span>json<span class="sc">.</span>dumps(d)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-12-18"><a href="#annotated-cell-12-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> d</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-12" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-12" data-code-lines="3,5" data-code-annotation="1">Reactive inputs</span>
+</dd>
+<dt data-target-cell="annotated-cell-12" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-12" data-code-lines="7,8" data-code-annotation="2">Input validation with logging<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-12" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-12" data-code-lines="10,15" data-code-annotation="3">Create data in LIST format (what API expects)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-12" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-12" data-code-lines="17" data-code-annotation="4">Debug logging (with JSON formatted inputs)</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph Inputs["Reactive Inputs"]
+        InputBillLength[/"&lt;strong&gt;input.bill_length()&lt;/strong&gt;"/]
+        InputSex[/"&lt;strong&gt;input.sex()&lt;/strong&gt;"/]
+        InputSpecies[/"&lt;strong&gt;input.species()&lt;/strong&gt;"/]
+    end
+
+        
+    Validation("Input Validation Logic")
+    APIFormat("API Format&lt;br&gt;Creation")
+    
+    subgraph "Logging Behaviors"
+        ValidationLog(["&lt;strong&gt;logging.warning&lt;/strong&gt; for out-of-range"])
+        DebugLog(["&lt;strong&gt;logging.debug&lt;/strong&gt; for data prep"])
+        SessionLog(["Session-specific logging"])
+    end
+    
+    InputBillLength --&gt; Validation
+    InputSex &amp; InputSpecies --"data&lt;br&gt;transformation"--&gt; APIFormat
+    Validation --&gt; ValidationLog
+    APIFormat --&gt; DebugLog
+    
+    %% Style for inputs %%
+    style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
+    style InputSex fill:#fdd9bb,color:#000,font-size:14px
+    style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
+
+    %% Style for logs %%
+    style ValidationLog fill:#cce8cf,color:#000,font-size:14px
+    style DebugLog fill:#cce8cf,color:#000,font-size:14px
+    style SessionLog fill:#cce8cf,color:#000,font-size:14px
+
+</pre>
+</div>
+<p></p><figcaption> Reactive Inputs</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>To render the reactive <code>vals()</code>, we define <code>vals_out()</code> with <code>@render.text</code> and include a ‘debug’ level log to review/investigate any issues.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-13"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-13-1"><a href="#annotated-cell-13-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-13" data-target-annotation="1">1</button><span id="annotated-cell-13-2" class="code-annotation-target"><a href="#annotated-cell-13-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals_out():</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-13" data-target-annotation="2">2</button><span id="annotated-cell-13-3" class="code-annotation-target"><a href="#annotated-cell-13-3" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> vals()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-13" data-target-annotation="3">3</button><span id="annotated-cell-13-4" class="code-annotation-target"><a href="#annotated-cell-13-4" aria-hidden="true" tabindex="-1"></a>        logging.debug(<span class="ss">f"Displaying input values to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-13" data-target-annotation="4">4</button><span id="annotated-cell-13-5" class="code-annotation-target"><a href="#annotated-cell-13-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f"</span><span class="sc">{</span>data<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-13" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-13" data-code-lines="2" data-code-annotation="1">Define <code>vals_out()</code> for rendering<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-13" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-13" data-code-lines="3" data-code-annotation="2">Dependency on reactive calculation (automatically updates when <code>vals()</code> changes)</span>
+</dd>
+<dt data-target-cell="annotated-cell-13" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-13" data-code-lines="4" data-code-annotation="3">Debug logging of user interactions for monitoring<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-13" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-13" data-code-lines="5" data-code-annotation="4">Simple string conversion</span>
+</dd>
+</dl>
+</div>
+</div>
+<p><strong>Predicted Mass</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.event</span>(<span class="bu">input</span>.predict)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred():</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Enhanced prediction with comprehensive logging"""</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        request_start <span class="op">=</span> time.time()</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        data_to_send <span class="op">=</span> vals()</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        logging.info(<span class="ss">f"Starting prediction request - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - request_data: </span><span class="sc">{</span>json<span class="sc">.</span>dumps(data_to_send)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>            response_time <span class="op">=</span> time.time() <span class="op">-</span> request_start</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>            <span class="co"># update performance metrics </span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>            <span class="co"># (keep for internal tracking)</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>            current_times <span class="op">=</span> request_times()</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>            current_times.append(response_time)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="bu">len</span>(current_times) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>                current_times <span class="op">=</span> current_times[<span class="op">-</span><span class="dv">10</span>:]</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>            request_times.<span class="bu">set</span>(current_times)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>                result <span class="op">=</span> r.json()</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>                <span class="co"># handle different possible response formats  </span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result:</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>                    logging.warning(<span class="ss">f"Unexpected response format - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>                logging.info(<span class="ss">f"Prediction successful - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s - prediction: </span><span class="sc">{</span>prediction<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>                <span class="co"># performance warning</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> response_time <span class="op">&gt;</span> <span class="dv">5</span>:</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>                    logging.warning(<span class="ss">f"Slow API response - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s"</span>)</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> prediction</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>                error_msg <span class="op">=</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>                logging.error(<span class="ss">f"Prediction request failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - status: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>r<span class="sc">.</span>text[:<span class="dv">200</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>                error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> error_msg</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>            error_msg <span class="op">=</span> <span class="ss">f"Connection Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"API connection refused during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>            connection_errors.<span class="bu">set</span>(connection_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>            error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"❌ Connection Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> error_msg</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> requests.exceptions.Timeout:</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>            error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>            logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>            timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>            error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> error_msg</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>            error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>            error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred_out():</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        result <span class="op">=</span> pred()</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(result, (<span class="bu">int</span>, <span class="bu">float</span>)):</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>            display_value <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span><span class="bu">round</span>(result, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> grams"</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>            logging.info(<span class="ss">f"Displaying prediction to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - display_value: </span><span class="sc">{</span>display_value<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> display_value</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="bu">str</span>(result)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f"Connection: </span><span class="sc">{</span>conn_errors<span class="sc">}</span><span class="ss"> | Timeout: </span><span class="sc">{</span>time_errors<span class="sc">}</span><span class="ss"> | Other: </span><span class="sc">{</span>total_errors <span class="op">-</span> conn_errors <span class="op">-</span> time_errors<span class="sc">}</span><span class="ss">"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="system-status" class="level3">
+<h3 class="anchored" data-anchor-id="system-status">System Status</h3>
+<section id="ui-2" class="level4">
+<h4 class="anchored" data-anchor-id="ui-2">UI</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>  ui.card(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>      ui.card_header(<span class="st">"System Status &amp; Monitoring"</span>),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>      ui.card_body(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>          ui.layout_columns(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              ui.div(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                  ui.output_text(<span class="st">"api_status"</span>),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                  ui.div(</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                  ),</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>                  ui.p(</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Last updated: "</span>,</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>              ),</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>              col_widths<span class="op">=</span>[<span class="dv">12</span>]</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="api-connection" class="level4">
+<h4 class="anchored" data-anchor-id="api-connection">API Connection</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    ui.br(),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"api_status"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="recent-application-logs" class="level4">
+<h4 class="anchored" data-anchor-id="recent-application-logs">Recent Application Logs</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  ui.div(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="last-updated" class="level4">
+<h4 class="anchored" data-anchor-id="last-updated">Last updated</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  ui.p(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Last updated: "</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="finishing-touches" class="level2">
+<h2 class="anchored" data-anchor-id="finishing-touches">Finishing touches</h2>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    participant Main as App
+    participant Setup as setup_logging()
+    participant Logger as Logger
+    participant FileReader as @reactive.file_reader
+
+    Main-&gt;&gt;Setup: Call setup_logging()
+    Setup-&gt;&gt;Setup: Configure logging system
+    Setup--&gt;&gt;Main: Return str(log_file_path)
+    
+    Main-&gt;&gt;Main: Store in log_file_path variable
+    Main-&gt;&gt;Logger: logging.info("App initialized")
+    Logger-&gt;&gt;Logger: Write to file &amp; console
+    
+    Main-&gt;&gt;FileReader: @reactive.file_reader(log_file_path)
+    FileReader-&gt;&gt;FileReader: Monitor file for changes
+    FileReader--&gt;&gt;Main: Trigger UI updates when file changes
+</pre>
+</div>
+<p></p><figcaption> Python logging App</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 
 
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://docs.python.org/3/library/logging.html#"><code>logging</code></a> — Logging facility for Python.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Shiny for Python <a href="https://shiny.posit.co/py/docs/ui-html.html#html-tag-objects">HTML tag objects</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals">Formatted string literals</a> “<em>let you include the value of Python expressions inside a string by prefixing the string with <code>f</code> or <code>F</code> and writing expressions as <code>{expression}</code></em>.”<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -735,6 +1568,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

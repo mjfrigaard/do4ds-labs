@@ -22,3 +22,713 @@ co_box(
 )
 ```
 
+The Shiny for Python application from [lab 3](py-app-api.qmd) will be updated with logging and performance metrics. The diagram below illustrates the model, API, and application architecture. 
+
+```{=html}
+<style>
+
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+```
+
+```{mermaid}
+%%| fig-cap: 'Python Shiny App and API'
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+flowchart TD
+   subgraph Inputs["<strong>User Inputs</strong>"]
+          I1[/"<strong>input.bill_length()</strong>"/]
+          I2[/"<strong>input.species()</strong>"/]
+          I3[/"<strong>input.sex()</strong>"/]
+          I4[/"<strong>input.predict()</strong>"/]
+    end
+  
+    %% Style for inputs %%
+    style I1 fill:#fdd9bb,color:#000,font-size:18px
+    style I2 fill:#fdd9bb,color:#000,font-size:18px
+    style I3 fill:#fdd9bb,color:#000,font-size:18px
+    style I4 fill:#c83030,color:#fff,font-size:18px
+    
+   subgraph Pred["<strong>Predict</strong>"]
+          PredR("<strong>pred()</strong>")
+          Req("<strong>request.post()</strong>")
+    end
+  
+    %% Style for predictions %%
+    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
+    style PredR fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:18px
+  
+   subgraph PredOutReact["<strong>pred_out()</strong>"]
+          Res(["<strong>result</strong>"])
+    end
+  
+    style ValsOut fill:#f6ae0e,font-size:18px
+  
+    Req -- Sends HTTP request to server API, waits for response, returns --> PredR
+    PredR -- Checks format,<br>round, add<br> string --> PredOutReact
+    I1 --> ValsReact("<strong>vals()</strong>")
+    I2 --> ValsReact
+    I3 --> ValsReact
+    I4 -- "<em><strong>@reactive.event()</em></strong>" --> Req
+    ValsReact -- "as <em><strong>data_to_send</em></strong>" --> Req
+    ValsReact --> ValsOut(["<strong>vals_out()</strong>"])
+    ValsOut -- "<em><strong>data = vals()</em></strong>" --> RenPrnt[\"<strong>@render.text()<br>data</strong>"\]
+    PredOutReact --> RenTxt[\"<strong>@render.text()</strong><br><strong>result</strong>"\]
+    
+    style ValsReact fill:#fdd9bb,color:#000,font-size:18px
+    style Res fill:#f6ae0e,color:#000,font-size:18px
+    
+    style RenTxt fill:#49297e,color:#fff,font-size:18px
+    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+
+```
+
+You can access the code for this application in [this folder on GitHub](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab4/Python).
+
+## Packages 
+
+In the top of our `app-log.py` file, we load the following packages. 
+
+```{python}
+#| label: packages 
+#| eval: false 
+#| code-fold: false 
+from shiny import App, render, ui, reactive
+import requests
+import json
+import logging
+import time
+import os
+from datetime import datetime
+from pathlib import Path
+```
+
+
+### Configure logging 
+
+Below we configure the logging in the application with `logging`.[^logging] `Path("logs")` creates a [`pathlib.Path` object](https://docs.python.org/3/library/pathlib.html#basic-use), which is our log directory (`log_dir`). The `log_file` is created by joining paths with `/`, which automatically handles path separators for different operating systems. 
+
+[^logging]: [`logging`](https://docs.python.org/3/library/logging.html#) — Logging facility for Python.
+
+
+```{python}
+#| label: setup_logging
+#| eval: false 
+#| code-fold: false 
+def setup_logging():
+    """Configure logging with file and console output"""
+    log_dir = Path("logs")#<1>
+    log_dir.mkdir(exist_ok=True)#<2>
+    
+    log_file = log_dir / "shiny_app.log"#<3>
+    
+    logging.basicConfig( #<4>
+        level=logging.INFO, #<5>
+        format='%(asctime)s - %(levelname)s - %(message)s',  #<6>
+        handlers=[
+            logging.FileHandler(log_file, mode='a'), #<7>
+            logging.StreamHandler()
+        ]
+    ) #<4>
+    
+    return str(log_file) #<8>
+
+log_file_path = setup_logging() #<9>
+logging.info("Shiny for Python application initialized") #<10>
+```
+1. creates a `pathlib.Path` object, which is more powerful than a string. 
+2. creates directory if it doesn't exist (won't raise an error if directory already exists) 
+3. Joins paths using `/` operator (equivalent to `os.path.join(log_dir, "filename")`)  
+4. Configuration for log level, file format, and handlers.    
+5. Only `INFO`, `WARNING`, `ERROR`, and `CRITICAL` messages are logged).  
+6. Every log entry has the same format (`timestamp` - `level` - `message`)
+7. Logs accumulate across application restarts    
+8. Convert `Path` object to string    
+9. Store the path (kater used for file monitoring)      
+10. Log app initialization with `logging.info()`    
+
+
+[`logging.basicConfig()`](https://docs.python.org/3/library/logging.html#logging.basicConfig) "*does basic configuration for the logging system.*" We specify the `level`, `format`, and `handlers`. 
+
+* `level`: `logging.INFO` is the "*root logger level*." This means `DEBUG` messages are ignored.  
+
+* `format`: "*Defaults to attributes `levelname`, `name` and `message` separated by colons*."
+    
+```{mermaid}
+%%| fig-cap: 'Python logging'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    LogMessage([Log<br>created]) --> Logger(Python<br>logger)
+    Logger --> FileHandler(<strong>logging.FileHandler</strong>)
+    Logger --> ConsoleHandler(<strong>logging.StreamHandler</strong>)
+    
+    subgraph FH["FileHandler"]
+        FH1["<strong>mode='a'</strong><br>(append mode)"]
+        FH2["Creates file if doesn't exist"]
+        FH3(["Writes to: <strong>logs/shiny_app.log</strong>"])
+    end
+
+    FileHandler -.-> FH1 & FH2 & FH3
+    
+    subgraph SH["StreamHandler"]
+        SH1["Default: <strong>sys.stderr</strong>"]
+        SH2(["Outputs to console/terminal"])
+        SH3["Real-time display"]
+    end
+
+    ConsoleHandler -.-> SH1 & SH2 & SH3
+    
+    style FileHandler fill:#b3e7b4,color:#000,rx:20,ry:20,font-size:16px
+    style FH1 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    style FH2 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    style FH3 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
+    
+    style ConsoleHandler fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:16px
+    style SH1 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    style SH2 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    style SH3 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
+    
+    style FH font-size:16px
+    style SH font-size:16px
+    
+```
+
+`handlers`: these are '*an iterable of already created handlers to add to the root logger.*' 
+
+* [`FileHandler()`](https://docs.python.org/3/library/logging.handlers.html#logging.FileHandler) "*sends logging output to a disk file. It inherits the output functionality from `StreamHandler`.*"   
+    * `mode='a'` means previous log entries are preserved       
+* [`StreamHandler()`](https://docs.python.org/3/library/logging.handlers.html#logging.StreamHandler) "*sends logging output to streams such as `sys.stdout`, `sys.stderr` or any file-like object (or, more precisely, any object which supports `write()` and `flush()` methods).*"   
+
+This results in the following log in the **Console**:
+
+```{verbatim}
+2025-09-15 06:58:53,346 - INFO - New session started - Session: py_79024
+```
+
+And our log file is created in the following directory: 
+
+```{verbatim}
+├── app-log.py
+├── logs
+│   └── shiny_app.log #<1> 
+├── Python.Rproj
+├── README.md
+└── requirements.txt
+
+2 directories, 5 files
+```
+1. New log file!    
+
+### API configuration 
+
+Below we define the URLs for the API and `ping` (for the health check).
+
+```{python}
+#| label: api
+#| eval: false 
+#| code-fold: false 
+api_url = 'http://127.0.0.1:8080/predict'
+ping_url = 'http://127.0.0.1:8080/ping'
+```
+
+### Session token
+
+At the top of our application we're going to create a `ui.div()` for displaying the `session` id.[^ui-html] 
+
+[^ui-html]: Shiny for Python [HTML tag objects](https://shiny.posit.co/py/docs/ui-html.html#html-tag-objects). 
+
+#### UI
+
+Inside the `ui.div()`, we'll add some custom CSS styling so the **Session** has persistent visibility (i.e., the element stays visible when the user is scrolling).
+
+
+```{python}
+#| label: token-ui
+#| eval: false 
+#| code-fold: false 
+ui.div(
+    ui.strong("Session: "),
+    ui.output_text("session_display"),
+    style="position: fixed; top: 10px; right: 10px; z-index: 1000; color: #333; background: #fff; padding: 5px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+)
+```
+
+![](img/lab4-py-div-session.png){width='100%' fig-align='center'}
+
+The [`ui.output_text()`](https://shiny.posit.co/py/api/core/ui.output_text.html) contains an `id` for the `session_display`. 
+
+#### Server
+
+In the server, we start by creating the `session_id` object with f-string formatting (`f"py_{result}"`). This prepends `py_` to the output (i.e., `py_result`).[^f-string] The `py_` prefix is like as a namespace identifier so it's clear these are Python-generated session IDs (not R, JavaScript, etc.), and provides a consistent format for parsing/filtering logs later.
+
+[^f-string]: [Formatted string literals](https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals) "*let you include the value of Python expressions inside a string by prefixing the string with `f` or `F` and writing expressions as `{expression}`*."
+
+```{r}
+#| label: co_box_session_id
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default", 
+  hsize = "1.15", 
+  size = "1.00", 
+  header = "**LLM: Session ID Expression Breakdown**", 
+  fold = TRUE,
+  contents = "I asked Claude 'How should I create a unique session ID for my Shiny for Python applicaion' and received the answer below:
+  
+- `time.time()` is a Python function that returns the current time as a floating-point number representing seconds since the Unix epoch (January 1, 1970, 00:00:00 UTC). The return value includes fractional seconds with microsecond precision, so we get something like `1694438318.619247` where the decimal portion represents microseconds.
+
+- Multiplying by 1000 (`* 1000`) converts the seconds-based timestamp into milliseconds. This transforms `1694438318.619247` into `1694438318619.247`, effectively *moving the decimal point three places to the right*. The fractional part now represents sub-millisecond precision (microseconds), but we're primarily interested in the whole number milliseconds.
+
+- `int()` truncates the floating-point number to an integer, discarding the fractional microsecond portion (`int(1694438318619.247)` becomes `1694438318619`). This *gives us millisecond precision for uniqueness and eliminates the floating-point arithmetic* that could cause issues in string formatting or comparisons.
+
+- The modulo operation (`% 100000`) with 100,000 takes the remainder when dividing by 100,000. *This effectively keeps only the last 5 digits of the timestamp*. For example, `1694438318619 % 100000 = 18619`. This serves multiple purposes:    
+  - it keeps the ID short and human-readable        
+  - prevents extremely long session IDs that could cause UI layout issues     
+  - maintains reasonable uniqueness since the last 5 digits of a millisecond timestamp cycle through all possibilities     
+  
+"
+)
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+def server(input, output, session):
+    
+    session_id = f"py_{int(time.time() * 1000) % 100000}"
+    logging.info(f"New session started - Session: {session_id}")
+```
+
+The first log (`logging.info`) tells us the Shiny session has started. 
+
+```{verbatim}
+2025-09-14 21:29:39,024 - INFO - New session started - Session: py_79024
+```
+
+To render the `session_id`, we define `session_display()` under the [`@render.text`](https://shiny.posit.co/py/api/core/render.text.html) decorator and link this to the `id` we created in the [`ui.output_text()`](https://shiny.posit.co/py/api/core/ui.output_text.html).
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text
+    def session_display():
+        return session_id[:8]
+```
+
+![](img/lab4-py-div-session-render.png){width='100%' fig-align='center'}
+
+```{mermaid}
+%%| fig-cap: 'Session ID'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    Decorator(["<strong>@render.text</strong>"]) --"<em>defines</em>"--> Function("<strong>session_display()</strong>")
+    Function --> Registration[["Registers with Shiny's<br>reactive system"]]
+    Registration --"<em>binds to</em>"--> UIBinding("<strong>ui.output_text('session_display')</strong>")
+    UIBinding --> AutoUpdate(["<strong>Automatically updates<br>UI when called</strong>"])
+    
+    %% Style for inputs %%
+    style Decorator fill:#49297e,color:#fff,font-size:18px
+    style Registration font-size:14px
+    style Function fill:#f6ae0e,color:#000,rx:20,ry:20,font-size:14px
+    style UIBinding fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:14px
+    style AutoUpdate fill:#cce8cf,color:#000,font-size:14px
+
+```
+
+### Params and Predictions
+
+The model parameter inputs (penguin bill length, sex, and species) are described below. The inputs are passed to the API when the **Predict** button is clicked, and a model prediction is returned. The UI for this section of the application hasn't changed much from the [previous lab](py-app-api.qmd), but I've included a section for logging and monitoring.
+
+#### UI
+
+A diagram of the UI hierarchy is below: 
+
+```{mermaid}
+%%| fig-cap: 'Predictions (UI)'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    subgraph "UI Hierarchy"
+        Card(["ui.card(<strong>'Results'</strong>) container"])
+        Header("ui.card_header(<strong>'Results'</strong>)")
+    end
+    
+    subgraph Inputs["Input Values"]
+        InputHeader("ui.h3(<strong>'Input Values'</strong>)")
+        subgraph iDiv["<strong>ui.div()</strong>"]
+            InpValOut(["ui.output('<strong>vals_out</strong>')"])
+        end
+    end
+    
+    subgraph Preds["Predictions"]
+        PredHeader("ui.h3(<strong>'Predicted Mass'</strong>)")
+        subgraph pDiv["<strong>ui.div()</strong>"]
+            PredOut(["ui.output_text('<strong>pred_out</strong>')"])
+        end
+    end
+    
+    Card --> Header
+    Header --> Inputs
+    Header --> Preds
+    PredHeader --"<em>Styled container</em>" --> pDiv
+    InputHeader --"<em>Styled container</em>" --> iDiv
+    
+    %% Style for inputs %%
+    %%style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
+    %%style InputSex fill:#fdd9bb,color:#000,font-size:14px
+    %% style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
+
+    %% Style for outputs %%
+    %%style PredOutput fill:#fdd9bb,color:#000,font-size:14px
+    %%style InputOutput fill:#fdd9bb,color:#000,font-size:14px
+    
+    
+```
+
+The input values are stored in a `ui.card()` and include the four reactives: `input.bill_length()`, `input.sex()`. `input.species()`, and `input.predict()`.
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+ui.layout_columns(
+    ui.card(
+        ui.card_header("Inputs"),
+        ui.input_slider(id="bill_length", label="Bill Length (mm)", min=30, max=60, value=45, step=0.1),
+        ui.input_select(id="sex", label="Sex", choices=["Male", "Female"]),
+        ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),
+        ui.input_action_button(id="predict", label="Predict")
+    ), 
+    # Results and Predicted Mass sections omitted...
+```
+
+![](img/lab4-py-param-inputs.png){width='70%' fig-align='center'}
+
+Instead of using a sidebar, we place a second `ui.card()` inside `ui.layout_columns()` titled **Results** and include the **Input Values** and **Predicted Mass** sections . We can set the `ui.card()` widths with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+  ui.layout_columns(
+    # Inputs section omitted...
+        ui.card(
+            ui.card_header("Results"),
+            ui.h3("Input Values"),
+            ui.div(
+                ui.output_text("vals_out"),
+                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
+            ),
+            ui.h3("Predicted Mass"),
+            ui.div(
+                ui.output_text("pred_out"),
+                style="font-size: 24px; font-weight: bold; text-align: center; padding: 15px; color: #0066cc;"
+            )
+        ),
+    col_widths=[4, 8]
+  )
+```
+
+![](img/lab4-py-input-vals-prediction.png){width='100%' fig-align='center'}
+
+These outputs won't render until we add the corresponding server components. 
+
+
+
+#### Server
+
+**Input Values**
+
+The reactive values are printed under the **Input Values** section. This display is a plain-text representation of the values being sent to the API. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @reactive.calc
+    def vals():
+        bill_length = input.bill_length() #<1>
+        species = input.species()
+        sex = input.sex() #<1>
+        
+        if bill_length < 30 or bill_length > 60: #<2>
+            logging.warning(f"Bill length out of typical range - Session: {session_id} - bill_length: {bill_length}") #<2>
+        
+        d = [{ #<3>
+            "bill_length_mm": float(bill_length),
+            "species_Chinstrap": int(species == "Chinstrap"),
+            "species_Gentoo": int(species == "Gentoo"),
+            "sex_male": int(sex == "Male")
+        }] #<3>
+        
+        logging.debug(f"Input data prepared - Session: {session_id} - data: {json.dumps(d)}") #<4>
+        return d
+```
+1. Reactive inputs 
+2. Input validation with logging      
+3. Create data in LIST format (what API expects)  
+4. Debug logging (with JSON formatted inputs)   
+
+```{mermaid}
+%%| fig-cap: 'Reactive Inputs'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    subgraph Inputs["Reactive Inputs"]
+        InputBillLength[/"<strong>input.bill_length()</strong>"/]
+        InputSex[/"<strong>input.sex()</strong>"/]
+        InputSpecies[/"<strong>input.species()</strong>"/]
+    end
+
+        
+    Validation("Input Validation Logic")
+    APIFormat("API Format<br>Creation")
+    
+    subgraph "Logging Behaviors"
+        ValidationLog(["<strong>logging.warning</strong> for out-of-range"])
+        DebugLog(["<strong>logging.debug</strong> for data prep"])
+        SessionLog(["Session-specific logging"])
+    end
+    
+    InputBillLength --> Validation
+    InputSex & InputSpecies --"data<br>transformation"--> APIFormat
+    Validation --> ValidationLog
+    APIFormat --> DebugLog
+    
+    %% Style for inputs %%
+    style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
+    style InputSex fill:#fdd9bb,color:#000,font-size:14px
+    style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
+
+    %% Style for logs %%
+    style ValidationLog fill:#cce8cf,color:#000,font-size:14px
+    style DebugLog fill:#cce8cf,color:#000,font-size:14px
+    style SessionLog fill:#cce8cf,color:#000,font-size:14px
+
+```
+
+To render the reactive `vals()`, we define `vals_out()` with `@render.text` and include a 'debug' level log to review/investigate any issues. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text
+    def vals_out(): #<1>
+        data = vals() #<2>
+        logging.debug(f"Displaying input values to user - Session: {session_id}") #<3>
+        return f"{data}" #<4>
+```
+1. Define `vals_out()` for rendering  
+2. Dependency on reactive calculation (automatically updates when `vals()` changes)
+3. Debug logging of user interactions for monitoring  
+4. Simple string conversion   
+
+**Predicted Mass**
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @reactive.calc
+    @reactive.event(input.predict)
+    def pred():
+        """Enhanced prediction with comprehensive logging"""
+        request_start = time.time()
+        data_to_send = vals()
+        
+        logging.info(f"Starting prediction request - Session: {session_id} - request_data: {json.dumps(data_to_send)}")
+        
+        try:
+            print(f"\n=== PREDICTION REQUEST ===")
+            print(f"Sending data to API: {data_to_send}")
+            
+            r = requests.post(api_url, json=data_to_send, timeout=30)
+            response_time = time.time() - request_start
+            
+            # update performance metrics 
+            # (keep for internal tracking)
+            current_times = request_times()
+            current_times.append(response_time)
+            if len(current_times) > 10:
+                current_times = current_times[-10:]
+            request_times.set(current_times)
+            
+            print(f"HTTP Status Code: {r.status_code}")
+            print(f"Raw response text: {r.text}")
+            
+            if r.status_code == 200:
+                result = r.json()
+                print(f"✅ Success! Parsed response: {result}")
+                
+                # handle different possible response formats  
+                if '.pred' in result:
+                    prediction = result['.pred'][0]
+                elif 'predict' in result:
+                    prediction = result['predict'][0]
+                else:
+                    logging.warning(f"Unexpected response format - Session: {session_id} - response: {result}")
+                    return f"Unexpected response format: {result}"
+                
+                logging.info(f"Prediction successful - Session: {session_id} - response_time: {response_time:.3f}s - prediction: {prediction}")
+                
+                # performance warning
+                if response_time > 5:
+                    logging.warning(f"Slow API response - Session: {session_id} - response_time: {response_time:.3f}s")
+                
+                return prediction
+            else:
+                error_msg = f"API Error {r.status_code}: {r.text}"
+                logging.error(f"Prediction request failed - Session: {session_id} - status: {r.status_code} - response: {r.text[:200]}")
+                error_count.set(error_count() + 1)
+                return error_msg
+                
+        except requests.exceptions.ConnectionError as e:
+            error_msg = f"Connection Error: {str(e)}"
+            logging.error(f"API connection refused during prediction - Session: {session_id} - error: {str(e)}")
+            connection_errors.set(connection_errors() + 1)
+            error_count.set(error_count() + 1)
+            print(f"❌ Connection Error: {e}")
+            return error_msg
+        except requests.exceptions.Timeout:
+            error_msg = "Request timed out - API may be overloaded"
+            logging.warning(f"API timeout during prediction - Session: {session_id}")
+            timeout_errors.set(timeout_errors() + 1)
+            error_count.set(error_count() + 1)
+            return error_msg
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            logging.error(f"Unknown prediction error - Session: {session_id} - error: {str(e)}")
+            error_count.set(error_count() + 1)
+            print(f"❌ Error: {e}")
+            return error_msg
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text
+    def pred_out():
+        result = pred()
+        if isinstance(result, (int, float)):
+            display_value = f"{round(result, 1)} grams"
+            logging.info(f"Displaying prediction to user - Session: {session_id} - display_value: {display_value}")
+            return display_value
+        else:
+            return str(result)
+        
+        return f"Connection: {conn_errors} | Timeout: {time_errors} | Other: {total_errors - conn_errors - time_errors}"
+```
+
+
+### System Status
+
+
+#### UI
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+  ui.card(
+      ui.card_header("System Status & Monitoring"),
+      ui.card_body(
+          ui.layout_columns(
+              ui.div(
+                  ui.h5("API Connection:"),
+                  ui.br(),
+                  ui.output_text("api_status"),
+                  ui.br(),
+                  ui.h5("Recent Application Logs:"),
+                  ui.div(
+                      ui.output_text("recent_logs_display"),
+                      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
+                  ),
+                  ui.p(
+                      "Last updated: ",
+                      ui.output_text("log_timestamp"),
+                      style="margin-top: 5px; color: #6c757d; font-size: 12px;"
+                  )
+              ),
+              col_widths=[12]
+          )
+      )
+  )
+```
+
+#### API Connection
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    ui.h5("API Connection:"),
+    ui.br(),
+    ui.output_text("api_status")
+```
+
+#### Recent Application Logs
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+  ui.h5("Recent Application Logs:"),
+  ui.div(
+      ui.output_text("recent_logs_display"),
+      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
+  )
+```
+
+#### Last updated
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+  ui.p(
+      "Last updated: ",
+      ui.output_text("log_timestamp"),
+      style="margin-top: 5px; color: #6c757d; font-size: 12px;"
+  )
+```
+
+## Finishing touches 
+
+
+```{mermaid}
+%%| fig-cap: 'Python logging App'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    participant Main as App
+    participant Setup as setup_logging()
+    participant Logger as Logger
+    participant FileReader as @reactive.file_reader
+
+    Main->>Setup: Call setup_logging()
+    Setup->>Setup: Configure logging system
+    Setup-->>Main: Return str(log_file_path)
+    
+    Main->>Main: Store in log_file_path variable
+    Main->>Logger: logging.info("App initialized")
+    Logger->>Logger: Write to file & console
+    
+    Main->>FileReader: @reactive.file_reader(log_file_path)
+    FileReader->>FileReader: Monitor file for changes
+    FileReader-->>Main: Trigger UI updates when file changes
+```
+

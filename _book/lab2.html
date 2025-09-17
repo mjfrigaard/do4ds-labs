@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-10">
+<meta name="dcterms.date" content="2025-09-17">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 2: Project Architecture – DO4DS: Lab Solutions</title>
@@ -292,7 +292,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-10</p>
+      <p class="date">2025-09-17</p>
     </div>
   </div>
   
@@ -355,17 +355,23 @@ flowchart TD
     Present("Presentation&lt;br&gt;Layer") -.-&gt; Process("Processing&lt;br&gt;Layer")
     Process -.-&gt; Data("Data&lt;br&gt;Layer")
     
-    subgraph UI["User Interface"]
+    subgraph UI["&lt;strong&gt;User Interface&lt;/strong&gt;"]
         Present
     end
     
-    subgraph BL["Business Logic"]
+    subgraph BL["&lt;strong&gt;Business Logic&lt;/strong&gt;"]
         Process
     end
     
-    subgraph DS["Data Storage"]
+    subgraph DS["&lt;strong&gt;Data Storage&lt;/strong&gt;"]
         Data
     end
+    
+    %% #b5c0c5 is a tint of #6b818c
+    style UI fill:#b5c0c5 
+    style BL fill:#d8e4ff
+    style DS fill:#31e981
+    
 </pre>
 </div>
 <p></p></figure><p></p>
@@ -484,7 +490,7 @@ NameError: name 'df' is not defined</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;duckdb.duckdb.DuckDBPyConnection object at 0x13b45c6b0&gt;</code></pre>
+<pre><code>&lt;_duckdb.DuckDBPyConnection object at 0x1336cf830&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>con.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -559,10 +565,11 @@ NameError: name 'df' is not defined</code></pre>
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 flowchart LR
-    RawMod[Raw sklearn model] --&gt; VMod["&lt;strong&gt;VetiverModel()&lt;/strong&gt;&lt;br&gt;wrapper"]
-    VMod --&gt; ModMeta["Model + Metadata"]
-    ModMeta --&gt; Dep["Deployment Ready"]
+    RawMod(["&lt;strong&gt;Raw sklearn model&lt;/strong&gt;"]) --&gt; VMod("&lt;strong&gt;VetiverModel()&lt;/strong&gt;&lt;br&gt;wrapper")
+    VMod --&gt; ModMeta(["&lt;strong&gt;Model + Metadata&lt;/strong&gt;"])
+    ModMeta --&gt; Dep(["&lt;strong&gt;Deployment Ready&lt;/strong&gt;"])
     
     subgraph Vet["&lt;em&gt;What it creates&lt;/em&gt;"]
         InSch("Input Schema")
@@ -577,20 +584,11 @@ flowchart LR
     VMod --&gt; Ver
     VMod --&gt; Api
     VMod --&gt; Ser
-    
-    %% style %%
-    style RawMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style VMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style Vet fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    
-    style InSch fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style ModTypeInfo fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style Ver fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style Api fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style Ser fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    
-    style ModMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style Dep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+
+    %% Style for outputs %%
+    style RawMod fill:#d8e4ff
+    style ModMeta fill:#31e981
+    style Dep fill:#31e981
     
 </pre>
 </div>
@@ -609,30 +607,24 @@ flowchart LR
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
 flowchart LR
-    BrdFldr["&lt;strong&gt;board_folder()&lt;/strong&gt;"] --&gt; FSI[File System Interface]
-    FSI --&gt; VerStor[Versioned Storage]
-    VerStor --&gt; MetaTr[Metadata Tracking]
+    BrdFldr(["&lt;strong&gt;board_folder()&lt;/strong&gt;"]) --&gt; FSI("File System Interface")
+    FSI --&gt; VerStor(["&lt;strong&gt;Versioned Storage&lt;/strong&gt;"])
+    VerStor --&gt; MetaTr(["&lt;strong&gt;Metadata Tracking&lt;/strong&gt;"])
     
-    subgraph BF["What it creates"]
-        DirStr[Directory Structure]
-        VerCont[Version Control]
-        PinMngMnt[Pin Management]
+    subgraph BF["&lt;em&gt;What it creates&lt;/em&gt;"]
+        DirStr("Directory Structure")
+        VerCont("Version Control")
+        PinMngMnt("Pin Management")
     end
     
     FSI --&gt; DirStr
     FSI --&gt; VerCont
     FSI --&gt; PinMngMnt
-    
-    style BrdFldr fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style FSI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style BF fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    
-    style DirStr fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style VerCont fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style PinMngMnt fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    
-    style VerStor fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style MetaTr fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+
+    %% Style for outputs %%
+    style BrdFldr fill:#d8e4ff
+    style VerStor fill:#31e981
+    style MetaTr fill:#31e981
 
 </pre>
 </div>
@@ -667,7 +659,7 @@ flowchart LR
  with vetiver.model_card()
 Writing pin:
 Name: 'penguin_model'
-Version: 20250910T135232Z-aba30</code></pre>
+Version: 20250917T091823Z-aba30</code></pre>
 </div>
 </div>
 <ul>
@@ -677,7 +669,7 @@ Version: 20250910T135232Z-aba30</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpo375sggx/models</code></pre>
+<pre><code>Model saved to: /var/folders/0x/x5wkbhmx0k74tncn9swz7xpr0000gn/T/tmpw0ucccgi/models</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -708,7 +700,7 @@ Version: 20250910T135232Z-aba30</code></pre>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>└── penguin_model
-    └── 20250910T135232Z-aba30
+    └── 20250917T091823Z-aba30
         ├── data.txt
         └── penguin_model.joblib</code></pre>
 </div>
@@ -749,27 +741,25 @@ Version: 20250910T135232Z-aba30</code></pre>
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 flowchart LR
-    Mod["&lt;strong&gt;model&lt;/strong&gt;"] --&gt; VetMod["&lt;strong&gt;VetiverModel(model)&lt;/strong&gt;"]
-    VetMod --&gt; VPW["&lt;strong&gt;vetiver_pin_write()&lt;/strong&gt;"]
-    VPW --&gt; Joblib["Serialized &lt;strong&gt;.joblib&lt;/strong&gt;"]
-    VPW --&gt; Meta["Metadata &lt;strong&gt;.txt&lt;/strong&gt;"]
+    Mod(["&lt;strong&gt;model&lt;/strong&gt;"]) --&gt; VetMod("&lt;strong&gt;VetiverModel(model)&lt;/strong&gt;")
+    VetMod --&gt; VPW("&lt;strong&gt;vetiver_pin_write()&lt;/strong&gt;")
+    VPW --&gt; Joblib(["Serialized &lt;strong&gt;.joblib&lt;/strong&gt;"])
+    VPW --&gt; Meta(["Metadata &lt;strong&gt;.txt&lt;/strong&gt;"])
     
-    Rep["To reproduce"] --&gt; VPR["&lt;strong&gt;vetiver_pin_read()&lt;/strong&gt;"]
+    Rep[["To&lt;br&gt;reproduce..."]] --&gt; VPR("&lt;strong&gt;vetiver_pin_read()&lt;/strong&gt;")
     VPR --&gt; Joblib
     VPR --&gt; Meta
-    VPR --&gt; Recon["Reconstructed&lt;br&gt;&lt;strong&gt;VetiverModel()&lt;/strong&gt;"]
+    VPR --&gt; Recon(["Reconstructed&lt;br&gt;&lt;strong&gt;VetiverModel()&lt;/strong&gt;"])
+
+    %% Style for outputs %%
+    style Mod fill:#d8e4ff
+    style Recon fill:#31e981
+    style Meta fill:#31e981
+    style Joblib fill:#31e981
     
-    style Mod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style VPW fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    
-    style Joblib fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style Meta fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    style Recon fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    
-    style Rep fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style VPR fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+
 </pre>
 </div>
 <p></p><figcaption> vetiver_pin_write()</figcaption> </figure><p></p>
@@ -792,26 +782,24 @@ flowchart LR
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 flowchart LR
-    VetMod["&lt;strong&gt;VetiverModel()&lt;/strong&gt;"] --&gt; VetAPI["&lt;strong&gt;VetiverAPI()&lt;/strong&gt;"]
-    VetAPI --&gt; REST["&lt;strong&gt;REST&lt;/strong&gt; API&lt;br&gt;Server"]
-    REST --&gt; HttpEP["&lt;strong&gt;HTTP&lt;/strong&gt;&lt;br&gt;Endpoints"]
+    VetMod(["&lt;strong&gt;VetiverModel()&lt;/strong&gt;"]) --&gt; VetAPI("&lt;strong&gt;VetiverAPI()&lt;/strong&gt;")
+    VetAPI --&gt; REST("&lt;strong&gt;REST&lt;/strong&gt; API&lt;br&gt;Server")
+    REST --&gt; HttpEP("&lt;strong&gt;HTTP&lt;/strong&gt;&lt;br&gt;Endpoints")
     
-    HttpEP --&gt; Post["&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict"]
-    HttpEP --&gt; GetPing["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping"]
-    HttpEP --&gt; GetProto["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype"]
-    HttpEP --&gt; GetMeta["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata"]
-    
-    style VetMod fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style VetAPI fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style REST fill:#FFF,stroke:#4CBB9D,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    
-    style HttpEP fill:#FFF,stroke:#ff6f69,color:#000,stroke-width:2px,rx:5,ry:5,font-size:15px
-    
-    style Post fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style GetPing fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style GetProto fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
-    style GetMeta fill:#FFF,stroke:#ffcc5c,color:#000,stroke-width:3px,rx:10,ry:10,font-size:16px
+    HttpEP --&gt; Post(["&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict"])
+    HttpEP --&gt; GetPing(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping"])
+    HttpEP --&gt; GetProto(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype"])
+    HttpEP --&gt; GetMeta(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata"])
+
+    %% Style for outputs %%
+    style VetMod fill:#d8e4ff,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style Post fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style GetPing fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style GetProto fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style GetMeta fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
+
 </pre>
 </div>
 <p></p><figcaption> VetiverAPI()</figcaption> </figure><p></p>

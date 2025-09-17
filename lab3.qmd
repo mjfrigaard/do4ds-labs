@@ -64,27 +64,40 @@ graph TB
     subgraph PyApp["Python App"]
         PyCode(["<strong>app-api.py</strong>"])
     end
+
+    style PyCode fill:#d8e4ff,color:#000
     
-    subgraph PyPkg["Python Packages"]
+    subgraph PyPkg["<strong>Python Packages</strong>"]
         DBPkg("DB Package<br/><strong>psycopg2</strong>, <strong>pymysql</strong>, <strong>sqlite3</strong>")
         ODBCPkg("ODBC Package<br/><strong>pyodbc</strong>")
         JDBCPkg("JDBC Package<br/><strong>jaydebeapi</strong>")
     end
     
-    subgraph Driver["Driver Layer"]
+    %%% Tints of #35605a
+    style PyPkg fill:#c2cfcd,color:#000
+
+    subgraph Driver["<strong>Driver Layer</strong>"]
         NatDrv("Native Driver<br/>libpq, MySQL C API")
         ODBCDrv("ODBC Driver<br/>Vendor-specific")
         JDBCDrv("JDBC Driver<br/>.jar files")
     end
+
+    %% Tints of #6b818c
+    style Driver fill:#d2d9dc,color:#000
     
-    subgraph System["System Layer"]
+    subgraph System["<strong>System Layer</strong>"]
         ODBCSys("ODBC Manager<br/>System ODBC")
         JAVASys("Java Runtime<br/>JVM/JRE")
     end
+
+    %% Tints of #00120b
+    style System fill:#cccfce
     
     subgraph DB["Database"]
         DBServ[("<strong>Database Server</strong>")]
     end
+
+    style DBServ fill:#31e981
     
     %% Direct pathway (bypasses system layer)
     PyCode --> DBPkg
@@ -103,11 +116,7 @@ graph TB
     JDBCDrv --> JAVASys
     JAVASys --> DBServ
     
-    style PyCode fill:#f3e5f5
-    style DBPkg fill:#e1f5fe
-    style ODBCPkg fill:#fff3e0
-    style JDBCPkg fill:#e8f5e8
-    style DBServ fill:#4caf50,color:#fff
+
 ```
 
 
@@ -121,34 +130,49 @@ In R, the **`DBI` package provides a universal interface** (same code works acro
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TB
-    subgraph "R App"
-        A("<strong>app-api.R</strong>")
+    subgraph RApp["<strong>R App</strong>"]
+        A(["<strong>app-api.R</strong>"])
     end
+
+    style A fill:#d8e4ff,color:#000
     
-    subgraph "R Packages"
+    subgraph RPkgs["<strong>R Packages</strong>"]
         B("DB Packages<br/><strong>RPostgres</strong>, <strong>RMySQL</strong>, <strong>RSQLite</strong>")
         C("ODBC Package<br/><strong>odbc</strong>")
         D("JDBC Package<br/><strong>RJDBC</strong>")
     end
+
+    %%% Tints of #35605a
+    style RPkgs fill:#c2cfcd,color:#000
     
-    subgraph "R Standard Interface"
+    subgraph DBI["<strong>R Standard Interface</strong>"]
         E("DBI<br/>Database Interface")
     end
+
+    %% Tints of #6b818c
+
     
-    subgraph "Driver Layer"
+    subgraph Driver["<strong>Driver Layer</strong>"]
         F("Native Driver<br/>libpq, MySQL C API")
         G("ODBC Driver<br/>Vendor-specific")
         H("JDBC Driver<br/>.jar files")
     end
+
+    %% Tints of #6b818c
+    style Driver fill:#d2d9dc,color:#000
     
-    subgraph "System Layer"
+    subgraph System["<strong>System Layer</strong>"]
         I("ODBC Manager<br/>System ODBC")
         J("Java Runtime<br/>JVM/JRE")
     end
+
+    style System fill:#cccfce
     
-    subgraph "Database"
+    subgraph DB["<strong>Database</strong>"]
         K[("<strong>Database Server</strong>")]
     end
+
+    style K fill:#31e981
     
     %% All paths go through DBI
     A --> B
@@ -172,12 +196,6 @@ graph TB
     H --> J
     J --> K
     
-    style A fill:#f3e5f5
-    style E fill:#e1f5fe
-    style B fill:#c8e6c9
-    style C fill:#fff3e0
-    style D fill:#e8f5e8
-    style K fill:#4caf50,color:#fff
 ```
 
 Both R and Python native database drivers bypass the system layer and connect directly to databases. The system layer is only involved when using ODBC or JDBC connections.
@@ -186,19 +204,23 @@ Both R and Python native database drivers bypass the system layer and connect di
 %%| fig-cap: 'DB Connection Mental Model Differences'
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 graph TD
-    subgraph "R Philosophy"
-        A[DBI as Universal Interface] --> B[All paths converge to DBI]
-        B --> C[Consistent API regardless of driver]
+    subgraph RPhil["R Philosophy"]
+        A(["DBI as Universal Interface"]) --> B("All paths converge to DBI")
+        B --> C(["Consistent API regardless of driver"])
     end
     
-    subgraph "Python Philosophy"
-        D[DB-API 2.0 as Standard] --> E[Multiple competing approaches]
-        E --> F[Choose best tool for job]
+    subgraph PyPhil["Python Philosophy"]
+        D(["DB-API 2.0 as Standard"]) --> E("Multiple competing approaches")
+        E --> F(["Choose best tool for job"])
     end
     
-    style B fill:#e1f5fe
-    style E fill:#fff3e0
+    style A fill:#d8e4ff
+    style D fill:#d8e4ff
+
+    style C fill:#31e981
+    style F fill:#31e981
     
 ```
 
@@ -212,17 +234,20 @@ In general, APIs are like the digital 'plumbing' that makes connections between 
 %%| fig-cap: 'APIs'
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+
 graph LR
-    DS["Data Scientist"] --> Req["API Request"]
+    DS(["Data Scientist"]) --> Req["API Request"]
     Req --> ApiServ["API Server"]
     ApiServ --> DataProcMod["Data Processing/Model"]
-    DataProcMod --> Res["Results"]
+    DataProcMod --> Res(["Results"])
     Res --> ApiServ
-    ApiServ --> APIResp["API Response"]
+    ApiServ --> APIResp(["API Response"])
     APIResp --> DS
     
-    style ApiServ fill:#e1f5fe
-    style DataProcMod fill:#f3e5f5
+    style DS fill:#d8e4ff
+    style Res fill:#31e981
+    style APIResp fill:#31e981
+    
 ```
 
 APIs have standardized language that allows different software systems to communicate and share functionality (without needing to understand how the internal implementation works).
@@ -241,28 +266,29 @@ APIs have standardized language that allows different software systems to commun
 
 graph LR
 	subgraph "Python APIs"
-		A2[Python Code] --> B2[requests package]
-		B2 --> C2[requests.method call]
-		C2 --> D2[method parameter<br/>GET/POST/PUT/DELETE]
-		C2 --> E2[headers parameter<br/>dict of headers]
-		C2 --> F2[params parameter<br/>URL query parameters]
-		C2 --> G2[json parameter<br/>Request payload]
-		D2 --> H2[HTTP Request]
+		A2(["<strong>Python Code</strong>"]) --> B2("<strong>requests</strong> package")
+		B2 --> C2("<strong>requests.method</strong> call")
+		C2 --> D2("<strong>method</strong> parameter<br/>GET/POST/PUT/DELETE")
+		C2 --> E2("<strong>headers</strong> parameter<br/>dict of headers")
+		C2 --> F2("<strong>params</strong> parameter<br/>URL query parameters")
+		C2 --> G2("<strong>json</strong> parameter<br/>Request payload")
+		D2 --> H2("HTTP Request")
 		E2 --> H2
 		F2 --> H2
 		G2 --> H2
-		H2 --> I2[API Server]
-		I2 --> J2[HTTP Response]
-		J2 --> K2[response.status_code<br/>200, 404, 500, etc.]
-		J2 --> L2[response.headers<br/>Response metadata]
-		J2 --> M2[response.json<br/>JSON parsing]
-		K2 --> N2[Python Response Object]
+		H2 --> I2["API Server"]
+		I2 --> J2["HTTP Response"]
+		J2 --> K2["<strong>response.status_code</strong><br/>200, 404, 500, etc."]
+		J2 --> L2["<strong>response.headers</strong><br/>Response metadata"]
+		J2 --> M2["<strong>response.json</strong><br/>JSON parsing"]
+		K2 --> N2(["<strong>Python Response Object</strong>"])
 		L2 --> N2
 		M2 --> N2
 	end
 
-style B2 fill:#fff3e0
-style I2 fill:#e8f5e8
+    style A2 fill:#d8e4ff
+    style N2 fill:#31e981
+    
 ```
 
 #### R APIs
@@ -272,13 +298,13 @@ style I2 fill:#e8f5e8
 
 graph LR
     subgraph RApi["R APIs"]
-        A1["R Code"] --> B1["<strong>httr2</strong><br>package"]
-        B1 --> C1["<strong>request()</strong> object"]
-        C1 --> D1["<strong>req_method()</strong><br/>GET/POST/PUT/DELETE"]
-        C1 --> E1["<strong>req_headers()</strong><br/>Content-Type, Auth, etc."]
-        C1 --> F1["<strong>req_url_query()</strong><br/>?param=value&key=data"]
-        C1 --> G1["<strong>req_body_json()</strong><br/>Request payload"]
-        D1 --> H1["HTTP Request"]
+        A1(["R Code"]) --> B1["<strong>httr2</strong><br>package"]
+        B1 --> C1("<strong>request()</strong> object")
+        C1 --> D1("<strong>req_method()</strong><br/>GET/POST/PUT/DELETE")
+        C1 --> E1("<strong>req_headers()</strong><br/>Content-Type, Auth, etc.")
+        C1 --> F1("<strong>req_url_query()</strong><br/>?param=value&key=data")
+        C1 --> G1("<strong>req_body_json()</strong><br/>Request payload")
+        D1 --> H1("HTTP Request")
         E1 --> H1
         F1 --> H1
         G1 --> H1
@@ -287,13 +313,13 @@ graph LR
         J1 --> K1["<strong>resp_status()</strong><br/>200, 404, 500, etc."]
         J1 --> L1["<strong>resp_headers()</strong><br/>Response metadata"]
         J1 --> M1["<strong>resp_body_json()</strong><br/>JSON parsing"]
-        K1 --> N1["R Response Object"]
+        K1 --> N1(["R Response Object"])
         L1 --> N1
         M1 --> N1
     end
-	
-style B1 fill:#e1f5fe
-style I1 fill:#e8f5e8
+
+    style A1 fill:#d8e4ff
+    style N1 fill:#31e981
 ```
 
 > ***3. How can environment variables be used to keep secrets secure in your code?***

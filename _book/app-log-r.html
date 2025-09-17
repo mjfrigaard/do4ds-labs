@@ -286,6 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated">Last updated</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
   </ul>
 </nav>
     </div>
@@ -458,22 +459,24 @@ graph TD
 </section>
 <section id="app-startup" class="level3">
 <h3 class="anchored" data-anchor-id="app-startup">App startup</h3>
-<p>Log app startup within observer to access session data (high priority to run early)</p>
+<p>We’ll start by logging the application startup within an observer to access session data (high <code>priority</code> to run early).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observe</span>({</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    logger<span class="sc">::</span><span class="fu">log_info</span>(<span class="st">"Shiny app started - Session: {session$token} - Host: {session$clientData$url_hostname}"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">priority =</span> <span class="dv">1000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>This log records when a new user session begins with the session token and client information for user tracking and session management.</p>
 </section>
 <section id="user-interactions" class="level3">
 <h3 class="anchored" data-anchor-id="user-interactions">User interactions</h3>
-<p>Track user interactions (<code>throttle</code> to avoid excessive logging).</p>
+<p>We’ll also track user interactions (but <code>throttle</code> to avoid excessive logging).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-overflow-wrap code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">observe</span>({</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  logger<span class="sc">::</span><span class="fu">log_debug</span>(<span class="st">"User input changed - Session: {session$token} - bill_length: {input$bill_length} - species: {input$species} - sex: {input$sex}"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> </span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">throttle</span>(<span class="dv">2000</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>This log captures user input changes for debugging user interaction flows and input validation issues.</p>
 </section>
 <section id="session-token" class="level3">
 <h3 class="anchored" data-anchor-id="session-token">Session token</h3>
@@ -785,6 +788,7 @@ graph TD
 </dl>
 </div>
 </div>
+<p>The <code>tryCatch()</code> handles all possible API communication failures (network issues, timeouts, malformed responses, etc.) and provides meaningful error messages (instead of crashing the application).</p>
 <p>After clicking <strong>Predict</strong>, the response from the API displays the predicted penguin mass in grams:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -906,6 +910,7 @@ graph TD
 </dl>
 </div>
 </div>
+<p>The <code>tryCatch()</code> prevents the application from crashing when the external API is unreachable or returns unexpected responses. This ensures ‘graceful’ failures of our health check display.</p>
 <div>
 
 </div>
@@ -952,8 +957,8 @@ flowchart TD
         Q(["User&lt;br&gt;inputs"])
         R(["API&lt;br&gt;calls"])
         S(["System&lt;br&gt;events"])
-        %% T@{ shape: rect, label: "&lt;code&gt;logger::log_&lt;/code&gt;*&lt;br&gt;functions" }
-        T["&lt;code&gt;logger::log_&lt;/code&gt;*&lt;br&gt;functions"]
+        %% T@{ shape: rect, label: "&lt;strong&gt;logger::log_&lt;/strong&gt;*&lt;br&gt;functions" }
+        T["&lt;strong&gt;logger::log_&lt;/strong&gt;*&lt;br&gt;functions"]
   end
 
     Q --&gt; T
@@ -962,8 +967,8 @@ flowchart TD
     T -- "&lt;em&gt;Written to&lt;/em&gt;"--&gt; A
 
  subgraph FileSys["File System"]
-        %% A@{ shape: lin-doc, label: "&lt;code&gt;shiny_app.log&lt;/code&gt;" }
-        A[\"Log file: &lt;code&gt;shiny_app.log&lt;/code&gt;"\]
+        %% A@{ shape: lin-doc, label: "&lt;strong&gt;shiny_app.log&lt;/strong&gt;" }
+        A[\"Log file: &lt;strong&gt;shiny_app.log&lt;/strong&gt;"\]
         A1("Modification&lt;br&gt;Time")
         A2("File&lt;br&gt;Contents")
   end
@@ -971,11 +976,11 @@ flowchart TD
     A -."&lt;em&gt;changes trigger&lt;/em&gt;".-&gt; B
 
  subgraph ReactFile["Reactive File"]
-        %% B@{ shape: subproc, label: "&lt;code&gt;reactiveFileReader()&lt;/code&gt;" }
-        B{{"&lt;code&gt;reactiveFileReader() &lt;/code&gt;"}}
+        %% B@{ shape: subproc, label: "&lt;strong&gt;reactiveFileReader()&lt;/strong&gt;" }
+        B{{"&lt;strong&gt;reactiveFileReader() &lt;/strong&gt;"}}
         C{"Log file&lt;br&gt;exists?"}
         D("&lt;strong&gt;lines&lt;br&gt;last_mod&lt;br&gt;total_lines&lt;/strong&gt;")
-        E("&lt;strong&gt;lines&lt;/strong&gt;:&lt;code&gt;character(0)&lt;/code&gt;&lt;br&gt;&lt;strong&gt;last_mod&lt;/strong&gt;:&lt;code&gt;Sys.time()&lt;/code&gt;&lt;br&gt;&lt;strong&gt;total_lines&lt;/strong&gt;:&lt;code&gt;0&lt;/code&gt;")
+        E("&lt;strong&gt;lines&lt;/strong&gt;:&lt;strong&gt;character(0)&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;last_mod&lt;/strong&gt;:&lt;strong&gt;Sys.time()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;total_lines&lt;/strong&gt;:&lt;strong&gt;0&lt;/strong&gt;")
   end
     
     B --"&lt;em&gt;checks every 1 second&lt;/em&gt;"--&gt; C
@@ -1061,15 +1066,15 @@ flowchart TD
 
 flowchart TD
 
-  A{{"&lt;code&gt;reactiveFileReader()&lt;/code&gt; "}}
+  A{{"&lt;strong&gt;reactiveFileReader()&lt;/strong&gt; "}}
 
  subgraph LogProc["Log Processing"]
-        H(["Reads &lt;code&gt;shiny_app.log&lt;/code&gt;"])
-        I{"More than 5 lines in &lt;code&gt;total_lines&lt;/code&gt;?"}
+        H(["Reads &lt;strong&gt;shiny_app.log&lt;/strong&gt;"])
+        I{"More than 5 lines in &lt;strong&gt;total_lines&lt;/strong&gt;?"}
         J("Print last 5 lines")
         K("Print all lines")
-        L["Format: &lt;code&gt;paste(lines,&lt;/code&gt;&lt;br&gt;&lt;code&gt;collapse = '\\n')&lt;/code&gt;"]
-        M["Return:&lt;br&gt;&lt;code&gt;'No logs available'&lt;/code&gt;"]
+        L["Format: &lt;strong&gt;paste(lines,&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;collapse = '\\n')&lt;/strong&gt;"]
+        M["Return:&lt;br&gt;&lt;strong&gt;'No logs available'&lt;/strong&gt;"]
   end
 
     A --&gt; H
@@ -1081,23 +1086,23 @@ flowchart TD
     H -- "&lt;em&gt;No lines&lt;/em&gt;"--&gt; M
 
  subgraph UI["UI Rendering"]
-     N[/"&lt;code&gt;log_file_content()&lt;/code&gt;"/]
-     subgraph P["Display in &lt;code&gt;div&lt;/code&gt;"]
-         O["&lt;code&gt;verbatimTextOutput(recent_logs)&lt;/code&gt;"]
+     N[/"&lt;strong&gt;log_file_content()&lt;/strong&gt;"/]
+     subgraph P["Display in &lt;strong&gt;div&lt;/strong&gt;"]
+         O["&lt;strong&gt;verbatimTextOutput(recent_logs)&lt;/strong&gt;"]
      end
   end
   
   L &amp; M --&gt; N
   N --&gt; P
 
-  style A fill:#d08300,stroke:#d08300,color:#ffffff,rx:12,ry:12,text-align:center
-  style H fill:#216654,stroke:#216654,color:#ffffff,rx:12,ry:12,text-align:center
+  style A fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,text-align:center
+  style H fill:#216654,stroke:#216654,color:#fff,rx:12,ry:12,text-align:center
   
-  style L fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
-  style M fill:#40915d,stroke:#216654,color:#ffffff,rx:12,ry:12
+  style L fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
+  style M fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
   
   style N fill:#772f98,color:#fff,text-align:center
-  style O fill:#cc66d3,color:000,text-align:center
+  style O fill:#cc66d3,color:#000,text-align:center
 
 </pre>
 </div>
@@ -1199,15 +1204,40 @@ flowchart TD
 <figcaption>Click on image to enlarge</figcaption>
 </figure>
 </div>
-
-
 </section>
 </section>
+</section>
+<section id="finishing-touches" class="level2">
+<h2 class="anchored" data-anchor-id="finishing-touches">Finishing touches</h2>
+<p>To finish off our app, we’ll include a <code>README.md</code> with instructions for launching the API and application together and capture dependencies with <code>renv</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">'renv'</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The final application folder contains the following:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>├── .Rhistory</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>├── .Rprofile</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>├── .Rproj.user/</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>├── app.R</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>├── renv/</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>├── renv.lock</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>└── shiny_app.log</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>3 directories, 8 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
 <ol>
 <li id="fn1"><p><a href="https://daroczig.github.io/logger/reference/appender_tee.html"><code>appender_tee()</code></a> determines where the logs will be stored and “<em>appends log messages to both console and a file</em>.”<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>“<em>Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.</em> - see the <a href="https://shiny.posit.co/r/reference/shiny/latest/debounce.html"><code>shiny::throttle()</code></a> documentation for more info.”<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 
