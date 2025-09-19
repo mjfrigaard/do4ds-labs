@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-10">
+<meta name="dcterms.date" content="2025-09-18">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App Logging – DO4DS: Lab Solutions</title>
@@ -306,7 +306,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-10</p>
+      <p class="date">2025-09-18</p>
     </div>
   </div>
   
@@ -357,37 +357,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 graph TD
     subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
-    I1[/"&lt;strong&gt;input$bill_length&lt;/strong&gt;"/]
-    I2[/"&lt;strong&gt;input$species&lt;/strong&gt;"/]
-    I3[/"&lt;strong&gt;input$sex&lt;/strong&gt;"/]
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
     I4[/"&lt;strong&gt;input$predict&lt;/strong&gt;"/]
     end
-    
-    %% Style for inputs %%
-    style I1 fill:#fdd9bb,color:#000,font-size:18px
-    style I2 fill:#fdd9bb,color:#000,font-size:18px
-    style I3 fill:#fdd9bb,color:#000,font-size:18px
-    style I4 fill:#f9a0a0,color:#000,font-size:18px
-    
 
     subgraph API["&lt;strong&gt;plumber API&lt;/strong&gt;"]
       ModBoard("&lt;strong&gt;pins::board_folder()&lt;/strong&gt;")
       ModPin("&lt;strong&gt;vetiver::vetiver_pin_read()&lt;/strong&gt;")
       ModRout("&lt;strong&gt;plumber::pr()&lt;/strong&gt;") 
       ModApi("&lt;strong&gt;vetiver::vetiver_api()&lt;/strong&gt;") 
-      ApiServ(["Launch&lt;br&gt;API Server"])
+      ApiServ(["&lt;strong&gt;Launch&lt;br&gt;API Server&lt;/strong&gt;"])
       ModBoard --"&lt;em&gt;connect to model board&lt;/em&gt;"--&gt; ModPin 
       ModPin --"&lt;em&gt;read pinned vetiver model&lt;/em&gt;"--&gt; ModRout 
       ModRout --"&lt;em&gt;create router&lt;/em&gt;"--&gt; ModApi 
       ModApi --"&lt;em&gt;start API server&lt;/em&gt;"--&gt; ApiServ
     end
-
-    %% Style for API %%
-    style ModBoard fill:#d1f0d2,color:#000,font-size:18px
-    style ModPin fill:#d1f0d2,color:#000,font-size:18px
-    style ModRout fill:#d1f0d2,color:#000,font-size:18px
-    style ModApi fill:#d1f0d2,color:#000,font-size:18px
-    style ApiServ fill:#b3e7b4,font-size:18px
 
     subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
         Req("&lt;strong&gt;httr2::request()&lt;/strong&gt;") --"&lt;em&gt;Creates HTTP&lt;br&gt;request object&lt;/em&gt;"--&gt; Meth("&lt;strong&gt;httr2::req_method()&lt;/strong&gt;")
@@ -396,23 +382,11 @@ graph TD
         BodyJson2("&lt;strong&gt;httr2::resp_body_json()&lt;/strong&gt;")
     end
 
-    %% Style for httr2 %%
-    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style Meth fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson1 fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style Perform fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson2 fill:#82ecf3,color:#000,rx:20,ry:20,font-size:18px
-
     Perform --"&lt;em&gt;Sends HTTP&lt;br&gt;request to&lt;br&gt;server &amp;&lt;br&gt;waits for&lt;br&gt;response&lt;/em&gt;"--&gt; API 
     API --&gt; BodyJson2
    
     Res(["&lt;strong&gt;response$.pred[1]&lt;/strong&gt;"])
     ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;&lt;br&gt;(in &lt;strong&gt;data.frame&lt;/strong&gt;)"])
-
-    %% Style for reactives %%
-    style Res fill:#f6ae0e,color:#000,font-size:18px
-    style ValsReact fill:#f6ae0e,color:#000,font-size:18px
-
     BodyJson2 --"&lt;em&gt;Extracts JSON&lt;br&gt;response body&lt;br&gt;&amp; converts to&lt;br&gt;R object&lt;/em&gt;"--&gt; Res
     
     I1 --&gt; ValsReact
@@ -425,8 +399,17 @@ graph TD
     ValsReact --&gt; RenPrnt[\"&lt;strong&gt;renderPrint()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;vals()&lt;/strong&gt;"\]
     Res -.-&gt; RenTxt[\"&lt;strong&gt;renderText()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pred()&lt;/strong&gt;"\]
     
-    style RenTxt fill:#49297e,color:#fff,font-size:18px
-    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+    %% Style for inputs %%
+    style I1 fill:#d8e4ff
+    style I2 fill:#d8e4ff
+    style I3 fill:#d8e4ff
+    style I4 fill:#d8e4ff
+    
+    style RenTxt fill:#31e981
+    style RenPrnt fill:#31e981
+    style ApiServ fill:#31e981
+    style Res fill:#35605a,color:#fff
+    style ValsReact fill:#35605a,color:#fff
 
     
 </pre>
@@ -952,57 +935,46 @@ graph TD
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 flowchart TD
-
- subgraph User["Log Generation"]
+     subgraph User["Log Generation"]
         Q(["User&lt;br&gt;inputs"])
         R(["API&lt;br&gt;calls"])
         S(["System&lt;br&gt;events"])
         %% T@{ shape: rect, label: "&lt;strong&gt;logger::log_&lt;/strong&gt;*&lt;br&gt;functions" }
         T["&lt;strong&gt;logger::log_&lt;/strong&gt;*&lt;br&gt;functions"]
-  end
+      end
 
     Q --&gt; T
     R --&gt; T
     S --&gt; T
     T -- "&lt;em&gt;Written to&lt;/em&gt;"--&gt; A
 
- subgraph FileSys["File System"]
-        %% A@{ shape: lin-doc, label: "&lt;strong&gt;shiny_app.log&lt;/strong&gt;" }
-        A[\"Log file: &lt;strong&gt;shiny_app.log&lt;/strong&gt;"\]
+     subgraph FileSys["File System"]
+        A[\"File: &lt;strong&gt;shiny_app.log&lt;/strong&gt;"\]
         A1("Modification&lt;br&gt;Time")
-        A2("File&lt;br&gt;Contents")
-  end
+        A2("Log&lt;br&gt;Contents")
+     end
+  
     A --&gt; A1 &amp; A2
     A -."&lt;em&gt;changes trigger&lt;/em&gt;".-&gt; B
 
- subgraph ReactFile["Reactive File"]
-        %% B@{ shape: subproc, label: "&lt;strong&gt;reactiveFileReader()&lt;/strong&gt;" }
-        B{{"&lt;strong&gt;reactiveFileReader() &lt;/strong&gt;"}}
+    subgraph ReactFile["Reactive File"]
+        B("&lt;strong&gt;reactiveFileReader() &lt;/strong&gt;")
         C{"Log file&lt;br&gt;exists?"}
         D("&lt;strong&gt;lines&lt;br&gt;last_mod&lt;br&gt;total_lines&lt;/strong&gt;")
         E("&lt;strong&gt;lines&lt;/strong&gt;:&lt;strong&gt;character(0)&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;last_mod&lt;/strong&gt;:&lt;strong&gt;Sys.time()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;total_lines&lt;/strong&gt;:&lt;strong&gt;0&lt;/strong&gt;")
-  end
+    end
     
     B --"&lt;em&gt;checks every 1 second&lt;/em&gt;"--&gt; C
     C -- Yes (returns list)--&gt; D
     C -- No (returns empty list)--&gt; E
 
-    style Q fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style R fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style S fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    style T fill:#4ac590,color:#000,rx:20,ry:20,font-size:18px
     
-    style A fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    classDef log fill:#d8e4ff,stroke:#000,stroke-width:1px
+    class A,B,Q,R,S log
     
-    style A1 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
-    style A2 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
-
-    style B fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,font-size:18px
-    
-    style C fill:#f2b857,stroke:#000,color:#000,font-size:18px
-    style D fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
-    style E fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
+    classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
+    class D,E,A1,A2 outcome
     
 </pre>
 </div>
@@ -1065,16 +1037,15 @@ flowchart TD
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 flowchart TD
-
-  A{{"&lt;strong&gt;reactiveFileReader()&lt;/strong&gt; "}}
+  A(["&lt;strong&gt;reactiveFileReader()&lt;/strong&gt; "])
 
  subgraph LogProc["Log Processing"]
-        H(["Reads &lt;strong&gt;shiny_app.log&lt;/strong&gt;"])
+        H("Reads &lt;strong&gt;shiny_app.log&lt;/strong&gt;")
         I{"More than 5 lines in &lt;strong&gt;total_lines&lt;/strong&gt;?"}
         J("Print last 5 lines")
         K("Print all lines")
-        L["Format: &lt;strong&gt;paste(lines,&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;collapse = '\\n')&lt;/strong&gt;"]
-        M["Return:&lt;br&gt;&lt;strong&gt;'No logs available'&lt;/strong&gt;"]
+        L("Format: &lt;strong&gt;paste(lines,&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;collapse = '\\n')&lt;/strong&gt;")
+        M("Return:&lt;br&gt;&lt;strong&gt;'No logs available'&lt;/strong&gt;")
   end
 
     A --&gt; H
@@ -1088,21 +1059,21 @@ flowchart TD
  subgraph UI["UI Rendering"]
      N[/"&lt;strong&gt;log_file_content()&lt;/strong&gt;"/]
      subgraph P["Display in &lt;strong&gt;div&lt;/strong&gt;"]
-         O["&lt;strong&gt;verbatimTextOutput(recent_logs)&lt;/strong&gt;"]
+         O(["&lt;strong&gt;verbatimTextOutput(recent_logs)&lt;/strong&gt;"])
      end
   end
   
   L &amp; M --&gt; N
   N --&gt; P
 
-  style A fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,text-align:center
-  style H fill:#216654,stroke:#216654,color:#fff,rx:12,ry:12,text-align:center
-  
-  style L fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
-  style M fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
-  
-  style N fill:#772f98,color:#fff,text-align:center
-  style O fill:#cc66d3,color:#000,text-align:center
+    style A fill:#d8e4ff,stroke:#000,stroke-width:1px
+    style N fill:#35605a,color:#fff
+    
+    classDef log fill:#d8e4ff,stroke:#000,stroke-width:1px
+    class A log
+    
+    classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
+    class O outcome
 
 </pre>
 </div>
