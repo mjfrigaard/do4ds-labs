@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-16">
+<meta name="dcterms.date" content="2025-09-19">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App Logging – DO4DS: Lab Solutions</title>
@@ -274,14 +274,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#params-and-predictions" id="toc-params-and-predictions" class="nav-link" data-scroll-target="#params-and-predictions">Params and Predictions</a>
   <ul class="collapse">
   <li><a href="#ui-1" id="toc-ui-1" class="nav-link" data-scroll-target="#ui-1">UI</a></li>
-  <li><a href="#server-1" id="toc-server-1" class="nav-link" data-scroll-target="#server-1">Server</a></li>
+  <li><a href="#input-values" id="toc-input-values" class="nav-link" data-scroll-target="#input-values"><strong><em>Input Values</em></strong></a></li>
+  <li><a href="#predicted-mass" id="toc-predicted-mass" class="nav-link" data-scroll-target="#predicted-mass"><strong><em>Predicted Mass</em></strong></a></li>
   </ul></li>
   <li><a href="#system-status" id="toc-system-status" class="nav-link" data-scroll-target="#system-status">System Status</a>
   <ul class="collapse">
   <li><a href="#ui-2" id="toc-ui-2" class="nav-link" data-scroll-target="#ui-2">UI</a></li>
-  <li><a href="#api-connection" id="toc-api-connection" class="nav-link" data-scroll-target="#api-connection">API Connection</a></li>
-  <li><a href="#recent-application-logs" id="toc-recent-application-logs" class="nav-link" data-scroll-target="#recent-application-logs">Recent Application Logs</a></li>
-  <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated">Last updated</a></li>
+  <li><a href="#api-connection" id="toc-api-connection" class="nav-link" data-scroll-target="#api-connection"><strong><em>API Connection</em></strong></a></li>
+  <li><a href="#recent-application-logs" id="toc-recent-application-logs" class="nav-link" data-scroll-target="#recent-application-logs"><strong><em>Recent Application Logs</em></strong></a></li>
+  <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated"><strong><em>Last updated</em></strong></a></li>
   </ul></li>
   </ul></li>
   <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
@@ -304,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-16</p>
+      <p class="date">2025-09-19</p>
     </div>
   </div>
   
@@ -354,50 +355,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
 flowchart TD
-   subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
-          I1[/"&lt;strong&gt;input.bill_length()&lt;/strong&gt;"/]
-          I2[/"&lt;strong&gt;input.species()&lt;/strong&gt;"/]
-          I3[/"&lt;strong&gt;input.sex()&lt;/strong&gt;"/]
-          I4[/"&lt;strong&gt;input.predict()&lt;/strong&gt;"/]
-    end
-  
-    %% Style for inputs %%
-    style I1 fill:#fdd9bb,color:#000,font-size:18px
-    style I2 fill:#fdd9bb,color:#000,font-size:18px
-    style I3 fill:#fdd9bb,color:#000,font-size:18px
-    style I4 fill:#c83030,color:#fff,font-size:18px
-    
-   subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
-          PredR("&lt;strong&gt;pred()&lt;/strong&gt;")
-          Req("&lt;strong&gt;request.post()&lt;/strong&gt;")
-    end
-  
-    %% Style for predictions %%
-    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style PredR fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:18px
-  
-   subgraph PredOutReact["&lt;strong&gt;pred_out()&lt;/strong&gt;"]
-          Res(["&lt;strong&gt;result&lt;/strong&gt;"])
-    end
-  
-    style ValsOut fill:#f6ae0e,font-size:18px
-  
+ subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
+        I1[/"input.bill_length()"/]
+        I2[/"input.species()"/]
+        I3[/"input.sex()"/]
+        I4[/"&lt;strong&gt;input.predict()&lt;/strong&gt;"/]
+  end
+    style I1 fill:#d8e4ff
+    style I2 fill:#d8e4ff
+    style I3 fill:#d8e4ff
+    style I4 fill:#d8e4ff
+
+ subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
+        PredR("&lt;strong&gt;pred()&lt;/strong&gt;")
+        Req("&lt;strong&gt;request.post()&lt;/strong&gt;")
+  end
+ subgraph PredOutReact["&lt;strong&gt;pred_out()&lt;/strong&gt;"]
+        Res(["&lt;strong&gt;result&lt;/strong&gt;"])
+  end
     Req -- Sends HTTP request to server API, waits for response, returns --&gt; PredR
     PredR -- Checks format,&lt;br&gt;round, add&lt;br&gt; string --&gt; PredOutReact
-    I1 --&gt; ValsReact("&lt;strong&gt;vals()&lt;/strong&gt;")
+    I1 --&gt; ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;"])
     I2 --&gt; ValsReact
     I3 --&gt; ValsReact
-    I4 -- "&lt;em&gt;&lt;strong&gt;@reactive.event()&lt;/em&gt;&lt;/strong&gt;" --&gt; Req
-    ValsReact -- "as &lt;em&gt;&lt;strong&gt;data_to_send&lt;/em&gt;&lt;/strong&gt;" --&gt; Req
-    ValsReact --&gt; ValsOut(["&lt;strong&gt;vals_out()&lt;/strong&gt;"])
-    ValsOut -- "&lt;em&gt;&lt;strong&gt;data = vals()&lt;/em&gt;&lt;/strong&gt;" --&gt; RenPrnt[\"&lt;strong&gt;@render.text()&lt;br&gt;data&lt;/strong&gt;"\]
+    I4 -- "&lt;strong&gt;@reactive.event()&lt;/strong&gt;" --&gt; Req
+    ValsReact -- as &lt;strong&gt;data_to_send&lt;/strong&gt; --&gt; Req
+    ValsReact --&gt; ValsOut("&lt;strong&gt;vals_out()&lt;/strong&gt;")
+    ValsOut -- "&lt;strong&gt;data = vals()&lt;/strong&gt;" --&gt; RenPrnt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;data&lt;/strong&gt;"\]
     PredOutReact --&gt; RenTxt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;result&lt;/strong&gt;"\]
     
-    style ValsReact fill:#fdd9bb,color:#000,font-size:18px
-    style Res fill:#f6ae0e,color:#000,font-size:18px
-    
-    style RenTxt fill:#49297e,color:#fff,font-size:18px
-    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+    style PredR fill:#35605a,color:#fff
+    style ValsReact fill:#35605a,color:#fff
+
+    style RenTxt fill:#31e981
+    style RenPrnt fill:#31e981
 
 </pre>
 </div>
@@ -507,38 +498,29 @@ flowchart TD
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph LR
-    LogMessage([Log&lt;br&gt;created]) --&gt; Logger(Python&lt;br&gt;logger)
-    Logger --&gt; FileHandler(&lt;strong&gt;logging.FileHandler&lt;/strong&gt;)
-    Logger --&gt; ConsoleHandler(&lt;strong&gt;logging.StreamHandler&lt;/strong&gt;)
+    LogMessage(["&lt;strong&gt;Log&lt;br&gt;created&lt;/strong&gt;"]) --&gt; Logger("Python&lt;br&gt;logger")
+    Logger --&gt; FileHandler("&lt;strong&gt;logging.FileHandler&lt;/strong&gt;")
+    Logger --&gt; ConsoleHandler("&lt;strong&gt;logging.StreamHandler&lt;/strong&gt;")
     
     subgraph FH["FileHandler"]
-        FH1["&lt;strong&gt;mode='a'&lt;/strong&gt;&lt;br&gt;(append mode)"]
-        FH2["Creates file if doesn't exist"]
-        FH3(["Writes to: &lt;strong&gt;logs/shiny_app.log&lt;/strong&gt;"])
+        FH1("mode='a'&lt;br&gt;(append mode)")
+        FH2("Creates file if doesn't exist")
+        FH3(["&lt;strong&gt;Writes to: logs/shiny_app.log&lt;/strong&gt;"])
     end
 
     FileHandler -.-&gt; FH1 &amp; FH2 &amp; FH3
     
     subgraph SH["StreamHandler"]
-        SH1["Default: &lt;strong&gt;sys.stderr&lt;/strong&gt;"]
-        SH2(["Outputs to console/terminal"])
-        SH3["Real-time display"]
+        SH1("Default: &lt;em&gt;sys.stderr&lt;/em&gt;")
+        SH2(["&lt;strong&gt;Outputs to console/terminal&lt;/strong&gt;"])
+        SH3("Real-time display")
     end
 
     ConsoleHandler -.-&gt; SH1 &amp; SH2 &amp; SH3
-    
-    style FileHandler fill:#b3e7b4,color:#000,rx:20,ry:20,font-size:16px
-    style FH1 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    style FH2 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    style FH3 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    
-    style ConsoleHandler fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:16px
-    style SH1 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    style SH2 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    style SH3 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    
-    style FH font-size:16px
-    style SH font-size:16px
+
+    style LogMessage fill:#d8e4ff
+    style FH3 fill:#31e981
+    style SH2 fill:#31e981
     
 </pre>
 </div>
@@ -662,17 +644,15 @@ graph LR
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TB
-    Decorator(["&lt;strong&gt;@render.text&lt;/strong&gt;"]) --"&lt;em&gt;defines&lt;/em&gt;"--&gt; Function("&lt;strong&gt;session_display()&lt;/strong&gt;")
-    Function --&gt; Registration[["Registers with Shiny's&lt;br&gt;reactive system"]]
-    Registration --"&lt;em&gt;binds to&lt;/em&gt;"--&gt; UIBinding("&lt;strong&gt;ui.output_text('session_display')&lt;/strong&gt;")
+    Decorator(["&lt;strong&gt;@render.text&lt;/strong&gt;"]) --"&lt;em&gt;defines&lt;/em&gt;"--&gt; Function("session_display()")
+    Function --&gt; Registration{{"Registers with Shiny's&lt;br&gt;reactive system"}}
+    Registration --"&lt;em&gt;binds to&lt;/em&gt;"--&gt; UIBinding("ui.output_text('session_display')")
     UIBinding --&gt; AutoUpdate(["&lt;strong&gt;Automatically updates&lt;br&gt;UI when called&lt;/strong&gt;"])
     
-    %% Style for inputs %%
-    style Decorator fill:#49297e,color:#fff,font-size:18px
-    style Registration font-size:14px
-    style Function fill:#f6ae0e,color:#000,rx:20,ry:20,font-size:14px
-    style UIBinding fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:14px
-    style AutoUpdate fill:#cce8cf,color:#000,font-size:14px
+
+    style Decorator fill:#d8e4ff
+    style Registration text-align:center
+    style AutoUpdate fill:#31e981
 
 </pre>
 </div>
@@ -695,44 +675,35 @@ graph TB
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph LR
+graph TD
     subgraph "UI Hierarchy"
-        Card["ui.card() - &lt;strong&gt;'Results'&lt;/strong&gt; container"]
-        Header["ui.card_header() - &lt;strong&gt;Results&lt;/strong&gt;"]
-        InputSection[&lt;strong&gt;Input Values&lt;/strong&gt; section]
-        PredSection[&lt;strong&gt;Predicted Mass&lt;/strong&gt; section]
+        Card(["ui.card(&lt;strong&gt;'Results'&lt;/strong&gt;) container"])
+        Header("ui.card_header(&lt;strong&gt;'Results'&lt;/strong&gt;)")
     end
     
-    subgraph "Input Values"
-        InputHeader["ui.h3() - &lt;strong&gt;Input Values&lt;/strong&gt;"]
-        InputDiv["ui.div() - &lt;em&gt;Styled container&lt;/em&gt;"]
-        InputOutput("ui.output_text() &lt;strong&gt;vals_out()&lt;/strong&gt;")
+    subgraph Inputs["Input Values"]
+        InputHeader("ui.h3(&lt;strong&gt;'Input Values'&lt;/strong&gt;)")
+        subgraph iDiv["&lt;strong&gt;ui.div()&lt;/strong&gt;"]
+            InpValOut(["ui.output('&lt;strong&gt;vals_out&lt;/strong&gt;')"])
+        end
     end
     
-    subgraph "Predictions"
-        PredHeader["ui.h3() - &lt;strong&gt;Predicted Mass&lt;/strong&gt;"]
-        PredDiv["ui.div()"]
-        PredOutput("ui.output_text() &lt;strong&gt;pred_out()&lt;/strong&gt;")
+    subgraph Preds["Predictions"]
+        PredHeader("ui.h3(&lt;strong&gt;'Predicted Mass'&lt;/strong&gt;)")
+        subgraph pDiv["&lt;strong&gt;ui.div()&lt;/strong&gt;"]
+            PredOut(["ui.output_text('&lt;strong&gt;pred_out&lt;/strong&gt;')"])
+        end
     end
     
     Card --&gt; Header
-    Card --&gt; InputSection
-    Card --&gt; PredSection
-    InputSection --&gt; InputHeader
-    InputSection --&gt; InputDiv
-    InputDiv --&gt; InputOutput
-    PredSection --&gt; PredHeader
-    PredSection --"&lt;em&gt;Styled container&lt;/em&gt;"--&gt; PredDiv
-    PredDiv --&gt; PredOutput
-    
-    %% Style for inputs %%
-    %%style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
-    %%style InputSex fill:#fdd9bb,color:#000,font-size:14px
-    %% style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
+    Header --&gt; Inputs
+    Header --&gt; Preds
+    PredHeader --"&lt;em&gt;Styled container&lt;/em&gt;" --&gt; pDiv
+    InputHeader --"&lt;em&gt;Styled container&lt;/em&gt;" --&gt; iDiv
 
-    %% Style for outputs %%
-    style PredOutput fill:#fdd9bb,color:#000,font-size:14px
-    style InputOutput fill:#fdd9bb,color:#000,font-size:14px
+    style Card fill:#d8e4ff
+    style InpValOut fill:#31e981
+    style PredOut fill:#31e981
     
     
 </pre>
@@ -785,10 +756,9 @@ graph LR
 </div>
 <p>These outputs won’t render until we add the corresponding server components.</p>
 </section>
-<section id="server-1" class="level4">
-<h4 class="anchored" data-anchor-id="server-1">Server</h4>
-<p><strong>Input Values</strong></p>
-<p>The reactive values are printed under the <strong>Input Values</strong> section. This display is a plain-text representation of the values being sent to the API.</p>
+<section id="input-values" class="level4">
+<h4 class="anchored" data-anchor-id="input-values"><strong><em>Input Values</em></strong></h4>
+<p>I’ve separated the server code for the <strong>Input Values</strong> and <strong>Predicted Mass</strong> sections below. The user inputs are displayed as a plain-text representation of the values before they are sent to the API.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="annotated-cell-12"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-12-1"><a href="#annotated-cell-12-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
 <span id="annotated-cell-12-2"><a href="#annotated-cell-12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals():</span>
@@ -850,25 +820,23 @@ graph LR
     APIFormat("API Format&lt;br&gt;Creation")
     
     subgraph "Logging Behaviors"
-        ValidationLog(["&lt;strong&gt;logging.warning&lt;/strong&gt; for out-of-range"])
-        DebugLog(["&lt;strong&gt;logging.debug&lt;/strong&gt; for data prep"])
-        SessionLog(["Session-specific logging"])
+        ValidationLog(["&lt;strong&gt;logging.warning for out-of-range&lt;/strong&gt;"])
+        DebugLog(["&lt;strong&gt;logging.debug for data prep&lt;/strong&gt;"])
+        SessionLog(["&lt;strong&gt;Session-specific logging&lt;/strong&gt;"])
     end
     
     InputBillLength --&gt; Validation
     InputSex &amp; InputSpecies --"data&lt;br&gt;transformation"--&gt; APIFormat
     Validation --&gt; ValidationLog
     APIFormat --&gt; DebugLog
-    
-    %% Style for inputs %%
-    style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
-    style InputSex fill:#fdd9bb,color:#000,font-size:14px
-    style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
 
-    %% Style for logs %%
-    style ValidationLog fill:#cce8cf,color:#000,font-size:14px
-    style DebugLog fill:#cce8cf,color:#000,font-size:14px
-    style SessionLog fill:#cce8cf,color:#000,font-size:14px
+    style InputBillLength fill:#d8e4ff
+    style InputSex fill:#d8e4ff
+    style InputSpecies fill:#d8e4ff
+
+    style ValidationLog fill:#31e981
+    style DebugLog fill:#31e981
+    style SessionLog fill:#31e981
 
 </pre>
 </div>
@@ -906,12 +874,22 @@ graph LR
 </dl>
 </div>
 </div>
-<p><strong>Predicted Mass</strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-render-inputs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="img/lab4-py-render-inputs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="predicted-mass" class="level4">
+<h4 class="anchored" data-anchor-id="predicted-mass"><strong><em>Predicted Mass</em></strong></h4>
+<p>The <strong>Predicted Mass</strong> is really the heart of the application, and it’s definitely the most complicated reactive value in the server. The full definition is below, but we’ll dive into each level of logging in the following sections.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>show/hide pred() reactive</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.event</span>(<span class="bu">input</span>.predict)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred():</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Enhanced prediction with comprehensive logging"""</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Prediction with logging"""</span></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        request_start <span class="op">=</span> time.time()</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        data_to_send <span class="op">=</span> vals()</span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        </span>
@@ -980,20 +958,197 @@ graph LR
 <span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>            error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
 <span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The <code>@reactive.calc</code> and <code>@reactive.event(input.predict)</code> decorators override the standard reactive behavior so the <code>pred()</code> function only executes when the <strong>Predict</strong> button is clicked (rather than whenever any input changes). This allows users to adjusting input parameters without sending accidental API calls (and ensures predictions only happen when the user explicitly requests a response).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-15"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="1">1</button><span id="annotated-cell-15-1" class="code-annotation-target"><a href="#annotated-cell-15-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<span id="annotated-cell-15-2"><a href="#annotated-cell-15-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.event</span>(<span class="bu">input</span>.predict)</span>
+<span id="annotated-cell-15-3"><a href="#annotated-cell-15-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred():</span>
+<span id="annotated-cell-15-4"><a href="#annotated-cell-15-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Prediction with logging"""</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="2">2</button><span id="annotated-cell-15-5" class="code-annotation-target"><a href="#annotated-cell-15-5" aria-hidden="true" tabindex="-1"></a>        request_start <span class="op">=</span> time.time()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="3">3</button><span id="annotated-cell-15-6" class="code-annotation-target"><a href="#annotated-cell-15-6" aria-hidden="true" tabindex="-1"></a>        data_to_send <span class="op">=</span> vals()</span>
+<span id="annotated-cell-15-7"><a href="#annotated-cell-15-7" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="4">4</button><span id="annotated-cell-15-8" class="code-annotation-target"><a href="#annotated-cell-15-8" aria-hidden="true" tabindex="-1"></a>        logging.info(<span class="ss">f"Starting prediction request - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - request_data: </span><span class="sc">{</span>json<span class="sc">.</span>dumps(data_to_send)<span class="sc">}</span><span class="ss">"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-15" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="1,2,3" data-code-annotation="1">Stacking these decorators creates a lazy evaluation with manual trigger, where the <code>pred()</code> function is reactive (cached) (but only executes on explicit events).<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="5" data-code-annotation="2">Provides precise millisecond-level stat time of API request.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="6" data-code-annotation="3">Values to be sent to the API.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="8" data-code-annotation="4">The f-string combines <code>{session_id}</code> (prints session ID) and <code>{json.dumps(data_to_send)}</code> (converts the Python data structure into a JSON string) for logging.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>This combines the performance benefits of caching with the user control of manual triggering:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+graph TD
+    subgraph Dec["&lt;strong&gt;Decorator Stack&lt;/strong&gt;"]
+        subgraph CalcDec["&lt;strong&gt;@reactive.calc&lt;/strong&gt;"]
+            Event("&lt;strong&gt;@reactive.event(input.predict)&lt;/strong&gt;")
+            Function("&lt;strong&gt;def pred()&lt;/strong&gt;")
+            Event --"&lt;em&gt;&lt;strong&gt;@reactive.calc&lt;/strong&gt; checks caching layer&lt;/em&gt;"--&gt; Function
+        end
+    end
+    
+
+        ButtonClick(["User clicks &lt;strong&gt;Predict&lt;/strong&gt;"])
+        EventTrigger[Event decorator activates]
+        ExecuteFunction[Function executes]
+        CacheResult(["&lt;strong&gt;Result cached&lt;/strong&gt;"])
+
+    
+
+    ButtonClick --&gt; EventTrigger
+    EventTrigger --"&lt;em&gt;Caching Layer&lt;/em&gt;"---&gt; CalcDec
+    Function ---&gt; ExecuteFunction
+    ExecuteFunction --&gt; CacheResult
+
+    style ButtonClick fill:#d8e4ff
+    style CacheResult fill:#31e981
+    style Function fill:#35605a,color:#fff
+</pre>
+</div>
+<p></p><figcaption> Predicted Values</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+
+flowchart TD
+    subgraph "&lt;strong&gt;Error Flow&lt;/strong&gt;"
+        APIRetError(["&lt;strong&gt;API returns&lt;br&gt;error&lt;/strong&gt;"])
+        StringResult("&lt;strong&gt;pred()&lt;/strong&gt;&lt;br&gt;returns string")
+        TypeCheck("&lt;strong&gt;isinstance()&lt;/strong&gt;&lt;br&gt;check fails")
+        DirectDisplay("Display&lt;br&gt;error")
+    end
+    
+    subgraph "&lt;strong&gt;Errors Displayed&lt;/strong&gt;"
+        ConnError(["&lt;em&gt;&lt;strong&gt;Connection&lt;br&gt;Error: ...&lt;/strong&gt;&lt;/em&gt;"])
+        TimeoutError(["&lt;em&gt;&lt;strong&gt;Request timed&lt;br&gt;out...&lt;/strong&gt;&lt;/em&gt;"])
+        APIError(["&lt;em&gt;&lt;strong&gt;API Error&lt;br&gt;500: ...&lt;/strong&gt;&lt;/em&gt;"])
+        FormatError(["&lt;em&gt;&lt;strong&gt;Unexpected&lt;br&gt;response format&lt;/strong&gt;&lt;/em&gt;"])
+    end
+    
+    APIRetError --&gt; StringResult
+    StringResult --&gt; TypeCheck
+    TypeCheck --&gt; DirectDisplay
+    DirectDisplay --&gt; ConnError
+    DirectDisplay --&gt; TimeoutError
+    DirectDisplay --&gt; APIError
+    DirectDisplay --&gt; FormatError
+
+    style APIRetError fill:#d8e4ff
+    style APIError fill:#31e981
+    style ConnError fill:#31e981
+    style TimeoutError fill:#31e981
+    style FormatError fill:#31e981
+</pre>
+</div>
+<p></p><figcaption> API Errors for Predictions</figcaption> </figure><p></p>
+</div>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred_out():</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        result <span class="op">=</span> pred()</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(result, (<span class="bu">int</span>, <span class="bu">float</span>)):</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>            display_value <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span><span class="bu">round</span>(result, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> grams"</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>            logging.info(<span class="ss">f"Displaying prediction to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - display_value: </span><span class="sc">{</span>display_value<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> display_value</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="bu">str</span>(result)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f"Connection: </span><span class="sc">{</span>conn_errors<span class="sc">}</span><span class="ss"> | Timeout: </span><span class="sc">{</span>time_errors<span class="sc">}</span><span class="ss"> | Other: </span><span class="sc">{</span>total_errors <span class="op">-</span> conn_errors <span class="op">-</span> time_errors<span class="sc">}</span><span class="ss">"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span>:</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      response_time <span class="op">=</span> time.time() <span class="op">-</span> request_start</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      current_times <span class="op">=</span> request_times()</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      current_times.append(response_time)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">len</span>(current_times) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>          current_times <span class="op">=</span> current_times[<span class="op">-</span><span class="dv">10</span>:]</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      request_times.<span class="bu">set</span>(current_times)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>          result <span class="op">=</span> r.json()</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result:</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>              prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>          <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>              prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>          <span class="cf">else</span>:</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>              logging.warning(<span class="ss">f"Unexpected response format - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>              <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>          logging.info(<span class="ss">f"Prediction successful - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s - prediction: </span><span class="sc">{</span>prediction<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> response_time <span class="op">&gt;</span> <span class="dv">5</span>:</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>              logging.warning(<span class="ss">f"Slow API response - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s"</span>)</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> prediction</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">else</span>:</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>          error_msg <span class="op">=</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>          logging.error(<span class="ss">f"Prediction request failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - status: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>r<span class="sc">.</span>text[:<span class="dv">200</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>          error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> error_msg</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Connection Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"API connection refused during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>        connection_errors.<span class="bu">set</span>(connection_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Connection Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.Timeout:</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>        logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>        timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>The <code>@render.text</code> decorator defines the <code>pred_out()</code> function, which doesn’t receive the prediction value as a parameter. Instead, it calls <code>pred()</code> directly, creating an implicit reactive dependency.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="at">@render.text</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pred_out():</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> pred()  <span class="co"># creates reactive dependency</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(result, (<span class="bu">int</span>, <span class="bu">float</span>)):</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        display_value <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span><span class="bu">round</span>(result, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> grams"</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        logging.info(<span class="ss">f"Displaying prediction to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - display_value: </span><span class="sc">{</span>display_value<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> display_value</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">str</span>(result)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This means the render function automatically re-executes whenever the prediction function returns a new value. We use <code>@render.text</code> to render the predicted values returned from the API and include a <code>logging.info()</code> log with an f-string for the <code>session_id</code> and <code>display_value</code>:</p>
 </section>
 </section>
 <section id="system-status" class="level3">
@@ -1001,58 +1156,58 @@ graph LR
 <section id="ui-2" class="level4">
 <h4 class="anchored" data-anchor-id="ui-2">UI</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>  ui.card(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>      ui.card_header(<span class="st">"System Status &amp; Monitoring"</span>),</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>      ui.card_body(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>          ui.layout_columns(</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              ui.div(</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"API Connection:"</span>),</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                  ui.output_text(<span class="st">"api_status"</span>),</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                  ui.div(</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                  ),</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>                  ui.p(</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Last updated: "</span>,</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>                  )</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>              ),</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>              col_widths<span class="op">=</span>[<span class="dv">12</span>]</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>          )</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  ui.card(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>      ui.card_header(<span class="st">"System Status &amp; Monitoring"</span>),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>      ui.card_body(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>          ui.layout_columns(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>              ui.div(</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>                  ui.output_text(<span class="st">"api_status"</span>),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>                  ui.div(</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>                  ),</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>                  ui.p(</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Last updated: "</span>,</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>              ),</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>              col_widths<span class="op">=</span>[<span class="dv">12</span>]</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="api-connection" class="level4">
-<h4 class="anchored" data-anchor-id="api-connection">API Connection</h4>
+<h4 class="anchored" data-anchor-id="api-connection"><strong><em>API Connection</em></strong></h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    ui.h5(<span class="st">"API Connection:"</span>),</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    ui.br(),</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"api_status"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>    ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    ui.br(),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"api_status"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="recent-application-logs" class="level4">
-<h4 class="anchored" data-anchor-id="recent-application-logs">Recent Application Logs</h4>
+<h4 class="anchored" data-anchor-id="recent-application-logs"><strong><em>Recent Application Logs</em></strong></h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  ui.div(</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  ui.div(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="last-updated" class="level4">
-<h4 class="anchored" data-anchor-id="last-updated">Last updated</h4>
+<h4 class="anchored" data-anchor-id="last-updated"><strong><em>Last updated</em></strong></h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  ui.p(</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Last updated: "</span>,</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>  ui.p(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Last updated: "</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>

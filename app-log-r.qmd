@@ -45,37 +45,23 @@ This lab covers how to use logging and monitoring to track events inside data sc
 
 graph TD
     subgraph Inputs["<strong>User Inputs</strong>"]
-    I1[/"<strong>input$bill_length</strong>"/]
-    I2[/"<strong>input$species</strong>"/]
-    I3[/"<strong>input$sex</strong>"/]
+    I1[/"input$bill_length"/]
+    I2[/"input$species"/]
+    I3[/"input$sex"/]
     I4[/"<strong>input$predict</strong>"/]
     end
-    
-    %% Style for inputs %%
-    style I1 fill:#fdd9bb,color:#000,font-size:18px
-    style I2 fill:#fdd9bb,color:#000,font-size:18px
-    style I3 fill:#fdd9bb,color:#000,font-size:18px
-    style I4 fill:#f9a0a0,color:#000,font-size:18px
-    
 
     subgraph API["<strong>plumber API</strong>"]
       ModBoard("<strong>pins::board_folder()</strong>")
       ModPin("<strong>vetiver::vetiver_pin_read()</strong>")
       ModRout("<strong>plumber::pr()</strong>") 
       ModApi("<strong>vetiver::vetiver_api()</strong>") 
-      ApiServ(["Launch<br>API Server"])
+      ApiServ(["<strong>Launch<br>API Server</strong>"])
       ModBoard --"<em>connect to model board</em>"--> ModPin 
       ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
       ModRout --"<em>create router</em>"--> ModApi 
       ModApi --"<em>start API server</em>"--> ApiServ
     end
-
-    %% Style for API %%
-    style ModBoard fill:#d1f0d2,color:#000,font-size:18px
-    style ModPin fill:#d1f0d2,color:#000,font-size:18px
-    style ModRout fill:#d1f0d2,color:#000,font-size:18px
-    style ModApi fill:#d1f0d2,color:#000,font-size:18px
-    style ApiServ fill:#b3e7b4,font-size:18px
 
     subgraph Pred["<strong>Predict</strong>"]
         Req("<strong>httr2::request()</strong>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<strong>httr2::req_method()</strong>")
@@ -84,23 +70,11 @@ graph TD
         BodyJson2("<strong>httr2::resp_body_json()</strong>")
     end
 
-    %% Style for httr2 %%
-    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style Meth fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson1 fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style Perform fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style BodyJson2 fill:#82ecf3,color:#000,rx:20,ry:20,font-size:18px
-
     Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
     API --> BodyJson2
    
     Res(["<strong>response$.pred[1]</strong>"])
     ValsReact(["<strong>vals()</strong><br>(in <strong>data.frame</strong>)"])
-
-    %% Style for reactives %%
-    style Res fill:#f6ae0e,color:#000,font-size:18px
-    style ValsReact fill:#f6ae0e,color:#000,font-size:18px
-
     BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> Res
     
     I1 --> ValsReact
@@ -113,8 +87,17 @@ graph TD
     ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><strong>vals()</strong>"\]
     Res -.-> RenTxt[\"<strong>renderText()</strong><br><strong>pred()</strong>"\]
     
-    style RenTxt fill:#49297e,color:#fff,font-size:18px
-    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+    %% Style for inputs %%
+    style I1 fill:#d8e4ff
+    style I2 fill:#d8e4ff
+    style I3 fill:#d8e4ff
+    style I4 fill:#d8e4ff
+    
+    style RenTxt fill:#31e981
+    style RenPrnt fill:#31e981
+    style ApiServ fill:#31e981
+    style Res fill:#35605a,color:#fff
+    style ValsReact fill:#35605a,color:#fff
 
 
     
@@ -518,57 +501,46 @@ All the events captured with  `logger::log_*()` functions are written to the log
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 flowchart TD
-
- subgraph User["Log Generation"]
-        Q(["User<br>inputs"])
-        R(["API<br>calls"])
-        S(["System<br>events"])
-        %% T@{ shape: rect, label: "<strong>logger::log_</strong>*<br>functions" }
-        T["<strong>logger::log_</strong>*<br>functions"]
-  end
+	 subgraph User["Log Generation"]
+		Q(["User<br>inputs"])
+		R(["API<br>calls"])
+		S(["System<br>events"])
+		%% T@{ shape: rect, label: "<strong>logger::log_</strong>*<br>functions" }
+		T["<strong>logger::log_</strong>*<br>functions"]
+	  end
 
     Q --> T
     R --> T
     S --> T
     T -- "<em>Written to</em>"--> A
 
- subgraph FileSys["File System"]
-        %% A@{ shape: lin-doc, label: "<strong>shiny_app.log</strong>" }
-        A[\"Log file: <strong>shiny_app.log</strong>"\]
-        A1("Modification<br>Time")
-        A2("File<br>Contents")
-  end
+	 subgraph FileSys["File System"]
+		A[\"File: <strong>shiny_app.log</strong>"\]
+		A1("Modification<br>Time")
+		A2("Log<br>Contents")
+	 end
+  
     A --> A1 & A2
     A -."<em>changes trigger</em>".-> B
 
- subgraph ReactFile["Reactive File"]
-        %% B@{ shape: subproc, label: "<strong>reactiveFileReader()</strong>" }
-        B{{"<strong>reactiveFileReader() </strong>"}}
-        C{"Log file<br>exists?"}
-        D("<strong>lines<br>last_mod<br>total_lines</strong>")
-        E("<strong>lines</strong>:<strong>character(0)</strong><br><strong>last_mod</strong>:<strong>Sys.time()</strong><br><strong>total_lines</strong>:<strong>0</strong>")
-  end
+	subgraph ReactFile["Reactive File"]
+		B("<strong>reactiveFileReader() </strong>")
+		C{"Log file<br>exists?"}
+		D("<strong>lines<br>last_mod<br>total_lines</strong>")
+		E("<strong>lines</strong>:<strong>character(0)</strong><br><strong>last_mod</strong>:<strong>Sys.time()</strong><br><strong>total_lines</strong>:<strong>0</strong>")
+	end
     
     B --"<em>checks every 1 second</em>"--> C
     C -- Yes (returns list)--> D
     C -- No (returns empty list)--> E
 
-    style Q fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style R fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
-    style S fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
     
-    style T fill:#4ac590,color:#000,rx:20,ry:20,font-size:18px
     
-    style A fill:#FFF,color:#000,rx:20,ry:20,font-size:18px
+    classDef log fill:#d8e4ff,stroke:#000,stroke-width:1px
+    class A,B,Q,R,S log
     
-    style A1 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
-    style A2 fill:#62d3fc,color:#000,rx:12,ry:12,font-size:18px
-
-    style B fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,font-size:18px
-    
-    style C fill:#f2b857,stroke:#000,color:#000,font-size:18px
-    style D fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
-    style E fill:#f2b857,stroke:#000,color:#000,rx:20,ry:20,font-size:18px
+    classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
+    class D,E,A1,A2 outcome
     
 ```
 
@@ -619,16 +591,15 @@ To make this display more manageable, we'll limit the number of extracted logs t
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 flowchart TD
-
-  A{{"<strong>reactiveFileReader()</strong> "}}
+  A(["<strong>reactiveFileReader()</strong> "])
 
  subgraph LogProc["Log Processing"]
-        H(["Reads <strong>shiny_app.log</strong>"])
+        H("Reads <strong>shiny_app.log</strong>")
         I{"More than 5 lines in <strong>total_lines</strong>?"}
         J("Print last 5 lines")
         K("Print all lines")
-        L["Format: <strong>paste(lines,</strong><br><strong>collapse = '\\n')</strong>"]
-        M["Return:<br><strong>'No logs available'</strong>"]
+        L("Format: <strong>paste(lines,</strong><br><strong>collapse = '\\n')</strong>")
+        M("Return:<br><strong>'No logs available'</strong>")
   end
 
     A --> H
@@ -642,21 +613,21 @@ flowchart TD
  subgraph UI["UI Rendering"]
      N[/"<strong>log_file_content()</strong>"/]
      subgraph P["Display in <strong>div</strong>"]
-         O["<strong>verbatimTextOutput(recent_logs)</strong>"]
+         O(["<strong>verbatimTextOutput(recent_logs)</strong>"])
      end
   end
   
   L & M --> N
   N --> P
 
-  style A fill:#d08300,stroke:#d08300,color:#fff,rx:12,ry:12,text-align:center
-  style H fill:#216654,stroke:#216654,color:#fff,rx:12,ry:12,text-align:center
-  
-  style L fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
-  style M fill:#4ac590,stroke:#4ac590,color:#000,rx:12,ry:12
-  
-  style N fill:#772f98,color:#fff,text-align:center
-  style O fill:#cc66d3,color:#000,text-align:center
+	style A fill:#d8e4ff,stroke:#000,stroke-width:1px
+    style N fill:#35605a,color:#fff
+    
+    classDef log fill:#d8e4ff,stroke:#000,stroke-width:1px
+    class A log
+    
+    classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
+    class O outcome
 
 ```
 

@@ -44,50 +44,40 @@ The Shiny for Python application from [lab 3](py-app-api.qmd) will be updated wi
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
 flowchart TD
-   subgraph Inputs["<strong>User Inputs</strong>"]
-          I1[/"<strong>input.bill_length()</strong>"/]
-          I2[/"<strong>input.species()</strong>"/]
-          I3[/"<strong>input.sex()</strong>"/]
-          I4[/"<strong>input.predict()</strong>"/]
-    end
-  
-    %% Style for inputs %%
-    style I1 fill:#fdd9bb,color:#000,font-size:18px
-    style I2 fill:#fdd9bb,color:#000,font-size:18px
-    style I3 fill:#fdd9bb,color:#000,font-size:18px
-    style I4 fill:#c83030,color:#fff,font-size:18px
-    
-   subgraph Pred["<strong>Predict</strong>"]
-          PredR("<strong>pred()</strong>")
-          Req("<strong>request.post()</strong>")
-    end
-  
-    %% Style for predictions %%
-    style Req fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:18px
-    style PredR fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:18px
-  
-   subgraph PredOutReact["<strong>pred_out()</strong>"]
-          Res(["<strong>result</strong>"])
-    end
-  
-    style ValsOut fill:#f6ae0e,font-size:18px
-  
+ subgraph Inputs["<strong>User Inputs</strong>"]
+        I1[/"input.bill_length()"/]
+        I2[/"input.species()"/]
+        I3[/"input.sex()"/]
+        I4[/"<strong>input.predict()</strong>"/]
+  end
+    style I1 fill:#d8e4ff
+    style I2 fill:#d8e4ff
+    style I3 fill:#d8e4ff
+    style I4 fill:#d8e4ff
+
+ subgraph Pred["<strong>Predict</strong>"]
+        PredR("<strong>pred()</strong>")
+        Req("<strong>request.post()</strong>")
+  end
+ subgraph PredOutReact["<strong>pred_out()</strong>"]
+        Res(["<strong>result</strong>"])
+  end
     Req -- Sends HTTP request to server API, waits for response, returns --> PredR
     PredR -- Checks format,<br>round, add<br> string --> PredOutReact
-    I1 --> ValsReact("<strong>vals()</strong>")
+    I1 --> ValsReact(["<strong>vals()</strong>"])
     I2 --> ValsReact
     I3 --> ValsReact
-    I4 -- "<em><strong>@reactive.event()</em></strong>" --> Req
-    ValsReact -- "as <em><strong>data_to_send</em></strong>" --> Req
-    ValsReact --> ValsOut(["<strong>vals_out()</strong>"])
-    ValsOut -- "<em><strong>data = vals()</em></strong>" --> RenPrnt[\"<strong>@render.text()<br>data</strong>"\]
+    I4 -- "<strong>@reactive.event()</strong>" --> Req
+    ValsReact -- as <strong>data_to_send</strong> --> Req
+    ValsReact --> ValsOut("<strong>vals_out()</strong>")
+    ValsOut -- "<strong>data = vals()</strong>" --> RenPrnt[\"<strong>@render.text()</strong><br><strong>data</strong>"\]
     PredOutReact --> RenTxt[\"<strong>@render.text()</strong><br><strong>result</strong>"\]
     
-    style ValsReact fill:#fdd9bb,color:#000,font-size:18px
-    style Res fill:#f6ae0e,color:#000,font-size:18px
-    
-    style RenTxt fill:#49297e,color:#fff,font-size:18px
-    style RenPrnt fill:#49297e,color:#fff,font-size:18px
+    style PredR fill:#35605a,color:#fff
+    style ValsReact fill:#35605a,color:#fff
+
+    style RenTxt fill:#31e981
+    style RenPrnt fill:#31e981
 
 ```
 
@@ -169,38 +159,29 @@ logging.info("Shiny for Python application initialized") #<10>
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph LR
-    LogMessage([Log<br>created]) --> Logger(Python<br>logger)
-    Logger --> FileHandler(<strong>logging.FileHandler</strong>)
-    Logger --> ConsoleHandler(<strong>logging.StreamHandler</strong>)
+    LogMessage(["<strong>Log<br>created</strong>"]) --> Logger("Python<br>logger")
+    Logger --> FileHandler("<strong>logging.FileHandler</strong>")
+    Logger --> ConsoleHandler("<strong>logging.StreamHandler</strong>")
     
     subgraph FH["FileHandler"]
-        FH1["<strong>mode='a'</strong><br>(append mode)"]
-        FH2["Creates file if doesn't exist"]
-        FH3(["Writes to: <strong>logs/shiny_app.log</strong>"])
+        FH1("mode='a'<br>(append mode)")
+        FH2("Creates file if doesn't exist")
+        FH3(["<strong>Writes to: logs/shiny_app.log</strong>"])
     end
 
     FileHandler -.-> FH1 & FH2 & FH3
     
     subgraph SH["StreamHandler"]
-        SH1["Default: <strong>sys.stderr</strong>"]
-        SH2(["Outputs to console/terminal"])
-        SH3["Real-time display"]
+        SH1("Default: <em>sys.stderr</em>")
+        SH2(["<strong>Outputs to console/terminal</strong>"])
+        SH3("Real-time display")
     end
 
     ConsoleHandler -.-> SH1 & SH2 & SH3
-    
-    style FileHandler fill:#b3e7b4,color:#000,rx:20,ry:20,font-size:16px
-    style FH1 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    style FH2 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    style FH3 fill:#e8f7e8,color:#000,rx:20,ry:20,font-size:16px
-    
-    style ConsoleHandler fill:#d1f7ff,color:#000,rx:20,ry:20,font-size:16px
-    style SH1 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    style SH2 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    style SH3 fill:#ecfbff,color:#000,rx:20,ry:20,font-size:16px
-    
-    style FH font-size:16px
-    style SH font-size:16px
+
+	style LogMessage fill:#d8e4ff
+	style FH3 fill:#31e981
+	style SH2 fill:#31e981
     
 ```
 
@@ -337,17 +318,15 @@ To render the `session_id`, we define `session_display()` under the [`@render.te
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 graph TB
-    Decorator(["<strong>@render.text</strong>"]) --"<em>defines</em>"--> Function("<strong>session_display()</strong>")
-    Function --> Registration[["Registers with Shiny's<br>reactive system"]]
-    Registration --"<em>binds to</em>"--> UIBinding("<strong>ui.output_text('session_display')</strong>")
+    Decorator(["<strong>@render.text</strong>"]) --"<em>defines</em>"--> Function("session_display()")
+    Function --> Registration{{"Registers with Shiny's<br>reactive system"}}
+    Registration --"<em>binds to</em>"--> UIBinding("ui.output_text('session_display')")
     UIBinding --> AutoUpdate(["<strong>Automatically updates<br>UI when called</strong>"])
     
-    %% Style for inputs %%
-    style Decorator fill:#49297e,color:#fff,font-size:18px
-    style Registration font-size:14px
-    style Function fill:#f6ae0e,color:#000,rx:20,ry:20,font-size:14px
-    style UIBinding fill:#fdd9bb,color:#000,rx:20,ry:20,font-size:14px
-    style AutoUpdate fill:#cce8cf,color:#000,font-size:14px
+
+	style Decorator fill:#d8e4ff
+	style Registration text-align:center
+	style AutoUpdate fill:#31e981
 
 ```
 
@@ -390,15 +369,10 @@ graph TD
     Header --> Preds
     PredHeader --"<em>Styled container</em>" --> pDiv
     InputHeader --"<em>Styled container</em>" --> iDiv
-    
-    %% Style for inputs %%
-    %%style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
-    %%style InputSex fill:#fdd9bb,color:#000,font-size:14px
-    %% style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
 
-    %% Style for outputs %%
-    %%style PredOutput fill:#fdd9bb,color:#000,font-size:14px
-    %%style InputOutput fill:#fdd9bb,color:#000,font-size:14px
+	style Card fill:#d8e4ff
+	style InpValOut fill:#31e981
+	style PredOut fill:#31e981
     
     
 ```
@@ -450,12 +424,9 @@ Instead of using a sidebar, we place a second `ui.card()` inside `ui.layout_colu
 These outputs won't render until we add the corresponding server components. 
 
 
+#### ***Input Values***
 
-#### Server
-
-**Input Values**
-
-The reactive values are printed under the **Input Values** section. This display is a plain-text representation of the values being sent to the API. 
+I've separated the server code for the **Input Values** and **Predicted Mass** sections below. The user inputs are displayed as a plain-text representation of the values before they are sent to the API. 
 
 ```{python}
 #| eval: false 
@@ -502,25 +473,23 @@ graph LR
     APIFormat("API Format<br>Creation")
     
     subgraph "Logging Behaviors"
-        ValidationLog(["<strong>logging.warning</strong> for out-of-range"])
-        DebugLog(["<strong>logging.debug</strong> for data prep"])
-        SessionLog(["Session-specific logging"])
+        ValidationLog(["<strong>logging.warning for out-of-range</strong>"])
+        DebugLog(["<strong>logging.debug for data prep</strong>"])
+        SessionLog(["<strong>Session-specific logging</strong>"])
     end
     
     InputBillLength --> Validation
     InputSex & InputSpecies --"data<br>transformation"--> APIFormat
     Validation --> ValidationLog
     APIFormat --> DebugLog
-    
-    %% Style for inputs %%
-    style InputBillLength fill:#fdd9bb,color:#000,font-size:14px
-    style InputSex fill:#fdd9bb,color:#000,font-size:14px
-    style InputSpecies fill:#fdd9bb,color:#000,font-size:14px
 
-    %% Style for logs %%
-    style ValidationLog fill:#cce8cf,color:#000,font-size:14px
-    style DebugLog fill:#cce8cf,color:#000,font-size:14px
-    style SessionLog fill:#cce8cf,color:#000,font-size:14px
+	style InputBillLength fill:#d8e4ff
+	style InputSex fill:#d8e4ff
+	style InputSpecies fill:#d8e4ff
+
+	style ValidationLog fill:#31e981
+	style DebugLog fill:#31e981
+	style SessionLog fill:#31e981
 
 ```
 
@@ -540,15 +509,20 @@ To render the reactive `vals()`, we define `vals_out()` with `@render.text` and 
 3. Debug logging of user interactions for monitoring  
 4. Simple string conversion   
 
-**Predicted Mass**
+![](img/lab4-py-render-inputs.png){width='100%' fig-align='center'}
+
+#### ***Predicted Mass***
+
+The **Predicted Mass** is really the heart of the application, and it's definitely the most complicated reactive value in the server. The full definition is below, but we'll dive into each level of logging in the following sections. 
 
 ```{python}
 #| eval: false 
-#| code-fold: false 
+#| code-fold: true 
+#| code-summary: 'show/hide pred() reactive' 
     @reactive.calc
     @reactive.event(input.predict)
     def pred():
-        """Enhanced prediction with comprehensive logging"""
+        """Prediction with logging"""
         request_start = time.time()
         data_to_send = vals()
         
@@ -619,21 +593,182 @@ To render the reactive `vals()`, we define `vals_out()` with `@render.text` and 
             return error_msg
 ```
 
+The `@reactive.calc` and `@reactive.event(input.predict)` decorators override the standard reactive behavior so the `pred()` function only executes when the **Predict** button is clicked (rather than whenever any input changes). This allows users to adjusting input parameters without sending  accidental API calls (and ensures predictions only happen when the user explicitly requests a response).
+
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @render.text
-    def pred_out():
-        result = pred()
-        if isinstance(result, (int, float)):
-            display_value = f"{round(result, 1)} grams"
-            logging.info(f"Displaying prediction to user - Session: {session_id} - display_value: {display_value}")
-            return display_value
-        else:
-            return str(result)
+    @reactive.calc #<1>
+    @reactive.event(input.predict) #<1>
+    def pred(): #<1>
+        """Prediction with logging"""
+        request_start = time.time() #<2>
+        data_to_send = vals() #<3>
         
-        return f"Connection: {conn_errors} | Timeout: {time_errors} | Other: {total_errors - conn_errors - time_errors}"
+        logging.info(f"Starting prediction request - Session: {session_id} - request_data: {json.dumps(data_to_send)}") #<4>
 ```
+1. Stacking these decorators creates a lazy evaluation with manual trigger, where the `pred()` function is reactive (cached) (but only executes on explicit events).   
+2. Provides precise millisecond-level stat time of API request.   
+3. Values to be sent to the API.    
+4. The f-string combines `{session_id}` (prints session ID) and `{json.dumps(data_to_send)}` (converts the Python data structure into a JSON string) for logging. 
+
+This combines the performance benefits of caching with the user control of manual triggering:
+
+```{mermaid}
+%%| fig-cap: 'Predicted Values'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+graph TD
+    subgraph Dec["<strong>Decorator Stack</strong>"]
+        subgraph CalcDec["<strong>@reactive.calc</strong>"]
+            Event("<strong>@reactive.event(input.predict)</strong>")
+            Function("<strong>def pred()</strong>")
+            Event --"<em><strong>@reactive.calc</strong> checks caching layer</em>"--> Function
+        end
+    end
+    
+
+        ButtonClick(["User clicks <strong>Predict</strong>"])
+        EventTrigger[Event decorator activates]
+        ExecuteFunction[Function executes]
+        CacheResult(["<strong>Result cached</strong>"])
+
+    
+
+    ButtonClick --> EventTrigger
+    EventTrigger --"<em>Caching Layer</em>"---> CalcDec
+    Function ---> ExecuteFunction
+    ExecuteFunction --> CacheResult
+
+    style ButtonClick fill:#d8e4ff
+    style CacheResult fill:#31e981
+    style Function fill:#35605a,color:#fff
+```
+
+The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values: 
+
+```{mermaid}
+%%| fig-cap: 'API Errors for Predictions'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+
+flowchart TD
+    subgraph "<strong>Error Flow</strong>"
+        APIRetError(["<strong>API returns<br>error</strong>"])
+        StringResult("<strong>pred()</strong><br>returns string")
+        TypeCheck("<strong>isinstance()</strong><br>check fails")
+        DirectDisplay("Display<br>error")
+    end
+    
+    subgraph "<strong>Errors Displayed</strong>"
+        ConnError(["<em><strong>Connection<br>Error: ...</strong></em>"])
+        TimeoutError(["<em><strong>Request timed<br>out...</strong></em>"])
+        APIError(["<em><strong>API Error<br>500: ...</strong></em>"])
+        FormatError(["<em><strong>Unexpected<br>response format</strong></em>"])
+    end
+    
+    APIRetError --> StringResult
+    StringResult --> TypeCheck
+    TypeCheck --> DirectDisplay
+    DirectDisplay --> ConnError
+    DirectDisplay --> TimeoutError
+    DirectDisplay --> APIError
+    DirectDisplay --> FormatError
+
+    style APIRetError fill:#d8e4ff
+    style APIError fill:#31e981
+    style ConnError fill:#31e981
+    style TimeoutError fill:#31e981
+    style FormatError fill:#31e981
+```
+
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+  try:
+      print(f"\n=== PREDICTION REQUEST ===")
+      print(f"Sending data to API: {data_to_send}")
+      
+      r = requests.post(api_url, json=data_to_send, timeout=30)
+      response_time = time.time() - request_start
+      
+      current_times = request_times()
+      current_times.append(response_time)
+      if len(current_times) > 10:
+          current_times = current_times[-10:]
+      request_times.set(current_times)
+      
+      print(f"HTTP Status Code: {r.status_code}")
+      print(f"Raw response text: {r.text}")
+      
+      if r.status_code == 200:
+          result = r.json()
+          print(f"✅ Success! Parsed response: {result}")
+          
+          if '.pred' in result:
+              prediction = result['.pred'][0]
+          elif 'predict' in result:
+              prediction = result['predict'][0]
+          else:
+              logging.warning(f"Unexpected response format - Session: {session_id} - response: {result}")
+              return f"Unexpected response format: {result}"
+          
+          logging.info(f"Prediction successful - Session: {session_id} - response_time: {response_time:.3f}s - prediction: {prediction}")
+          
+          if response_time > 5:
+              logging.warning(f"Slow API response - Session: {session_id} - response_time: {response_time:.3f}s")
+          
+          return prediction
+      else:
+          error_msg = f"API Error {r.status_code}: {r.text}"
+          logging.error(f"Prediction request failed - Session: {session_id} - status: {r.status_code} - response: {r.text[:200]}")
+          error_count.set(error_count() + 1)
+          return error_msg
+        
+    except requests.exceptions.ConnectionError as e:
+        error_msg = f"Connection Error: {str(e)}"
+        logging.error(f"API connection refused during prediction - Session: {session_id} - error: {str(e)}")
+        connection_errors.set(connection_errors() + 1)
+        error_count.set(error_count() + 1)
+        print(f"❌ Connection Error: {e}")
+        return error_msg
+    except requests.exceptions.Timeout:
+        error_msg = "Request timed out - API may be overloaded"
+        logging.warning(f"API timeout during prediction - Session: {session_id}")
+        timeout_errors.set(timeout_errors() + 1)
+        error_count.set(error_count() + 1)
+        return error_msg
+    except Exception as e:
+        error_msg = f"Error: {str(e)}"
+        logging.error(f"Unknown prediction error - Session: {session_id} - error: {str(e)}")
+        error_count.set(error_count() + 1)
+        print(f"❌ Error: {e}")
+        return error_msg
+      
+```
+
+The `@render.text` decorator defines the `pred_out()` function, which doesn't receive the prediction value as a parameter. Instead, it calls `pred()` directly, creating an implicit reactive dependency. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+@render.text
+def pred_out():
+    result = pred()  # creates reactive dependency
+    if isinstance(result, (int, float)):
+        display_value = f"{round(result, 1)} grams"
+        logging.info(f"Displaying prediction to user - Session: {session_id} - display_value: {display_value}")
+        return display_value
+    else:
+        return str(result)
+```
+
+This means the render function automatically re-executes whenever the prediction function returns a new value. We use `@render.text` to render the predicted values returned from the API and include a `logging.info()` log with an f-string for the `session_id` and `display_value`: 
+
 
 
 ### System Status
@@ -670,7 +805,7 @@ To render the reactive `vals()`, we define `vals_out()` with `@render.text` and 
   )
 ```
 
-#### API Connection
+#### ***API Connection***
 
 ```{python}
 #| eval: false 
@@ -680,7 +815,7 @@ To render the reactive `vals()`, we define `vals_out()` with `@render.text` and 
     ui.output_text("api_status")
 ```
 
-#### Recent Application Logs
+#### ***Recent Application Logs***
 
 ```{python}
 #| eval: false 
@@ -692,7 +827,7 @@ To render the reactive `vals()`, we define `vals_out()` with `@render.text` and 
   )
 ```
 
-#### Last updated
+#### ***Last updated***
 
 ```{python}
 #| eval: false 

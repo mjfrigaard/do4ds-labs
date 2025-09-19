@@ -162,7 +162,7 @@ def server(input, output, session):
     @reactive.calc
     @reactive.event(input.predict)
     def pred():
-        """Enhanced prediction with comprehensive logging"""
+        """Prediction with logging"""
         request_start = time.time()
         data_to_send = vals()
         
@@ -276,8 +276,6 @@ def server(input, output, session):
             return display_value
         else:
             return str(result)
-        
-        return f"Connection: {conn_errors} | Timeout: {time_errors} | Other: {total_errors - conn_errors - time_errors}"
     
     # @render.text
     # def recent_logs_display():
