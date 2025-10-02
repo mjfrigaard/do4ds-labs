@@ -28,6 +28,7 @@ library(pins)
 Load the `palmerpenguins` data, create a connection with `dbConnect()`, register the R data frame with `duckdb`, create the `penguins` table: 
 
 ```{r}
+#| eval: true
 penguins_data <- palmerpenguins::penguins
 
 con <- dbConnect(duckdb::duckdb(), "my-db.duckdb")
@@ -40,11 +41,18 @@ dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"
 omit missing, disconnect from DB: 
 
 ```{r}
+#| eval: true
 df <- dbGetQuery(con, "SELECT * FROM penguins") |>
   na.omit()
 
 dbDisconnect(con)
 ```
+
+```{r}
+#| eval: false
+df <- as.data.frame(na.omit(penguins_data))
+```
+
 
 view top rows:
 

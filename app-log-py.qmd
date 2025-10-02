@@ -377,7 +377,7 @@ graph TD
     
 ```
 
-The input values are stored in a `ui.card()` and include the four reactives: `input.bill_length()`, `input.sex()`. `input.species()`, and `input.predict()`.
+The input values are stored in a `ui.card()` and include our four reactives: `input.bill_length()`, `input.sex()`. `input.species()`, and `input.predict()`.
 
 ```{python}
 #| eval: false 
@@ -395,7 +395,9 @@ ui.layout_columns(
 
 ![](img/lab4-py-param-inputs.png){width='70%' fig-align='center'}
 
-Instead of using a sidebar, we place a second `ui.card()` inside `ui.layout_columns()` titled **Results** and include the **Input Values** and **Predicted Mass** sections . We can set the `ui.card()` widths with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
+Instead of using a sidebar layout, we'll place a second `ui.card()` inside the `ui.layout_columns()` and title it **Results**. This includes the **Input Values** and **Predicted Mass** sections . 
+
+We can set the `ui.card()` widths with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
 
 ```{python}
 #| eval: false 
@@ -422,7 +424,6 @@ Instead of using a sidebar, we place a second `ui.card()` inside `ui.layout_colu
 ![](img/lab4-py-input-vals-prediction.png){width='100%' fig-align='center'}
 
 These outputs won't render until we add the corresponding server components. 
-
 
 #### ***Input Values***
 
@@ -649,42 +650,6 @@ graph TD
 
 The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values: 
 
-```{mermaid}
-%%| fig-cap: 'API Errors for Predictions'
-%%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
-
-flowchart TD
-    subgraph "<strong>Error Flow</strong>"
-        APIRetError(["<strong>API returns<br>error</strong>"])
-        StringResult("<strong>pred()</strong><br>returns string")
-        TypeCheck("<strong>isinstance()</strong><br>check fails")
-        DirectDisplay("Display<br>error")
-    end
-    
-    subgraph "<strong>Errors Displayed</strong>"
-        ConnError(["<em><strong>Connection<br>Error: ...</strong></em>"])
-        TimeoutError(["<em><strong>Request timed<br>out...</strong></em>"])
-        APIError(["<em><strong>API Error<br>500: ...</strong></em>"])
-        FormatError(["<em><strong>Unexpected<br>response format</strong></em>"])
-    end
-    
-    APIRetError --> StringResult
-    StringResult --> TypeCheck
-    TypeCheck --> DirectDisplay
-    DirectDisplay --> ConnError
-    DirectDisplay --> TimeoutError
-    DirectDisplay --> APIError
-    DirectDisplay --> FormatError
-
-    style APIRetError fill:#d8e4ff
-    style APIError fill:#31e981
-    style ConnError fill:#31e981
-    style TimeoutError fill:#31e981
-    style FormatError fill:#31e981
-```
-
 
 ```{python}
 #| eval: false 
@@ -729,6 +694,14 @@ flowchart TD
           error_count.set(error_count() + 1)
           return error_msg
         
+```
+
+The *exceptions* 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+        
     except requests.exceptions.ConnectionError as e:
         error_msg = f"Connection Error: {str(e)}"
         logging.error(f"API connection refused during prediction - Session: {session_id} - error: {str(e)}")
@@ -765,6 +738,42 @@ def pred_out():
         return display_value
     else:
         return str(result)
+```
+
+```{mermaid}
+%%| fig-cap: 'API Errors for Predictions'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+
+flowchart TD
+    subgraph "<strong>Error Flow</strong>"
+        APIRetError(["<strong>API returns<br>error</strong>"])
+        StringResult("<strong>pred()</strong><br>returns string")
+        TypeCheck("<strong>isinstance()</strong><br>check fails")
+        DirectDisplay("Display<br>error")
+    end
+    
+    subgraph "<strong>Errors Displayed</strong>"
+        ConnError(["<em><strong>Connection<br>Error: ...</strong></em>"])
+        TimeoutError(["<em><strong>Request timed<br>out...</strong></em>"])
+        APIError(["<em><strong>API Error<br>500: ...</strong></em>"])
+        FormatError(["<em><strong>Unexpected<br>response format</strong></em>"])
+    end
+    
+    APIRetError --> StringResult
+    StringResult --> TypeCheck
+    TypeCheck --> DirectDisplay
+    DirectDisplay --> ConnError
+    DirectDisplay --> TimeoutError
+    DirectDisplay --> APIError
+    DirectDisplay --> FormatError
+
+    style APIRetError fill:#d8e4ff
+    style APIError fill:#31e981
+    style ConnError fill:#31e981
+    style TimeoutError fill:#31e981
+    style FormatError fill:#31e981
 ```
 
 This means the render function automatically re-executes whenever the prediction function returns a new value. We use `@render.text` to render the predicted values returned from the API and include a `logging.info()` log with an f-string for the `session_id` and `display_value`: 
