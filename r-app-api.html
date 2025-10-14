@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-17">
+<meta name="dcterms.date" content="2025-10-12">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App &amp; API – DO4DS: Lab Solutions</title>
@@ -259,6 +259,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glossary.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Glossary of terms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -269,8 +290,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#initial-launch" id="toc-initial-launch" class="nav-link active" data-scroll-target="#initial-launch">Initial launch</a></li>
-  <li><a href="#api" id="toc-api" class="nav-link" data-scroll-target="#api">API</a>
+  <li><a href="#api" id="toc-api" class="nav-link active" data-scroll-target="#api">API</a>
   <ul>
   <li><a href="#start-the-api" id="toc-start-the-api" class="nav-link" data-scroll-target="#start-the-api">Start the API</a></li>
   </ul></li>
@@ -296,13 +316,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#rapi-files" id="toc-rapi-files" class="nav-link" data-scroll-target="#rapi-files"><code>R/api/</code> files</a></li>
   <li><a href="#rapp-files" id="toc-rapp-files" class="nav-link" data-scroll-target="#rapp-files"><code>R/app/</code> files</a></li>
   </ul></li>
-  <li><a href="#more-httr2-functions" id="toc-more-httr2-functions" class="nav-link" data-scroll-target="#more-httr2-functions">More <code>httr2</code> functions</a>
-  <ul>
-  <li><a href="#http-headers" id="toc-http-headers" class="nav-link" data-scroll-target="#http-headers">HTTP headers</a></li>
-  <li><a href="#query-parameters" id="toc-query-parameters" class="nav-link" data-scroll-target="#query-parameters">Query parameters</a></li>
-  <li><a href="#status-codes" id="toc-status-codes" class="nav-link" data-scroll-target="#status-codes">Status codes</a></li>
-  <li><a href="#response-headers" id="toc-response-headers" class="nav-link" data-scroll-target="#response-headers">Response headers</a></li>
-  </ul></li>
+  <li><a href="#original-app-code" id="toc-original-app-code" class="nav-link" data-scroll-target="#original-app-code">Original App Code</a></li>
   </ul>
 </nav>
     </div>
@@ -322,7 +336,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-17</p>
+      <p class="date">2025-10-12</p>
     </div>
   </div>
   
@@ -352,81 +366,60 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<section id="initial-launch" class="level2">
-<h2 class="anchored" data-anchor-id="initial-launch">Initial launch</h2>
-<p>The application and API need a little attention to get working. If you try to run the app without the model API running, you’ll see something like the following error:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: Failed to perform HTTP request.</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Caused by error in `curl::curl_fetch_memory()`:</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>! Could not connect to server [127.0.0.1]:</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  163: &lt;Anonymous&gt;</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  162: signalCondition</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  161: signal_abort</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  160: cnd_signal</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  159: handle_resp</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  158: httr2::req_perform</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  154: eventReactiveValueFunc</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  102: pred</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  101: renderText</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  100: func</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>   87: renderFunc</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>   86: output$pred</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    1: runApp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>To separate my development workflows, I’ve organizing the API and app files into separate directories.</p>
-<div class="sourceCode" id="annotated-cell-2"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a>_labs/lab3/R</span>
-<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a>├── api</span>
-<span id="annotated-cell-2-4"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a>│   ├── api.Rproj</span>
-<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a>│   └── mod-api.R</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-6" class="code-annotation-target"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a>├── app</span>
-<span id="annotated-cell-2-7"><a href="#annotated-cell-2-7" aria-hidden="true" tabindex="-1"></a>│   ├── app-api.R</span>
-<span id="annotated-cell-2-8"><a href="#annotated-cell-2-8" aria-hidden="true" tabindex="-1"></a>│   └── app.Rproj</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="3">3</button><span id="annotated-cell-2-9" class="code-annotation-target"><a href="#annotated-cell-2-9" aria-hidden="true" tabindex="-1"></a>├── eda-db.qmd</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="4">4</button><span id="annotated-cell-2-10" class="code-annotation-target"><a href="#annotated-cell-2-10" aria-hidden="true" tabindex="-1"></a>└── r-data-load.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>I isolated development for the R Shiny app and API for lab 3 into separate <code>app/</code> and <code>api/</code> directories:</p>
+<div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a>_labs/lab3/R</span>
+<span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1">1</button><span id="annotated-cell-1-3" class="code-annotation-target"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a>├── api</span>
+<span id="annotated-cell-1-4"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a>│   ├── api.Rproj</span>
+<span id="annotated-cell-1-5"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a>│   └── mod-api.R</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2">2</button><span id="annotated-cell-1-6" class="code-annotation-target"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a>├── app</span>
+<span id="annotated-cell-1-7"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a>│   ├── app-api.R</span>
+<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a>│   └── app.Rproj</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3">3</button><span id="annotated-cell-1-9" class="code-annotation-target"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a>├── eda-db.qmd</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4">4</button><span id="annotated-cell-1-10" class="code-annotation-target"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a>└── r-data-load.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-2" data-code-lines="3,5" data-code-annotation="1"><code>vetiver</code> model API<br>
+<span data-code-cell="annotated-cell-1" data-code-lines="3,5" data-code-annotation="1"><code>vetiver</code> model API<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-2" data-code-lines="6,8" data-code-annotation="2"><code>shiny</code> application<br>
+<span data-code-cell="annotated-cell-1" data-code-lines="6,8" data-code-annotation="2"><code>shiny</code> application<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-2" data-target-annotation="3">3</dt>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-2" data-code-lines="9" data-code-annotation="3">EDA of <code>palmerpenguins</code> data using <code>dplyr</code> and <code>ggplot2</code><br>
+<span data-code-cell="annotated-cell-1" data-code-lines="9" data-code-annotation="3">EDA of <code>palmerpenguins</code> data using <code>dplyr</code> and <code>ggplot2</code><br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-2" data-target-annotation="4">4</dt>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-2" data-code-lines="10" data-code-annotation="4">Load <code>palmerpenguins</code> data into <code>duckdb</code></span>
+<span data-code-cell="annotated-cell-1" data-code-lines="10" data-code-annotation="4">Load <code>palmerpenguins</code> data into <code>duckdb</code></span>
 </dd>
 </dl>
-</section>
 <section id="api" class="level2">
 <h2 class="anchored" data-anchor-id="api">API</h2>
-<p>The <a href="https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R"><code>labs/lab3/R/api/mod-api.R</code> file</a> contains the following:</p>
+<p>The <a href="https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R"><code>_labs/lab3/R/api/mod-api.R</code> file</a> contains the following:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vetiver)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pins)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to model board</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"../../../lab2/R/models/"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># read pinned vetiver model</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> vetiver<span class="sc">::</span><span class="fu">vetiver_pin_read</span>(model_board, <span class="st">"penguin_model"</span>)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># use plumber/vetiver to create router/create API</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> plumber<span class="sc">::</span><span class="fu">pr</span>() <span class="sc">|&gt;</span> vetiver<span class="sc">::</span><span class="fu">vetiver_api</span>(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vetiver)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pins)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to model board</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"../../../lab2/R/models/"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># read pinned vetiver model</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> vetiver<span class="sc">::</span><span class="fu">vetiver_pin_read</span>(model_board, <span class="st">"penguin_model"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># use plumber/vetiver to create router/create API</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> plumber<span class="sc">::</span><span class="fu">pr</span>() <span class="sc">|&gt;</span> vetiver<span class="sc">::</span><span class="fu">vetiver_api</span>(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="start-the-api" class="level3">
 <h3 class="anchored" data-anchor-id="start-the-api">Start the API</h3>
 <p>The API will keep running when you run the app.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>app <span class="sc">|&gt;</span> plumber<span class="sc">::</span><span class="fu">pr_run</span>(<span class="at">port =</span> <span class="dv">8080</span>, <span class="at">host =</span> <span class="st">"127.0.0.1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>app <span class="sc">|&gt;</span> plumber<span class="sc">::</span><span class="fu">pr_run</span>(<span class="at">port =</span> <span class="dv">8080</span>, <span class="at">host =</span> <span class="st">"127.0.0.1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -438,7 +431,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <figcaption><code>plumber</code> API for <code>vetiver</code> model</figcaption>
 </figure>
 </div>
-<p>Now we have a working API! We’ll explore the UI in the sections below. Let’s launch the app.</p>
+<p>Now we have a working API! We’ll explore the UI in the sections below. Let’s launch the app.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 </section>
 </section>
 <section id="app" class="level2">
@@ -458,129 +451,129 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>show/hide UI changes to app-api.R</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>api_url <span class="ot">&lt;-</span> <span class="st">"http://127.0.0.1:8080/predict"</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">page_sidebar</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Penguin Mass Predictor"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">theme =</span> <span class="fu">bs_theme</span>(<span class="at">bootswatch =</span> <span class="st">"sketchy"</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">sidebar =</span> <span class="fu">sidebar</span>(</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sliderInput</span>(<span class="at">inputId =</span> <span class="st">"bill_length"</span>, </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Bill Length (mm)"</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="dv">30</span>, </span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">max =</span> <span class="dv">60</span>, </span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">value =</span> <span class="dv">45</span>, </span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">step =</span> <span class="dv">1</span>),</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(<span class="at">inputId =</span> <span class="st">"sex"</span>, </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Sex"</span>, </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"Female"</span>), </span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Male"</span>),</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"species"</span>,</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Species"</span>,</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>),</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Adelie"</span>),</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">actionButton</span>(</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"predict"</span>, </span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Predict"</span>, </span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">"btn-primary"</span>)</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">verbatimTextOutput</span>(<span class="st">"vals"</span>)</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="st">"pred"</span>),</span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">5</span>)</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>api_url <span class="ot">&lt;-</span> <span class="st">"http://127.0.0.1:8080/predict"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">page_sidebar</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Penguin Mass Predictor"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">theme =</span> <span class="fu">bs_theme</span>(<span class="at">bootswatch =</span> <span class="st">"sketchy"</span>),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">sidebar =</span> <span class="fu">sidebar</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sliderInput</span>(<span class="at">inputId =</span> <span class="st">"bill_length"</span>, </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Bill Length (mm)"</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="dv">30</span>, </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">max =</span> <span class="dv">60</span>, </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">value =</span> <span class="dv">45</span>, </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">step =</span> <span class="dv">1</span>),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(<span class="at">inputId =</span> <span class="st">"sex"</span>, </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Sex"</span>, </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"Female"</span>), </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Male"</span>),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"species"</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Species"</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Adelie"</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">actionButton</span>(</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"predict"</span>, </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Predict"</span>, </span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">"btn-primary"</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">verbatimTextOutput</span>(<span class="st">"vals"</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="st">"pred"</span>),</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">5</span>)</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>But clicking <strong>Predict</strong> originally produced the following error:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>HTTP 500 Internal Server Error.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Warning: Error in httr2::req_perform: </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>HTTP 500 Internal Server Error.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>In the API session, we also see an error:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;error/rlang_error&gt;</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Error in `hardhat::validate_column_names()`:</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>! `data` must be a data frame or a matrix, not a list.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;error/rlang_error&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Error in `hardhat::validate_column_names()`:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>! `data` must be a data frame or a matrix, not a list.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>These errors are pretty clear: The <code>httr2::req_body_json()</code> function is sending the data as a JSON list, but the <code>vetiver</code> API expects a data frame or a matrix structure.</p>
 <p>We can fix this in the application server by changing the format of the values sent to the API.</p>
 <section id="reactive-values" class="level3">
 <h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
 <p>Our error tells us <code>'data' should be a data frame or a matrix</code>, so we’ll convert <code>vals()</code> to a single-row <code>data.frame</code> and format the categorical values as numeric (not logical).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="predictions" class="level3">
 <h3 class="anchored" data-anchor-id="predictions">Predictions</h3>
 <p>The predictions in the server creates a <code>response</code> object and returns <code>response$.pred[1]</code> (i.e., only the predictions).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a> pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="annotated-cell-9-2"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
-<span id="annotated-cell-9-3"><a href="#annotated-cell-9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, </span>
-<span id="annotated-cell-9-4"><a href="#annotated-cell-9-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
-<span id="annotated-cell-9-5"><a href="#annotated-cell-9-5" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="annotated-cell-9-6"><a href="#annotated-cell-9-6" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-7" class="code-annotation-target"><a href="#annotated-cell-9-7" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="annotated-cell-9-8"><a href="#annotated-cell-9-8" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="2">2</button><span id="annotated-cell-9-9" class="code-annotation-target"><a href="#annotated-cell-9-9" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="annotated-cell-9-10"><a href="#annotated-cell-9-10" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span></span>
-<span id="annotated-cell-9-11"><a href="#annotated-cell-9-11" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span>
-<span id="annotated-cell-9-12"><a href="#annotated-cell-9-12" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="annotated-cell-9-13"><a href="#annotated-cell-9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"✅ Prediction successful!"</span>, </span>
-<span id="annotated-cell-9-14"><a href="#annotated-cell-9-14" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
-<span id="annotated-cell-9-15"><a href="#annotated-cell-9-15" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="annotated-cell-9-16"><a href="#annotated-cell-9-16" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>.pred[<span class="dv">1</span>]</span>
-<span id="annotated-cell-9-17"><a href="#annotated-cell-9-17" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="annotated-cell-9-18"><a href="#annotated-cell-9-18" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
-<span id="annotated-cell-9-19"><a href="#annotated-cell-9-19" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
-<span id="annotated-cell-9-20"><a href="#annotated-cell-9-20" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="annotated-cell-9-21"><a href="#annotated-cell-9-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="annotated-cell-9-22"><a href="#annotated-cell-9-22" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
-<span id="annotated-cell-9-23"><a href="#annotated-cell-9-23" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="annotated-cell-9-24"><a href="#annotated-cell-9-24" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
-<span id="annotated-cell-9-25"><a href="#annotated-cell-9-25" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
-<span id="annotated-cell-9-26"><a href="#annotated-cell-9-26" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
-<span id="annotated-cell-9-27"><a href="#annotated-cell-9-27" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="annotated-cell-9-28"><a href="#annotated-cell-9-28" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="annotated-cell-9-29"><a href="#annotated-cell-9-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg), <span class="at">type =</span> <span class="st">"warn"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
-<span id="annotated-cell-9-30"><a href="#annotated-cell-9-30" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="annotated-cell-9-31"><a href="#annotated-cell-9-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg)</span>
-<span id="annotated-cell-9-32"><a href="#annotated-cell-9-32" aria-hidden="true" tabindex="-1"></a>      })</span>
-<span id="annotated-cell-9-33"><a href="#annotated-cell-9-33" aria-hidden="true" tabindex="-1"></a>    }) <span class="sc">|&gt;</span> </span>
-<span id="annotated-cell-9-34"><a href="#annotated-cell-9-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-8"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a> pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="annotated-cell-8-2"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, </span>
+<span id="annotated-cell-8-4"><a href="#annotated-cell-8-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-8-5"><a href="#annotated-cell-8-5" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="annotated-cell-8-6"><a href="#annotated-cell-8-6" aria-hidden="true" tabindex="-1"></a>    request_data <span class="ot">&lt;-</span> <span class="fu">vals</span>()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="1">1</button><span id="annotated-cell-8-7" class="code-annotation-target"><a href="#annotated-cell-8-7" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-8-8"><a href="#annotated-cell-8-8" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="2">2</button><span id="annotated-cell-8-9" class="code-annotation-target"><a href="#annotated-cell-8-9" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-8-10"><a href="#annotated-cell-8-10" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-8-11"><a href="#annotated-cell-8-11" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span>
+<span id="annotated-cell-8-12"><a href="#annotated-cell-8-12" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="annotated-cell-8-13"><a href="#annotated-cell-8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"✅ Prediction successful!"</span>, </span>
+<span id="annotated-cell-8-14"><a href="#annotated-cell-8-14" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-8-15"><a href="#annotated-cell-8-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="annotated-cell-8-16"><a href="#annotated-cell-8-16" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>.pred[<span class="dv">1</span>]</span>
+<span id="annotated-cell-8-17"><a href="#annotated-cell-8-17" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="annotated-cell-8-18"><a href="#annotated-cell-8-18" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-8-19"><a href="#annotated-cell-8-19" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
+<span id="annotated-cell-8-20"><a href="#annotated-cell-8-20" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="annotated-cell-8-21"><a href="#annotated-cell-8-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-8-22"><a href="#annotated-cell-8-22" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
+<span id="annotated-cell-8-23"><a href="#annotated-cell-8-23" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-8-24"><a href="#annotated-cell-8-24" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="annotated-cell-8-25"><a href="#annotated-cell-8-25" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="annotated-cell-8-26"><a href="#annotated-cell-8-26" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
+<span id="annotated-cell-8-27"><a href="#annotated-cell-8-27" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="annotated-cell-8-28"><a href="#annotated-cell-8-28" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="annotated-cell-8-29"><a href="#annotated-cell-8-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg), <span class="at">type =</span> <span class="st">"warn"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-8-30"><a href="#annotated-cell-8-30" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="annotated-cell-8-31"><a href="#annotated-cell-8-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(<span class="st">"❌"</span>, user_msg)</span>
+<span id="annotated-cell-8-32"><a href="#annotated-cell-8-32" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="annotated-cell-8-33"><a href="#annotated-cell-8-33" aria-hidden="true" tabindex="-1"></a>    }) <span class="sc">|&gt;</span> </span>
+<span id="annotated-cell-8-34"><a href="#annotated-cell-8-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-annotation">
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-9" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-9" data-code-lines="7" data-code-annotation="1"><code>app_url</code> is “http://127.0.0.1:8080/predict”<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="7" data-code-annotation="1"><code>app_url</code> is “http://127.0.0.1:8080/predict”<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-9" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-9" data-code-lines="9" data-code-annotation="2">Converts <code>vals()/request_data</code> into a JSON array structure instead of a flat object (which is the format <code>vetiver</code> expects)</span>
+<span data-code-cell="annotated-cell-8" data-code-lines="9" data-code-annotation="2">Converts <code>vals()/request_data</code> into a JSON array structure instead of a flat object (which is the format <code>vetiver</code> expects)</span>
 </dd>
 </dl>
 </div>
@@ -599,8 +592,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>Returns a modifiable request object</p></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a base request with URL</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a base request with URL</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-fig-width="6.5" data-layout-align="center">
 <div class="cell-output-display">
@@ -653,8 +646,8 @@ style A fill:#d8e4ff
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="co"># sending data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="co"># sending data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="req_body_json" class="level4">
@@ -688,18 +681,18 @@ style A fill:#d8e4ff
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Chinstrap =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">species_Gentoo =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>species <span class="sc">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex_male =</span> <span class="fu">as.numeric</span>(input<span class="sc">$</span>sex <span class="sc">==</span> <span class="st">"Male"</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="req_perform" class="level4">
@@ -733,10 +726,10 @@ style A fill:#d8e4ff
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="resp_body_json" class="level4">
@@ -770,11 +763,11 @@ style A fill:#d8e4ff
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span> <span class="co"># sending data</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -827,7 +820,7 @@ style A fill:#d8e4ff
 <figcaption><code>plumber</code> API response</figcaption>
 </figure>
 </div>
-<p>A diagram of the user inputs (i.e., the <strong>Predict</strong> button), reactives, and the API request is below:</p>
+<p>A diagram of the Shiny inputs sent(i.e., the <strong>Predict</strong> button), reactives, and the API request is below:</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -846,61 +839,15 @@ style A fill:#d8e4ff
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
-graph TD
-    subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
-    I1[/"input$bill_length"/]
-    I2[/"input$species"/]
-    I3[/"input$sex"/]
-    I4[/"&lt;strong&gt;input$predict&lt;/strong&gt;"/]
-    end
-
-    subgraph API["&lt;strong&gt;plumber API&lt;/strong&gt;"]
-      ModBoard("&lt;strong&gt;pins::board_folder()&lt;/strong&gt;")
-      ModPin("&lt;strong&gt;vetiver::vetiver_pin_read()&lt;/strong&gt;")
-      ModRout("&lt;strong&gt;plumber::pr()&lt;/strong&gt;") 
-      ModApi("&lt;strong&gt;vetiver::vetiver_api()&lt;/strong&gt;") 
-      ApiServ(["&lt;strong&gt;Launch&lt;br&gt;API Server&lt;/strong&gt;"])
-      ModBoard --"&lt;em&gt;connect to model board&lt;/em&gt;"--&gt; ModPin 
-      ModPin --"&lt;em&gt;read pinned vetiver model&lt;/em&gt;"--&gt; ModRout 
-      ModRout --"&lt;em&gt;create router&lt;/em&gt;"--&gt; ModApi 
-      ModApi --"&lt;em&gt;start API server&lt;/em&gt;"--&gt; ApiServ
-    end
-
-    subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
-        Req("&lt;strong&gt;httr2::request()&lt;/strong&gt;") --"&lt;em&gt;Creates HTTP&lt;br&gt;request object&lt;/em&gt;"--&gt; Meth("&lt;strong&gt;httr2::req_method()&lt;/strong&gt;")
-        Meth --"&lt;em&gt;Changes HTTP&lt;br&gt;method from&lt;br&gt;GET to POST&lt;/em&gt;"--&gt; BodyJson1("&lt;strong&gt;httr2::req_body_json()&lt;/strong&gt;")
-        BodyJson1 --"&lt;em&gt;Converts data.frame&lt;br&gt;to JSON &amp; sets&lt;br&gt;request body&lt;/em&gt;"--&gt; Perform("&lt;strong&gt;httr2::req_perform()&lt;/strong&gt;")
-        BodyJson2("&lt;strong&gt;httr2::resp_body_json()&lt;/strong&gt;")
-    end
-
-    Perform --"&lt;em&gt;Sends HTTP&lt;br&gt;request to&lt;br&gt;server &amp;&lt;br&gt;waits for&lt;br&gt;response&lt;/em&gt;"--&gt; API 
-    API --&gt; BodyJson2
-   
-    Res(["&lt;strong&gt;response$.pred[1]&lt;/strong&gt;"])
-    ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;&lt;br&gt;(in &lt;strong&gt;data.frame&lt;/strong&gt;)"])
-    BodyJson2 --"&lt;em&gt;Extracts JSON&lt;br&gt;response body&lt;br&gt;&amp; converts to&lt;br&gt;R object&lt;/em&gt;"--&gt; Res
+sequenceDiagram
+    participant Customer as Shiny&lt;br&gt;App
+    participant Waiter as Plumber&lt;br&gt;API
+    participant Kitchen as Vetiver&lt;br&gt;Model
     
-    I1 --&gt; ValsReact
-    I2 --&gt; ValsReact
-    I3 --&gt; ValsReact
-    I4 --"&lt;em&gt;&lt;strong&gt;reactive()&lt;/strong&gt; &amp; &lt;br&gt;&lt;strong&gt;bindEvent()&lt;/strong&gt;&lt;/em&gt;"---&gt; Pred
-    
-    ValsReact --"&lt;em&gt;as&lt;br&gt;&lt;strong&gt;request_data&lt;/strong&gt;&lt;/em&gt;"--&gt; BodyJson1
-    
-    ValsReact --&gt; RenPrnt[\"&lt;strong&gt;renderPrint()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;vals()&lt;/strong&gt;"\]
-    Res -.-&gt; RenTxt[\"&lt;strong&gt;renderText()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pred()&lt;/strong&gt;"\]
-    
-    %% Style for inputs %%
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
-    
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
-    style ApiServ fill:#31e981
-    style Res fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
+    Customer-&gt;&gt;Waiter: Prediction request:&lt;br/&gt;bill_length=45, species=Adelie,&lt;br&gt;and sex=male
+    Waiter-&gt;&gt;Kitchen: Prepare data
+    Kitchen-&gt;&gt;Waiter: Perform prediction
+    Waiter-&gt;&gt;Customer: Displays response:&lt;br&gt; 4180.8 grams
 
 </pre>
 </div>
@@ -914,13 +861,25 @@ graph TD
 <h2 class="anchored" data-anchor-id="finishing-touches">Finishing touches</h2>
 <p>To keep the R environment in each directory self-contained and reproducible, we should initiate a <code>renv</code> repo in each folder.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>This results in the following files:</p>
 <section id="rapi-files" class="level3">
 <h3 class="anchored" data-anchor-id="rapi-files"><code>R/api/</code> files</h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>├── api.Rproj</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>├── mod-api.R</span>
+<div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>├── api.Rproj</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>├── mod-api.R</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>├── renv</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>│   ├── activate.R</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>│   ├── library</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>│   └── settings.json</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>└── renv.lock</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>3 directories, 5 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="rapp-files" class="level3">
+<h3 class="anchored" data-anchor-id="rapp-files"><code>R/app/</code> files</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>├── app-api.R</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>├── app.Rproj</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>├── renv</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>│   ├── activate.R</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>│   ├── library</span>
@@ -929,17 +888,9 @@ graph TD
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>3 directories, 5 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="rapp-files" class="level3">
-<h3 class="anchored" data-anchor-id="rapp-files"><code>R/app/</code> files</h3>
-<div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>├── app-api.R</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>├── app.Rproj</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>├── renv</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>│   ├── activate.R</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>│   ├── library</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>│   └── settings.json</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>└── renv.lock</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>3 directories, 5 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="original-app-code" class="level2">
+<h2 class="anchored" data-anchor-id="original-app-code">Original App Code</h2>
 <p>To view the original code in <code>app-api.R</code>, expand the section below:</p>
 <details>
 <summary>
@@ -1022,166 +973,14 @@ shinyApp(ui = ui, server = server)</code></pre>
 </div>
 </div>
 </details>
-</section>
-</section>
-<section id="more-httr2-functions" class="level2">
-<h2 class="anchored" data-anchor-id="more-httr2-functions">More <code>httr2</code> functions</h2>
-<p>Below are more <code>httr2</code> functions for communicating with APIs.</p>
-<section id="http-headers" class="level3">
-<h3 class="anchored" data-anchor-id="http-headers">HTTP headers</h3>
-<p><code>httr2::req_headers()</code> adds HTTP headers that provide metadata about the request:</p>
-<ul>
-<li><p><strong><code>Content-Type</code></strong>: Tells server what format we’re sending</p></li>
-<li><p><strong><code>Authorization</code></strong>: Provides authentication credentials</p></li>
-<li><p><strong><code>Accept</code></strong>: Tells server what response format we prefer</p></li>
-<li><p><strong><code>User-Agent</code></strong>: Identifies our client application</p></li>
-</ul>
-<div class="cell" data-fig-width="6.5" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-    A(["Request Object"]) --&gt; B("&lt;strong&gt;req_headers()&lt;/strong&gt;")
-    B --&gt; C("Adds metadata&lt;br&gt;to request")
-    C --&gt; D("Authentication,&lt;br&gt;Content-Type, etc.")
-
-style A fill:#d8e4ff
-
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>req <span class="sc">|&gt;</span> <span class="fu">req_headers</span>(</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Content-Type"</span> <span class="ot">=</span> <span class="st">"application/json"</span>, <span class="co"># what format is the data?</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Authorization"</span> <span class="ot">=</span> <span class="st">"Bearer abc123"</span>, <span class="co"># auth token</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"User-Agent"</span> <span class="ot">=</span> <span class="st">"R-httr2-client/1.0"</span>, <span class="co"># client identification</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Accept"</span> <span class="ot">=</span> <span class="st">"application/json"</span> <span class="co"># what format to return?</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="query-parameters" class="level3">
-<h3 class="anchored" data-anchor-id="query-parameters">Query parameters</h3>
-<p><code>httr2::req_url_query()</code> adds query parameters to the URL (the part after <code>?</code>):</p>
-<ul>
-<li><p><strong><code>GET</code> requests</strong>: Primary way to send parameters</p></li>
-<li><p><strong>Filtering data</strong>: <code>?category=electronics&amp;price_max=100</code></p></li>
-<li><p><strong>Pagination</strong>: <code>?page=2&amp;per_page=50</code></p></li>
-<li><p><strong>API options</strong>: <code>?format=json&amp;verbose=true</code></p></li>
-</ul>
-<div class="cell" data-fig-width="6.5" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-    A(["Base URL"]) --&gt; B("&lt;strong&gt;req_url_query()&lt;/strong&gt;")
-    B --&gt; C("Adds&lt;br&gt;&lt;strong&gt;?param=value&amp;key=data&lt;/strong&gt;")
-    C --&gt; D("&lt;strong&gt;https://&lt;/strong&gt;&lt;strong&gt;api.com/data?species=Adelie&amp;limit=10&lt;/strong&gt;")
-
-style A fill:#d8e4ff
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>req <span class="sc">|&gt;</span> <span class="fu">req_url_query</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">species =</span> <span class="st">"Adelie"</span>, <span class="co"># filter by species</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">limit =</span> <span class="dv">10</span>, <span class="co"># limit results</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">include_na =</span> <span class="st">"false"</span> <span class="co"># drop missing values</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># result: https://api.com/penguins?species=Adelie&amp;limit=10&amp;include_na=false</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="status-codes" class="level3">
-<h3 class="anchored" data-anchor-id="status-codes">Status codes</h3>
-<p><code>httr2::resp_status()</code> extracts the HTTP status code to determine if request succeeded.</p>
-<ul>
-<li><p><strong>200</strong>: OK (success)</p></li>
-<li><p><strong>201</strong>: Created (successful POST)</p></li>
-<li><p><strong>400</strong>: Bad Request (client error)</p></li>
-<li><p><strong>401</strong>: Unauthorized (authentication failed)</p></li>
-<li><p><strong>404</strong>: Not Found (resource doesn’t exist)</p></li>
-<li><p><strong>500</strong>: Internal Server Error (server problem)</p></li>
-</ul>
-<div class="cell" data-fig-width="6.5" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-    A(["Response Object"]) --&gt; B("&lt;strong&gt;resp_status()&lt;/strong&gt;")
-    B --&gt; C("Extracts status&lt;br&gt;code")
-    C --&gt; D("200, 404, 500, etc.")
-
-  style A fill:#d8e4ff
-
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>status <span class="ot">&lt;-</span> <span class="fu">resp_status</span>(response)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (status <span class="sc">==</span> <span class="dv">200</span>) {</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">"Success!"</span>)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (status <span class="sc">==</span> <span class="dv">404</span>) {</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">"Not found"</span>)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (status <span class="sc">&gt;=</span> <span class="dv">500</span>) {</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="st">"Server error"</span>)</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="response-headers" class="level3">
-<h3 class="anchored" data-anchor-id="response-headers">Response headers</h3>
-<p><code>httr2::resp_headers()</code> extracts HTTP headers from the response for metadata. Useful response headers include:</p>
-<ul>
-<li><p><strong>Content-Type</strong>: Format of response body</p></li>
-<li><p><strong>Content-Length</strong>: Size of response</p></li>
-<li><p><strong>Cache-Control</strong>: Caching instructions</p></li>
-<li><p><strong>Set-Cookie</strong>: Cookies to store</p></li>
-</ul>
-<div class="cell" data-fig-width="6.5" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-  A(["Response Object"]) --&gt; B("&lt;strong&gt;resp_headers()&lt;/strong&gt;")
-  B --&gt; C("Extracts response&lt;br&gt;metadata")
-  C --&gt; D("Content-Type,&lt;br&gt;Content-Length, etc.")
-
-  style A fill:#d8e4ff
-
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>headers <span class="ot">&lt;-</span> <span class="fu">resp_headers</span>(response)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>content_type <span class="ot">&lt;-</span> headers<span class="sc">$</span><span class="st">`</span><span class="at">content-type</span><span class="st">`</span> <span class="co"># "application/json"</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>content_length <span class="ot">&lt;-</span> headers<span class="sc">$</span><span class="st">`</span><span class="at">content-length</span><span class="st">`</span> <span class="co"># "1234"</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>server_info <span class="ot">&lt;-</span> headers<span class="sc">$</span>server <span class="co"># "nginx/1.18.0"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 
 
 </section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>I’ve also created an updated <a href="./plumber2.html"><code>plumber2</code></a> api in the <code>plumber.R</code> file.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->

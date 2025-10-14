@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-10-03">
+<meta name="dcterms.date" content="2025-10-14">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App Logging – DO4DS: Lab Solutions</title>
@@ -259,6 +259,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glossary.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Glossary of terms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -312,7 +333,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-10-03</p>
+      <p class="date">2025-10-14</p>
     </div>
   </div>
   
@@ -342,7 +363,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The Shiny for Python application from <a href="./py-app-api.html">lab 3</a> will be updated with logging and performance metrics. The diagram below illustrates the model, API, and application architecture.</p>
+<p>In this lab, I’ll be updating the Shiny for Python application from <a href="./py-app-api.html">lab 3</a> with logging and performance metrics. As a refresher, I’ve created a diagram below that illustrates the app user inputs, reactives, and the API request/response.</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -354,48 +375,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding: 0.2em;
 }
 </style>
-<div class="cell" data-layout-align="center">
+<div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-flowchart TD
- subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
-        I1[/"input.bill_length()"/]
-        I2[/"input.species()"/]
-        I3[/"input.sex()"/]
-        I4[/"&lt;strong&gt;input.predict()&lt;/strong&gt;"/]
-  end
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
-
- subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
-        PredR("&lt;strong&gt;pred()&lt;/strong&gt;")
-        Req("&lt;strong&gt;request.post()&lt;/strong&gt;")
-  end
- subgraph PredOutReact["&lt;strong&gt;pred_out()&lt;/strong&gt;"]
-        Res(["&lt;strong&gt;result&lt;/strong&gt;"])
-  end
-    Req -- Sends HTTP request to server API, waits for response, returns --&gt; PredR
-    PredR -- Checks format,&lt;br&gt;round, add&lt;br&gt; string --&gt; PredOutReact
-    I1 --&gt; ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;"])
-    I2 --&gt; ValsReact
-    I3 --&gt; ValsReact
-    I4 -- "&lt;strong&gt;@reactive.event()&lt;/strong&gt;" --&gt; Req
-    ValsReact -- as &lt;strong&gt;data_to_send&lt;/strong&gt; --&gt; Req
-    ValsReact --&gt; ValsOut("&lt;strong&gt;vals_out()&lt;/strong&gt;")
-    ValsOut -- "&lt;strong&gt;data = vals()&lt;/strong&gt;" --&gt; RenPrnt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;data&lt;/strong&gt;"\]
-    PredOutReact --&gt; RenTxt[\"&lt;strong&gt;@render.text()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;result&lt;/strong&gt;"\]
+sequenceDiagram
+    participant User
+    participant Input
+    participant Reactive
+    participant API
+    participant Output
     
-    style PredR fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
-
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
+    User-&gt;&gt;Input: Adjusts bill length slider
+    Input-&gt;&gt;Reactive: Value changes
+    Note over Reactive: vals()&lt;br&gt;recalculates
+    User-&gt;&gt;Input: Clicks "Predict" button
+    Input-&gt;&gt;Reactive: predict event triggered
+    Reactive-&gt;&gt;API: POST request with data
+    API-&gt;&gt;Reactive: Returns prediction
+    Reactive-&gt;&gt;Output: Updates display
+    Output-&gt;&gt;User: Shows predicted mass
 
 </pre>
 </div>
@@ -546,7 +548,7 @@ graph LR
 </ul>
 <p>This results in the following log in the <strong>Console</strong>:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>2025-09-15 06:58:53,346 - INFO - New session started - Session: py_79024</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>And our log file is created in the following directory:</p>
+<p>And our log file is created in <code>logs/</code> directory:</p>
 <div class="sourceCode" id="annotated-cell-4"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>├── app-log.py</span>
 <span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a>├── logs</span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="1">1</button><span id="annotated-cell-4-3" class="code-annotation-target"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a>│   └── shiny_app.log</span>
@@ -674,7 +676,7 @@ graph TB
 <p>The model parameter inputs (penguin bill length, sex, and species) are described below. The inputs are passed to the API when the <strong>Predict</strong> button is clicked, and a model prediction is returned. The UI for this section of the application hasn’t changed much from the <a href="./py-app-api.html">previous lab</a>, but I’ve included a section for logging and monitoring.</p>
 <section id="ui-1" class="level4">
 <h4 class="anchored" data-anchor-id="ui-1">UI</h4>
-<p>A diagram of the UI hierarchy is below:</p>
+<p>The diagram below attempts to capture the hierarchy of the UI functions:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -729,18 +731,18 @@ graph TD
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        ui.input_select(<span class="bu">id</span><span class="op">=</span><span class="st">"species"</span>, label<span class="op">=</span><span class="st">"Species"</span>, choices<span class="op">=</span>[<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>]),</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        ui.input_action_button(<span class="bu">id</span><span class="op">=</span><span class="st">"predict"</span>, label<span class="op">=</span><span class="st">"Predict"</span>)</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    ), </span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Results and Predicted Mass sections omitted...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="img/lab4-py-param-inputs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="img/lab4-py-param-inputs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
 </figure>
 </div>
-<p>Instead of using a sidebar layout, we’ll place a second <code>ui.card()</code> inside the <code>ui.layout_columns()</code> and title it <strong>Results</strong>. This includes the <strong>Input Values</strong> and <strong>Predicted Mass</strong> sections .</p>
-<p>We can set the <code>ui.card()</code> widths with <code>col_widths=[4, 8]</code>, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the <strong>System Status</strong> section we’ll add below).</p>
+<p>Instead of using the sidebar layout, I’ve place a second <code>ui.card()</code> inside the <code>ui.layout_columns()</code> and titled it <strong>Results</strong>. This includes the <strong>Input Values</strong> and <strong>Predicted Mass</strong> sections.</p>
+<p>We can set the widths for each <code>ui.card()</code> with <code>col_widths=[4, 8]</code>, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the <strong>System Status</strong> section we’ll add below).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>  ui.layout_columns(</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inputs section omitted...</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... &lt;Inputs section omitted&gt; ...</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        ui.card(</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            ui.card_header(<span class="st">"Results"</span>),</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            ui.h3(<span class="st">"Input Values"</span>),</span>
@@ -1041,69 +1043,323 @@ graph TD
 </div>
 </div>
 </div>
+<p><strong>Error Handling</strong></p>
 <p>The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span>:</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      response_time <span class="op">=</span> time.time() <span class="op">-</span> request_start</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      current_times <span class="op">=</span> request_times()</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      current_times.append(response_time)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">len</span>(current_times) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>          current_times <span class="op">=</span> current_times[<span class="op">-</span><span class="dv">10</span>:]</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      request_times.<span class="bu">set</span>(current_times)</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>          result <span class="op">=</span> r.json()</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result:</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>              prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>          <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>              prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>          <span class="cf">else</span>:</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>              logging.warning(<span class="ss">f"Unexpected response format - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>              <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>          logging.info(<span class="ss">f"Prediction successful - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s - prediction: </span><span class="sc">{</span>prediction<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> response_time <span class="op">&gt;</span> <span class="dv">5</span>:</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>              logging.warning(<span class="ss">f"Slow API response - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s"</span>)</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> prediction</span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">else</span>:</span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>          error_msg <span class="op">=</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>          logging.error(<span class="ss">f"Prediction request failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - status: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>r<span class="sc">.</span>text[:<span class="dv">200</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>          error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-16"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="1">1</button><span id="annotated-cell-16-1" class="code-annotation-target"><a href="#annotated-cell-16-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="2">2</button><span id="annotated-cell-16-2" class="code-annotation-target"><a href="#annotated-cell-16-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
+<span id="annotated-cell-16-3"><a href="#annotated-cell-16-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-16-4"><a href="#annotated-cell-16-4" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="3">3</button><span id="annotated-cell-16-5" class="code-annotation-target"><a href="#annotated-cell-16-5" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="annotated-cell-16-6"><a href="#annotated-cell-16-6" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="4">4</button><span id="annotated-cell-16-7" class="code-annotation-target"><a href="#annotated-cell-16-7" aria-hidden="true" tabindex="-1"></a>        response_time <span class="op">=</span> time.time() <span class="op">-</span> request_start</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="5">5</button><span id="annotated-cell-16-8" class="code-annotation-target"><a href="#annotated-cell-16-8" aria-hidden="true" tabindex="-1"></a>        current_times <span class="op">=</span> request_times()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="6">6</button><span id="annotated-cell-16-9" class="code-annotation-target"><a href="#annotated-cell-16-9" aria-hidden="true" tabindex="-1"></a>        current_times.append(response_time)</span>
+<span id="annotated-cell-16-10"><a href="#annotated-cell-16-10" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="7">7</button><span id="annotated-cell-16-11" class="code-annotation-target"><a href="#annotated-cell-16-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(current_times) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
+<span id="annotated-cell-16-12"><a href="#annotated-cell-16-12" aria-hidden="true" tabindex="-1"></a>            current_times <span class="op">=</span> current_times[<span class="op">-</span><span class="dv">10</span>:]</span>
+<span id="annotated-cell-16-13"><a href="#annotated-cell-16-13" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="8">8</button><span id="annotated-cell-16-14" class="code-annotation-target"><a href="#annotated-cell-16-14" aria-hidden="true" tabindex="-1"></a>        request_times.<span class="bu">set</span>(current_times)</span>
+<span id="annotated-cell-16-15"><a href="#annotated-cell-16-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="9">9</button><span id="annotated-cell-16-16" class="code-annotation-target"><a href="#annotated-cell-16-16" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-16-17"><a href="#annotated-cell-16-17" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-16" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="1" data-code-annotation="1">Wrap risky code (like network requests) to catch and handle errors gracefully<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="2,3" data-code-annotation="2">Provides immediate visual feedback in the terminal/console (<code>logging.info()</code> creates a permanent record in log file.)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="5" data-code-annotation="3">HTTP <code>POST</code> request with timeout (<code>POST</code> (not <code>GET</code>) because we’re sending data to create/compute something)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="7" data-code-annotation="4">Calculate how long the API request took.<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="8" data-code-annotation="5">Retrieve the current list of response times<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="9" data-code-annotation="6">Add the current request’s time to the historical list</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="11,12" data-code-annotation="7">Keep only the 10 most recent measurements<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="14" data-code-annotation="8">Update the stored value<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="16,17" data-code-annotation="9">See exactly what the API returned</span>
+</dd>
+</dl>
 </div>
-<p>The <em>exceptions</em></p>
+</div>
+<p><strong>Initial Request</strong></p>
+<p>The predictions are stored in <code>r</code> and sent using <code>requests.post()</code>, which includes:</p>
+<ul>
+<li>The destination (<code>api_url</code>)<br>
+</li>
+<li>Automatic conversion of Python dict to JSON format (<code>json</code>)<br>
+</li>
+<li>The maximum wait time in seconds (<code>timeout</code>)</li>
+</ul>
+<p><strong>Performance Metrics Tracking</strong></p>
+<p>Performance timing is calculated using:</p>
+<ul>
+<li><code>response_time</code> is the current time minus start time = elapsed seconds.<br>
+</li>
+<li><code>request_times()</code> is a Shiny-specific reactive value - we can call it like a function to get its value.<br>
+</li>
+<li><code>current_times.append(response_time)</code> adds current response time to the list of times.</li>
+</ul>
+<p>The first <code>if</code> statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the <code>request_times</code> is updated the stored value using <code>set(current_times)</code> (recall that <code>request_times</code> is a shiny-specific reactive value).</p>
+<p>The <code>print</code> statements give us an indication of what was returned in the HTTP status code:</p>
+<ul>
+<li><strong><code>200</code></strong> = Success! Everything worked.<br>
+</li>
+<li><strong><code>400</code></strong> = Bad Request (you sent invalid data).<br>
+</li>
+<li><strong><code>404</code></strong> = Not Found (wrong URL).<br>
+</li>
+<li><strong><code>422</code></strong> = Validation Error (data format wrong).<br>
+</li>
+<li><strong><code>500</code></strong> = Server Error (API crashed).<br>
+</li>
+<li><strong><code>503</code></strong> = Service Unavailable (API overloaded).</li>
+</ul>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    A(["&lt;strong&gt;HTTP Status Codes&lt;/strong&gt;"]) --&gt; B("&lt;code&gt;2xx&lt;/code&gt; Success")
+    A --&gt; C("&lt;code&gt;4xx&lt;/code&gt; Client Error")
+    A --&gt; D("&lt;code&gt;5xx&lt;/code&gt; Server Error")
+    
+    B --&gt; B1("&lt;code&gt;200&lt;/code&gt; OK")
+    B --&gt; B2("&lt;code&gt;201&lt;/code&gt; Created")
+    
+    C --&gt; C1("&lt;code&gt;400&lt;/code&gt; Bad Request")
+    C --&gt; C2("&lt;code&gt;401&lt;/code&gt; Unauthorized")
+    C --&gt; C3("&lt;code&gt;404&lt;/code&gt; Not Found")
+    C --&gt; C4("&lt;code&gt;422&lt;/code&gt; Validation Error")
+    
+    D --&gt; D1("&lt;code&gt;500&lt;/code&gt; Internal Server Error")
+    D --&gt; D2("&lt;code&gt;503&lt;/code&gt; Service Unavailable")
+    
+    style A fill:#d8e4ff
+    style B1 fill:#31e981
+    style B2 fill:#31e981
+</pre>
+</div>
+<p></p><figcaption> HTTP Status Codes Explained</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p><strong>Response Debugging</strong></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Connection Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"API connection refused during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        connection_errors.<span class="bu">set</span>(connection_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Connection Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.Timeout:</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-17"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="1">1</button><span id="annotated-cell-17-1" class="code-annotation-target"><a href="#annotated-cell-17-1" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="2">2</button><span id="annotated-cell-17-2" class="code-annotation-target"><a href="#annotated-cell-17-2" aria-hidden="true" tabindex="-1"></a>            result <span class="op">=</span> r.json()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="3">3</button><span id="annotated-cell-17-3" class="code-annotation-target"><a href="#annotated-cell-17-3" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-17-4"><a href="#annotated-cell-17-4" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="4">4</button><span id="annotated-cell-17-5" class="code-annotation-target"><a href="#annotated-cell-17-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result:</span>
+<span id="annotated-cell-17-6"><a href="#annotated-cell-17-6" aria-hidden="true" tabindex="-1"></a>                prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="5">5</button><span id="annotated-cell-17-7" class="code-annotation-target"><a href="#annotated-cell-17-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
+<span id="annotated-cell-17-8"><a href="#annotated-cell-17-8" aria-hidden="true" tabindex="-1"></a>                prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="6">6</button><span id="annotated-cell-17-9" class="code-annotation-target"><a href="#annotated-cell-17-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="annotated-cell-17-10"><a href="#annotated-cell-17-10" aria-hidden="true" tabindex="-1"></a>                logging.warning(<span class="ss">f"Unexpected response format - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-17-11"><a href="#annotated-cell-17-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-17-12"><a href="#annotated-cell-17-12" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="7">7</button><span id="annotated-cell-17-13" class="code-annotation-target"><a href="#annotated-cell-17-13" aria-hidden="true" tabindex="-1"></a>            logging.info(<span class="ss">f"Prediction successful - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s - prediction: </span><span class="sc">{</span>prediction<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-17-14"><a href="#annotated-cell-17-14" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="8">8</button><span id="annotated-cell-17-15" class="code-annotation-target"><a href="#annotated-cell-17-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> response_time <span class="op">&gt;</span> <span class="dv">5</span>:</span>
+<span id="annotated-cell-17-16"><a href="#annotated-cell-17-16" aria-hidden="true" tabindex="-1"></a>                logging.warning(<span class="ss">f"Slow API response - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s"</span>)</span>
+<span id="annotated-cell-17-17"><a href="#annotated-cell-17-17" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="9">9</button><span id="annotated-cell-17-18" class="code-annotation-target"><a href="#annotated-cell-17-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> prediction</span>
+<span id="annotated-cell-17-19"><a href="#annotated-cell-17-19" aria-hidden="true" tabindex="-1"></a>          </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="10">10</button><span id="annotated-cell-17-20" class="code-annotation-target"><a href="#annotated-cell-17-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="annotated-cell-17-21"><a href="#annotated-cell-17-21" aria-hidden="true" tabindex="-1"></a>            error_msg <span class="op">=</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-17-22"><a href="#annotated-cell-17-22" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"Prediction request failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - status: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss"> - response: </span><span class="sc">{</span>r<span class="sc">.</span>text[:<span class="dv">200</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-17-23"><a href="#annotated-cell-17-23" aria-hidden="true" tabindex="-1"></a>            error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="annotated-cell-17-24"><a href="#annotated-cell-17-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> error_msg</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-17" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="1" data-code-annotation="1">Only proceed if request succeeded<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="2" data-code-annotation="2">Convert JSON text to Python dictionary<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="3" data-code-annotation="3">Success confirmation with result<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="5,6" data-code-annotation="4">Handle different API response structures<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="7,8" data-code-annotation="5">Try second possible prediction format<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="9,11" data-code-annotation="6">Send error message back to UI instead of crashing<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="13" data-code-annotation="7">Structured success logging with metrics<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="15,16" data-code-annotation="8">Performance threshold monitoring (5 seconds–configurable based on requirements)</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="18" data-code-annotation="9">Send prediction back to calling function for display<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-17" data-target-annotation="10">10</dt>
+<dd>
+<span data-code-cell="annotated-cell-17" data-code-lines="20,24" data-code-annotation="10">Error message construction (non-200 status)</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>The error handling starts by checking the response code (<strong><code>200</code></strong>), <code>r.json()</code> is converted to a Python dictionary (<code>result</code>), then a confirmation message is printed if it’s successful. <code>[0]</code> is used to index the first element in the returned list and store the result in <code>prediction</code>.</p>
+<p><strong>Structured Logs</strong></p>
+<ol type="1">
+<li>If the returned prediction is anything other than <code>result['.pred'][0]</code> or <code>result['predict'][0]</code>, the app returns a <code>warning</code> (not an <code>error</code>) because response succeeded but format is unexpected.
+<ul>
+<li><em>Structured <code>logging.warning()</code></em>
+<ul>
+<li><code>Session: {session_id}</code> = <em>which user encountered this</em><br>
+</li>
+<li><code>response: {result}</code> = <em>what was received</em></li>
+</ul></li>
+</ul></li>
+<li>If the returned prediction was successful, <code>logging.info()</code> returns an <code>info</code> log (i.e., a normal operational event, not a <code>warning</code> or <code>error</code>).
+<ul>
+<li><em>Structured <code>logging.info()</code></em>
+<ul>
+<li><em>Easier to parse/search logs</em><br>
+</li>
+<li><em>Include metrics like average response time</em><br>
+</li>
+<li><em>Debug issues by filtering by session ID</em></li>
+</ul></li>
+</ul></li>
+<li>If the response time exceeds the performance threshold (5 seconds), a <code>warning</code> is returned (because the API works but isn’t optimal). This helps to identify performance degradation and helps diagnose API issues.
+<ul>
+<li><em>Structured <code>logging.warning()</code></em>
+<ul>
+<li><em>Identifies API server overload</em><br>
+</li>
+<li><em>Tells us if the model taking too long to compute</em><br>
+</li>
+<li><em>Can detect network latency issues</em></li>
+</ul></li>
+</ul></li>
+<li>Finally, if the API returns a non-200 status, <code>logging.error()</code> returns a human-readable error description with the first 200 characters only (<code>[:200]</code>).
+<ul>
+<li><em>Structured <code>logging.error()</code></em>
+<ul>
+<li><em>Truncated error logging</em><br>
+</li>
+<li><em>Prevents log files from bloating</em><br>
+</li>
+<li><em>User has enough information to see why prediction failed</em></li>
+</ul></li>
+</ul></li>
+</ol>
+<p><strong>Exceptions</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-18"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="1">1</button><span id="annotated-cell-18-1" class="code-annotation-target"><a href="#annotated-cell-18-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="2">2</button><span id="annotated-cell-18-2" class="code-annotation-target"><a href="#annotated-cell-18-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Connection Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="3">3</button><span id="annotated-cell-18-3" class="code-annotation-target"><a href="#annotated-cell-18-3" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"API connection refused during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="4">4</button><span id="annotated-cell-18-4" class="code-annotation-target"><a href="#annotated-cell-18-4" aria-hidden="true" tabindex="-1"></a>        connection_errors.<span class="bu">set</span>(connection_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="annotated-cell-18-5"><a href="#annotated-cell-18-5" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="5">5</button><span id="annotated-cell-18-6" class="code-annotation-target"><a href="#annotated-cell-18-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Connection Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="6">6</button><span id="annotated-cell-18-7" class="code-annotation-target"><a href="#annotated-cell-18-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-18" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="1" data-code-annotation="1">Specific exception handling<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="2" data-code-annotation="2">Convert exception object to readable string<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="3" data-code-annotation="3">Contextual error logging<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="4,5" data-code-annotation="4">Specific metric (how many connection failures?) or overall metric (total failures of any type?)</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="6" data-code-annotation="5">Console error notification<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-18" data-code-lines="7" data-code-annotation="6">Error return</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>The first exception uses <a href="https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError"><code>requests.exceptions.ConnectionError</code></a> to catch connection failures separately from other errors. The <code>error_msg</code> string is created using <code>str(e)</code> to extract the error description from exception. A structured <code>warning</code> log is printed to the console with the <code>session_id</code> and the error description.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.Timeout:</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The second exception is a timeout exception, which is triggered if the API doesn’t respond within 30 seconds.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The <code>@render.text</code> decorator defines the <code>pred_out()</code> function, which doesn’t receive the prediction value as a parameter. Instead, it calls <code>pred()</code> directly, creating an implicit reactive dependency.</p>
 <div class="cell">
