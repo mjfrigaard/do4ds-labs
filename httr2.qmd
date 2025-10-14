@@ -1,0 +1,177 @@
+# More `httr2` functions
+
+```{r}
+#| eval: true 
+#| echo: false 
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_dev
+#| echo: false
+#| results: asis
+#| eval: false
+co_box(
+  color = "r", 
+  look = "minimal",
+  header = "Alert",
+  contents = "The contents for section are being revised. Thank you for your patience."
+)
+```
+
+Below are more `httr2` functions for communicating with APIs.  
+
+### HTTP headers
+
+`httr2::req_headers()` adds HTTP headers that provide metadata about the request:
+
+-   **`Content-Type`**: Tells server what format we're sending
+
+-   **`Authorization`**: Provides authentication credentials
+
+-   **`Accept`**: Tells server what response format we prefer
+
+-   **`User-Agent`**: Identifies our client application
+
+```{mermaid}
+%%| fig-width: 6.5
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A(["Request Object"]) --> B("<strong>req_headers()</strong>")
+	B --> C("Adds metadata<br>to request")
+	C --> D("Authentication,<br>Content-Type, etc.")
+
+style A fill:#d8e4ff
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+req |> req_headers(
+    "Content-Type" = "application/json", # what format is the data?
+    "Authorization" = "Bearer abc123", # auth token
+    "User-Agent" = "R-httr2-client/1.0", # client identification
+    "Accept" = "application/json" # what format to return?
+)
+```
+
+
+### Query parameters
+
+`httr2::req_url_query()` adds query parameters to the URL (the part after `?`):
+
+-   **`GET` requests**: Primary way to send parameters
+
+-   **Filtering data**: `?category=electronics&price_max=100`
+
+-   **Pagination**: `?page=2&per_page=50`
+
+-   **API options**: `?format=json&verbose=true`
+
+```{mermaid}
+%%| fig-width: 6.5
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A(["Base URL"]) --> B("<strong>req_url_query()</strong>")
+	B --> C("Adds<br><strong>?param=value&key=data</strong>")
+	C --> D("<strong>https://</strong><strong>api.com/data?species=Adelie&limit=10</strong>")
+
+style A fill:#d8e4ff
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+req |> req_url_query(
+    species = "Adelie", # filter by species
+    limit = 10, # limit results
+    include_na = "false" # drop missing values
+)
+# result: https://api.com/penguins?species=Adelie&limit=10&include_na=false
+```
+
+### Status codes
+
+`httr2::resp_status()` extracts the HTTP status code to determine if request succeeded.
+
+- **200**: OK (success)
+
+- **201**: Created (successful POST)
+
+- **400**: Bad Request (client error)
+
+- **401**: Unauthorized (authentication failed)
+
+- **404**: Not Found (resource doesn't exist)
+
+- **500**: Internal Server Error (server problem)
+
+```{mermaid}
+%%| fig-width: 6.5
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+	A(["Response Object"]) --> B("<strong>resp_status()</strong>")
+	B --> C("Extracts status<br>code")
+	C --> D("200, 404, 500, etc.")
+
+  style A fill:#d8e4ff
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+status <- resp_status(response)
+if (status == 200) {
+    print("Success!")
+} else if (status == 404) {
+    print("Not found")
+} else if (status >= 500) {
+    print("Server error")
+}
+```
+
+### Response headers
+
+`httr2::resp_headers()` extracts HTTP headers from the response for metadata. Useful response headers include:
+
+- **Content-Type**: Format of response body
+
+- **Content-Length**: Size of response
+
+- **Cache-Control**: Caching instructions
+
+- **Set-Cookie**: Cookies to store
+
+```{mermaid}
+%%| fig-width: 6.5
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+  A(["Response Object"]) --> B("<strong>resp_headers()</strong>")
+  B --> C("Extracts response<br>metadata")
+  C --> D("Content-Type,<br>Content-Length, etc.")
+
+  style A fill:#d8e4ff
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: false
+headers <- resp_headers(response)
+content_type <- headers$`content-type` # "application/json"
+content_length <- headers$`content-length` # "1234"
+server_info <- headers$server # "nginx/1.18.0"
+```
+
+

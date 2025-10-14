@@ -22,31 +22,7 @@ co_box(
 )
 ```
 
-## Initial launch
-
-The application and API need a little attention to get working. If you try to run the app without the model API running, you'll see something like the following error:
-
-```{verbatim}
-Warning: Error in httr2::req_perform: Failed to perform HTTP request.
-Caused by error in `curl::curl_fetch_memory()`:
-! Could not connect to server [127.0.0.1]:
-Failed to connect to 127.0.0.1 port 8080 after 0 ms: Could not connect to server
-  163: <Anonymous>
-  162: signalCondition
-  161: signal_abort
-  160: cnd_signal
-  159: handle_resp
-  158: httr2::req_perform
-  154: eventReactiveValueFunc
-  102: pred
-  101: renderText
-  100: func
-   87: renderFunc
-   86: output$pred
-    1: runApp
-```
-
-To separate my development workflows, I've organizing the API and app files into separate directories.
+I isolated development for the R Shiny app and API for lab 3 into separate `app/` and `api/` directories:
 
 ```{r}
 #| eval: false 
@@ -73,7 +49,7 @@ _labs/lab3/R
 
 ## API
 
-The [`labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following:
+The [`_labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following:
 
 ```{r}
 #| eval: false
@@ -102,7 +78,9 @@ app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
 
 ![`plumber` API for `vetiver` model](img/lab3-r-plumber-router.png){fig-align="center" width="100%"}
 
-Now we have a working API! We'll explore the UI in the sections below. Let's launch the app.
+Now we have a working API! We'll explore the UI in the sections below. Let's launch the app.[^plumber2]
+
+[^plumber2]: I've also created an updated [`plumber2`](plumber2.qmd) api in the `plumber.R` file. 
 
 ## App
 
@@ -462,7 +440,7 @@ And we can compare the response to the value we saw in the app:
 
 ![`plumber` API response](img/lab3-r-plumber-response.png){fig-align="center" width="100%"}
 
-A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below:
+A diagram of the Shiny inputs sent(i.e., the **Predict** button), reactives, and the API request is below:
 
 ```{=html}
 <style>
@@ -483,61 +461,15 @@ A diagram of the user inputs (i.e., the **Predict** button), reactives, and the 
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
-graph TD
-    subgraph Inputs["<strong>User Inputs</strong>"]
-    I1[/"input$bill_length"/]
-    I2[/"input$species"/]
-    I3[/"input$sex"/]
-    I4[/"<strong>input$predict</strong>"/]
-    end
-
-    subgraph API["<strong>plumber API</strong>"]
-      ModBoard("<strong>pins::board_folder()</strong>")
-      ModPin("<strong>vetiver::vetiver_pin_read()</strong>")
-      ModRout("<strong>plumber::pr()</strong>") 
-      ModApi("<strong>vetiver::vetiver_api()</strong>") 
-      ApiServ(["<strong>Launch<br>API Server</strong>"])
-      ModBoard --"<em>connect to model board</em>"--> ModPin 
-      ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
-      ModRout --"<em>create router</em>"--> ModApi 
-      ModApi --"<em>start API server</em>"--> ApiServ
-    end
-
-    subgraph Pred["<strong>Predict</strong>"]
-        Req("<strong>httr2::request()</strong>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<strong>httr2::req_method()</strong>")
-        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<strong>httr2::req_body_json()</strong>")
-        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<strong>httr2::req_perform()</strong>")
-        BodyJson2("<strong>httr2::resp_body_json()</strong>")
-    end
-
-    Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
-    API --> BodyJson2
-   
-    Res(["<strong>response$.pred[1]</strong>"])
-    ValsReact(["<strong>vals()</strong><br>(in <strong>data.frame</strong>)"])
-    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> Res
+sequenceDiagram
+    participant Customer as Shiny<br>App
+    participant Waiter as Plumber<br>API
+    participant Kitchen as Vetiver<br>Model
     
-    I1 --> ValsReact
-    I2 --> ValsReact
-    I3 --> ValsReact
-    I4 --"<em><strong>reactive()</strong> & <br><strong>bindEvent()</strong></em>"---> Pred
-    
-    ValsReact --"<em>as<br><strong>request_data</strong></em>"--> BodyJson1
-    
-    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><strong>vals()</strong>"\]
-    Res -.-> RenTxt[\"<strong>renderText()</strong><br><strong>pred()</strong>"\]
-    
-    %% Style for inputs %%
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
-    
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
-    style ApiServ fill:#31e981
-    style Res fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
+    Customer->>Waiter: Prediction request:<br/>bill_length=45, species=Adelie,<br>and sex=male
+    Waiter->>Kitchen: Prepare data
+    Kitchen->>Waiter: Perform prediction
+    Waiter->>Customer: Displays response:<br> 4180.8 grams
 
 ```
 
@@ -580,6 +512,8 @@ This results in the following files:
 3 directories, 5 files
 ```
 
+## Original App Code
+
 To view the original code in `app-api.R`, expand the section below:
 
 <details>
@@ -596,161 +530,4 @@ readr::read_lines("_labs/lab3/app-api.R") |>
 ```
 
 </details>
-
-## More `httr2` functions
-
-Below are more `httr2` functions for communicating with APIs.  
-
-### HTTP headers
-
-`httr2::req_headers()` adds HTTP headers that provide metadata about the request:
-
--   **`Content-Type`**: Tells server what format we're sending
-
--   **`Authorization`**: Provides authentication credentials
-
--   **`Accept`**: Tells server what response format we prefer
-
--   **`User-Agent`**: Identifies our client application
-
-```{mermaid}
-%%| fig-width: 6.5
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A(["Request Object"]) --> B("<strong>req_headers()</strong>")
-	B --> C("Adds metadata<br>to request")
-	C --> D("Authentication,<br>Content-Type, etc.")
-
-style A fill:#d8e4ff
-
-```
-
-```{r}
-#| eval: false
-#| code-fold: false
-req |> req_headers(
-    "Content-Type" = "application/json", # what format is the data?
-    "Authorization" = "Bearer abc123", # auth token
-    "User-Agent" = "R-httr2-client/1.0", # client identification
-    "Accept" = "application/json" # what format to return?
-)
-```
-
-
-### Query parameters
-
-`httr2::req_url_query()` adds query parameters to the URL (the part after `?`):
-
--   **`GET` requests**: Primary way to send parameters
-
--   **Filtering data**: `?category=electronics&price_max=100`
-
--   **Pagination**: `?page=2&per_page=50`
-
--   **API options**: `?format=json&verbose=true`
-
-```{mermaid}
-%%| fig-width: 6.5
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A(["Base URL"]) --> B("<strong>req_url_query()</strong>")
-	B --> C("Adds<br><strong>?param=value&key=data</strong>")
-	C --> D("<strong>https://</strong><strong>api.com/data?species=Adelie&limit=10</strong>")
-
-style A fill:#d8e4ff
-```
-
-```{r}
-#| eval: false
-#| code-fold: false
-req |> req_url_query(
-    species = "Adelie", # filter by species
-    limit = 10, # limit results
-    include_na = "false" # drop missing values
-)
-# result: https://api.com/penguins?species=Adelie&limit=10&include_na=false
-```
-
-### Status codes
-
-`httr2::resp_status()` extracts the HTTP status code to determine if request succeeded.
-
-- **200**: OK (success)
-
-- **201**: Created (successful POST)
-
-- **400**: Bad Request (client error)
-
-- **401**: Unauthorized (authentication failed)
-
-- **404**: Not Found (resource doesn't exist)
-
-- **500**: Internal Server Error (server problem)
-
-```{mermaid}
-%%| fig-width: 6.5
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A(["Response Object"]) --> B("<strong>resp_status()</strong>")
-	B --> C("Extracts status<br>code")
-	C --> D("200, 404, 500, etc.")
-
-  style A fill:#d8e4ff
-
-```
-
-```{r}
-#| eval: false
-#| code-fold: false
-status <- resp_status(response)
-if (status == 200) {
-    print("Success!")
-} else if (status == 404) {
-    print("Not found")
-} else if (status >= 500) {
-    print("Server error")
-}
-```
-
-### Response headers
-
-`httr2::resp_headers()` extracts HTTP headers from the response for metadata. Useful response headers include:
-
-- **Content-Type**: Format of response body
-
-- **Content-Length**: Size of response
-
-- **Cache-Control**: Caching instructions
-
-- **Set-Cookie**: Cookies to store
-
-```{mermaid}
-%%| fig-width: 6.5
-%%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
-
-graph TD
-  A(["Response Object"]) --> B("<strong>resp_headers()</strong>")
-  B --> C("Extracts response<br>metadata")
-  C --> D("Content-Type,<br>Content-Length, etc.")
-
-  style A fill:#d8e4ff
-
-```
-
-```{r}
-#| eval: false
-#| code-fold: false
-headers <- resp_headers(response)
-content_type <- headers$`content-type` # "application/json"
-content_length <- headers$`content-length` # "1234"
-server_info <- headers$server # "nginx/1.18.0"
-```
-
 

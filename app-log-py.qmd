@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-The Shiny for Python application from [lab 3](py-app-api.qmd) will be updated with logging and performance metrics. The diagram below illustrates the model, API, and application architecture. 
+In this lab, I'll be updating the  Shiny for Python application from [lab 3](py-app-api.qmd) with logging and performance metrics. As a refresher, I've created a diagram below that illustrates the  app user inputs, reactives, and the API request/response. 
 
 ```{=html}
 <style>
@@ -40,44 +40,26 @@ The Shiny for Python application from [lab 3](py-app-api.qmd) will be updated wi
 
 ```{mermaid}
 %%| fig-cap: 'Python Shiny App and API'
+%%| fig-width: 7.0
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-flowchart TD
- subgraph Inputs["<strong>User Inputs</strong>"]
-        I1[/"input.bill_length()"/]
-        I2[/"input.species()"/]
-        I3[/"input.sex()"/]
-        I4[/"<strong>input.predict()</strong>"/]
-  end
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
-
- subgraph Pred["<strong>Predict</strong>"]
-        PredR("<strong>pred()</strong>")
-        Req("<strong>request.post()</strong>")
-  end
- subgraph PredOutReact["<strong>pred_out()</strong>"]
-        Res(["<strong>result</strong>"])
-  end
-    Req -- Sends HTTP request to server API, waits for response, returns --> PredR
-    PredR -- Checks format,<br>round, add<br> string --> PredOutReact
-    I1 --> ValsReact(["<strong>vals()</strong>"])
-    I2 --> ValsReact
-    I3 --> ValsReact
-    I4 -- "<strong>@reactive.event()</strong>" --> Req
-    ValsReact -- as <strong>data_to_send</strong> --> Req
-    ValsReact --> ValsOut("<strong>vals_out()</strong>")
-    ValsOut -- "<strong>data = vals()</strong>" --> RenPrnt[\"<strong>@render.text()</strong><br><strong>data</strong>"\]
-    PredOutReact --> RenTxt[\"<strong>@render.text()</strong><br><strong>result</strong>"\]
+sequenceDiagram
+    participant User
+    participant Input
+    participant Reactive
+    participant API
+    participant Output
     
-    style PredR fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
-
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
+    User->>Input: Adjusts bill length slider
+    Input->>Reactive: Value changes
+    Note over Reactive: vals()<br>recalculates
+    User->>Input: Clicks "Predict" button
+    Input->>Reactive: predict event triggered
+    Reactive->>API: POST request with data
+    API->>Reactive: Returns prediction
+    Reactive->>Output: Updates display
+    Output->>User: Shows predicted mass
 
 ```
 
@@ -197,7 +179,7 @@ This results in the following log in the **Console**:
 2025-09-15 06:58:53,346 - INFO - New session started - Session: py_79024
 ```
 
-And our log file is created in the following directory: 
+And our log file is created in `logs/` directory: 
 
 ```{verbatim}
 ├── app-log.py
@@ -336,7 +318,7 @@ The model parameter inputs (penguin bill length, sex, and species) are described
 
 #### UI
 
-A diagram of the UI hierarchy is below: 
+The diagram below attempts to capture the hierarchy of the UI functions: 
 
 ```{mermaid}
 %%| fig-cap: 'Predictions (UI)'
@@ -390,20 +372,20 @@ ui.layout_columns(
         ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),
         ui.input_action_button(id="predict", label="Predict")
     ), 
-    # Results and Predicted Mass sections omitted...
+    # ...
 ```
 
 ![](img/lab4-py-param-inputs.png){width='70%' fig-align='center'}
 
-Instead of using a sidebar layout, we'll place a second `ui.card()` inside the `ui.layout_columns()` and title it **Results**. This includes the **Input Values** and **Predicted Mass** sections . 
+Instead of using the sidebar layout, I've place a second `ui.card()` inside the `ui.layout_columns()` and titled it **Results**. This includes the **Input Values** and **Predicted Mass** sections. 
 
-We can set the `ui.card()` widths with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
+We can set the widths for each `ui.card()` with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
   ui.layout_columns(
-    # Inputs section omitted...
+    # ... <Inputs section omitted> ...
         ui.card(
             ui.card_header("Results"),
             ui.h3("Input Values"),
@@ -421,9 +403,12 @@ We can set the `ui.card()` widths with `col_widths=[4, 8]`, which will give the 
   )
 ```
 
+
 ![](img/lab4-py-input-vals-prediction.png){width='100%' fig-align='center'}
 
+
 These outputs won't render until we add the corresponding server components. 
+
 
 #### ***Input Values***
 
@@ -648,73 +633,211 @@ graph TD
     style Function fill:#35605a,color:#fff
 ```
 
+**Error Handling**
+
 The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values: 
 
-
 ```{python}
 #| eval: false 
 #| code-fold: false 
-  try:
-      print(f"\n=== PREDICTION REQUEST ===")
-      print(f"Sending data to API: {data_to_send}")
-      
-      r = requests.post(api_url, json=data_to_send, timeout=30)
-      response_time = time.time() - request_start
-      
-      current_times = request_times()
-      current_times.append(response_time)
-      if len(current_times) > 10:
-          current_times = current_times[-10:]
-      request_times.set(current_times)
-      
-      print(f"HTTP Status Code: {r.status_code}")
-      print(f"Raw response text: {r.text}")
-      
-      if r.status_code == 200:
-          result = r.json()
-          print(f"✅ Success! Parsed response: {result}")
-          
-          if '.pred' in result:
-              prediction = result['.pred'][0]
-          elif 'predict' in result:
-              prediction = result['predict'][0]
-          else:
-              logging.warning(f"Unexpected response format - Session: {session_id} - response: {result}")
-              return f"Unexpected response format: {result}"
-          
-          logging.info(f"Prediction successful - Session: {session_id} - response_time: {response_time:.3f}s - prediction: {prediction}")
-          
-          if response_time > 5:
-              logging.warning(f"Slow API response - Session: {session_id} - response_time: {response_time:.3f}s")
-          
-          return prediction
-      else:
-          error_msg = f"API Error {r.status_code}: {r.text}"
-          logging.error(f"Prediction request failed - Session: {session_id} - status: {r.status_code} - response: {r.text[:200]}")
-          error_count.set(error_count() + 1)
-          return error_msg
+    try: #<1>
+        print(f"\n=== PREDICTION REQUEST ===") #<2>
+        print(f"Sending data to API: {data_to_send}") #<2>
+        
+        r = requests.post(api_url, json=data_to_send, timeout=30) #<3>
+        
+        response_time = time.time() - request_start #<4>
+        current_times = request_times() #<5>
+        current_times.append(response_time) #<6>
+        
+        if len(current_times) > 10: #<7>
+            current_times = current_times[-10:] #<7>
+            
+        request_times.set(current_times) #<8>
+        
+        print(f"HTTP Status Code: {r.status_code}") #<9>
+        print(f"Raw response text: {r.text}") #<9>
         
 ```
+1. Wrap risky code (like network requests) to catch and handle errors gracefully    
+2. Provides immediate visual feedback in the terminal/console (`logging.info()` creates a permanent record in log file.)    
+3. HTTP `POST` request with timeout (`POST` (not `GET`) because we're sending data to create/compute something)  
+4. Calculate how long the API request took.   
+5. Retrieve the current list of response times  
+6. Add the current request's time to the historical list 
+7. Keep only the 10 most recent measurements  
+8. Update the stored value  
+9. See exactly what the API returned
 
-The *exceptions* 
+**Initial Request**
+
+The predictions are stored in `r` and sent using `requests.post()`, which includes:   
+
+- The destination (`api_url`)    
+- Automatic conversion of Python dict to JSON format (`json`)   
+- The maximum wait time in seconds (`timeout`) 
+
+**Performance Metrics Tracking**
+
+Performance timing is calculated using:   
+
+- `response_time` is the current time minus start time = elapsed seconds.  
+- `request_times()` is a Shiny-specific reactive value - we can call it like a function to get its value.    
+- `current_times.append(response_time)` adds current response time to the list of times.    
+
+The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the `request_times` is updated the stored value using `set(current_times)` (recall that `request_times` is a shiny-specific reactive value). 
+
+The `print` statements give us an indication of what was returned in the HTTP status code: 
+
+- **`200`** = Success! Everything worked.    
+- **`400`** = Bad Request (you sent invalid data).     
+- **`404`** = Not Found (wrong URL).     
+- **`422`** = Validation Error (data format wrong).       
+- **`500`** = Server Error (API crashed).       
+- **`503`** = Service Unavailable (API overloaded). 
+
+```{mermaid}
+%%| fig-cap: 'HTTP Status Codes Explained'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    A(["<strong>HTTP Status Codes</strong>"]) --> B("<code>2xx</code> Success")
+    A --> C("<code>4xx</code> Client Error")
+    A --> D("<code>5xx</code> Server Error")
+    
+    B --> B1("<code>200</code> OK")
+    B --> B2("<code>201</code> Created")
+    
+    C --> C1("<code>400</code> Bad Request")
+    C --> C2("<code>401</code> Unauthorized")
+    C --> C3("<code>404</code> Not Found")
+    C --> C4("<code>422</code> Validation Error")
+    
+    D --> D1("<code>500</code> Internal Server Error")
+    D --> D2("<code>503</code> Service Unavailable")
+    
+    style A fill:#d8e4ff
+    style B1 fill:#31e981
+    style B2 fill:#31e981
+```
+
+**Response Debugging**
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+        if r.status_code == 200: #<1>
+            result = r.json() #<2>
+            print(f"✅ Success! Parsed response: {result}")  #<3>
+            
+            if '.pred' in result: #<4>
+                prediction = result['.pred'][0] #<4>
+            elif 'predict' in result: #<5>
+                prediction = result['predict'][0] #<5>
+            else: #<6>
+                logging.warning(f"Unexpected response format - Session: {session_id} - response: {result}")
+                return f"Unexpected response format: {result}" #<6>
+            
+            logging.info(f"Prediction successful - Session: {session_id} - response_time: {response_time:.3f}s - prediction: {prediction}") #<7>
+            
+            if response_time > 5: #<8>
+                logging.warning(f"Slow API response - Session: {session_id} - response_time: {response_time:.3f}s") #<8>
+            
+            return prediction #<9>
+          
+        else: #<10>
+            error_msg = f"API Error {r.status_code}: {r.text}"
+            logging.error(f"Prediction request failed - Session: {session_id} - status: {r.status_code} - response: {r.text[:200]}")
+            error_count.set(error_count() + 1)
+            return error_msg #<10>
+```
+1. Only proceed if request succeeded  
+2. Convert JSON text to Python dictionary  
+3. Success confirmation with result  
+4. Handle different API response structures  
+5. Try second possible prediction format   
+6. Send error message back to UI instead of crashing    
+7. Structured success logging with metrics  
+8. Performance threshold monitoring (5 seconds--configurable based on requirements)
+9. Send prediction back to calling function for display  
+10. Error message construction (non-200 status)   
+
+
+The error handling starts by checking the response code (**`200`**), `r.json()` is converted to a Python dictionary (`result`), then a confirmation message is printed if it's successful. `[0]` is used to index the first element in the returned list and store the result in `prediction`. 
+
+**Structured Logs**
+
+1. If the returned prediction is anything other than `result['.pred'][0]` or `result['predict'][0]`, the app returns a `warning` (not an `error`) because response succeeded but format is unexpected.     
+    - *Structured `logging.warning()`* 
+      -  `Session: {session_id}` = *which user encountered this*   
+      -  `response: {result}` = *what was received*    
+
+
+2. If the returned prediction was successful, `logging.info()` returns an `info` log (i.e., a normal operational event, not a `warning` or `error`).    
+    - *Structured `logging.info()`*    
+      -  *Easier to parse/search logs*   
+      -  *Include metrics like average response time*      
+      -  *Debug issues by filtering by session ID*   
+
+
+3. If the response time exceeds the performance threshold (5 seconds), a `warning` is returned (because the API works but isn't optimal). This helps to identify performance degradation and helps diagnose API issues. 
+    - *Structured `logging.warning()`*   
+      -  *Identifies API server overload*   
+      -  *Tells us if the model taking too long to compute*     
+      -  *Can detect network latency issues*   
+
+
+4. Finally, if the API returns a non-200 status, `logging.error()` returns a human-readable error description with the first 200 characters only (`[:200]`).   
+    - *Structured `logging.error()`*   
+      -  *Truncated error logging*      
+      -  *Prevents log files from bloating*   
+      -  *User has enough information to see why prediction failed*    
+
+**Exceptions**
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
         
-    except requests.exceptions.ConnectionError as e:
-        error_msg = f"Connection Error: {str(e)}"
-        logging.error(f"API connection refused during prediction - Session: {session_id} - error: {str(e)}")
-        connection_errors.set(connection_errors() + 1)
-        error_count.set(error_count() + 1)
-        print(f"❌ Connection Error: {e}")
-        return error_msg
+    except requests.exceptions.ConnectionError as e: #<1>
+        error_msg = f"Connection Error: {str(e)}" #<2>
+        logging.error(f"API connection refused during prediction - Session: {session_id} - error: {str(e)}") #<3>
+        connection_errors.set(connection_errors() + 1) #<4>
+        error_count.set(error_count() + 1) #<4>
+        print(f"❌ Connection Error: {e}")  #<5>
+        return error_msg #<6>
+      
+```
+1. Specific exception handling    
+2. Convert exception object to readable string  
+3. Contextual error logging   
+4. Specific metric (how many connection failures?) or overall metric (total failures of any type?) 
+5. Console error notification     
+6. Error return   
+
+The first exception uses [`requests.exceptions.ConnectionError`](https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError) to catch connection failures separately from other errors. The `error_msg` string is created using `str(e)` to extract the error description from exception. A structured `warning` log is printed to the console with the `session_id` and the error description. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+      
     except requests.exceptions.Timeout:
         error_msg = "Request timed out - API may be overloaded"
         logging.warning(f"API timeout during prediction - Session: {session_id}")
         timeout_errors.set(timeout_errors() + 1)
         error_count.set(error_count() + 1)
         return error_msg
+      
+```
+
+The second exception is a timeout exception, which is triggered if the API doesn't respond within 30 seconds. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+      
     except Exception as e:
         error_msg = f"Error: {str(e)}"
         logging.error(f"Unknown prediction error - Session: {session_id} - error: {str(e)}")
@@ -723,6 +846,8 @@ The *exceptions*
         return error_msg
       
 ```
+
+
 
 The `@render.text` decorator defines the `pred_out()` function, which doesn't receive the prediction value as a parameter. Instead, it calls `pred()` directly, creating an implicit reactive dependency. 
 

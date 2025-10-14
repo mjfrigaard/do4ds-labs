@@ -22,7 +22,9 @@ co_box(
 )
 ```
 
-This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. For a refresher, I've included a diagram of the Shiny App and API from the previous lab (i.e., the reactives (user inputs and the **Predict** button), the `httr2` API request/response, and the `plumber` API):
+This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. 
+
+For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber2` version](plumber2.qmd)) from the previous lab (i.e., the user inputs sent with the **Predict** button):
 
 ```{=html}
 <style>
@@ -43,61 +45,32 @@ This lab covers how to use logging and monitoring to track events inside data sc
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph TD
-    subgraph Inputs["<strong>User Inputs</strong>"]
-    I1[/"input$bill_length"/]
-    I2[/"input$species"/]
-    I3[/"input$sex"/]
-    I4[/"<strong>input$predict</strong>"/]
-    end
-
-    subgraph API["<strong>plumber API</strong>"]
-      ModBoard("<strong>pins::board_folder()</strong>")
-      ModPin("<strong>vetiver::vetiver_pin_read()</strong>")
-      ModRout("<strong>plumber::pr()</strong>") 
-      ModApi("<strong>vetiver::vetiver_api()</strong>") 
-      ApiServ(["<strong>Launch<br>API Server</strong>"])
-      ModBoard --"<em>connect to model board</em>"--> ModPin 
-      ModPin --"<em>read pinned vetiver model</em>"--> ModRout 
-      ModRout --"<em>create router</em>"--> ModApi 
-      ModApi --"<em>start API server</em>"--> ApiServ
-    end
-
-    subgraph Pred["<strong>Predict</strong>"]
-        Req("<strong>httr2::request()</strong>") --"<em>Creates HTTP<br>request object</em>"--> Meth("<strong>httr2::req_method()</strong>")
-        Meth --"<em>Changes HTTP<br>method from<br>GET to POST</em>"--> BodyJson1("<strong>httr2::req_body_json()</strong>")
-        BodyJson1 --"<em>Converts data.frame<br>to JSON & sets<br>request body</em>"--> Perform("<strong>httr2::req_perform()</strong>")
-        BodyJson2("<strong>httr2::resp_body_json()</strong>")
-    end
-
-    Perform --"<em>Sends HTTP<br>request to<br>server &<br>waits for<br>response</em>"--> API 
-    API --> BodyJson2
-   
-    Res(["<strong>response$.pred[1]</strong>"])
-    ValsReact(["<strong>vals()</strong><br>(in <strong>data.frame</strong>)"])
-    BodyJson2 --"<em>Extracts JSON<br>response body<br>& converts to<br>R object</em>"--> Res
+sequenceDiagram
+    participant User as User's<br>Browser
+    participant Shiny as Shiny App<br>(app.R)
+    participant API as Plumber API<br>(plumber.R)
+    participant Model as Vetiver<br>Model
     
-    I1 --> ValsReact
-    I2 --> ValsReact
-    I3 --> ValsReact
-    I4 --"<em><strong>reactive()</strong> & <br><strong>bindEvent()</strong></em>"---> Pred
+    User->>Shiny: Clicks "Predict" button
     
-    ValsReact --"<em>as<br><strong>request_data</strong></em>"--> BodyJson1
+    Note over Shiny: Collect inputs:<br/>bill_length=45<br/>species=Adelie<br/>sex=Male
     
-    ValsReact --> RenPrnt[\"<strong>renderPrint()</strong><br><strong>vals()</strong>"\]
-    Res -.-> RenTxt[\"<strong>renderText()</strong><br><strong>pred()</strong>"\]
+    Shiny->>Shiny: Create data.frame
     
-    %% Style for inputs %%
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
+    Shiny->>API: HTTP POST /predict<br/>{"bill_length_mm":45,...}
     
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
-    style ApiServ fill:#31e981
-    style Res fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
+    Note over API: Parse JSON
+    API->>API: prep_pred_data()
+    
+    API->>Model: predict(v, data)
+    Note over Model: Linear regression:<br/>4180.797 grams
+    Model-->>API: 4180.797
+    
+    API-->>Shiny: HTTP 200 OK<br/>{".pred":[4180.797]}
+    
+    Note over Shiny: Extract value<br/>Format as text
+    
+    Shiny-->>User: Display:<br/>"4180.8 grams"
 
 
     
@@ -739,9 +712,6 @@ The final application folder contains the following:
 
 ```{verbatim}
 ├── .gitignore
-├── .Rhistory
-├── .Rprofile
-├── .Rproj.user/
 ├── app.R
 ├── R.Rproj
 ├── README.md
@@ -749,7 +719,7 @@ The final application folder contains the following:
 ├── renv.lock
 └── shiny_app.log
 
-3 directories, 8 files
+1 directory, 6 files
 ```
 
 

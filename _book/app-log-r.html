@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-21">
+<meta name="dcterms.date" content="2025-10-12">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App Logging – DO4DS: Lab Solutions</title>
@@ -66,6 +66,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
+<link href="./glossary.html" rel="next">
 <link href="./app-log-py.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -258,6 +259,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glossary.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Glossary of terms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -313,7 +335,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-21</p>
+      <p class="date">2025-10-12</p>
     </div>
   </div>
   
@@ -343,7 +365,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. For a refresher, I’ve included a diagram of the Shiny App and API from the previous lab (i.e., the reactives (user inputs and the <strong>Predict</strong> button), the <code>httr2</code> API request/response, and the <code>plumber</code> API):</p>
+<p>This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created.</p>
+<p>For a refresher, I’ve included a diagram of the Shiny App and API (using the <a href="./plumber2.html"><code>plumber2</code> version</a>) from the previous lab (i.e., the user inputs sent with the <strong>Predict</strong> button):</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -362,61 +385,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
-graph TD
-    subgraph Inputs["&lt;strong&gt;User Inputs&lt;/strong&gt;"]
-    I1[/"input$bill_length"/]
-    I2[/"input$species"/]
-    I3[/"input$sex"/]
-    I4[/"&lt;strong&gt;input$predict&lt;/strong&gt;"/]
-    end
-
-    subgraph API["&lt;strong&gt;plumber API&lt;/strong&gt;"]
-      ModBoard("&lt;strong&gt;pins::board_folder()&lt;/strong&gt;")
-      ModPin("&lt;strong&gt;vetiver::vetiver_pin_read()&lt;/strong&gt;")
-      ModRout("&lt;strong&gt;plumber::pr()&lt;/strong&gt;") 
-      ModApi("&lt;strong&gt;vetiver::vetiver_api()&lt;/strong&gt;") 
-      ApiServ(["&lt;strong&gt;Launch&lt;br&gt;API Server&lt;/strong&gt;"])
-      ModBoard --"&lt;em&gt;connect to model board&lt;/em&gt;"--&gt; ModPin 
-      ModPin --"&lt;em&gt;read pinned vetiver model&lt;/em&gt;"--&gt; ModRout 
-      ModRout --"&lt;em&gt;create router&lt;/em&gt;"--&gt; ModApi 
-      ModApi --"&lt;em&gt;start API server&lt;/em&gt;"--&gt; ApiServ
-    end
-
-    subgraph Pred["&lt;strong&gt;Predict&lt;/strong&gt;"]
-        Req("&lt;strong&gt;httr2::request()&lt;/strong&gt;") --"&lt;em&gt;Creates HTTP&lt;br&gt;request object&lt;/em&gt;"--&gt; Meth("&lt;strong&gt;httr2::req_method()&lt;/strong&gt;")
-        Meth --"&lt;em&gt;Changes HTTP&lt;br&gt;method from&lt;br&gt;GET to POST&lt;/em&gt;"--&gt; BodyJson1("&lt;strong&gt;httr2::req_body_json()&lt;/strong&gt;")
-        BodyJson1 --"&lt;em&gt;Converts data.frame&lt;br&gt;to JSON &amp; sets&lt;br&gt;request body&lt;/em&gt;"--&gt; Perform("&lt;strong&gt;httr2::req_perform()&lt;/strong&gt;")
-        BodyJson2("&lt;strong&gt;httr2::resp_body_json()&lt;/strong&gt;")
-    end
-
-    Perform --"&lt;em&gt;Sends HTTP&lt;br&gt;request to&lt;br&gt;server &amp;&lt;br&gt;waits for&lt;br&gt;response&lt;/em&gt;"--&gt; API 
-    API --&gt; BodyJson2
-   
-    Res(["&lt;strong&gt;response$.pred[1]&lt;/strong&gt;"])
-    ValsReact(["&lt;strong&gt;vals()&lt;/strong&gt;&lt;br&gt;(in &lt;strong&gt;data.frame&lt;/strong&gt;)"])
-    BodyJson2 --"&lt;em&gt;Extracts JSON&lt;br&gt;response body&lt;br&gt;&amp; converts to&lt;br&gt;R object&lt;/em&gt;"--&gt; Res
+sequenceDiagram
+    participant User as User's&lt;br&gt;Browser
+    participant Shiny as Shiny App&lt;br&gt;(app.R)
+    participant API as Plumber API&lt;br&gt;(plumber.R)
+    participant Model as Vetiver&lt;br&gt;Model
     
-    I1 --&gt; ValsReact
-    I2 --&gt; ValsReact
-    I3 --&gt; ValsReact
-    I4 --"&lt;em&gt;&lt;strong&gt;reactive()&lt;/strong&gt; &amp; &lt;br&gt;&lt;strong&gt;bindEvent()&lt;/strong&gt;&lt;/em&gt;"---&gt; Pred
+    User-&gt;&gt;Shiny: Clicks "Predict" button
     
-    ValsReact --"&lt;em&gt;as&lt;br&gt;&lt;strong&gt;request_data&lt;/strong&gt;&lt;/em&gt;"--&gt; BodyJson1
+    Note over Shiny: Collect inputs:&lt;br/&gt;bill_length=45&lt;br/&gt;species=Adelie&lt;br/&gt;sex=Male
     
-    ValsReact --&gt; RenPrnt[\"&lt;strong&gt;renderPrint()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;vals()&lt;/strong&gt;"\]
-    Res -.-&gt; RenTxt[\"&lt;strong&gt;renderText()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pred()&lt;/strong&gt;"\]
+    Shiny-&gt;&gt;Shiny: Create data.frame
     
-    %% Style for inputs %%
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
+    Shiny-&gt;&gt;API: HTTP POST /predict&lt;br/&gt;{"bill_length_mm":45,...}
     
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
-    style ApiServ fill:#31e981
-    style Res fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
+    Note over API: Parse JSON
+    API-&gt;&gt;API: prep_pred_data()
+    
+    API-&gt;&gt;Model: predict(v, data)
+    Note over Model: Linear regression:&lt;br/&gt;4180.797 grams
+    Model--&gt;&gt;API: 4180.797
+    
+    API--&gt;&gt;Shiny: HTTP 200 OK&lt;br/&gt;{".pred":[4180.797]}
+    
+    Note over Shiny: Extract value&lt;br/&gt;Format as text
+    
+    Shiny--&gt;&gt;User: Display:&lt;br/&gt;"4180.8 grams"
 
     
 </pre>
@@ -1201,17 +1195,14 @@ flowchart TD
 </div>
 <p>The final application folder contains the following:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>├── .Rhistory</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>├── .Rprofile</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>├── .Rproj.user/</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>├── app.R</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>├── renv/</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>├── renv.lock</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>└── shiny_app.log</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>3 directories, 8 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>├── app.R</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>├── R.Rproj</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>├── renv/</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>├── renv.lock</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>└── shiny_app.log</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>1 directory, 6 files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>
@@ -1687,6 +1678,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="./glossary.html" class="pagination-link" aria-label="Glossary of terms">
+        <span class="nav-page-text"><span class="chapter-title">Glossary of terms</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->

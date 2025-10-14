@@ -22,7 +22,22 @@ co_box(
 )
 ```
 
-In [lab 2](lab2.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`:
+In [lab 2](lab2.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`:[^lab2-model-py]
+
+[^lab2-model-py]: View the contents of this folder in the [GitHub repo](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab2/model-vetiver). 
+
+```{verbatim}
+_labs/lab2/model-vetiver/
+├── model-vetiver.html
+├── model-vetiver.qmd
+├── models
+│   └── penguin_model
+│       └── 20250808T102850Z-aba30
+│           ├── data.txt
+│           └── penguin_model.joblib
+└── my-db.duckdb
+```
+
 
 ## Set up
 
@@ -38,7 +53,7 @@ Below are a few pointers to help you avoid making some of the mistakes I made:
 
 ## API
 
-[`Python/api/mod-api.py`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/Python/api/mod-api.py) will run the `Vetiver`/`FastAPI` in a dedicated Positron/Terminal session. This version deviates quite a bit from the original Quarto document, but it's essentially creating the same thing.
+The Python script [`_labs/lab3/Python/api/mod-api.py`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/Python/api/mod-api.py) will run the code for our `Vetiver`/`FastAPI` in a dedicated Positron/Terminal session. I've made a few changes to this version, but it creates an API with the same endpoints:
 
 ```{mermaid}
 %%| fig-cap: 'Vetiver API creation'
@@ -867,43 +882,30 @@ And we can compare the response to the value we saw in the app:
 A diagram of the user inputs (i.e., the **Predict** button), reactives, and the API request is below:
 
 ```{mermaid}
+%%| fig-cap: 'Refresher on APIs'
+%%| fig-width: 7.0
+%%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
 
-flowchart TD
- subgraph Inputs["<strong>User Inputs</strong>"]
-        I1[/"input.bill_length()"/]
-        I2[/"input.species()"/]
-        I3[/"input.sex()"/]
-        I4[/"<strong>input.predict()</strong>"/]
-  end
-    style I1 fill:#d8e4ff
-    style I2 fill:#d8e4ff
-    style I3 fill:#d8e4ff
-    style I4 fill:#d8e4ff
-
- subgraph Pred["<strong>Predict</strong>"]
-        PredR("<strong>pred()</strong>")
-        Req("<strong>request.post()</strong>")
-  end
- subgraph PredOutReact["<strong>pred_out()</strong>"]
-        Res(["<strong>result</strong>"])
-  end
-    Req -- Sends HTTP request to server API, waits for response, returns --> PredR
-    PredR -- Checks format,<br>round, add<br> string --> PredOutReact
-    I1 --> ValsReact(["<strong>vals()</strong>"])
-    I2 --> ValsReact
-    I3 --> ValsReact
-    I4 -- "<strong>@reactive.event()</strong>" --> Req
-    ValsReact -- as <strong>data_to_send</strong> --> Req
-    ValsReact --> ValsOut("<strong>vals_out()</strong>")
-    ValsOut -- "<strong>data = vals()</strong>" --> RenPrnt[\"<strong>@render.text()</strong><br><strong>data</strong>"\]
-    PredOutReact --> RenTxt[\"<strong>@render.text()</strong><br><strong>result</strong>"\]
+sequenceDiagram
+    participant Shiny as Shiny App
+    participant API as FastAPI
+    participant Vetiver as Vetiver Model
     
-    style PredR fill:#35605a,color:#fff
-    style ValsReact fill:#35605a,color:#fff
+    Note over Shiny: User enters:<br/>Bill=45mm,<br>Species=Gentoo,<br>Sex=Male
+    
+    Shiny->>API: POST /predict<br/>{"bill_length_mm": 45.0,<br/>"species_Gentoo": 1,<br/>"sex_male": 1}
+    
+    API->>Vetiver: Validate data
+    
+    Vetiver->>Vetiver: Run ML prediction
+    
+    Vetiver-->>API: Prediction: 4500.0 grams
+    
+    API-->>Shiny: {"pred": [4500.0]}
+    
+    Note over Shiny: Display:<br/>"4500.0 grams"
 
-    style RenTxt fill:#31e981
-    style RenPrnt fill:#31e981
 ```
 
 ## Finishing touches
