@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-10-14">
+<meta name="dcterms.date" content="2025-10-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App Logging – DO4DS: Lab Solutions</title>
@@ -308,7 +308,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#system-status" id="toc-system-status" class="nav-link" data-scroll-target="#system-status">System Status</a>
   <ul class="collapse">
   <li><a href="#ui-2" id="toc-ui-2" class="nav-link" data-scroll-target="#ui-2">UI</a></li>
-  <li><a href="#api-connection" id="toc-api-connection" class="nav-link" data-scroll-target="#api-connection"><strong><em>API Connection</em></strong></a></li>
+  <li><a href="#api-health-check" id="toc-api-health-check" class="nav-link" data-scroll-target="#api-health-check"><strong><em>API Health Check</em></strong></a></li>
   <li><a href="#recent-application-logs" id="toc-recent-application-logs" class="nav-link" data-scroll-target="#recent-application-logs"><strong><em>Recent Application Logs</em></strong></a></li>
   <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated"><strong><em>Last updated</em></strong></a></li>
   </ul></li>
@@ -333,7 +333,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-10-14</p>
+      <p class="date">2025-10-15</p>
     </div>
   </div>
   
@@ -1177,6 +1177,7 @@ graph LR
 </div>
 </div>
 <p><strong>Response Debugging</strong></p>
+<p>The error handling starts by checking the response code (<strong><code>200</code></strong>), <code>r.json()</code> is converted to a Python dictionary (<code>result</code>), then a confirmation message is printed if it’s successful. <code>[0]</code> is used to index the first element in the returned list and store the result in <code>prediction</code>:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="annotated-cell-17"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="1">1</button><span id="annotated-cell-17-1" class="code-annotation-target"><a href="#annotated-cell-17-1" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-17" data-target-annotation="2">2</button><span id="annotated-cell-17-2" class="code-annotation-target"><a href="#annotated-cell-17-2" aria-hidden="true" tabindex="-1"></a>            result <span class="op">=</span> r.json()</span>
@@ -1255,21 +1256,38 @@ graph LR
 </dl>
 </div>
 </div>
-<p>The error handling starts by checking the response code (<strong><code>200</code></strong>), <code>r.json()</code> is converted to a Python dictionary (<code>result</code>), then a confirmation message is printed if it’s successful. <code>[0]</code> is used to index the first element in the returned list and store the result in <code>prediction</code>.</p>
 <p><strong>Structured Logs</strong></p>
-<ol type="1">
-<li>If the returned prediction is anything other than <code>result['.pred'][0]</code> or <code>result['predict'][0]</code>, the app returns a <code>warning</code> (not an <code>error</code>) because response succeeded but format is unexpected.
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>If the returned prediction is anything other than <code>result['.pred'][0]</code> or <code>result['predict'][0]</code>, the app returns a <code>warning</code> (not an <code>error</code>) because response succeeded but format is unexpected.</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
 <ul>
-<li><em>Structured <code>logging.warning()</code></em>
+<li><strong>Structured <code>logging.warning()</code>:</strong>
 <ul>
 <li><code>Session: {session_id}</code> = <em>which user encountered this</em><br>
 </li>
 <li><code>response: {result}</code> = <em>what was received</em></li>
 </ul></li>
-</ul></li>
-<li>If the returned prediction was successful, <code>logging.info()</code> returns an <code>info</code> log (i.e., a normal operational event, not a <code>warning</code> or <code>error</code>).
+</ul>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>If the returned prediction was successful, <code>logging.info()</code> returns an <code>info</code> log (i.e., a normal operational event, not a <code>warning</code> or <code>error</code>).</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
 <ul>
-<li><em>Structured <code>logging.info()</code></em>
+<li><strong>Structured <code>logging.info()</code>:</strong>
 <ul>
 <li><em>Easier to parse/search logs</em><br>
 </li>
@@ -1277,10 +1295,21 @@ graph LR
 </li>
 <li><em>Debug issues by filtering by session ID</em></li>
 </ul></li>
-</ul></li>
-<li>If the response time exceeds the performance threshold (5 seconds), a <code>warning</code> is returned (because the API works but isn’t optimal). This helps to identify performance degradation and helps diagnose API issues.
+</ul>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>If the response time exceeds the performance threshold (5 seconds), a <code>warning</code> is returned (because the API works but isn’t optimal). This helps to identify performance degradation and helps diagnose API issues.</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
 <ul>
-<li><em>Structured <code>logging.warning()</code></em>
+<li><strong>Structured <code>logging.warning()</code>:</strong>
 <ul>
 <li><em>Identifies API server overload</em><br>
 </li>
@@ -1288,10 +1317,21 @@ graph LR
 </li>
 <li><em>Can detect network latency issues</em></li>
 </ul></li>
-</ul></li>
-<li>Finally, if the API returns a non-200 status, <code>logging.error()</code> returns a human-readable error description with the first 200 characters only (<code>[:200]</code>).
+</ul>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>Finally, if the API returns a non-200 status, <code>logging.error()</code> returns a human-readable error description with the first 200 characters only (<code>[:200]</code>).</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
 <ul>
-<li><em>Structured <code>logging.error()</code></em>
+<li><strong>Structured <code>logging.error()</code>:</strong>
 <ul>
 <li><em>Truncated error logging</em><br>
 </li>
@@ -1299,8 +1339,16 @@ graph LR
 </li>
 <li><em>User has enough information to see why prediction failed</em></li>
 </ul></li>
-</ul></li>
-</ol>
+</ul>
+</div>
+</div>
+</div>
+<p>In the console, the returned predictions display the following logs:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-pred-logs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="img/lab4-py-pred-logs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
 <p><strong>Exceptions</strong></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="annotated-cell-18"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="1">1</button><span id="annotated-cell-18-1" class="code-annotation-target"><a href="#annotated-cell-18-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
@@ -1343,35 +1391,141 @@ graph LR
 </dl>
 </div>
 </div>
-<p>The first exception uses <a href="https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError"><code>requests.exceptions.ConnectionError</code></a> to catch connection failures separately from other errors. The <code>error_msg</code> string is created using <code>str(e)</code> to extract the error description from exception. A structured <code>warning</code> log is printed to the console with the <code>session_id</code> and the error description.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.Timeout:</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div>
+
 </div>
-<p>The second exception is a timeout exception, which is triggered if the API doesn’t respond within 30 seconds.</p>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>The first exception uses the <code>requests.exceptions.</code> <a href="https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError"><code>ConnectionError</code></a> to catch connection failures separately from other errors.</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
+<ul>
+<li><strong>Exception <code>ConnectionError</code>:</strong>
+<ul>
+<li><em>The <code>error_msg</code> string is created using <code>str(e)</code> to extract the error description from exception.</em><br>
+</li>
+<li><em>A structured <code>warning</code> log is printed to the console with the <code>session_id</code> and the error description.</em></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-19"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="1">1</button><span id="annotated-cell-19-1" class="code-annotation-target"><a href="#annotated-cell-19-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.Timeout:</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="2">2</button><span id="annotated-cell-19-2" class="code-annotation-target"><a href="#annotated-cell-19-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="3">3</button><span id="annotated-cell-19-3" class="code-annotation-target"><a href="#annotated-cell-19-3" aria-hidden="true" tabindex="-1"></a>        logging.warning(<span class="ss">f"API timeout during prediction - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="4">4</button><span id="annotated-cell-19-4" class="code-annotation-target"><a href="#annotated-cell-19-4" aria-hidden="true" tabindex="-1"></a>        timeout_errors.<span class="bu">set</span>(timeout_errors() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="annotated-cell-19-5"><a href="#annotated-cell-19-5" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="5">5</button><span id="annotated-cell-19-6" class="code-annotation-target"><a href="#annotated-cell-19-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-19" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-19" data-code-lines="1" data-code-annotation="1">Timeout-specific handling (from earlier <code>timeout=30</code>)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-19" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-19" data-code-lines="2" data-code-annotation="2">User-friendly error message to explain probable cause to user<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-19" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-19" data-code-lines="3" data-code-annotation="3">Warning-level logging (system still functional, just slow)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-19" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-19" data-code-lines="4,5" data-code-annotation="4">Dual counter tracking (can analyze if performance becomes a pattern)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-19" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-19" data-code-lines="6" data-code-annotation="5">Error message returned</span>
+</dd>
+</dl>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>The second exception uses <code>requests.exceptions</code><a href="https://requests.readthedocs.io/en/latest/api/#requests.Timeout"><code>.Timeout</code></a> as a timeout threshold, which is triggered if the API doesn’t respond within 30 seconds.</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
+<ul>
+<li><strong>Exception <code>Timeout</code>:</strong>
+<ul>
+<li><em>Set with earlier <code>timeout=30</code> argument</em><br>
+</li>
+<li><em><code>warning</code> (not <code>error</code>) because timeouts might be temporary</em><br>
+</li>
+<li><em><code>timeout_errors.set()</code> and <code>error_count.set()</code> can track timeout-specific metric plus total</em></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-20"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="1">1</button><span id="annotated-cell-20-1" class="code-annotation-target"><a href="#annotated-cell-20-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="annotated-cell-20-2"><a href="#annotated-cell-20-2" aria-hidden="true" tabindex="-1"></a>        error_msg <span class="op">=</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-20-3"><a href="#annotated-cell-20-3" aria-hidden="true" tabindex="-1"></a>        logging.error(<span class="ss">f"Unknown prediction error - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-20-4"><a href="#annotated-cell-20-4" aria-hidden="true" tabindex="-1"></a>        error_count.<span class="bu">set</span>(error_count() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="annotated-cell-20-5"><a href="#annotated-cell-20-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-20-6"><a href="#annotated-cell-20-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> error_msg</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-20" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-20" data-code-lines="1" data-code-annotation="1">Catch-all exception handler</span>
+</dd>
+</dl>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[45,55]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 45.0%;justify-content: flex-start;">
+<p>The final exception uses a generic <code>Exception</code> to handle any unexpected errors not caught above with <code>ConnectionError</code> or <code>Timeout</code>.</p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 55.0%;justify-content: flex-start;">
+<ul>
+<li><strong>Exception <code>Exception</code>:</strong>
+<ul>
+<li><em>Catch-all exception handler</em><br>
+</li>
+<li><em>Only increments <code>error_count</code>, not a specific counter</em><br>
+</li>
+<li><em>Exception order matters (i.e., more specific exceptions must be caught first)</em></li>
+</ul></li>
+</ul>
+</div>
+</div>
 </div>
 <p>The <code>@render.text</code> decorator defines the <code>pred_out()</code> function, which doesn’t receive the prediction value as a parameter. Instead, it calls <code>pred()</code> directly, creating an implicit reactive dependency.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="at">@render.text</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pred_out():</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> pred()  <span class="co"># creates reactive dependency</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(result, (<span class="bu">int</span>, <span class="bu">float</span>)):</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        display_value <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span><span class="bu">round</span>(result, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> grams"</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        logging.info(<span class="ss">f"Displaying prediction to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - display_value: </span><span class="sc">{</span>display_value<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> display_value</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">str</span>(result)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-21"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-21-1"><a href="#annotated-cell-21-1" aria-hidden="true" tabindex="-1"></a><span class="at">@render.text</span></span>
+<span id="annotated-cell-21-2"><a href="#annotated-cell-21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pred_out():</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="1">1</button><span id="annotated-cell-21-3" class="code-annotation-target"><a href="#annotated-cell-21-3" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> pred()</span>
+<span id="annotated-cell-21-4"><a href="#annotated-cell-21-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(result, (<span class="bu">int</span>, <span class="bu">float</span>)):</span>
+<span id="annotated-cell-21-5"><a href="#annotated-cell-21-5" aria-hidden="true" tabindex="-1"></a>        display_value <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span><span class="bu">round</span>(result, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> grams"</span></span>
+<span id="annotated-cell-21-6"><a href="#annotated-cell-21-6" aria-hidden="true" tabindex="-1"></a>        logging.info(<span class="ss">f"Displaying prediction to user - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - display_value: </span><span class="sc">{</span>display_value<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-21-7"><a href="#annotated-cell-21-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> display_value</span>
+<span id="annotated-cell-21-8"><a href="#annotated-cell-21-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="annotated-cell-21-9"><a href="#annotated-cell-21-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">str</span>(result)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-21" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="3" data-code-annotation="1">Creates reactive dependency</span>
+</dd>
+</dl>
+</div>
 </div>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -1415,66 +1569,232 @@ flowchart TD
 </div>
 </div>
 <p>This means the render function automatically re-executes whenever the prediction function returns a new value. We use <code>@render.text</code> to render the predicted values returned from the API and include a <code>logging.info()</code> log with an f-string for the <code>session_id</code> and <code>display_value</code>:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-pred-render.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="img/lab4-py-pred-render.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
 </section>
 </section>
 <section id="system-status" class="level3">
 <h3 class="anchored" data-anchor-id="system-status">System Status</h3>
+<p>The system status <code>ui.card()</code> contains the status of the API connection, a display of the recent app logs, and a date for “last updated.”</p>
 <section id="ui-2" class="level4">
 <h4 class="anchored" data-anchor-id="ui-2">UI</h4>
+<p>Each section is stored in a <code>ui.div()</code> inside <code>ui.layout_columns()</code>. We can arrange each section by rows if we set a single column width to <code>12</code>. The recent log display and last updated sections also contain CSS styling.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>  ui.card(</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>      ui.card_header(<span class="st">"System Status &amp; Monitoring"</span>),</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>      ui.card_body(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>          ui.layout_columns(</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>              ui.div(</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"API Connection:"</span>),</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                  ui.output_text(<span class="st">"api_status"</span>),</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                  ui.div(</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                  ),</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                  ui.p(</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Last updated: "</span>,</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>                  )</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>              ),</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>              col_widths<span class="op">=</span>[<span class="dv">12</span>]</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>          )</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="annotated-cell-22"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-22-1"><a href="#annotated-cell-22-1" aria-hidden="true" tabindex="-1"></a>  ui.card(</span>
+<span id="annotated-cell-22-2"><a href="#annotated-cell-22-2" aria-hidden="true" tabindex="-1"></a>      ui.card_header(<span class="st">"System Status &amp; Monitoring"</span>),</span>
+<span id="annotated-cell-22-3"><a href="#annotated-cell-22-3" aria-hidden="true" tabindex="-1"></a>      ui.card_body(</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="1">1</button><span id="annotated-cell-22-4" class="code-annotation-target"><a href="#annotated-cell-22-4" aria-hidden="true" tabindex="-1"></a>          ui.layout_columns(</span>
+<span id="annotated-cell-22-5"><a href="#annotated-cell-22-5" aria-hidden="true" tabindex="-1"></a>              ui.div(</span>
+<span id="annotated-cell-22-6"><a href="#annotated-cell-22-6" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="annotated-cell-22-7"><a href="#annotated-cell-22-7" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="3">3</button><span id="annotated-cell-22-8" class="code-annotation-target"><a href="#annotated-cell-22-8" aria-hidden="true" tabindex="-1"></a>                  ui.output_text(<span class="st">"api_status"</span>),</span>
+<span id="annotated-cell-22-9"><a href="#annotated-cell-22-9" aria-hidden="true" tabindex="-1"></a>                  ui.br(),</span>
+<span id="annotated-cell-22-10"><a href="#annotated-cell-22-10" aria-hidden="true" tabindex="-1"></a>                  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="4">4</button><span id="annotated-cell-22-11" class="code-annotation-target"><a href="#annotated-cell-22-11" aria-hidden="true" tabindex="-1"></a>                  ui.div(</span>
+<span id="annotated-cell-22-12"><a href="#annotated-cell-22-12" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="6">6</button><span id="annotated-cell-22-13" class="code-annotation-target"><a href="#annotated-cell-22-13" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="annotated-cell-22-14"><a href="#annotated-cell-22-14" aria-hidden="true" tabindex="-1"></a>                  ),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="5">5</button><span id="annotated-cell-22-15" class="code-annotation-target"><a href="#annotated-cell-22-15" aria-hidden="true" tabindex="-1"></a>                  ui.p(</span>
+<span id="annotated-cell-22-16"><a href="#annotated-cell-22-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Last updated: "</span>,</span>
+<span id="annotated-cell-22-17"><a href="#annotated-cell-22-17" aria-hidden="true" tabindex="-1"></a>                      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="annotated-cell-22-18"><a href="#annotated-cell-22-18" aria-hidden="true" tabindex="-1"></a>                      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="annotated-cell-22-19"><a href="#annotated-cell-22-19" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="annotated-cell-22-20"><a href="#annotated-cell-22-20" aria-hidden="true" tabindex="-1"></a>              ),</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="2">2</button><span id="annotated-cell-22-21" class="code-annotation-target"><a href="#annotated-cell-22-21" aria-hidden="true" tabindex="-1"></a>              col_widths<span class="op">=</span>[<span class="dv">12</span>]</span>
+<span id="annotated-cell-22-22"><a href="#annotated-cell-22-22" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="annotated-cell-22-23"><a href="#annotated-cell-22-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="annotated-cell-22-24"><a href="#annotated-cell-22-24" aria-hidden="true" tabindex="-1"></a>  )</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-22" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="4,22" data-code-annotation="1">Container for the three sections<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="21" data-code-annotation="2">Single width for entire area<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="8" data-code-annotation="3">API health check<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="11,14" data-code-annotation="4">Recent logs display<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="15,19" data-code-annotation="5">Timestamp for last updated</span>
+</dd>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-22" data-code-lines="13" data-code-annotation="6">CSS styling for log display</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-sys-status.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="img/lab4-py-sys-status.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
 </div>
 </section>
-<section id="api-connection" class="level4">
-<h4 class="anchored" data-anchor-id="api-connection"><strong><em>API Connection</em></strong></h4>
+<section id="api-health-check" class="level4">
+<h4 class="anchored" data-anchor-id="api-health-check"><strong><em>API Health Check</em></strong></h4>
+<p>The UI displays the API health check with a <code>ui.output_text()</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>    ui.h5(<span class="st">"API Connection:"</span>),</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    ui.br(),</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"api_status"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    ui.h5(<span class="st">"API Connection:"</span>),</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    ui.br(),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    ui.output_text(<span class="st">"api_status"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The server contains a corresponding <code>@reactive.calc</code> and defines the <code>api_health_check()</code> with the following error catching:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="annotated-cell-24"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-24-1"><a href="#annotated-cell-24-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<span id="annotated-cell-24-2"><a href="#annotated-cell-24-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> api_health_check():</span>
+<span id="annotated-cell-24-3"><a href="#annotated-cell-24-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Enhanced API health check with logging"""</span></span>
+<span id="annotated-cell-24-4"><a href="#annotated-cell-24-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="1">1</button><span id="annotated-cell-24-5" class="code-annotation-target"><a href="#annotated-cell-24-5" aria-hidden="true" tabindex="-1"></a>            logging.debug(<span class="ss">f"Checking API health - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="2">2</button><span id="annotated-cell-24-6" class="code-annotation-target"><a href="#annotated-cell-24-6" aria-hidden="true" tabindex="-1"></a>            start_time <span class="op">=</span> time.time()</span>
+<span id="annotated-cell-24-7"><a href="#annotated-cell-24-7" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="3">3</button><span id="annotated-cell-24-8" class="code-annotation-target"><a href="#annotated-cell-24-8" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.get(ping_url, timeout<span class="op">=</span><span class="dv">5</span>)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="4">4</button><span id="annotated-cell-24-9" class="code-annotation-target"><a href="#annotated-cell-24-9" aria-hidden="true" tabindex="-1"></a>            response_time <span class="op">=</span> time.time() <span class="op">-</span> start_time</span>
+<span id="annotated-cell-24-10"><a href="#annotated-cell-24-10" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="5">5</button><span id="annotated-cell-24-11" class="code-annotation-target"><a href="#annotated-cell-24-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="annotated-cell-24-12"><a href="#annotated-cell-24-12" aria-hidden="true" tabindex="-1"></a>                logging.info(<span class="ss">f"API health check successful - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - response_time: </span><span class="sc">{</span>response_time<span class="sc">:.3f}</span><span class="ss">s"</span>)</span>
+<span id="annotated-cell-24-13"><a href="#annotated-cell-24-13" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="ss">f"✅ API is running (ping: </span><span class="sc">{</span>r<span class="sc">.</span>json()<span class="sc">}</span><span class="ss">) - </span><span class="sc">{</span>response_time<span class="sc">:.2f}</span><span class="ss">s"</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="6">6</button><span id="annotated-cell-24-14" class="code-annotation-target"><a href="#annotated-cell-24-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="annotated-cell-24-15"><a href="#annotated-cell-24-15" aria-hidden="true" tabindex="-1"></a>                logging.warning(<span class="ss">f"API ping failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - status: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-24-16"><a href="#annotated-cell-24-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="ss">f"⚠️ API ping failed: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-24-17"><a href="#annotated-cell-24-17" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="annotated-cell-24-18"><a href="#annotated-cell-24-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> requests.exceptions.<span class="pp">ConnectionError</span> <span class="im">as</span> e:</span>
+<span id="annotated-cell-24-19"><a href="#annotated-cell-24-19" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"API connection refused - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-24-20"><a href="#annotated-cell-24-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"❌ Cannot connect to API - is it running on port 8080?"</span></span>
+<span id="annotated-cell-24-21"><a href="#annotated-cell-24-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> requests.exceptions.Timeout:</span>
+<span id="annotated-cell-24-22"><a href="#annotated-cell-24-22" aria-hidden="true" tabindex="-1"></a>            logging.warning(<span class="ss">f"API health check timeout - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-24-23"><a href="#annotated-cell-24-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"⚠️ API health check timeout"</span></span>
+<span id="annotated-cell-24-24"><a href="#annotated-cell-24-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="annotated-cell-24-25"><a href="#annotated-cell-24-25" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"API health check failed - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-24-26"><a href="#annotated-cell-24-26" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="ss">f"❌ API health check failed: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-24" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="5" data-code-annotation="1">Debug</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="6" data-code-annotation="2"><code>start_time</code> is</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="8" data-code-annotation="3"><code>r</code> is</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="9" data-code-annotation="4"><code>response_time</code> contains<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="11,13" data-code-annotation="5">Success<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="14,16" data-code-annotation="6">Failure</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> api_status():</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> api_health_check()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="recent-application-logs" class="level4">
 <h4 class="anchored" data-anchor-id="recent-application-logs"><strong><em>Recent Application Logs</em></strong></h4>
+<p>In the UI contains the following CSS styling variables to make it look like the console:</p>
+<ul>
+<li><code>font-family</code><br>
+</li>
+<li><code>font-size</code><br>
+</li>
+<li><code>background-color</code><br>
+</li>
+<li><code>border-radius</code><br>
+</li>
+<li><code>max-height</code><br>
+</li>
+<li><code>overflow-y</code><br>
+</li>
+<li><code>border</code><br>
+</li>
+<li><code>white-space</code></li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  ui.div(</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  ui.h5(<span class="st">"Recent Application Logs:"</span>),</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  ui.div(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"recent_logs_display"</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In the server…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.file_reader</span>(log_file_path)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> log_file_content():</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Monitor log file for changes"""</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(log_file_path, <span class="st">'r'</span>) <span class="im">as</span> f:</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                lines <span class="op">=</span> f.readlines()</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> {</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'lines'</span>: lines,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'last_modified'</span>: datetime.now(),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'total_lines'</span>: <span class="bu">len</span>(lines)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            logging.error(<span class="ss">f"Error reading log file - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> {</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                <span class="st">'lines'</span>: [],</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                <span class="st">'last_modified'</span>: datetime.now(),</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                <span class="st">'total_lines'</span>: <span class="dv">0</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>            }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> recent_logs_display():</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        log_data <span class="op">=</span> log_file_content()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        lines <span class="op">=</span> log_data[<span class="st">'lines'</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> lines:</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            <span class="co"># get last 8 lines for better monitoring</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>            recent_lines <span class="op">=</span> lines[<span class="op">-</span><span class="dv">8</span>:] <span class="cf">if</span> <span class="bu">len</span>(lines) <span class="op">&gt;</span> <span class="dv">8</span> <span class="cf">else</span> lines</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>            clean_lines <span class="op">=</span> [line.rstrip() <span class="cf">for</span> line <span class="kw">in</span> recent_lines]</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>            logging.debug(<span class="ss">f"Updating recent logs display - Session: </span><span class="sc">{</span>session_id<span class="sc">}</span><span class="ss"> - showing </span><span class="sc">{</span><span class="bu">len</span>(recent_lines)<span class="sc">}</span><span class="ss"> lines"</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join(clean_lines)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"No logs available yet..."</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="last-updated" class="level4">
 <h4 class="anchored" data-anchor-id="last-updated"><strong><em>Last updated</em></strong></h4>
+<p>In the UI…</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>  ui.p(</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Last updated: "</span>,</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>  ui.p(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Last updated: "</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>      ui.output_text(<span class="st">"log_timestamp"</span>),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      style<span class="op">=</span><span class="st">"margin-top: 5px; color: #6c757d; font-size: 12px;"</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>In the server…</p>
 </section>
 </section>
 </section>
