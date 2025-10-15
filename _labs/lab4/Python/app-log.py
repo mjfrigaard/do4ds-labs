@@ -54,7 +54,7 @@ app_ui = ui.page_fluid(
             ui.h3("Input Values"),
             ui.div(
                 ui.output_text("vals_out"),
-                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
+                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
             ),
             ui.h3("Predicted Mass"),
             ui.div(
@@ -77,7 +77,7 @@ app_ui = ui.page_fluid(
                     ui.h4("Recent Logs:"),
                     ui.div(
                         ui.output_text("recent_logs_display"),
-                        style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
+                        style="font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 2px; max-height: 250px; overflow-y: auto; border: 2px solid #dee2e6; white-space: pre-wrap;"
                     ),
                     ui.p(
                         "Last updated: ",
@@ -176,7 +176,6 @@ def server(input, output, session):
             response_time = time.time() - request_start
             
             # update performance metrics 
-            # (keep for internal tracking)
             current_times = request_times()
             current_times.append(response_time)
             if len(current_times) > 10:
@@ -263,9 +262,9 @@ def server(input, output, session):
         logging.debug(f"Displaying input values to user - Session: {session_id}")
         return f"{data}"
     
-    # @render.text
-    # def api_status():
-    #     return api_health_check()
+    @render.text
+    def api_status():
+        return api_health_check()
 
     @render.text
     def pred_out():
@@ -277,20 +276,20 @@ def server(input, output, session):
         else:
             return str(result)
     
-    # @render.text
-    # def recent_logs_display():
-    #     log_data = log_file_content()
-    #     lines = log_data['lines']
+    @render.text
+    def recent_logs_display():
+        log_data = log_file_content()
+        lines = log_data['lines']
         
-    #     if lines:
-    #         # get last 8 lines for better monitoring
-    #         recent_lines = lines[-8:] if len(lines) > 8 else lines
-    #         clean_lines = [line.rstrip() for line in recent_lines]
+        if lines:
+            # get last 10 lines for better monitoring
+            recent_lines = lines[-10:] if len(lines) > 10 else lines
+            clean_lines = [line.rstrip() for line in recent_lines]
             
-    #         logging.debug(f"Updating recent logs display - Session: {session_id} - showing {len(recent_lines)} lines")
-    #         return '\n'.join(clean_lines)
-    #     else:
-    #         return "No logs available yet..."
+            logging.debug(f"Updating recent logs display - Session: {session_id} - showing {len(recent_lines)} lines")
+            return '\n'.join(clean_lines)
+        else:
+            return "No logs available yet..."
     
     # @render.text
     # def log_timestamp():

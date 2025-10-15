@@ -725,6 +725,8 @@ graph LR
 
 **Response Debugging**
 
+The error handling starts by checking the response code (**`200`**), `r.json()` is converted to a Python dictionary (`result`), then a confirmation message is printed if it's successful. `[0]` is used to index the first element in the returned list and store the result in `prediction`:
+
 ```{python}
 #| eval: false 
 #| code-fold: false 
@@ -765,35 +767,59 @@ graph LR
 10. Error message construction (non-200 status)   
 
 
-The error handling starts by checking the response code (**`200`**), `r.json()` is converted to a Python dictionary (`result`), then a confirmation message is printed if it's successful. `[0]` is used to index the first element in the returned list and store the result in `prediction`. 
-
 **Structured Logs**
 
-1. If the returned prediction is anything other than `result['.pred'][0]` or `result['predict'][0]`, the app returns a `warning` (not an `error`) because response succeeded but format is unexpected.     
-    - *Structured `logging.warning()`* 
-      -  `Session: {session_id}` = *which user encountered this*   
-      -  `response: {result}` = *what was received*    
+:::{layout="[45,55]" layout-valign="top"}
+
+If the returned prediction is anything other than `result['.pred'][0]` or `result['predict'][0]`, the app returns a `warning` (not an `error`) because response succeeded but format is unexpected. 
+
+* **Structured `logging.warning()`:**  
+  * `Session: {session_id}` = *which user encountered this*   
+  * `response: {result}` = *what was received*   
+      
+:::
 
 
-2. If the returned prediction was successful, `logging.info()` returns an `info` log (i.e., a normal operational event, not a `warning` or `error`).    
-    - *Structured `logging.info()`*    
-      -  *Easier to parse/search logs*   
-      -  *Include metrics like average response time*      
-      -  *Debug issues by filtering by session ID*   
+:::{layout="[45,55]" layout-valign="top"}
+
+If the returned prediction was successful, `logging.info()` returns an `info` log (i.e., a normal operational event, not a `warning` or `error`).    
+
+* **Structured `logging.info()`:**    
+  * *Easier to parse/search logs*   
+  * *Include metrics like average response time*      
+  * *Debug issues by filtering by session ID*   
+  
+:::
 
 
-3. If the response time exceeds the performance threshold (5 seconds), a `warning` is returned (because the API works but isn't optimal). This helps to identify performance degradation and helps diagnose API issues. 
-    - *Structured `logging.warning()`*   
-      -  *Identifies API server overload*   
-      -  *Tells us if the model taking too long to compute*     
-      -  *Can detect network latency issues*   
+:::{layout="[45,55]" layout-valign="top"}
+
+If the response time exceeds the performance threshold (5 seconds), a `warning` is returned (because the API works but isn't optimal). This helps to identify performance degradation and helps diagnose API issues.  
+
+* **Structured `logging.warning()`:**   
+  * *Identifies API server overload*   
+  * *Tells us if the model taking too long to compute*     
+  * *Can detect network latency issues*   
+
+:::
+
+:::{layout="[45,55]" layout-valign="top"}
+
+Finally, if the API returns a non-200 status, `logging.error()` returns a human-readable error description with the first 200 characters only (`[:200]`).   
+
+* **Structured `logging.error()`:**   
+  * *Truncated error logging*      
+  * *Prevents log files from bloating*   
+  * *User has enough information to see why prediction failed*    
+      
+:::
 
 
-4. Finally, if the API returns a non-200 status, `logging.error()` returns a human-readable error description with the first 200 characters only (`[:200]`).   
-    - *Structured `logging.error()`*   
-      -  *Truncated error logging*      
-      -  *Prevents log files from bloating*   
-      -  *User has enough information to see why prediction failed*    
+In the console, the returned predictions display the following logs:
+
+
+![](img/lab4-py-pred-logs.png){width='100%' fig-align='center'}
+
 
 **Exceptions**
 
@@ -817,28 +843,50 @@ The error handling starts by checking the response code (**`200`**), `r.json()` 
 5. Console error notification     
 6. Error return   
 
-The first exception uses [`requests.exceptions.ConnectionError`](https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError) to catch connection failures separately from other errors. The `error_msg` string is created using `str(e)` to extract the error description from exception. A structured `warning` log is printed to the console with the `session_id` and the error description. 
+:::{layout="[45,55]" layout-valign="top"}
+
+The first exception uses the `requests.exceptions.` [`ConnectionError`](https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError) to catch connection failures separately from other errors.
+
+* **Exception `ConnectionError`:**      
+  * *The `error_msg` string is created using `str(e)` to extract the error description from exception.*      
+  * *A structured `warning` log is printed to the console with the `session_id` and the error description.*   
+
+:::
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
       
-    except requests.exceptions.Timeout:
-        error_msg = "Request timed out - API may be overloaded"
-        logging.warning(f"API timeout during prediction - Session: {session_id}")
-        timeout_errors.set(timeout_errors() + 1)
-        error_count.set(error_count() + 1)
-        return error_msg
+    except requests.exceptions.Timeout: #<1>
+        error_msg = "Request timed out - API may be overloaded" #<2>
+        logging.warning(f"API timeout during prediction - Session: {session_id}") #<3>
+        timeout_errors.set(timeout_errors() + 1) #<4>
+        error_count.set(error_count() + 1) #<4>
+        return error_msg #<5>
       
 ```
+1. Timeout-specific handling (from earlier `timeout=30`)   
+2. User-friendly error message to explain probable cause to user    
+3. Warning-level logging (system still functional, just slow)     
+4. Dual counter tracking (can analyze if performance becomes a pattern)      
+5. Error message returned   
 
-The second exception is a timeout exception, which is triggered if the API doesn't respond within 30 seconds. 
+:::{layout="[45,55]" layout-valign="top"}
+
+The second exception uses `requests.exceptions`[`.Timeout`](https://requests.readthedocs.io/en/latest/api/#requests.Timeout) as a timeout threshold, which is triggered if the API doesn't respond within 30 seconds. 
+
+* **Exception `Timeout`:**   
+  * *Set with earlier `timeout=30` argument*   
+  * *`warning` (not `error`) because timeouts might be temporary*     
+  * *`timeout_errors.set()` and `error_count.set()` can track timeout-specific metric plus total*      
+  
+:::
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
       
-    except Exception as e:
+    except Exception as e: #<1>
         error_msg = f"Error: {str(e)}"
         logging.error(f"Unknown prediction error - Session: {session_id} - error: {str(e)}")
         error_count.set(error_count() + 1)
@@ -846,8 +894,18 @@ The second exception is a timeout exception, which is triggered if the API doesn
         return error_msg
       
 ```
+1. Catch-all exception handler    
 
+:::{layout="[45,55]" layout-valign="top"}
 
+The final exception uses a generic `Exception` to handle any unexpected errors not caught above with `ConnectionError` or `Timeout`. 
+
+* **Exception `Exception`:**   
+  * *Catch-all exception handler*    
+  * *Only increments `error_count`, not a specific counter*     
+  * *Exception order matters (i.e., more specific exceptions must be caught first)*       
+
+:::
 
 The `@render.text` decorator defines the `pred_out()` function, which doesn't receive the prediction value as a parameter. Instead, it calls `pred()` directly, creating an implicit reactive dependency. 
 
@@ -856,7 +914,7 @@ The `@render.text` decorator defines the `pred_out()` function, which doesn't re
 #| code-fold: false 
 @render.text
 def pred_out():
-    result = pred()  # creates reactive dependency
+    result = pred() #<1>
     if isinstance(result, (int, float)):
         display_value = f"{round(result, 1)} grams"
         logging.info(f"Displaying prediction to user - Session: {session_id} - display_value: {display_value}")
@@ -864,6 +922,7 @@ def pred_out():
     else:
         return str(result)
 ```
+1. Creates reactive dependency    
 
 ```{mermaid}
 %%| fig-cap: 'API Errors for Predictions'
@@ -903,12 +962,16 @@ flowchart TD
 
 This means the render function automatically re-executes whenever the prediction function returns a new value. We use `@render.text` to render the predicted values returned from the API and include a `logging.info()` log with an f-string for the `session_id` and `display_value`: 
 
-
+![](img/lab4-py-pred-render.png){width='100%' fig-align='center'}
 
 ### System Status
 
+The system status `ui.card()` contains the status of the API connection, a display of the recent app logs, and a date for "last updated." 
+
 
 #### UI
+
+Each section is stored in a `ui.div()` inside `ui.layout_columns()`. We can arrange each section by rows if we set a single column width to `12`. The recent log display and last updated sections also contain CSS styling.
 
 ```{python}
 #| eval: false 
@@ -916,30 +979,43 @@ This means the render function automatically re-executes whenever the prediction
   ui.card(
       ui.card_header("System Status & Monitoring"),
       ui.card_body(
-          ui.layout_columns(
+          ui.layout_columns( #<1> 
               ui.div(
                   ui.h5("API Connection:"),
                   ui.br(),
-                  ui.output_text("api_status"),
+                  ui.output_text("api_status"), #<3> 
                   ui.br(),
                   ui.h5("Recent Application Logs:"),
-                  ui.div(
+                  ui.div( #<4> 
                       ui.output_text("recent_logs_display"),
-                      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
-                  ),
-                  ui.p(
+                      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;" #<6> 
+                  ), #<4> 
+                  ui.p( #<5> 
                       "Last updated: ",
                       ui.output_text("log_timestamp"),
                       style="margin-top: 5px; color: #6c757d; font-size: 12px;"
-                  )
+                  ) #<5>
               ),
-              col_widths=[12]
-          )
+              col_widths=[12] #<2>
+          ) #<1>
       )
   )
 ```
+1. Container for the three sections  
+2. Single width for entire area  
+3. API health check  
+4. Recent logs display  
+5. Timestamp for last updated 
+6. CSS styling for log display 
 
-#### ***API Connection***
+
+![](img/lab4-py-sys-status.png){width='100%' fig-align='center'}
+
+
+
+#### ***API Health Check***
+
+The UI displays the API health check with a `ui.output_text()`: 
 
 ```{python}
 #| eval: false 
@@ -949,7 +1025,67 @@ This means the render function automatically re-executes whenever the prediction
     ui.output_text("api_status")
 ```
 
+The server contains a corresponding `@reactive.calc` and defines the `api_health_check()` with the following error catching:  
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @reactive.calc
+    def api_health_check():
+        """Enhanced API health check with logging"""
+        try:
+            logging.debug(f"Checking API health - Session: {session_id}") #<1>
+            start_time = time.time() #<2>
+            
+            r = requests.get(ping_url, timeout=5) #<3>
+            response_time = time.time() - start_time #<4>
+            
+            if r.status_code == 200: #<5>
+                logging.info(f"API health check successful - Session: {session_id} - response_time: {response_time:.3f}s")
+                return f"✅ API is running (ping: {r.json()}) - {response_time:.2f}s" #<5>
+            else: #<6>
+                logging.warning(f"API ping failed - Session: {session_id} - status: {r.status_code}")
+                return f"⚠️ API ping failed: {r.status_code}" #<6>
+                
+        except requests.exceptions.ConnectionError as e:
+            logging.error(f"API connection refused - Session: {session_id} - error: {str(e)}")
+            return "❌ Cannot connect to API - is it running on port 8080?"
+        except requests.exceptions.Timeout:
+            logging.warning(f"API health check timeout - Session: {session_id}")
+            return "⚠️ API health check timeout"
+        except Exception as e:
+            logging.error(f"API health check failed - Session: {session_id} - error: {str(e)}")
+            return f"❌ API health check failed: {str(e)}"
+```
+1. Debug
+2. `start_time` is 
+3. `r` is 
+4. `response_time` contains  
+5. Success  
+6. Failure  
+
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text
+    def api_status():
+        return api_health_check()
+```
+
+
 #### ***Recent Application Logs***
+
+In the UI contains the following CSS styling variables to make it look like the console: 
+
+- `font-family`   
+- `font-size`   
+- `background-color`    
+- `border-radius`     
+- `max-height`  
+- `overflow-y`    
+- `border`    
+- `white-space`   
 
 ```{python}
 #| eval: false 
@@ -961,7 +1097,54 @@ This means the render function automatically re-executes whenever the prediction
   )
 ```
 
+In the server...
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @reactive.file_reader(log_file_path)
+    def log_file_content():
+        """Monitor log file for changes"""
+        try:
+            with open(log_file_path, 'r') as f:
+                lines = f.readlines()
+                return {
+                    'lines': lines,
+                    'last_modified': datetime.now(),
+                    'total_lines': len(lines)
+                }
+        except Exception as e:
+            logging.error(f"Error reading log file - Session: {session_id} - error: {str(e)}")
+            return {
+                'lines': [],
+                'last_modified': datetime.now(),
+                'total_lines': 0
+            }
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text
+    def recent_logs_display():
+        log_data = log_file_content()
+        lines = log_data['lines']
+        
+        if lines:
+            # get last 8 lines for better monitoring
+            recent_lines = lines[-8:] if len(lines) > 8 else lines
+            clean_lines = [line.rstrip() for line in recent_lines]
+            
+            logging.debug(f"Updating recent logs display - Session: {session_id} - showing {len(recent_lines)} lines")
+            return '\n'.join(clean_lines)
+        else:
+            return "No logs available yet..."
+          
+```
+
 #### ***Last updated***
+
+In the UI...
 
 ```{python}
 #| eval: false 
@@ -971,6 +1154,14 @@ This means the render function automatically re-executes whenever the prediction
       ui.output_text("log_timestamp"),
       style="margin-top: 5px; color: #6c757d; font-size: 12px;"
   )
+```
+
+In the server...
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+
 ```
 
 ## Finishing touches 
