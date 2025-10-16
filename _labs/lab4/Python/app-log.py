@@ -291,10 +291,10 @@ def server(input, output, session):
         else:
             return "No logs available yet..."
     
-    # @render.text
-    # def log_timestamp():
-    #     log_data = log_file_content()
-    #     return log_data['last_modified'].strftime("%Y-%m-%d %H:%M:%S")
+    @render.text
+    def log_timestamp():
+        log_data = log_file_content()
+        return log_data['last_modified'].strftime("%Y-%m-%d %H:%M:%S")
 
 app = App(app_ui, server)
 

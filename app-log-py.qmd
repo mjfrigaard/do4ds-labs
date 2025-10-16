@@ -213,7 +213,17 @@ At the top of our application we're going to create a `ui.div()` for displaying 
 
 #### UI
 
-Inside the `ui.div()`, we'll add some custom CSS styling so the **Session** has persistent visibility (i.e., the element stays visible when the user is scrolling).
+Inside the `ui.div()`, we'll add some custom CSS styling so the **Session** has persistent visibility (i.e., the element stays visible when the user is scrolling). The following CSS variables are used to style session ID output: 
+
+1. [`position`](https://developer.mozilla.org/en-US/docs/Web/CSS/position)  
+2. [`top`](https://developer.mozilla.org/en-US/docs/Web/CSS/top)  
+3. [`right`](https://developer.mozilla.org/en-US/docs/Web/CSS/right)  
+4. [`z-index`](https://developer.mozilla.org/en-US/docs/Web/CSS/z-index)    
+5. [`color`](https://developer.mozilla.org/en-US/docs/Web/CSS/color)  
+6. [`background`](https://developer.mozilla.org/en-US/docs/Web/CSS/background)  
+7. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)  
+8. [`border-radius`](https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius)  
+9. [`box-shadow`](https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow)  
 
 
 ```{python}
@@ -222,10 +232,12 @@ Inside the `ui.div()`, we'll add some custom CSS styling so the **Session** has 
 #| code-fold: false 
 ui.div(
     ui.strong("Session: "),
-    ui.output_text("session_display"),
-    style="position: fixed; top: 10px; right: 10px; z-index: 1000; color: #333; background: #fff; padding: 5px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+    ui.output_text("session_display"), #<1>
+    style="position: fixed; top: 10px; right: 10px; z-index: 1000; color: #333; background: #fff; padding: 5px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" #<2>
 )
 ```
+1. Session ID output    
+2. CSS styling for session ID   
 
 ![](img/lab4-py-div-session.png){width='100%' fig-align='center'}
 
@@ -269,11 +281,15 @@ co_box(
 ```{python}
 #| eval: false 
 #| code-fold: false 
-def server(input, output, session):
+def server(input, output, session): #<1> 
+  
+    session_id = f"py_{int(time.time() * 1000) % 100000}" #<2> 
     
-    session_id = f"py_{int(time.time() * 1000) % 100000}"
-    logging.info(f"New session started - Session: {session_id}")
+    logging.info(f"New session started - Session: {session_id}") #<3> 
 ```
+1. Shiny server definition  
+2. f-string for time  
+3. f-string for session ID  
 
 The first log (`logging.info`) tells us the Shiny session has started. 
 
@@ -286,10 +302,13 @@ To render the `session_id`, we define `session_display()` under the [`@render.te
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @render.text
-    def session_display():
-        return session_id[:8]
+    @render.text #<1>
+    def session_display(): #<2> 
+        return session_id[:8] #<3> 
 ```
+1. Render decorator for session ID display      
+2. Definition of `session_display()` function   
+3. Index the first 8 characters in `session_id`   
 
 ![](img/lab4-py-div-session-render.png){width='100%' fig-align='center'}
 
@@ -367,19 +386,43 @@ The input values are stored in a `ui.card()` and include our four reactives: `in
 ui.layout_columns(
     ui.card(
         ui.card_header("Inputs"),
-        ui.input_slider(id="bill_length", label="Bill Length (mm)", min=30, max=60, value=45, step=0.1),
-        ui.input_select(id="sex", label="Sex", choices=["Male", "Female"]),
-        ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),
-        ui.input_action_button(id="predict", label="Predict")
+        ui.input_slider(id="bill_length", label="Bill Length (mm)", min=30, max=60, value=45, step=0.1),#<1>
+        ui.input_select(id="sex", label="Sex", choices=["Male", "Female"]),#<2>
+        ui.input_select(id="species", label="Species", choices=["Adelie", "Chinstrap", "Gentoo"]),#<2>
+        ui.input_action_button(id="predict", label="Predict")#<3>
     ), 
     # ...
 ```
+1. Numeric input for penguin bill length (mm)   
+2. Drop-down inputs for penguin sex and species   
+3. Make a prediction (send request to API)    
 
 ![](img/lab4-py-param-inputs.png){width='70%' fig-align='center'}
 
 Instead of using the sidebar layout, I've place a second `ui.card()` inside the `ui.layout_columns()` and titled it **Results**. This includes the **Input Values** and **Predicted Mass** sections. 
 
 We can set the widths for each `ui.card()` with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
+
+The following CSS styling variables are used to give the input values display a console-like appearance: 
+
+1. [`font-family`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family)      
+2. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)          
+3. [`background-color`](https://developer.mozilla.org/en-US/docs/Web/CSS/background-color)           
+4. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)            
+5. [`border-radius`](https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius)            
+6. [`max-height`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-height)           
+7. [`overflow-y`](https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-y)           
+8. [`border`](https://developer.mozilla.org/en-US/docs/Web/CSS/border)         
+9. [`white-space`](https://developer.mozilla.org/en-US/docs/Web/CSS/white-space)            
+
+The returned prediction is styled with the following CSS variables:
+
+1. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)      
+2. [`font-weight`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight)         
+3. [`text-align`](https://developer.mozilla.org/en-US/docs/Web/CSS/text-align)        
+4. [`center`](https://developer.mozilla.org/en-US/docs/Web/CSS/center)        
+5. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)        
+6. [`color`](https://developer.mozilla.org/en-US/docs/Web/CSS/color)        
 
 ```{python}
 #| eval: false 
@@ -389,19 +432,25 @@ We can set the widths for each `ui.card()` with `col_widths=[4, 8]`, which will 
         ui.card(
             ui.card_header("Results"),
             ui.h3("Input Values"),
-            ui.div(
-                ui.output_text("vals_out"),
-                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
-            ),
+            ui.div(#<1>
+                ui.output_text("vals_out"),#<2>
+                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"#<3>
+            ),#<1>
             ui.h3("Predicted Mass"),
-            ui.div(
-                ui.output_text("pred_out"),
-                style="font-size: 24px; font-weight: bold; text-align: center; padding: 15px; color: #0066cc;"
+            ui.div( #<4>
+                ui.output_text("pred_out"), #<5>
+                style="font-size: 24px; font-weight: bold; text-align: center; padding: 15px; color: #0066cc;" #<6>
             )
-        ),
+        ), #<4>
     col_widths=[4, 8]
   )
 ```
+1. `div()` for values being sent to API   
+2. Text output for values (plain text)    
+3. CSS styling for API values (formatted like the console output)   
+4. `div()` for prediction value returned from the API   
+5. Text output for response from API    
+6. CSS styling for API values (formatted to be large and colorful)    
 
 
 ![](img/lab4-py-input-vals-prediction.png){width='100%' fig-align='center'}
@@ -587,16 +636,17 @@ The `@reactive.calc` and `@reactive.event(input.predict)` decorators override th
     @reactive.calc #<1>
     @reactive.event(input.predict) #<1>
     def pred(): #<1>
-        """Prediction with logging"""
-        request_start = time.time() #<2>
-        data_to_send = vals() #<3>
+        """Prediction with logging""" #<2>
+        request_start = time.time() #<3>
+        data_to_send = vals() #<4>
         
-        logging.info(f"Starting prediction request - Session: {session_id} - request_data: {json.dumps(data_to_send)}") #<4>
+        logging.info(f"Starting prediction request - Session: {session_id} - request_data: {json.dumps(data_to_send)}") #<5>
 ```
 1. Stacking these decorators creates a lazy evaluation with manual trigger, where the `pred()` function is reactive (cached) (but only executes on explicit events).   
-2. Provides precise millisecond-level stat time of API request.   
-3. Values to be sent to the API.    
-4. The f-string combines `{session_id}` (prints session ID) and `{json.dumps(data_to_send)}` (converts the Python data structure into a JSON string) for logging. 
+2. Docstring for function purpose.     
+3. Provides precise millisecond-level stat time of API request.   
+4. Values to be sent to the API.    
+5. The f-string combines `{session_id}` (prints session ID) and `{json.dumps(data_to_send)}` (converts the Python data structure into a JSON string) for logging. 
 
 This combines the performance benefits of caching with the user control of manual triggering:
 
@@ -635,7 +685,25 @@ graph TD
 
 **Error Handling**
 
-The error handling/logging for the inputs sent to the API (and the response) attempts to handle all possible return values: 
+The error handling/logging for the inputs sent to the API (and the response) starts with `try` and attempts to handle all possible return values.
+
+**Initial Request**
+
+The predictions are stored in `r` and sent using `requests.post()`, which includes:   
+
+- The destination (`api_url`)    
+- Automatic conversion of Python dict to JSON format (`json`)   
+- The maximum wait time in seconds (`timeout`) 
+
+**Performance Metrics Tracking**
+
+Performance timing is calculated using:   
+
+- `response_time` is the current time minus start time = elapsed seconds.  
+- `request_times()` is a Shiny-specific reactive value - we can call it like a function to get its value.    
+- `current_times.append(response_time)` adds current response time to the list of times.    
+
+The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the `request_times` is updated the stored value using `set(current_times)` (recall that `request_times` is a shiny-specific reactive value). 
 
 ```{python}
 #| eval: false 
@@ -668,24 +736,6 @@ The error handling/logging for the inputs sent to the API (and the response) att
 7. Keep only the 10 most recent measurements  
 8. Update the stored value  
 9. See exactly what the API returned
-
-**Initial Request**
-
-The predictions are stored in `r` and sent using `requests.post()`, which includes:   
-
-- The destination (`api_url`)    
-- Automatic conversion of Python dict to JSON format (`json`)   
-- The maximum wait time in seconds (`timeout`) 
-
-**Performance Metrics Tracking**
-
-Performance timing is calculated using:   
-
-- `response_time` is the current time minus start time = elapsed seconds.  
-- `request_times()` is a Shiny-specific reactive value - we can call it like a function to get its value.    
-- `current_times.append(response_time)` adds current response time to the list of times.    
-
-The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the `request_times` is updated the stored value using `set(current_times)` (recall that `request_times` is a shiny-specific reactive value). 
 
 The `print` statements give us an indication of what was returned in the HTTP status code: 
 
@@ -773,7 +823,7 @@ The error handling starts by checking the response code (**`200`**), `r.json()` 
 
 If the returned prediction is anything other than `result['.pred'][0]` or `result['predict'][0]`, the app returns a `warning` (not an `error`) because response succeeded but format is unexpected. 
 
-* **Structured `logging.warning()`:**  
+* **Structured `logging.warning()`**  
   * `Session: {session_id}` = *which user encountered this*   
   * `response: {result}` = *what was received*   
       
@@ -784,7 +834,7 @@ If the returned prediction is anything other than `result['.pred'][0]` or `resul
 
 If the returned prediction was successful, `logging.info()` returns an `info` log (i.e., a normal operational event, not a `warning` or `error`).    
 
-* **Structured `logging.info()`:**    
+* **Structured `logging.info()`**    
   * *Easier to parse/search logs*   
   * *Include metrics like average response time*      
   * *Debug issues by filtering by session ID*   
@@ -796,7 +846,7 @@ If the returned prediction was successful, `logging.info()` returns an `info` lo
 
 If the response time exceeds the performance threshold (5 seconds), a `warning` is returned (because the API works but isn't optimal). This helps to identify performance degradation and helps diagnose API issues.  
 
-* **Structured `logging.warning()`:**   
+* **Structured `logging.warning()`**   
   * *Identifies API server overload*   
   * *Tells us if the model taking too long to compute*     
   * *Can detect network latency issues*   
@@ -807,7 +857,7 @@ If the response time exceeds the performance threshold (5 seconds), a `warning` 
 
 Finally, if the API returns a non-200 status, `logging.error()` returns a human-readable error description with the first 200 characters only (`[:200]`).   
 
-* **Structured `logging.error()`:**   
+* **Structured `logging.error()`**   
   * *Truncated error logging*      
   * *Prevents log files from bloating*   
   * *User has enough information to see why prediction failed*    
@@ -847,7 +897,7 @@ In the console, the returned predictions display the following logs:
 
 The first exception uses the `requests.exceptions.` [`ConnectionError`](https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError) to catch connection failures separately from other errors.
 
-* **Exception `ConnectionError`:**      
+* **Exception `ConnectionError`**      
   * *The `error_msg` string is created using `str(e)` to extract the error description from exception.*      
   * *A structured `warning` log is printed to the console with the `session_id` and the error description.*   
 
@@ -875,7 +925,7 @@ The first exception uses the `requests.exceptions.` [`ConnectionError`](https://
 
 The second exception uses `requests.exceptions`[`.Timeout`](https://requests.readthedocs.io/en/latest/api/#requests.Timeout) as a timeout threshold, which is triggered if the API doesn't respond within 30 seconds. 
 
-* **Exception `Timeout`:**   
+* **Exception `Timeout`**   
   * *Set with earlier `timeout=30` argument*   
   * *`warning` (not `error`) because timeouts might be temporary*     
   * *`timeout_errors.set()` and `error_count.set()` can track timeout-specific metric plus total*      
@@ -900,7 +950,7 @@ The second exception uses `requests.exceptions`[`.Timeout`](https://requests.rea
 
 The final exception uses a generic `Exception` to handle any unexpected errors not caught above with `ConnectionError` or `Timeout`. 
 
-* **Exception `Exception`:**   
+* **Exception `Exception`**   
   * *Catch-all exception handler*    
   * *Only increments `error_count`, not a specific counter*     
   * *Exception order matters (i.e., more specific exceptions must be caught first)*       
@@ -1022,7 +1072,36 @@ The UI displays the API health check with a `ui.output_text()`:
 #| code-fold: false 
     ui.h5("API Connection:"),
     ui.br(),
-    ui.output_text("api_status")
+    ui.output_text("api_status") #<1>
+```
+1. Text output for API health check  
+
+```{mermaid}
+%%| fig-cap: 'API Health Check'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    subgraph UI["UI Layer"]
+        A(["<strong>ui.h5()</strong><br>header"]) --> B("<strong>ui.output_text()</strong>")
+    end
+    
+    subgraph SERVER["Server Layer"]
+        C("<strong>@reactive.calc</strong><br/>api_health_check") --> D("<strong>@render.text</strong><br/>api_status")
+    end
+    
+    subgraph API["API Layer"]
+        E(["<strong>GET /ping</strong> endpoint"])
+    end
+    
+    B -.Displays.-> D
+    D -.Calls.-> C
+    C -.HTTP Request.-> E
+    E -.Response.-> C
+    
+    style A fill:#d8e4ff
+    style E fill:#31e981
 ```
 
 The server contains a corresponding `@reactive.calc` and defines the `api_health_check()` with the following error catching:  
@@ -1030,145 +1109,280 @@ The server contains a corresponding `@reactive.calc` and defines the `api_health
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @reactive.calc
-    def api_health_check():
-        """Enhanced API health check with logging"""
+    @reactive.calc #<1>
+    def api_health_check(): #<1>
+        """Enhanced API health check with logging""" #<2>
         try:
-            logging.debug(f"Checking API health - Session: {session_id}") #<1>
-            start_time = time.time() #<2>
+            logging.debug(f"Checking API health - Session: {session_id}") #<3>
+            start_time = time.time() #<4>
             
-            r = requests.get(ping_url, timeout=5) #<3>
-            response_time = time.time() - start_time #<4>
+            r = requests.get(ping_url, timeout=5) #<5>
+            response_time = time.time() - start_time #<6>
             
-            if r.status_code == 200: #<5>
+            if r.status_code == 200: #<7>
                 logging.info(f"API health check successful - Session: {session_id} - response_time: {response_time:.3f}s")
-                return f"✅ API is running (ping: {r.json()}) - {response_time:.2f}s" #<5>
-            else: #<6>
+                return f"✅ API is running (ping: {r.json()}) - {response_time:.2f}s"  #<7>
+              else: #<8>
                 logging.warning(f"API ping failed - Session: {session_id} - status: {r.status_code}")
-                return f"⚠️ API ping failed: {r.status_code}" #<6>
+                return f"⚠️ API ping failed: {r.status_code}" #<8>
                 
-        except requests.exceptions.ConnectionError as e:
-            logging.error(f"API connection refused - Session: {session_id} - error: {str(e)}")
-            return "❌ Cannot connect to API - is it running on port 8080?"
-        except requests.exceptions.Timeout:
-            logging.warning(f"API health check timeout - Session: {session_id}")
-            return "⚠️ API health check timeout"
-        except Exception as e:
-            logging.error(f"API health check failed - Session: {session_id} - error: {str(e)}")
-            return f"❌ API health check failed: {str(e)}"
+
 ```
-1. Debug
-2. `start_time` is 
-3. `r` is 
-4. `response_time` contains  
-5. Success  
-6. Failure  
+1. Reactive calculation decorator   
+2. Docstring (documentation string describing function purpose)
+3. Debug log entry with session ID      
+4. `start_time` is the timer initialization (when operation begins)
+5. `r` is the HTTP GET request with timeout   
+6. `response_time` contains the elapsed time calculation  
+7. Success: verified API responded positively   
+8. Failure: non-success status handling   
+
+**Structured Logs**
+
+:::{layout="[45,55]" layout-valign="top"}
+
+When a health check is performed, `logging.debug()` creates a `debug` log to track when health checks occurred. 
+
+* **Structured `logging.debug()`**    
+  * *`debug` = detailed diagnostic information*    
+  * *Includes troubleshooting info*        
+  * *Typically disabled in production*   
+  
+:::
+
+:::{layout="[45,55]" layout-valign="top"}
+
+When a health check is successful (HTTP code == `200`), `logging.info()` 
+
+* **Structured `logging.info()`**    
+  * *`info` = Normal operational event*    
+  * *Record successful health check with timing*        
+  * *Baseline for performance comparison*   
+  
+:::
+
+
+:::{layout="[45,55]" layout-valign="top"}
+
+When a health check fails to return a non-`200` HTTP status, `logging.warning()` creates 
+
+* **Structured `logging.warning()`**    
+  * *`warning` = API responded but not with success*  
+  * *Unusual but non-critical responses*        
+  
+:::
 
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @render.text
-    def api_status():
+        except requests.exceptions.ConnectionError as e: #<1>
+            logging.error(f"API connection refused - Session: {session_id} - error: {str(e)}")
+            return "❌ Cannot connect to API - is it running on port 8080?" #<1>
+        except requests.exceptions.Timeout: #<2>
+            logging.warning(f"API health check timeout - Session: {session_id}")
+            return "⚠️ API health check timeout"#<2>
+        except Exception as e: #<3>
+            logging.error(f"API health check failed - Session: {session_id} - error: {str(e)}")
+            return f"❌ API health check failed: {str(e)}" #<3>
+```
+1. The `ConnectionError` exception with the error and session id  
+2. The `Timeout` exception with the session id  
+3. The general exception with error message and session id    
+
+**Exceptions**
+
+:::{layout="[45,55]" layout-valign="top"}
+
+The first exception uses the `requests.exceptions.` [`ConnectionError`](https://requests.readthedocs.io/en/latest/api/#requests.ConnectionError) to catch connection failures separately from other errors.
+
+* **Exception `ConnectionError`**      
+  * *`str(e)` is used to extract the error description from exception.*   
+  * *The `warning` log is printed to the console with the `session_id` and the error description.*   
+
+:::
+
+:::{layout="[45,55]" layout-valign="top"}
+
+The second exception uses `requests.exceptions`[`.Timeout`](https://requests.readthedocs.io/en/latest/api/#requests.Timeout) as a timeout threshold, which is triggered if the API doesn't respond within 30 seconds. 
+
+* **Exception `Timeout`**   
+  * *Set with earlier `timeout=30` argument*   
+  * *`warning` (not `error`) because timeouts might be temporary*     
+  
+:::
+
+:::{layout="[45,55]" layout-valign="top"}
+
+The final exception uses a generic `Exception` to handle any unexpected errors not caught above with `ConnectionError` or `Timeout`. 
+
+* **Exception `Exception`**   
+  * *Catch-all exception handler*    
+  * *Handle any unforeseen errors gracefully*     
+  * *Exception order matters (i.e., more specific exceptions must be caught first)*       
+
+:::
+
+
+The code above continuously checks if the API server is responding, like calling a phone number to see if someone answers. The `@render.text` decorator converts the returned value to a string, sends it to the UI, and automatically re-renders it when the dependencies (i.e., values) change. 
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+    @render.text #<1>
+    def api_status(): #<2>
         return api_health_check()
 ```
+1. Output rendering decorator   
+2. Function name must match UI's `output_text("api_status")`    
+
+![](img/lab4-py-api-health-check.png){width='100%' fig-align='center'}
 
 
 #### ***Recent Application Logs***
 
 In the UI contains the following CSS styling variables to make it look like the console: 
 
-- `font-family`   
-- `font-size`   
-- `background-color`    
-- `border-radius`     
-- `max-height`  
-- `overflow-y`    
-- `border`    
-- `white-space`   
+1. [`font-family`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family)      
+2. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)          
+3. [`background-color`](https://developer.mozilla.org/en-US/docs/Web/CSS/background-color)           
+4. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)            
+5. [`border-radius`](https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius)            
+6. [`max-height`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-height)           
+7. [`overflow-y`](https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-y)           
+8. [`border`](https://developer.mozilla.org/en-US/docs/Web/CSS/border)         
+9. [`white-space`](https://developer.mozilla.org/en-US/docs/Web/CSS/white-space)  
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
   ui.h5("Recent Application Logs:"),
-  ui.div(
-      ui.output_text("recent_logs_display"),
-      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"
-  )
+  ui.div( #<1>
+      ui.output_text("recent_logs_display"),#<2>
+      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;" #<3>
+  ) #<1>
 ```
+1. `div()` for recent log display   
+2. Text display of recent logs    
+3. CSS styling for log output (similar to console)    
 
-In the server...
+In the server, we define `log_file_content()`, which watches the file and re-runs function when it's modified. The file is safely opened using `open()` and the `f` mode means read only (we do this so the file will automatically close). 
+
+`f.readlines()` reads the entire file as a list (each line is an element in the list) and returns it in a dictionary with the `last_modified` (when it was read) and the `total_lines` (total number of lines in the log file). 
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @reactive.file_reader(log_file_path)
-    def log_file_content():
-        """Monitor log file for changes"""
-        try:
-            with open(log_file_path, 'r') as f:
-                lines = f.readlines()
-                return {
+    @reactive.file_reader(log_file_path) #<1>
+    def log_file_content(): #<1>
+        """Monitor log file for changes""" #<2>
+        try: #<3>
+            with open(log_file_path, 'r') as f: #<4>
+                lines = f.readlines() #<5>
+                return { #<6>
                     'lines': lines,
                     'last_modified': datetime.now(),
                     'total_lines': len(lines)
-                }
-        except Exception as e:
-            logging.error(f"Error reading log file - Session: {session_id} - error: {str(e)}")
-            return {
+                } #<6>
+        except Exception as e: #<7>
+            logging.error(f"Error reading log file - Session: {session_id} - error: {str(e)}") #<8>
+            return { #<9>
                 'lines': [],
                 'last_modified': datetime.now(),
                 'total_lines': 0
-            }
+            } #<9>
 ```
+1. Reactive file monitoring (automatically detect when log file changes)  
+2. Docstring documenting function purpose  
+3. Context manager for file handling    
+4. Safely open file   
+5. Read entire file as list   
+6. Dictionary return with metadata    
+7. Generic exception    
+8. `error` log for graceful degradation     
+9. Return empty dictionary with identical elements. 
+
+The exception is generic and returns an error and safe default if log file can't be read. 
+
+For rendering, we get the last 10 lines for better monitoring and remove the whitespace with `line.rstrip()`. Before returning the logs, we combine the list of `lines` into single string with line breaks. A `debug` log is created the logs have been updated with the session id and the length (number of lines) of the recent logs. 
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    @render.text
-    def recent_logs_display():
-        log_data = log_file_content()
-        lines = log_data['lines']
+    @render.text #<1>
+    def recent_logs_display(): #<2>
+        log_data = log_file_content() #<3>
+        lines = log_data['lines'] #<4>
         
-        if lines:
-            # get last 8 lines for better monitoring
-            recent_lines = lines[-8:] if len(lines) > 8 else lines
-            clean_lines = [line.rstrip() for line in recent_lines]
+        if lines: #<5>
             
-            logging.debug(f"Updating recent logs display - Session: {session_id} - showing {len(recent_lines)} lines")
-            return '\n'.join(clean_lines)
-        else:
-            return "No logs available yet..."
+            recent_lines = lines[-10:] if len(lines) > 10 else lines #<6>
+            clean_lines = [line.rstrip() for line in recent_lines] #<7>
+            
+            logging.debug(f"Updating recent logs display - Session: {session_id} - showing {len(recent_lines)} lines") #<8>
+            return '\n'.join(clean_lines) #<9>
+        else: #<10>
+            return "No logs available yet..." #<10>
           
 ```
+1. Text render decorator    
+2. Define `recent_logs_display()` function (matches UI's `output_text("recent_logs_display")`)      
+3. Call reactive dependency and create `log_data` from `log_file_content()`      
+4. Extract `lines` from `log_data`      
+5. Truthiness check (handle empty log file case)    
+6. Slice last 10 lines      
+7. Remove trailing whitespace (especially `\n`)   
+8. `debug` = detailed trace information  
+9. Join lines with newlines   
+10. Provide clear message when no logs exist
+
+If there are no logs, a message is returned.  
+
+![](img/lab4-py-recent-logs.png){width='100%' fig-align='center'}
 
 #### ***Last updated***
 
-In the UI...
+In the UI, the last updated section includes a CSS styled text output: 
+
+1. [`margin-top`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-top)   
+2. [`color`](https://developer.mozilla.org/en-US/docs/Web/CSS/color)      
+3. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)          
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
   ui.p(
       "Last updated: ",
-      ui.output_text("log_timestamp"),
-      style="margin-top: 5px; color: #6c757d; font-size: 12px;"
+      ui.output_text("log_timestamp"), #<1> 
+      style="margin-top: 5px; color: #6c757d; font-size: 12px;" #<2> 
   )
 ```
+1. Text output for timestamp  
+2. CSS styling for date  
 
-In the server...
+In the server, the `log_file_content()` is used to extract the `last_modified` date, which is formatted before returning to the UI. 
 
 ```{python}
 #| eval: false 
 #| code-fold: false 
-
+   @render.text #<1> 
+    def log_timestamp(): #<2> 
+        log_data = log_file_content() #<3> 
+        return log_data['last_modified'].strftime("%Y-%m-%d %H:%M:%S") #<4> 
 ```
+1. Render decorator for timestamp  
+2. Match the UI portion (`ui.output_text("log_timestamp")`)     
+3. Reactive dependency for `log_file_content()`  
+4. Return formatted data with `strftime()`    
+
+![](img/lab4-py-last-updated.png){width='100%' fig-align='center'}
 
 ## Finishing touches 
 
+Below is a diagram illustrating how the configured logs are updated in the application and displayed in the UI:  
 
 ```{mermaid}
-%%| fig-cap: 'Python logging App'
+%%| fig-cap: 'Python logging app'
 %%| fig-width: 7.0
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
@@ -1192,3 +1406,20 @@ sequenceDiagram
     FileReader-->>Main: Trigger UI updates when file changes
 ```
 
+The final files in the [`do4ds-labs/_labs/lab4/Python`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab4/Python) folder are below: 
+
+```{verbatim}
+├── app-log.py #<1> 
+├── logs
+│   └── shiny_app.log #<2> 
+├── Python.Rproj #<3>
+├── README.md #<4> 
+└── requirements.txt #<5> 
+
+2 directories, 5 files
+```
+1. App python script  
+2. Log file   
+3. RStudio project file   
+4. Documentation for app    
+5. Dependencies     
