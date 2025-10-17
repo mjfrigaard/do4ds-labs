@@ -1,3 +1,9 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
 # Lab 4: Logging and Monitoring {.unnumbered}
 
 ```{r}
@@ -22,7 +28,7 @@ co_box(
 )
 ```
 
-The original files in `_labs/lab4` are below: 
+The original files in `do4ds/_labs/lab4` are below:
 
 ```{r}
 #| collapse: true
@@ -32,18 +38,16 @@ fs::dir_tree(path = "_labs/lab4/")
 ## ├── app-log.R #<1>
 ## └── app-log.py #<2>
 ```
-1. R Shiny app    
-2. Python Shiny app    
+1.  R Shiny app   
+2.  Python Shiny app
 
 ## Comprehension questions
 
-
-
 ### Monitoring vs. logging
 
-> *What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?*
+> ***What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?***
 
-Logging is a record of "***What happened***"--logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.
+Logging is a record of "***What happened***"--logs capture discret events and detailed narratives of what occurred in the system at specific points in time.
 
 Monitoring is usually a display of "***How is it performing***"--tracking quantitative metrics and system health indicators over time to understand trends and current state.
 
@@ -101,79 +105,232 @@ graph LR
     class LC,LC2,LC3,LC4,MC,MC2,MC3,MC4 usecase
 ```
 
-
-| Aspect        | Logging                        | Monitoring                     |
-| ------------- | ------------------------------ | ------------------------------ |
-| **Data Type** | Discrete events, text messages | Metrics, counters, gauges      |
-| **When Used** | After something happens        | Continuously                   |
-| **Purpose**   | Debugging, investigation       | Performance tracking, alerting |
-| **Format**    | Structured/unstructured text   | Numerical time-series data     |
-| **Storage**   | Log files, log databases       | Time-series databases          |
-| **Analysis**  | Search, filter, correlate      | Aggregate, trend, threshold    |
-
-
+| Aspect | Logging | Monitoring |
+|-----------------|----------------------------|----------------------------|
+| **Data Type** | Discrete events, text messages | Metrics, counters, gauges |
+| **When Used** | After something happens | Continuously |
+| **Purpose** | Debugging, investigation | Performance tracking, alerting |
+| **Format** | Structured/unstructured text | Numerical time-series data |
+| **Storage** | Log files, log databases | Time-series databases |
+| **Analysis** | Search, filter, correlate | Aggregate, trend, threshold |
 
 ### What not to log
 
-> *Logging is generally good, but what are some things you should be careful not to log?*
+> ***Logging is generally good, but what are some things you should be careful not to log?***
 
-Critical data we should make sure not to log includes: 
+Critical data we should make sure not to log includes:
 
-1. Sensitive Personal Information (PII)   
-    - Email addresses, phone numbers, names   
-    - Social Security Numbers, passport numbers   
-    - Addresses, birth dates    
-    - Medical information (HIPAA protected)   
+1.  Sensitive Personal Information (PII)    
+    -   Email addresses, phone numbers, names     
+    -   Social Security Numbers, passport numbers   
+    -   Addresses, birth dates    
+    -   Medical information (HIPAA protected)   
+2.  Authentication Credentials    
+    -   Passwords (plaintext or hashed)   
+    -   API keys and tokens     
+    -   Database connection strings with credentials    
+    -   OAuth tokens and refresh tokens   
+3.  Financial Information   
+    -   Credit card numbers     
+    -   Bank account numbers    
+    -   Routing numbers   
 
-2. Authentication Credentials     
-    - Passwords (plaintext or hashed)     
-    - API keys and tokens   
-    - Database connection strings with credentials    
-    - OAuth tokens and refresh tokens   
+Industry specific guidelines on logging are available below:
 
-3. Financial Information    
-    - Credit card numbers     
-    - Bank account numbers    
-    - Routing numbers   
+1.  Financial Services:   
+    -   Never log account numbers in full   
+    -   Mask payment card data    
+    -   Avoid logging transaction details in plain text   
+        -   Source: [FFIEC IT Examination Handbook](https://ithandbook.ffiec.gov/it-booklets/information-security.aspx)   
+2.  Healthcare    
+    -   De-identify all patient data in logs    
+    -   Remove [18 HIPAA identifiers](https://www.luc.edu/its/aboutus/itspoliciesguidelines/hipaainformation/the18hipaaidentifiers/)      
+    -   Implement access controls for log files   
+        -   Source: [HHS Security Risk Assessment](https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html)
+3.  Government/Defense    
+    -   Classify log data appropriately    
+    -   Implement need-to-know access   
+    -   Encrypt logs containing sensitive information     
+        -   Source: [NIST SP800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
 
-Industry specific guidelines on logging are available below: 
+### Log levels
 
-1. Financial Services:  
-    - Never log account numbers in full     
-    - Mask payment card data    
-    - Avoid logging transaction details in plain text   
-        - Source: [FFIEC IT Examination Handbook](https://ithandbook.ffiec.gov/it-booklets/information-security.aspx)
+> ***At what level would you log each of the following events:***
 
-2. Healthcare   
-    - De-identify all patient data in logs      
-    - Remove [18 HIPAA identifiers](https://www.luc.edu/its/aboutus/itspoliciesguidelines/hipaainformation/the18hipaaidentifiers/)      
-    - Implement access controls for log files   
-        - Source: [HHS Security Risk Assessment](https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html)
+The answers below are provided for the [R `logger` package](https://daroczig.github.io/logger/) and [Python's `logging` facility](https://docs.python.org/3/library/logging.html#). 
 
-3. Government/Defense     
-    - Classify log data appropriately     
-    - Implement need-to-know access       
-    - Encrypt logs containing sensitive information     
-        - Source: [NIST SP 800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
+In R, the `logger` package has the following levels:
+
+```{mermaid}
+%%| fig-cap: 'R logger'
+%%| fig-align: center
+%%| fig-width: 6.5
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    LogLevels(["Logging Levels<br/>Least -> Most Severe"]) --> TRACE("TRACE")
+    TRACE --> DEBUG("DEBUG")
+    DEBUG --> INFO("INFO")
+    INFO --> SUCCESS("SUCCESS")
+    SUCCESS --> WARN("WARN")
+    WARN --> ERROR("ERROR")
+    ERROR --> FATAL("FATAL")
+    
+    TRACE -.Fine-grained details.-> TraceEx[Variable states<br/>Loop iterations]
+    DEBUG -.Diagnostic information.-> DebugEx[Function entry/exit<br/>Parameter values]
+    INFO -.Informational messages.-> InfoEx[Process started<br/>Configuration loaded]
+    SUCCESS -.Positive confirmations.-> SuccessEx[Task completed<br/>Data saved successfully]
+    WARN -.Potential issues.-> WarnEx[Deprecated functions<br/>Missing optional params]
+    ERROR -.Recoverable errors.-> ErrorEx[Failed validation<br/>File not found]
+    FATAL -.Critical failures.-> FatalEx[Cannot proceed<br/>System unrecoverable]
+    
+    style LogLevels fill:#d8e4ff
+
+```
+
+In Python, the `logging` facility has the following log levels:
+
+```{mermaid}
+%%| fig-cap: 'Python logging'
+%%| fig-align: center
+%%| fig-width: 6.5
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    A(["Logging Levels<br/>Least -> Most Severe"]) --> B("DEBUG")
+    B --> C("INFO")
+    C --> D("WARNING")
+    D --> E("ERROR")
+    E --> F("CRITICAL")
+    
+    B -.Verbose details.-> B1[Function calls<br/>Variable values]
+    C -.Normal events.-> C1[Operations succeeded<br/>State changes]
+    D -.Unexpected but handled.-> D1[Slow responses<br/>Retries needed]
+    E -.Failures.-> E1[Operations failed<br/>Connections refused]
+    F -.System failure.-> F1[Cannot continue<br/>Data corruption]
+    
+    style A fill:#d8e4ff
+    
+```
+
+> ***Someone clicks on a particular tab in your Shiny app.***
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**R `logger`:** `TRACE` or `DEBUG`
+
+Tab clicks are fine-grained UI interaction details, so we could use `TRACE` if we want extremely detailed user behavior tracking, or `DEBUG` if we only need this during development/troubleshooting. In production, we typically wouldn't log every tab click unless tracking user flow.
+
+:::
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**Python `logging`:** `DEBUG`
+
+Similar reasoning - this diagnostic information for user interactions are primarily useful during development (or when debugging specific user behavior issues). 
+
+:::
+
+*In most production apps, we'd disable `TRACE`/`DEBUG` levels and only enable them when investigating specific issues to avoid log bloat.*
+
+> ***Someone puts an invalid entry into a text entry box.***
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**R `logger`:** `WARN`
+
+The user provided invalid input, but the app can handle it gracefully (show validation message). This is a potential issue worth noting but doesn't break functionality.
+
+:::
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**Python `logging`:** `WARNING`
+
+Same reasoning - unexpected but handled situation. We'd want to track validation failures for UX improvements without treating them as errors.
+
+:::
+
+*Some developers use `INFO` for validation failures if they're expected and very common. Use `WARN` if you want to monitor frequency or patterns of invalid inputs.*
+
+> ***An HTTP call your app makes to an external API fails.***
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**R `logger`:** `ERROR`
+
+The API call failed, which means our app cannot complete an intended operation. Even if we have fallback logic, the primary operation failed and needs attention.
+
+:::
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**Python `logging`:** `ERROR`
+
+Same reasoning - this is a genuine failure that prevents the app from functioning as designed.
+
+:::
+
+*Nuances:*
+
+-   *We should use `ERROR` if this breaks core functionality*     
+-   *We might consider `WARN` if we have robust fallback mechanisms and the app continues normally*   
+-   *Use `FATAL` only if the API is so critical that the entire app becomes unusable without it*   
+
+*Include the HTTP status code, error message, and endpoint in the log:*
+
+```{r}
+#| eval: false 
+#| code-fold: false
+log_error("API call failed: {endpoint} returned {status_code} - {error_msg}")
+```
+
+> ***The numeric values that are going into your computational function.***
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**R `logger`:** `TRACE`
+
+These are extremely granular details about data flowing through our functions, so we'd use `TRACE` for this level of variable inspection. We might use `DEBUG` if these values are critical decision points.
+
+:::
+
+:::{layout="[40,60]" layout-valign="top"}
+
+**Python `logging`:** `DEBUG`
+
+Python doesn't have `TRACE`, so `DEBUG` is appropriate for detailed variable state information used in troubleshooting computational logic.
+
+:::
+
+*When to log this:*  
+
+-   *During development to verify calculations*      
+-   *When debugging reported computational issues*     
+-   *Should almost never be enabled in production*       
 
 
-
-### Log levels 
-
-> *At what level would you log each of the following events:*
-> *Someone clicks on a particular tab in your Shiny app.*
+#### Log Levels Summary
 
 
+| Event          | `logger`        |`logging`         | Key Factor                  |
+|----------------|-----------------|------------------|-----------------------------|
+| Tab click      | `TRACE`/`DEBUG` | `DEBUG`          | Fine-grained UI interaction |
+| Invalid input  | `WARN`          | `WARNING`        | Expected, handled issue     |
+| API failure    | `ERROR`         | `ERROR`          | Operation failed            |
+| Numeric values | `TRACE`         | `DEBUG`          | Variable state inspection   |
 
-> *Someone puts an invalid entry into a text entry box.*
+**General Rules of Thumb:**
 
+-   **`TRACE`/`DEBUG`** = "I need to see what's happening inside"
 
+-   **`INFO`/`SUCCESS`** = "Normal operations worth recording"
 
-> *An HTTP call your app makes to an external API fails.*
+-   **`WARN`/`WARNING`** = "Something unexpected but manageable"
 
+-   **`ERROR`** = "Something broke but app continues"
 
-
-> *The numeric values that are going into your computational function.*
+-   **`FATAL`/`CRITICAL`** = "Cannot continue operating"
 
 ## Observability
 
@@ -221,19 +378,19 @@ graph LR
     
 ```
 
-This will give us: 
+This will give us:
 
-1) Operational peace of mind (the ability to detect and resolve issues quickly)
+1)  Operational peace of mind (the ability to detect and resolve issues quickly)
 
-2) Value demonstration (shows decision makers who uses the work and how) 
+2)  Value demonstration (shows decision makers who uses the work and how)
 
-3) Team validation (prove the team's impact and justify resources)
+3)  Team validation (prove the team's impact and justify resources)
 
-## Logging in R 
-
+## Logging in R
 
 <details>
-  <summary>Expand to view app-log.R</summary>
+
+<summary>Expand to view app-log.R</summary>
 
 ```{r}
 #| label: print-app-log-R
@@ -247,10 +404,11 @@ readr::read_lines("_labs/lab4/app-log.R") |>
 
 </details>
 
-## Logging in Python 
+## Logging in Python
 
 <details>
-  <summary>Expand to view app-log.py</summary>
+
+<summary>Expand to view app-log.py</summary>
 
 ```{r}
 #| label: print-app-log-py

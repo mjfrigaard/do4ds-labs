@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-09-18">
+<meta name="dcterms.date" content="2025-10-16">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 4: Logging and Monitoring – DO4DS: Lab Solutions</title>
@@ -331,7 +331,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#monitoring-vs.-logging" id="toc-monitoring-vs.-logging" class="nav-link" data-scroll-target="#monitoring-vs.-logging">Monitoring vs.&nbsp;logging</a></li>
   <li><a href="#what-not-to-log" id="toc-what-not-to-log" class="nav-link" data-scroll-target="#what-not-to-log">What not to log</a></li>
-  <li><a href="#log-levels" id="toc-log-levels" class="nav-link" data-scroll-target="#log-levels">Log levels</a></li>
+  <li><a href="#log-levels" id="toc-log-levels" class="nav-link" data-scroll-target="#log-levels">Log levels</a>
+  <ul class="collapse">
+  <li><a href="#log-levels-summary" id="toc-log-levels-summary" class="nav-link" data-scroll-target="#log-levels-summary">Log Levels Summary</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#observability" id="toc-observability" class="nav-link" data-scroll-target="#observability">Observability</a></li>
   <li><a href="#logging-in-r" id="toc-logging-in-r" class="nav-link" data-scroll-target="#logging-in-r">Logging in R</a></li>
@@ -355,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-09-18</p>
+      <p class="date">2025-10-16</p>
     </div>
   </div>
   
@@ -385,7 +388,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The original files in <code>_labs/lab4</code> are below:</p>
+<p>The original files in <code>do4ds/_labs/lab4</code> are below:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="annotated-cell-1"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">path =</span> <span class="st">"_labs/lab4/"</span>)</span>
 <span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab4/</span></span>
@@ -410,9 +413,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="monitoring-vs.-logging" class="level3">
 <h3 class="anchored" data-anchor-id="monitoring-vs.-logging">Monitoring vs.&nbsp;logging</h3>
 <blockquote class="blockquote">
-<p><em>What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?</em></p>
+<p><strong><em>What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?</em></strong></p>
 </blockquote>
-<p>Logging is a record of “<strong><em>What happened</em></strong>”–logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.</p>
+<p>Logging is a record of “<strong><em>What happened</em></strong>”–logs capture discret events and detailed narratives of what occurred in the system at specific points in time.</p>
 <p>Monitoring is usually a display of “<strong><em>How is it performing</em></strong>”–tracking quantitative metrics and system health indicators over time to understand trends and current state.</p>
 <div class="cell" data-fig-width="6.5" data-layout-align="center">
 <div class="cell-output-display">
@@ -475,9 +478,9 @@ graph LR
 </div>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 17%">
-<col style="width: 41%">
-<col style="width: 41%">
+<col style="width: 23%">
+<col style="width: 38%">
+<col style="width: 38%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -523,7 +526,7 @@ graph LR
 <section id="what-not-to-log" class="level3">
 <h3 class="anchored" data-anchor-id="what-not-to-log">What not to log</h3>
 <blockquote class="blockquote">
-<p><em>Logging is generally good, but what are some things you should be careful not to log?</em></p>
+<p><strong><em>Logging is generally good, but what are some things you should be careful not to log?</em></strong></p>
 </blockquote>
 <p>Critical data we should make sure not to log includes:</p>
 <ol type="1">
@@ -535,7 +538,8 @@ graph LR
 </li>
 <li>Addresses, birth dates<br>
 </li>
-<li>Medical information (HIPAA protected)</li>
+<li>Medical information (HIPAA protected)<br>
+</li>
 </ul></li>
 <li>Authentication Credentials
 <ul>
@@ -545,7 +549,8 @@ graph LR
 </li>
 <li>Database connection strings with credentials<br>
 </li>
-<li>OAuth tokens and refresh tokens</li>
+<li>OAuth tokens and refresh tokens<br>
+</li>
 </ul></li>
 <li>Financial Information
 <ul>
@@ -566,7 +571,8 @@ graph LR
 </li>
 <li>Avoid logging transaction details in plain text
 <ul>
-<li>Source: <a href="https://ithandbook.ffiec.gov/it-booklets/information-security.aspx">FFIEC IT Examination Handbook</a></li>
+<li>Source: <a href="https://ithandbook.ffiec.gov/it-booklets/information-security.aspx">FFIEC IT Examination Handbook</a><br>
+</li>
 </ul></li>
 </ul></li>
 <li>Healthcare
@@ -588,7 +594,7 @@ graph LR
 </li>
 <li>Encrypt logs containing sensitive information
 <ul>
-<li>Source: <a href="https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final">NIST SP 800-53</a></li>
+<li>Source: <a href="https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final">NIST SP800-53</a></li>
 </ul></li>
 </ul></li>
 </ol>
@@ -596,17 +602,262 @@ graph LR
 <section id="log-levels" class="level3">
 <h3 class="anchored" data-anchor-id="log-levels">Log levels</h3>
 <blockquote class="blockquote">
-<p><em>At what level would you log each of the following events:</em> <em>Someone clicks on a particular tab in your Shiny app.</em></p>
+<p><strong><em>At what level would you log each of the following events:</em></strong></p>
 </blockquote>
+<p>The answers below are provided for the <a href="https://daroczig.github.io/logger/">R <code>logger</code> package</a> and <a href="https://docs.python.org/3/library/logging.html#">Python’s <code>logging</code> facility</a>.</p>
+<p>In R, the <code>logger</code> package has the following levels:</p>
+<div class="cell" data-fig-width="6.5" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    LogLevels(["Logging Levels&lt;br/&gt;Least -&gt; Most Severe"]) --&gt; TRACE("TRACE")
+    TRACE --&gt; DEBUG("DEBUG")
+    DEBUG --&gt; INFO("INFO")
+    INFO --&gt; SUCCESS("SUCCESS")
+    SUCCESS --&gt; WARN("WARN")
+    WARN --&gt; ERROR("ERROR")
+    ERROR --&gt; FATAL("FATAL")
+    
+    TRACE -.Fine-grained details.-&gt; TraceEx[Variable states&lt;br/&gt;Loop iterations]
+    DEBUG -.Diagnostic information.-&gt; DebugEx[Function entry/exit&lt;br/&gt;Parameter values]
+    INFO -.Informational messages.-&gt; InfoEx[Process started&lt;br/&gt;Configuration loaded]
+    SUCCESS -.Positive confirmations.-&gt; SuccessEx[Task completed&lt;br/&gt;Data saved successfully]
+    WARN -.Potential issues.-&gt; WarnEx[Deprecated functions&lt;br/&gt;Missing optional params]
+    ERROR -.Recoverable errors.-&gt; ErrorEx[Failed validation&lt;br/&gt;File not found]
+    FATAL -.Critical failures.-&gt; FatalEx[Cannot proceed&lt;br/&gt;System unrecoverable]
+    
+    style LogLevels fill:#d8e4ff
+
+</pre>
+</div>
+<p></p><figcaption> R logger</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>In Python, the <code>logging</code> facility has the following log levels:</p>
+<div class="cell" data-fig-width="6.5" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    A(["Logging Levels&lt;br/&gt;Least -&gt; Most Severe"]) --&gt; B("DEBUG")
+    B --&gt; C("INFO")
+    C --&gt; D("WARNING")
+    D --&gt; E("ERROR")
+    E --&gt; F("CRITICAL")
+    
+    B -.Verbose details.-&gt; B1[Function calls&lt;br/&gt;Variable values]
+    C -.Normal events.-&gt; C1[Operations succeeded&lt;br/&gt;State changes]
+    D -.Unexpected but handled.-&gt; D1[Slow responses&lt;br/&gt;Retries needed]
+    E -.Failures.-&gt; E1[Operations failed&lt;br/&gt;Connections refused]
+    F -.System failure.-&gt; F1[Cannot continue&lt;br/&gt;Data corruption]
+    
+    style A fill:#d8e4ff
+    
+</pre>
+</div>
+<p></p><figcaption> Python logging</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 <blockquote class="blockquote">
-<p><em>Someone puts an invalid entry into a text entry box.</em></p>
+<p><strong><em>Someone clicks on a particular tab in your Shiny app.</em></strong></p>
 </blockquote>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>R <code>logger</code>:</strong> <code>TRACE</code> or <code>DEBUG</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>Tab clicks are fine-grained UI interaction details, so we could use <code>TRACE</code> if we want extremely detailed user behavior tracking, or <code>DEBUG</code> if we only need this during development/troubleshooting. In production, we typically wouldn’t log every tab click unless tracking user flow.</p>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>Python <code>logging</code>:</strong> <code>DEBUG</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>Similar reasoning - this diagnostic information for user interactions are primarily useful during development (or when debugging specific user behavior issues).</p>
+</div>
+</div>
+</div>
+<p><em>In most production apps, we’d disable <code>TRACE</code>/<code>DEBUG</code> levels and only enable them when investigating specific issues to avoid log bloat.</em></p>
 <blockquote class="blockquote">
-<p><em>An HTTP call your app makes to an external API fails.</em></p>
+<p><strong><em>Someone puts an invalid entry into a text entry box.</em></strong></p>
 </blockquote>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>R <code>logger</code>:</strong> <code>WARN</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>The user provided invalid input, but the app can handle it gracefully (show validation message). This is a potential issue worth noting but doesn’t break functionality.</p>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>Python <code>logging</code>:</strong> <code>WARNING</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>Same reasoning - unexpected but handled situation. We’d want to track validation failures for UX improvements without treating them as errors.</p>
+</div>
+</div>
+</div>
+<p><em>Some developers use <code>INFO</code> for validation failures if they’re expected and very common. Use <code>WARN</code> if you want to monitor frequency or patterns of invalid inputs.</em></p>
 <blockquote class="blockquote">
-<p><em>The numeric values that are going into your computational function.</em></p>
+<p><strong><em>An HTTP call your app makes to an external API fails.</em></strong></p>
 </blockquote>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>R <code>logger</code>:</strong> <code>ERROR</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>The API call failed, which means our app cannot complete an intended operation. Even if we have fallback logic, the primary operation failed and needs attention.</p>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>Python <code>logging</code>:</strong> <code>ERROR</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>Same reasoning - this is a genuine failure that prevents the app from functioning as designed.</p>
+</div>
+</div>
+</div>
+<p><em>Nuances:</em></p>
+<ul>
+<li><em>We should use <code>ERROR</code> if this breaks core functionality</em><br>
+</li>
+<li><em>We might consider <code>WARN</code> if we have robust fallback mechanisms and the app continues normally</em><br>
+</li>
+<li><em>Use <code>FATAL</code> only if the API is so critical that the entire app becomes unusable without it</em></li>
+</ul>
+<p><em>Include the HTTP status code, error message, and endpoint in the log:</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log_error</span>(<span class="st">"API call failed: {endpoint} returned {status_code} - {error_msg}"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<blockquote class="blockquote">
+<p><strong><em>The numeric values that are going into your computational function.</em></strong></p>
+</blockquote>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>R <code>logger</code>:</strong> <code>TRACE</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>These are extremely granular details about data flowing through our functions, so we’d use <code>TRACE</code> for this level of variable inspection. We might use <code>DEBUG</code> if these values are critical decision points.</p>
+</div>
+</div>
+</div>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[40,60]">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 40.0%;justify-content: flex-start;">
+<p><strong>Python <code>logging</code>:</strong> <code>DEBUG</code></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
+<p>Python doesn’t have <code>TRACE</code>, so <code>DEBUG</code> is appropriate for detailed variable state information used in troubleshooting computational logic.</p>
+</div>
+</div>
+</div>
+<p><em>When to log this:</em></p>
+<ul>
+<li><em>During development to verify calculations</em><br>
+</li>
+<li><em>When debugging reported computational issues</em><br>
+</li>
+<li><em>Should almost never be enabled in production</em></li>
+</ul>
+<section id="log-levels-summary" class="level4">
+<h4 class="anchored" data-anchor-id="log-levels-summary">Log Levels Summary</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 21%">
+<col style="width: 22%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Event</th>
+<th><code>logger</code></th>
+<th><code>logging</code></th>
+<th>Key Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tab click</td>
+<td><code>TRACE</code>/<code>DEBUG</code></td>
+<td><code>DEBUG</code></td>
+<td>Fine-grained UI interaction</td>
+</tr>
+<tr class="even">
+<td>Invalid input</td>
+<td><code>WARN</code></td>
+<td><code>WARNING</code></td>
+<td>Expected, handled issue</td>
+</tr>
+<tr class="odd">
+<td>API failure</td>
+<td><code>ERROR</code></td>
+<td><code>ERROR</code></td>
+<td>Operation failed</td>
+</tr>
+<tr class="even">
+<td>Numeric values</td>
+<td><code>TRACE</code></td>
+<td><code>DEBUG</code></td>
+<td>Variable state inspection</td>
+</tr>
+</tbody>
+</table>
+<p><strong>General Rules of Thumb:</strong></p>
+<ul>
+<li><p><strong><code>TRACE</code>/<code>DEBUG</code></strong> = “I need to see what’s happening inside”</p></li>
+<li><p><strong><code>INFO</code>/<code>SUCCESS</code></strong> = “Normal operations worth recording”</p></li>
+<li><p><strong><code>WARN</code>/<code>WARNING</code></strong> = “Something unexpected but manageable”</p></li>
+<li><p><strong><code>ERROR</code></strong> = “Something broke but app continues”</p></li>
+<li><p><strong><code>FATAL</code>/<code>CRITICAL</code></strong> = “Cannot continue operating”</p></li>
+</ul>
+</section>
 </section>
 </section>
 <section id="observability" class="level2">

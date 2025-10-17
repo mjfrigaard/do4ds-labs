@@ -1,32 +1,8 @@
-# <em>GitHub Actions as CI/CD</em> {.unnumbered}
+# Lab 5 (CI/CD)
 
-```{r}
-#| label: common
-#| include: false
-source("_common.R")
-```
+This is the directory for lab 5 of Dev Ops for Data Science. The [original](https://github.com/alexkgold/do4ds/tree/main/_labs/lab5) YAML GitHub Actions file is below for reference: 
 
-```{r}
-#| label: co_box_rev
-#| echo: false
-#| results: asis
-#| eval: true
-co_box(
-  color = "o",
-  look = "default", 
-  hsize = "1.25", 
-  size = "1.00", 
-  header = "Caution", 
-  fold = FALSE,
-  contents = "This section is being revised. Thank you for your patience."
-)
-```
-
-
-
-The original [`_labs/lab5/publish-r-py.yml` file](https://github.com/alexkgold/do4ds/tree/main/_labs/lab5) is below for reference: 
-
-```yaml
+```yml
 on:
   workflow_dispatch:
   push:
@@ -74,3 +50,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+I've placed the API and Shiny App in a separate GitHub repo. 

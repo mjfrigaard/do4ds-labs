@@ -978,7 +978,7 @@ def pred_out():
 %%| fig-cap: 'API Errors for Predictions'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'18px'}}}%%
 
 flowchart TD
     subgraph "<strong>Error Flow</strong>"
@@ -1236,9 +1236,72 @@ The code above continuously checks if the API server is responding, like calling
 1. Output rendering decorator   
 2. Function name must match UI's `output_text("api_status")`    
 
-![](img/lab4-py-api-health-check.png){width='100%' fig-align='center'}
+![](img/lab4-py-api-health-check.png){width='70%' fig-align='center'}
 
 
+```{mermaid}
+%%| fig-cap: 'API Health Check Flow'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    autonumber
+    participant UI as UI
+    participant Render as @render.text<br/>api_status()
+    participant Calc as @reactive.calc<br/>api_health_check()
+    participant Log as Logging
+    participant API as API
+    
+    Note over UI: User opens<br>app
+    UI->>Render: Request api_status display
+    Render->>Calc: Call api_health_check()
+    
+    Calc->>Log: DEBUG: Checking API health
+    Calc->>Calc: Record start_time
+    
+    Calc->>API: GET http://127.0.0.1:8080/ping<br/>(timeout=5s)
+    
+    alt Success (200 OK)
+        API-->>Calc: 200 {"message": "pong"}
+        Calc->>Calc: Calculate response_time
+        Calc->>Log: INFO: Health check successful<br/>response_time: 0.15s
+        Calc-->>Render: "✅ API is running... 0.15s"
+        
+    else Non-200 Status
+        API-->>Calc: 404 / 500 / 503
+        Calc->>Log: WARNING: Ping failed<br/>status: 404
+        Calc-->>Render: "⚠️ API ping failed: 404"
+        
+    else ConnectionError
+        API--xCalc: Connection refused
+        Calc->>Log: ERROR: Connection refused
+        Calc-->>Render: "❌ Cannot connect to API..."
+        
+    else Timeout
+        Note over API: Processing...<br/>(>5 seconds)
+        Calc--xAPI: Timeout!
+        Calc->>Log: WARNING: Timeout
+        Calc-->>Render: "⚠️ API health check timeout"
+        
+    else Unknown Error
+        API--xCalc: Unexpected error
+        Calc->>Log: ERROR: Unknown error
+        Calc-->>Render: "❌ API health check failed: ..."
+    end
+    
+    Render-->>UI: Display status message
+    
+    Note over Calc: Cache result<br>(auto-refresh<br>periodically)
+    
+    loop Every N seconds
+        Calc->>API: GET /ping (again)
+        API-->>Calc: Response
+        Calc-->>Render: Updated status
+        Render-->>UI: Update display
+    end
+    
+```
 #### ***Recent Application Logs***
 
 In the UI contains the following CSS styling variables to make it look like the console: 
@@ -1340,6 +1403,56 @@ If there are no logs, a message is returned.
 
 ![](img/lab4-py-recent-logs.png){width='100%' fig-align='center'}
 
+```{mermaid}
+%%| fig-cap: 'Recent log file monitoring'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    autonumber
+    participant App as App Code
+    participant Log as Log File<br/>(shiny_app.log)
+    participant Watcher as @reactive.file_reader
+    participant Content as log_file_content()
+    participant Display as recent_logs_display()
+    participant UI as User Interface
+    
+    Note over App: App starts,<br>logs events
+    App->>Log: logging.info("Started")
+    App->>Log: logging.error("Failed")
+    
+    Note over Watcher: Monitoring<br>begins
+    Watcher->>Log: Watch for changes
+    
+    Display->>Content: Request log data
+    Content->>Log: open(log_file_path, 'r')
+    Log-->>Content: ['INFO - Started\n', 'ERROR - Failed\n']
+    
+    Content->>Content: Return dict with<br/>lines, timestamp, count
+    Content-->>Display: log_data
+    
+    Display->>Display: Extract lines
+    Display->>Display: Slice last 8 lines
+    Display->>Display: Strip whitespace
+    Display->>Display: Join with '\n'
+    
+    Display-->>UI: "INFO - Started\nERROR - Failed"
+    UI->>UI: Display in styled div
+    
+    Note over App: New<br>event<br>occurs
+    App->>Log: logging.warning("Slow API")
+    Log->>Watcher: File modified event!
+    
+    Watcher->>Content: Invalidate & re-execute
+    Content->>Log: Read file again
+    Log-->>Content: Updated lines
+    Content-->>Display: New log_data
+    Display->>Display: Process again
+    Display-->>UI: Updated display
+    
+    Note over UI: User sees<br>new log<br/>automatically!
+```
 #### ***Last updated***
 
 In the UI, the last updated section includes a CSS styled text output: 

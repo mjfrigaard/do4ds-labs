@@ -1731,7 +1731,7 @@ graph LR
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'18px'}}}%%
 
 flowchart TD
     subgraph "&lt;strong&gt;Error Flow&lt;/strong&gt;"
@@ -2132,8 +2132,77 @@ graph TB
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab4-py-api-health-check.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="img/lab4-py-api-health-check.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+<p><a href="img/lab4-py-api-health-check.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="img/lab4-py-api-health-check.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
 </figure>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    autonumber
+    participant UI as UI
+    participant Render as @render.text&lt;br/&gt;api_status()
+    participant Calc as @reactive.calc&lt;br/&gt;api_health_check()
+    participant Log as Logging
+    participant API as API
+    
+    Note over UI: User opens&lt;br&gt;app
+    UI-&gt;&gt;Render: Request api_status display
+    Render-&gt;&gt;Calc: Call api_health_check()
+    
+    Calc-&gt;&gt;Log: DEBUG: Checking API health
+    Calc-&gt;&gt;Calc: Record start_time
+    
+    Calc-&gt;&gt;API: GET http://127.0.0.1:8080/ping&lt;br/&gt;(timeout=5s)
+    
+    alt Success (200 OK)
+        API--&gt;&gt;Calc: 200 {"message": "pong"}
+        Calc-&gt;&gt;Calc: Calculate response_time
+        Calc-&gt;&gt;Log: INFO: Health check successful&lt;br/&gt;response_time: 0.15s
+        Calc--&gt;&gt;Render: "✅ API is running... 0.15s"
+        
+    else Non-200 Status
+        API--&gt;&gt;Calc: 404 / 500 / 503
+        Calc-&gt;&gt;Log: WARNING: Ping failed&lt;br/&gt;status: 404
+        Calc--&gt;&gt;Render: "⚠️ API ping failed: 404"
+        
+    else ConnectionError
+        API--xCalc: Connection refused
+        Calc-&gt;&gt;Log: ERROR: Connection refused
+        Calc--&gt;&gt;Render: "❌ Cannot connect to API..."
+        
+    else Timeout
+        Note over API: Processing...&lt;br/&gt;(&gt;5 seconds)
+        Calc--xAPI: Timeout!
+        Calc-&gt;&gt;Log: WARNING: Timeout
+        Calc--&gt;&gt;Render: "⚠️ API health check timeout"
+        
+    else Unknown Error
+        API--xCalc: Unexpected error
+        Calc-&gt;&gt;Log: ERROR: Unknown error
+        Calc--&gt;&gt;Render: "❌ API health check failed: ..."
+    end
+    
+    Render--&gt;&gt;UI: Display status message
+    
+    Note over Calc: Cache result&lt;br&gt;(auto-refresh&lt;br&gt;periodically)
+    
+    loop Every N seconds
+        Calc-&gt;&gt;API: GET /ping (again)
+        API--&gt;&gt;Calc: Response
+        Calc--&gt;&gt;Render: Updated status
+        Render--&gt;&gt;UI: Update display
+    end
+    
+</pre>
+</div>
+<p></p><figcaption> API Health Check Flow</figcaption> </figure><p></p>
+</div>
+</div>
 </div>
 </section>
 <section id="recent-application-logs" class="level4">
@@ -2329,6 +2398,62 @@ graph TB
 <figure class="figure">
 <p><a href="img/lab4-py-recent-logs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="img/lab4-py-recent-logs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
 </figure>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    autonumber
+    participant App as App Code
+    participant Log as Log File&lt;br/&gt;(shiny_app.log)
+    participant Watcher as @reactive.file_reader
+    participant Content as log_file_content()
+    participant Display as recent_logs_display()
+    participant UI as User Interface
+    
+    Note over App: App starts,&lt;br&gt;logs events
+    App-&gt;&gt;Log: logging.info("Started")
+    App-&gt;&gt;Log: logging.error("Failed")
+    
+    Note over Watcher: Monitoring&lt;br&gt;begins
+    Watcher-&gt;&gt;Log: Watch for changes
+    
+    Display-&gt;&gt;Content: Request log data
+    Content-&gt;&gt;Log: open(log_file_path, 'r')
+    Log--&gt;&gt;Content: ['INFO - Started\n', 'ERROR - Failed\n']
+    
+    Content-&gt;&gt;Content: Return dict with&lt;br/&gt;lines, timestamp, count
+    Content--&gt;&gt;Display: log_data
+    
+    Display-&gt;&gt;Display: Extract lines
+    Display-&gt;&gt;Display: Slice last 8 lines
+    Display-&gt;&gt;Display: Strip whitespace
+    Display-&gt;&gt;Display: Join with '\n'
+    
+    Display--&gt;&gt;UI: "INFO - Started\nERROR - Failed"
+    UI-&gt;&gt;UI: Display in styled div
+    
+    Note over App: New&lt;br&gt;event&lt;br&gt;occurs
+    App-&gt;&gt;Log: logging.warning("Slow API")
+    Log-&gt;&gt;Watcher: File modified event!
+    
+    Watcher-&gt;&gt;Content: Invalidate &amp; re-execute
+    Content-&gt;&gt;Log: Read file again
+    Log--&gt;&gt;Content: Updated lines
+    Content--&gt;&gt;Display: New log_data
+    Display-&gt;&gt;Display: Process again
+    Display--&gt;&gt;UI: Updated display
+    
+    Note over UI: User sees&lt;br&gt;new log&lt;br/&gt;automatically!
+</pre>
+</div>
+<p></p><figcaption> Recent log file monitoring</figcaption> </figure><p></p>
+</div>
+</div>
 </div>
 </section>
 <section id="last-updated" class="level4">
