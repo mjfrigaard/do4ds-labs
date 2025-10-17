@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-10-16">
+<meta name="dcterms.date" content="2025-10-17">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App Logging – DO4DS: Lab Solutions</title>
@@ -353,7 +353,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated"><strong><em>Last updated</em></strong></a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
+  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a>
+  <ul>
+  <li><a href="#logging-levels-decision-tree" id="toc-logging-levels-decision-tree" class="nav-link" data-scroll-target="#logging-levels-decision-tree">Logging Levels Decision Tree</a></li>
+  <li><a href="#timeout-vs-connectionerror" id="toc-timeout-vs-connectionerror" class="nav-link" data-scroll-target="#timeout-vs-connectionerror">Timeout vs ConnectionError</a></li>
+  <li><a href="#log-file-monitoring-overview" id="toc-log-file-monitoring-overview" class="nav-link" data-scroll-target="#log-file-monitoring-overview">Log file monitoring overview</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -373,7 +378,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-10-16</p>
+      <p class="date">2025-10-17</p>
     </div>
   </div>
   
@@ -2130,11 +2135,7 @@ graph TB
 </dl>
 </div>
 </div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="img/lab4-py-api-health-check.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="img/lab4-py-api-health-check.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
-</figure>
-</div>
+<p>Below is a sequence diagram illustrating the <code>ping</code> sent to the API, the logs generated, and the other possible (un-healthy) responses:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -2204,6 +2205,12 @@ sequenceDiagram
 </div>
 </div>
 </div>
+<p>In the app, we can see the response rendered in the <strong>System Status</strong>:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-api-health-check.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="img/lab4-py-api-health-check.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
 </section>
 <section id="recent-application-logs" class="level4">
 <h4 class="anchored" data-anchor-id="recent-application-logs"><strong><em>Recent Application Logs</em></strong></h4>
@@ -2250,6 +2257,51 @@ sequenceDiagram
 <span data-code-cell="annotated-cell-27" data-code-lines="4" data-code-annotation="3">CSS styling for log output (similar to console)</span>
 </dd>
 </dl>
+</div>
+</div>
+<p>Below is an overview of recent log display architecture:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    subgraph UI["UI"]
+        subgraph H5["ui.h5() Header"]
+            subgraph DIV["ui.div() Container"]
+                C(["&lt;strong&gt;ui.output_text()&lt;/strong&gt;&lt;br&gt;display"])
+            end
+        end
+
+    end
+    
+    subgraph SERVER["Server"]
+        D("&lt;strong&gt;@reactive.file_reader()&lt;/strong&gt;&lt;br/&gt;reads &lt;strong&gt;log_file_content&lt;/strong&gt;") --&gt; E(["&lt;strong&gt;@render.text&lt;/strong&gt;&lt;br/&gt;recent_logs_display"])
+    end
+    
+    subgraph FS["File System"]
+        F("&lt;strong&gt;shiny_app.log&lt;/strong&gt;&lt;br&gt;file")
+    end
+    
+    subgraph WRITE["Log Writers"]
+        G("Application Events") -.Triggers.-&gt; H("&lt;strong&gt;logging.info/error/etc&lt;/strong&gt;")
+        H --"Writes to"--&gt; F
+    end
+    
+    C -.Displays.-&gt; E
+    E -.Calls.-&gt; D
+    D -.Watches.-&gt; F
+    F -.Changes trigger.-&gt; D
+    
+    style C fill:#d8e4ff
+    style E fill:#31e981
+    
+</pre>
+</div>
+<p></p><figcaption> Log file monitoring architecture</figcaption> </figure><p></p>
+</div>
 </div>
 </div>
 <p>In the server, we define <code>log_file_content()</code>, which watches the file and re-runs function when it’s modified. The file is safely opened using <code>open()</code> and the <code>f</code> mode means read only (we do this so the file will automatically close).</p>
@@ -2323,7 +2375,7 @@ sequenceDiagram
 </div>
 </div>
 <p>The exception is generic and returns an error and safe default if log file can’t be read.</p>
-<p>For rendering, we get the last 10 lines for better monitoring and remove the whitespace with <code>line.rstrip()</code>. Before returning the logs, we combine the list of <code>lines</code> into single string with line breaks. A <code>debug</code> log is created the logs have been updated with the session id and the length (number of lines) of the recent logs.</p>
+<p>For rendering, we get the last 10 lines for better monitoring and remove the whitespace with <code>line.rstrip()</code>. Before returning the logs, we combine the list of <code>lines</code> into single string with line breaks. A <code>debug</code> log is created the logs have been updated with the session id and the length (number of lines) of the recent logs. If there are no logs, a message is returned.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="annotated-cell-29"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-29" data-target-annotation="1">1</button><span id="annotated-cell-29-1" class="code-annotation-target"><a href="#annotated-cell-29-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-29" data-target-annotation="2">2</button><span id="annotated-cell-29-2" class="code-annotation-target"><a href="#annotated-cell-29-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> recent_logs_display():</span>
@@ -2393,12 +2445,7 @@ sequenceDiagram
 </dl>
 </div>
 </div>
-<p>If there are no logs, a message is returned.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="img/lab4-py-recent-logs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="img/lab4-py-recent-logs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
-</figure>
-</div>
+<p>Below is a sequence diagram illustrating the log configuration, log file creation/storage, app initialization, and log file monitoring, reading, and display:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -2454,6 +2501,12 @@ sequenceDiagram
 <p></p><figcaption> Recent log file monitoring</figcaption> </figure><p></p>
 </div>
 </div>
+</div>
+<p>After launching the app, we can see the 10 most recent log entries in the log file (including the previous app launches).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab4-py-recent-logs.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="img/lab4-py-recent-logs.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
 </div>
 </section>
 <section id="last-updated" class="level4">
@@ -2516,6 +2569,7 @@ sequenceDiagram
 </dl>
 </div>
 </div>
+<p>The formatted date is rendered under the <strong>Last updated</strong> section at the bottom of the display.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="img/lab4-py-last-updated.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="img/lab4-py-last-updated.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
@@ -2526,6 +2580,83 @@ sequenceDiagram
 </section>
 <section id="finishing-touches" class="level2">
 <h2 class="anchored" data-anchor-id="finishing-touches">Finishing touches</h2>
+<p>I’ve included a few more mermaid diagrams illustrating the topics covered in this lab.</p>
+<section id="logging-levels-decision-tree" class="level3">
+<h3 class="anchored" data-anchor-id="logging-levels-decision-tree">Logging Levels Decision Tree</h3>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    A(["Event"]) --&gt; B{"What happened?"}
+    
+    B --&gt;|Normal operation| C("&lt;strong&gt;logging.info()&lt;/strong&gt;")
+    B --&gt;|Unexpected but recoverable| D("&lt;strong&gt;logging.warning()&lt;/strong&gt;")
+    B --&gt;|Failed operation| E("&lt;strong&gt;logging.error()&lt;/strong&gt;")
+    B --&gt;|System crash imminent| F("&lt;strong&gt;logging.critical()&lt;/strong&gt;")
+    B --&gt;|Detailed troubleshooting| G("&lt;strong&gt;logging.debug()&lt;/strong&gt;")
+    
+    C --&gt; C1["Examples:&lt;br/&gt;1. Prediction successful&lt;br/&gt;2. Session started"]
+    D --&gt; D1["Examples:&lt;br/&gt;1. Slow response&lt;br/&gt;2. Unexpected format&lt;br/&gt;Timeout"]
+    E --&gt; E1["Examples:&lt;br/&gt;1. Connection refused&lt;br/&gt;2. HTTP error&lt;br/&gt;Parse failure"]
+    F --&gt; F1["Examples:&lt;br/&gt;1. Out of memory&lt;br/&gt;2. Database corrupted"]
+    G --&gt; G1["Examples:&lt;br/&gt;1. Variable values&lt;br/&gt;2. Detailed flow"]
+    
+    style C1 text-align:left
+    style D1 text-align:left
+    style E1 text-align:left
+    style F1 text-align:left
+    style G1 text-align:left
+    
+    style A fill:#d8e4ff
+    
+</pre>
+</div>
+<p></p><figcaption> Logging Levels Decision Tree</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="timeout-vs-connectionerror" class="level3">
+<h3 class="anchored" data-anchor-id="timeout-vs-connectionerror">Timeout vs ConnectionError</h3>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    participant App as Health Check
+    participant Network
+    participant API
+    
+    Note over App,API: Scenario 1: Connection Error
+    App-&gt;&gt;Network: Try to connect
+    Network--xAPI: Cannot reach (port closed/firewall)
+    Network--&gt;&gt;App: ConnectionError
+    
+    Note over App,API: Scenario 2: Timeout
+    App-&gt;&gt;Network: Try to connect
+    Network-&gt;&gt;API: Connection established
+    App-&gt;&gt;API: GET /ping
+    Note over API: Processing...&lt;br/&gt;(taking too long)
+    Note over App: 5 seconds pass...
+    App--xAPI: Give up waiting
+    App-&gt;&gt;App: Timeout exception
+    
+</pre>
+</div>
+<p></p><figcaption> Timeout vs.&nbsp;connection error</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="log-file-monitoring-overview" class="level3">
+<h3 class="anchored" data-anchor-id="log-file-monitoring-overview">Log file monitoring overview</h3>
 <p>Below is a diagram illustrating how the configured logs are updated in the application and displayed in the UI:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -2535,25 +2666,38 @@ sequenceDiagram
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
-    participant Main as App
-    participant Setup as setup_logging()
-    participant Logger as Logger
-    participant FileReader as @reactive.file_reader
-
-    Main-&gt;&gt;Setup: Call setup_logging()
-    Setup-&gt;&gt;Setup: Configure logging system
-    Setup--&gt;&gt;Main: Return str(log_file_path)
+    autonumber
+    participant User
+    participant ShinyUI as Shiny UI
+    participant ShinyServer as Shiny Server
+    participant Logger as Logging System
+    participant API as FastAPI
+    participant Model as Model
     
-    Main-&gt;&gt;Main: Store in log_file_path variable
-    Main-&gt;&gt;Logger: logging.info("App initialized")
-    Logger-&gt;&gt;Logger: Write to file &amp; console
+    User-&gt;&gt;ShinyUI: Enters penguin data&lt;br/&gt;(bill=45mm, species=Gentoo, sex=Male)
+    ShinyUI-&gt;&gt;ShinyServer: Input values change
+    ShinyServer-&gt;&gt;Logger: Log input values
     
-    Main-&gt;&gt;FileReader: @reactive.file_reader(log_file_path)
-    FileReader-&gt;&gt;FileReader: Monitor file for changes
-    FileReader--&gt;&gt;Main: Trigger UI updates when file changes
+    User-&gt;&gt;ShinyUI: Clicks "Predict" button
+    ShinyUI-&gt;&gt;ShinyServer: Trigger prediction
+    ShinyServer-&gt;&gt;Logger: Log prediction request start
+    
+    ShinyServer-&gt;&gt;API: POST /predict&lt;br/&gt;{"bill_length_mm": 45.0,&lt;br/&gt;"species_Gentoo": 1, ...}
+    API-&gt;&gt;API: Validate input format
+    API-&gt;&gt;Model: Pass data to model
+    Model-&gt;&gt;Model: Calculate prediction
+    Model-&gt;&gt;API: Return prediction (e.g., 4500.0)
+    API-&gt;&gt;ShinyServer: HTTP 200&lt;br/&gt;{".pred": [4500.0]}
+    
+    ShinyServer-&gt;&gt;Logger: Log successful prediction&lt;br/&gt;(response time, result)
+    ShinyServer-&gt;&gt;ShinyUI: Update display:&lt;br/&gt;"4500.0 grams"
+    ShinyUI-&gt;&gt;User: Shows prediction
+    
+    Note over ShinyServer,Logger: Simultaneously monitoring
+    Logger-&gt;&gt;ShinyUI: Update recent logs display
 </pre>
 </div>
-<p></p><figcaption> Python logging app</figcaption> </figure><p></p>
+<p></p><figcaption> App log file monitoring</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
@@ -2594,6 +2738,7 @@ sequenceDiagram
 </dl>
 
 
+</section>
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>

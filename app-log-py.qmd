@@ -1234,10 +1234,9 @@ The code above continuously checks if the API server is responding, like calling
         return api_health_check()
 ```
 1. Output rendering decorator   
-2. Function name must match UI's `output_text("api_status")`    
+2. Function name must match UI's `output_text("api_status")`   
 
-![](img/lab4-py-api-health-check.png){width='70%' fig-align='center'}
-
+Below is a sequence diagram illustrating the `ping` sent to the API, the logs generated, and the other possible (un-healthy) responses: 
 
 ```{mermaid}
 %%| fig-cap: 'API Health Check Flow'
@@ -1302,6 +1301,11 @@ sequenceDiagram
     end
     
 ```
+
+In the app, we can see the response rendered in the **System Status**: 
+
+![](img/lab4-py-api-health-check.png){width='100%' fig-align='center'}
+
 #### ***Recent Application Logs***
 
 In the UI contains the following CSS styling variables to make it look like the console: 
@@ -1327,7 +1331,48 @@ In the UI contains the following CSS styling variables to make it look like the 
 ```
 1. `div()` for recent log display   
 2. Text display of recent logs    
-3. CSS styling for log output (similar to console)    
+3. CSS styling for log output (similar to console)  
+
+Below is an overview of recent log display architecture: 
+
+```{mermaid}
+%%| fig-cap: 'Log file monitoring architecture'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TB
+    subgraph UI["UI"]
+	    subgraph H5["ui.h5() Header"]
+		    subgraph DIV["ui.div() Container"]
+			    C(["<strong>ui.output_text()</strong><br>display"])
+		    end
+	    end
+
+    end
+    
+    subgraph SERVER["Server"]
+        D("<strong>@reactive.file_reader()</strong><br/>reads <strong>log_file_content</strong>") --> E(["<strong>@render.text</strong><br/>recent_logs_display"])
+    end
+    
+    subgraph FS["File System"]
+        F("<strong>shiny_app.log</strong><br>file")
+    end
+    
+    subgraph WRITE["Log Writers"]
+        G("Application Events") -.Triggers.-> H("<strong>logging.info/error/etc</strong>")
+        H --"Writes to"--> F
+    end
+    
+    C -.Displays.-> E
+    E -.Calls.-> D
+    D -.Watches.-> F
+    F -.Changes trigger.-> D
+    
+    style C fill:#d8e4ff
+    style E fill:#31e981
+    
+```
 
 In the server, we define `log_file_content()`, which watches the file and re-runs function when it's modified. The file is safely opened using `open()` and the `f` mode means read only (we do this so the file will automatically close). 
 
@@ -1367,7 +1412,7 @@ In the server, we define `log_file_content()`, which watches the file and re-run
 
 The exception is generic and returns an error and safe default if log file can't be read. 
 
-For rendering, we get the last 10 lines for better monitoring and remove the whitespace with `line.rstrip()`. Before returning the logs, we combine the list of `lines` into single string with line breaks. A `debug` log is created the logs have been updated with the session id and the length (number of lines) of the recent logs. 
+For rendering, we get the last 10 lines for better monitoring and remove the whitespace with `line.rstrip()`. Before returning the logs, we combine the list of `lines` into single string with line breaks. A `debug` log is created the logs have been updated with the session id and the length (number of lines) of the recent logs. If there are no logs, a message is returned.  
 
 ```{python}
 #| eval: false 
@@ -1399,9 +1444,7 @@ For rendering, we get the last 10 lines for better monitoring and remove the whi
 9. Join lines with newlines   
 10. Provide clear message when no logs exist
 
-If there are no logs, a message is returned.  
-
-![](img/lab4-py-recent-logs.png){width='100%' fig-align='center'}
+Below is a sequence diagram illustrating the log configuration, log file creation/storage, app initialization, and log file monitoring, reading, and display: 
 
 ```{mermaid}
 %%| fig-cap: 'Recent log file monitoring'
@@ -1453,6 +1496,12 @@ sequenceDiagram
     
     Note over UI: User sees<br>new log<br/>automatically!
 ```
+
+
+After launching the app, we can see the 10 most recent log entries in the log file (including the previous app launches).
+
+![](img/lab4-py-recent-logs.png){width='100%' fig-align='center'}
+
 #### ***Last updated***
 
 In the UI, the last updated section includes a CSS styled text output: 
@@ -1488,36 +1537,119 @@ In the server, the `log_file_content()` is used to extract the `last_modified` d
 3. Reactive dependency for `log_file_content()`  
 4. Return formatted data with `strftime()`    
 
+The formatted date is rendered under the **Last updated** section at the bottom of the display. 
+
 ![](img/lab4-py-last-updated.png){width='100%' fig-align='center'}
 
 ## Finishing touches 
 
-Below is a diagram illustrating how the configured logs are updated in the application and displayed in the UI:  
+I've included a few more mermaid diagrams illustrating the topics covered in this lab.
+
+### Logging Levels Decision Tree
 
 ```{mermaid}
-%%| fig-cap: 'Python logging app'
+%%| fig-cap: 'Logging Levels Decision Tree'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph LR
+    A(["Event"]) --> B{"What happened?"}
+    
+    B -->|Normal operation| C("<strong>logging.info()</strong>")
+    B -->|Unexpected but recoverable| D("<strong>logging.warning()</strong>")
+    B -->|Failed operation| E("<strong>logging.error()</strong>")
+    B -->|System crash imminent| F("<strong>logging.critical()</strong>")
+    B -->|Detailed troubleshooting| G("<strong>logging.debug()</strong>")
+    
+    C --> C1["Examples:<br/>1. Prediction successful<br/>2. Session started"]
+    D --> D1["Examples:<br/>1. Slow response<br/>2. Unexpected format<br/>Timeout"]
+    E --> E1["Examples:<br/>1. Connection refused<br/>2. HTTP error<br/>Parse failure"]
+    F --> F1["Examples:<br/>1. Out of memory<br/>2. Database corrupted"]
+    G --> G1["Examples:<br/>1. Variable values<br/>2. Detailed flow"]
+    
+    style C1 text-align:left
+    style D1 text-align:left
+    style E1 text-align:left
+    style F1 text-align:left
+    style G1 text-align:left
+    
+    style A fill:#d8e4ff
+    
+```
+
+### Timeout vs ConnectionError
+
+```{mermaid}
+%%| fig-cap: 'Timeout vs. connection error'
 %%| fig-width: 7.0
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
-    participant Main as App
-    participant Setup as setup_logging()
-    participant Logger as Logger
-    participant FileReader as @reactive.file_reader
-
-    Main->>Setup: Call setup_logging()
-    Setup->>Setup: Configure logging system
-    Setup-->>Main: Return str(log_file_path)
+    participant App as Health Check
+    participant Network
+    participant API
     
-    Main->>Main: Store in log_file_path variable
-    Main->>Logger: logging.info("App initialized")
-    Logger->>Logger: Write to file & console
+    Note over App,API: Scenario 1: Connection Error
+    App->>Network: Try to connect
+    Network--xAPI: Cannot reach (port closed/firewall)
+    Network-->>App: ConnectionError
     
-    Main->>FileReader: @reactive.file_reader(log_file_path)
-    FileReader->>FileReader: Monitor file for changes
-    FileReader-->>Main: Trigger UI updates when file changes
+    Note over App,API: Scenario 2: Timeout
+    App->>Network: Try to connect
+    Network->>API: Connection established
+    App->>API: GET /ping
+    Note over API: Processing...<br/>(taking too long)
+    Note over App: 5 seconds pass...
+    App--xAPI: Give up waiting
+    App->>App: Timeout exception
+    
 ```
+
+### Log file monitoring overview
+
+Below is a diagram illustrating how the configured logs are updated in the application and displayed in the UI:  
+
+```{mermaid}
+%%| fig-cap: 'App log file monitoring'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    autonumber
+    participant User
+    participant ShinyUI as Shiny UI
+    participant ShinyServer as Shiny Server
+    participant Logger as Logging System
+    participant API as FastAPI
+    participant Model as Model
+    
+    User->>ShinyUI: Enters penguin data<br/>(bill=45mm, species=Gentoo, sex=Male)
+    ShinyUI->>ShinyServer: Input values change
+    ShinyServer->>Logger: Log input values
+    
+    User->>ShinyUI: Clicks "Predict" button
+    ShinyUI->>ShinyServer: Trigger prediction
+    ShinyServer->>Logger: Log prediction request start
+    
+    ShinyServer->>API: POST /predict<br/>{"bill_length_mm": 45.0,<br/>"species_Gentoo": 1, ...}
+    API->>API: Validate input format
+    API->>Model: Pass data to model
+    Model->>Model: Calculate prediction
+    Model->>API: Return prediction (e.g., 4500.0)
+    API->>ShinyServer: HTTP 200<br/>{".pred": [4500.0]}
+    
+    ShinyServer->>Logger: Log successful prediction<br/>(response time, result)
+    ShinyServer->>ShinyUI: Update display:<br/>"4500.0 grams"
+    ShinyUI->>User: Shows prediction
+    
+    Note over ShinyServer,Logger: Simultaneously monitoring
+    Logger->>ShinyUI: Update recent logs display
+```
+
+
 
 The final files in the [`do4ds-labs/_labs/lab4/Python`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab4/Python) folder are below: 
 

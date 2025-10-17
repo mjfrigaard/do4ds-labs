@@ -1,5 +1,27 @@
 # Shiny for Python App Logging (lab 4) 
 
+```mermaid
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+sequenceDiagram
+    participant Main as App
+    participant Setup as setup_logging()
+    participant Logger as Logger
+    participant FileReader as @reactive.file_reader
+
+    Main->>Setup: Call setup_logging()
+    Setup->>Setup: Configure logging system
+    Setup-->>Main: Return str(log_file_path)
+    
+    Main->>Main: Store in log_file_path variable
+    Main->>Logger: logging.info("App initialized")
+    Logger->>Logger: Write to file & console
+    
+    Main->>FileReader: @reactive.file_reader(log_file_path)
+    FileReader->>FileReader: Monitor file for changes
+    FileReader-->>Main: Trigger UI updates when file changes
+```
+
 ## Set up
 
 1. Determine Python
