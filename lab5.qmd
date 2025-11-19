@@ -28,15 +28,121 @@ co_box(
 
 > ***Write down a mental map of the relationship between the three environments for data science. Include the following terms: Git Promote, CI/CD, automation, deployment, dev, test, prod.***
 
-### Git and Data Science 
+The figures from the [chapter](https://do4ds.com/chapters/sec1/1-5-deployments.html#separate-the-prod-environment) do an excellent job illustrating these environments, but I've added a sequence diagram: 
 
-> ***Why is Git so important to a good code promotion strategy? Can you have a code promotion strategy without Git***
+```{=html}
+<style>
 
-### Git and CI/CD
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+```
 
-> ***What is the relationship between Git and CI/CD? What’s the benefit of using Git and CI/CD together?***
+```{mermaid}
+%%| fig-cap: 'Data Science Environments'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-### Git <> GitHub <> CI/CD <> GitHub Actions <> Version Control 
+
+sequenceDiagram
+    participant Dev as Dev
+    participant Git as Git
+    participant CI as CI/CD<br>Pipeline
+    participant Test as Test
+    participant Prod as Prod
+    
+    Dev->>Dev: Write code & test locally
+    Dev->>Git: Commit & push changes
+    Git->>CI: Trigger automation
+    CI->>CI: Run tests & checks
+    CI->>Test: Deploy to Test environment
+    Test->>Test: Integration testing
+    Test->>Test: User acceptance testing
+    
+    Note over Test,CI: Manual approval or<br/>automated promotion
+    
+    Test->>Git: Tag release (Git Promote)
+    Git->>CI: Trigger production deployment
+    CI->>CI: Build & validate
+    CI->>Prod: Deploy to Production
+    Prod->>Prod: Monitor & validate
+    
+    Note over Prod: Rollback<br>if needed
+```
+
+```{mermaid}
+%%| fig-cap: 'Data Science Environments'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+flowchart TB
+    Dev[Development Environment]
+    Git[Git Repository]
+    CI[CI: Continuous Integration]
+    Test[Test Environment]
+    Promote[Git Promote]
+    CD[CD: Continuous Deployment]
+    Prod[Production Environment]
+    
+    Dev -->|commit & push| Git
+    Git -->|webhook triggers| CI
+    CI -->|tests pass| Test
+    
+    Test -->|validation complete| Promote
+    Promote -->|create tag v1.0| Git
+    Git -->|tag triggers| CD
+    CD -->|deploy| Prod
+    
+    Prod -.->|rollback needed| Git
+    Git -.->|deploy previous tag| CD
+    
+    style Dev fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style Test fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    style Prod fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
+    style Git fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style CI fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style CD fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style Promote fill:#fff9c4,stroke:#f9a825,stroke-width:3px
+```
+
+- The development environment (**Dev**) is where data scientists write and test code locally. 
+    - The Dev environment is used for rapid iteration and experimentation, and it's connected to version control (Git).     
+- The testing environment (**Test**) is a mirror of the production environment with realistic data (often anonymized). 
+    - The Test environment is integrated and validates with other systems, and user acceptance testing occurs here.      
+- The 'live' environment that serves the end users is the production environment (**Prod**). 
+    - Prod has strictly controlled access with a focus on stability and monitoring.       
+- **Git promotion** is the process of tagging a commit as ready for production. 
+    - This creates an immutable reference point and triggers production deployment pipeline.    
+- The **CI/CD Pipeline** is the automated process that builds, tests, and deploys the code. 
+    - This ensures consistency across environments and reduces human error in deployment. CI/CD automates testing at each stage, deployment between environments, rollback on failures, and monitoring and alerting. 
+
+
+
+### Git & Data Science 
+
+> ***Why is Git so important to a good code promotion strategy?***
+
+Git gives 
+
+> ***Can you have a code promotion strategy without Git?***
+
+### Git & CI/CD
+
+> ***What is the relationship between Git and CI/CD?***
+
+> ***What’s the benefit of using Git and CI/CD together?***
+
+### Git, GitHub, CI/CD, Actions, & Version Control 
 
 > ***Write out a mental map of the relationship of the following terms: Git, GitHub, CI/CD, GitHub Actions, Version Control.***
+
+
 
