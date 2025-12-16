@@ -13,7 +13,6 @@
 #  
 #  @apiLicense list(name = "MIT")
 
-
 # pkgs ----
 library(vetiver)
 library(pins)
@@ -458,7 +457,6 @@ handle_predict_batch <- function(req, res) {
 #   resp_body_json()
 
 # API SETUP -------------------------------------
-
 #' Create and configure Plumber API
 #'
 #' Sets up the API router with all endpoints, OpenAPI specification,
@@ -466,7 +464,7 @@ handle_predict_batch <- function(req, res) {
 #'
 app <- plumber::pr() |>
   # set OpenAPI specification
-  pr_set_api_spec(function(spec) {
+  plumber::pr_set_api_spec(function(spec) {
     spec$info$title <- "Penguin Mass Predictor API"
     spec$info$description <- "API for predicting penguin body mass using a linear regression model trained on the Palmer Penguins dataset. Deployed with vetiver for MLOps best practices."
     spec$info$version <- "1.0.0"
@@ -480,53 +478,51 @@ app <- plumber::pr() |>
     )
     spec
   }) |>
-  
   # GET endpoints - information retrieval
-  pr_get(
+  plumber::pr_get(
     path = "/ping",
     handler = handle_ping,
     serializer = plumber::serializer_json(),
     tags = "Health"
   ) |>
-  pr_get(
+  plumber::pr_get(
     path = "/health",
     handler = handle_health,
     serializer = plumber::serializer_json(),
     tags = "Health"
   ) |>
-  pr_get(
+  plumber::pr_get(
     path = "/model-prototype",
     handler = handle_model_prototype,
     serializer = plumber::serializer_json(),
     tags = "Model Info"
   ) |>
-  pr_get(
+  plumber::pr_get(
     path = "/model-info",
     handler = handle_model_info,
     serializer = plumber::serializer_json(),
     tags = "Model Info"
   ) |>
-  pr_get(
+  plumber::pr_get(
     path = "/input-schema",
     handler = handle_input_schema,
     serializer = plumber::serializer_json(),
     tags = "Documentation"
   ) |>
-  
   # POST endpoints - predictions
-  pr_post(
+  plumber::pr_post(
     path = "/predict",
     handler = handle_predict,
     serializer = plumber::serializer_json(),
     tags = "Predictions"
   ) |>
-  pr_post(
+  plumber::pr_post(
     path = "/predict-validated",
     handler = handle_predict_validated,
     serializer = plumber::serializer_json(),
     tags = "Predictions"
   ) |>
-  pr_post(
+  plumber::pr_post(
     path = "/predict-batch",
     handler = handle_predict_batch,
     serializer = plumber::serializer_json(),
@@ -534,17 +530,13 @@ app <- plumber::pr() |>
   )
 
 # RUN API ---------------------------------------
-
 cat("\n╔════════════════════════════════════════════════════════╗\n")
 cat("║  Penguin Mass Predictor API                            ║\n")
 cat("╚════════════════════════════════════════════════════════╝\n\n")
-
 cat("🚀 Starting API server on http://127.0.0.1:8080\n\n")
-
 cat("📖 Documentation:\n")
 cat("   Swagger UI: http://127.0.0.1:8080/__docs__/\n")
 cat("   ReDoc:      http://127.0.0.1:8080/__docs__/?redoc=1\n\n")
-
 cat("🔍 Available endpoints:\n")
 cat("   Health Checks:\n")
 cat("     GET  /ping               - Basic health check\n")
@@ -557,12 +549,10 @@ cat("   Predictions:\n")
 cat("     POST /predict            - Single/batch prediction\n")
 cat("     POST /predict-validated  - Prediction with validation\n")
 cat("     POST /predict-batch      - Batch predictions\n\n")
-
 cat("📊 Model Information:\n")
 cat("   Name:    ", v$model_name, "\n")
 cat("   Version: ", v$metadata$version, "\n")
 cat("   Type:    ", class(v$model)[1], "\n\n")
-
 cat("✨ Ready to serve predictions!\n\n")
 
 # start the server

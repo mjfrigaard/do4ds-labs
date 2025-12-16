@@ -72,6 +72,7 @@ server <- function(input, output) {
                      type = "default", duration = 10)
         
     request_data <- vals()
+      
     response <- httr2::request(api_url) |>
       httr2::req_method("POST") |>
       httr2::req_body_json(request_data, auto_unbox = FALSE) |>  
