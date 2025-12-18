@@ -24,7 +24,9 @@ co_box(
 
 This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. 
 
-For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber2` version](plumber2.qmd)) from the previous lab (i.e., the user inputs sent with the **Predict** button):
+## Overview
+
+For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber` version](plumber.qmd)) from the previous lab (i.e., the user inputs sent with the **Predict** button):
 
 ```{=html}
 <style>
@@ -76,12 +78,56 @@ sequenceDiagram
     
 ```
 
+The files for the application and API can be found in the following location: 
 
-## Packages 
+### API files 
+
+```{verbatim}
+_labs/lab4/R/api/
+              ├── api.Rproj
+              ├── model.R
+              ├── models/
+              │   └── penguin_model/
+              ├── my-db.duckdb
+              ├── plumber.R
+              ├── renv/
+              └── renv.lock
+```
+
+### App files 
+
+```{verbatim}
+_labs/lab4/R/app/
+              ├── app.R
+              ├── app.Rproj
+              ├── README.md
+              ├── renv/
+              └── renv.lock
+```
+
+## The API
+
+### `model.R`
+
+The `model.R` file creates our `vetiver` model: 
+
+1. Creates the `my-db.duckdb` file (with a subset the `palmerpenguins::penguins` data). 
+2. Converts the `lm()` model object to `vetiver` model.   
+3. The model is stored in the `models/` folder with `pins::board_folder()` and `vetiver::vetiver_pin_write()`.   
+
+This script only needs to be run once (or whenever the model changes). 
+
+### `plumber.R` 
+
+The `plumber.R` files contains the same API we created in [`plumber`](plumber.qmd). Launching the API in Positron displays the documentation and handlers: 
+
+![`plumber` API with `vetiver` model](img/lab4_plumber_api.png){width='100%' fig-align='center'}
+
+## The App 
 
 Below we load the packages for app design (`bslib`, `bsicons`), making the API request (`httr2`), and logging and monitoring (`logger` and `jsonlite`). 
 
-I chose the [`logger` package](https://daroczig.github.io/logger/index.html) instead of the example from the text ([`log4r`](https://github.com/r-lib/log4r)) because I'm more familiar with it's lightweight and I'm more [familiar with it's features](https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger). 
+I chose the [`logger` package](https://daroczig.github.io/logger/index.html) instead of the example from the text ([`log4r`](https://github.com/r-lib/log4r)) because I'm more [familiar with it's features](https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger). 
 
 ```{r}
 #| eval: false
@@ -661,6 +707,7 @@ We can also see out UI updates with the recent logs:
 Finally, we should see the log file included in our Shiny app directory: 
 
 ```{verbatim}
+app/
 ├── app.R
 ├── R.Rproj
 ├── README.md
@@ -706,20 +753,6 @@ renv::init()
 #| eval: false
 #| code-fold: false
 renv::snapshot()
-```
-
-The final application folder contains the following: 
-
-```{verbatim}
-├── .gitignore
-├── app.R
-├── R.Rproj
-├── README.md
-├── renv/
-├── renv.lock
-└── shiny_app.log
-
-1 directory, 6 files
 ```
 
 
