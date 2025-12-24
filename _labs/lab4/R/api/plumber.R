@@ -36,7 +36,7 @@ cat("  species:", paste(levels(v$prototype$species), collapse = ", "), "\n")
 cat("  sex:", paste(levels(v$prototype$sex), collapse = ", "), "\n")
 cat("=================================\n\n")
 
-# HELPER FUNCTIONS ------------------------------
+# HELPER FUNCTION ------------------------------
 
 #' Prepare prediction data by converting types
 #'
@@ -67,6 +67,13 @@ prep_pred_data <- function(input_data) {
     stringsAsFactors = FALSE
   )
 }
+
+prep_pred_data(
+  data.frame(
+    bill_length_mm = 45,
+    species = "Adelie",
+    sex = "male" )
+  ) |> str()
 
 # HANDLERS --------------------------------------
 

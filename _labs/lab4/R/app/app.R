@@ -203,7 +203,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # prediction with logging ----
+  # prediction ----
   pred <- reactive({
     request_start <- Sys.time()
     request_data <- vals()

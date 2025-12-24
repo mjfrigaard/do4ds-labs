@@ -1,5 +1,7 @@
 # Shiny for Python App Logging (lab 4) 
 
+This folder contains a Shiny for Python app that makes requests to a vetiver API. 
+
 ## Set up
 
 1. Determine Python
@@ -14,8 +16,8 @@ python3 --version
 
 ```bash
 # cd Python/app/ # run if not in app directory 
-/usr/bin/python3 -m venv .env # using system Python because it has SSL
-source .env/bin/activate  
+/usr/bin/python3 -m venv .venv # using system Python because it has SSL
+source .venv/bin/activate  
 ```
 
 3. Install libraries
@@ -45,7 +47,7 @@ Should show:
 
 Launch API:
 
-In a separate Terminal, launch the API by navigating to `do4ds-labs/_labs/lab3/Python/api/` and entering:
+In a separate Terminal, launch the API by navigating to `do4ds-labs/_labs/lab4/Python/api/` and entering:
 
 ```bash
 # source .env/bin/activate # if not activated 
@@ -55,7 +57,7 @@ python3 mod-api.py
 Run app using: 
 
 ```bash
-shiny run app-log.py --host 127.0.0.1 --port 3000 --reload
+shiny run app.py --host 127.0.0.1 --port 3000 --reload
 ```
 
 ### Architecture 

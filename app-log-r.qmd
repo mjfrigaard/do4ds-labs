@@ -22,11 +22,11 @@ co_box(
 )
 ```
 
-This lab covers how to use logging and monitoring to track events inside data science project, and what to do with logs and metrics when they are created. 
+This lab covers how to use logging and monitoring to track events inside data science projects (specifically inside a Shiny application), and what you can do with logs and metrics when they are created. 
 
 ## Overview
 
-For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber` version](plumber.qmd)) from the previous lab (i.e., the user inputs sent with the **Predict** button):
+For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber` version](plumber.qmd)) from the previous lab (i.e., the user inputs are sent to the API with the **Predict** button):
 
 ```{=html}
 <style>
@@ -80,7 +80,7 @@ sequenceDiagram
 
 The files for the application and API can be found in the following location: 
 
-### API files 
+## The API
 
 ```{verbatim}
 _labs/lab4/R/api/
@@ -92,20 +92,8 @@ _labs/lab4/R/api/
               ├── plumber.R
               ├── renv/
               └── renv.lock
+
 ```
-
-### App files 
-
-```{verbatim}
-_labs/lab4/R/app/
-              ├── app.R
-              ├── app.Rproj
-              ├── README.md
-              ├── renv/
-              └── renv.lock
-```
-
-## The API
 
 ### `model.R`
 
@@ -124,6 +112,16 @@ The `plumber.R` files contains the same API we created in [`plumber`](plumber.qm
 ![`plumber` API with `vetiver` model](img/lab4_plumber_api.png){width='100%' fig-align='center'}
 
 ## The App 
+
+```{verbatim}
+_labs/lab4/R/app/
+              ├── app.R
+              ├── app.Rproj
+              ├── README.md
+              ├── renv/
+              ├── renv.lock
+              └── shiny_app.log
+```
 
 Below we load the packages for app design (`bslib`, `bsicons`), making the API request (`httr2`), and logging and monitoring (`logger` and `jsonlite`). 
 
@@ -282,28 +280,33 @@ In the server, we create the reactive `vals()` to be displayed in the **Penguin 
 #| eval: false
 #| code-fold: false
 #| code-overflow: wrap
-vals <- reactive({
+  vals <- reactive({
     bill_length <- input$bill_length #<1>
     species <- input$species
     sex <- input$sex #<1>
     
     if (bill_length < 30 || bill_length > 60) { #<2>
-      logger::log_warn("Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}") #<2>
-    }
+      logger::log_warn(
+        "Bill length out of typical range - Session: {session$token} - bill_length: {bill_length}"
+      )
+    } #<2>
     
     if (is.null(species) || is.null(sex)) { #<3>
-      logger::log_error("Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}") 
+      logger::log_error(
+        "Missing required inputs - Session: {session$token} - species_null: {is.null(species)} - sex_null: {is.null(sex)}"
+      )
       return(NULL)
     } #<3>
     
     data <- data.frame( #<4>
       bill_length_mm = bill_length,
-      species_Chinstrap = as.numeric(species == "Chinstrap"),
-      species_Gentoo = as.numeric(species == "Gentoo"),
-      sex_male = as.numeric(sex == "Male")
+      species = species,
+      sex = tolower(sex)
     ) #<4>
     
-    logger::log_debug("Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}") #<5>
+    logger::log_debug( #<5>
+      "Input data prepared - Session: {session$token} - data: {jsonlite::toJSON(data, auto_unbox = TRUE)}"
+    ) #<5>
     
     return(data) #<6>
   })
@@ -329,20 +332,27 @@ I've added logs to the predictions reactive values below. As you can see, the ma
 #| eval: false
 #| code-fold: false
 #| code-overflow: wrap
-pred <- reactive({
+  pred <- reactive({
     request_start <- Sys.time() #<1>
     request_data <- vals() #<2>
     
-    if (is.null(request_data)) {
-      logger::log_error("Cannot make prediction with invalid inputs - Session: {session$token}") #<3>
+    if (is.null(request_data)) { #<3>
+      logger::log_error(
+        "Cannot make prediction with invalid inputs - Session: {session$token}"
+      )
       return("❌ Invalid inputs")
-    }
+    } #<3>
     
-    logger::log_info("Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}") #<4>
+    logger::log_info( #<4>
+      "Starting prediction request - Session: {session$token} - request_data: {jsonlite::toJSON(request_data, auto_unbox = TRUE)}"
+    ) #<4>
     
     tryCatch({ #<5>
-      showNotification("Predicting penguin mass...", #<6>
-                       type = "default", duration = 3) #<6>
+      showNotification( #<6>
+        "Predicting penguin mass...", 
+        type = "default", 
+        duration = 3
+      ) #<6>
       
       response <- httr2::request(api_url) |> #<7>
         httr2::req_method("POST") |>
@@ -350,65 +360,90 @@ pred <- reactive({
         httr2::req_timeout(30) |>
         httr2::req_perform() #<7>
       
-      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs")) #<8>
+      response_time <- as.numeric( #<8>
+        difftime(Sys.time(), request_start, units = "secs")
+      ) #<8>
       response_data <- httr2::resp_body_json(response) #<9>
       
-      logger::log_info("Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {response_data$.pred[1]}") #<10>
-      
-      if (response_time > 5) { #<11>
-        logger::log_warn("Slow API response - Session: {session$token} - response_time_sec: {response_time}") 
-      } #<11>
-      
-      showNotification("✅ Prediction successful!",  #<12> 
-        type = "message", duration = 3) #<12>
-      
-      return(response_data$.pred[1]) #<13>
-      
-    }, error = function(e) {
-      error_msg <- conditionMessage(e) # <14> 
-      response_time <- as.numeric(difftime(Sys.time(), request_start, units = "secs")) #<15> 
-      
-      logger::log_error("Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}") #<16>
-      
-      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) { #<17>
-        user_msg <- "API not available - is the server running on port 8080?"
-        logger::log_error("API connection refused - Session: {session$token}") #<17>
-      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) { #<18>
-        user_msg <- "Request timed out - API may be overloaded"
-        logger::log_warn("API timeout occurred - Session: {session$token}") #<18>
+      prediction_value <- if (is.list(response_data$.pred)) { #<10>
+        as.numeric(response_data$.pred[[1]])
       } else {
-        user_msg <- paste("API Error:", substr(error_msg, 1, 50))
-        logger::log_error("Unknown API error - Session: {session$token} - error: {error_msg}") #<19>
+        as.numeric(response_data$.pred[1])
+      } #<10>
+      
+      logger::log_info( #<11>
+        "Prediction successful - Session: {session$token} - response_time_sec: {round(response_time, 3)} - prediction: {prediction_value}"
+      ) #<11>
+      
+      if (response_time > 5) { #<12>
+        logger::log_warn(
+          "Slow API response - Session: {session$token} - response_time_sec: {response_time}"
+        )
+      } #<12>
+      
+      showNotification( #<13>
+        "✅ Prediction successful!", 
+        type = "message", 
+        duration = 3
+      ) #<13>
+      
+      return(prediction_value) #<14>
+      #<5>
+    }, error = function(e) { #<15>
+      error_msg <- conditionMessage(e)
+      response_time <- as.numeric(  #<16>
+        difftime(Sys.time(), request_start, units = "secs")
+      )  #<16>
+      
+      logger::log_error(  #<17>
+        "Prediction request failed - Session: {session$token} - error: {error_msg} - response_time_sec: {round(response_time, 3)}"
+      ) #<17>
+      
+      if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) { #<18>
+        user_msg <- "API not available - is the server running on port 8080?"
+        logger::log_error("API connection refused - Session: {session$token}") #<18>
+      } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) { #<19>
+        user_msg <- "Request timed out - API may be overloaded"
+        logger::log_warn("API timeout occurred - Session: {session$token}") #<19>
+      } else {
+        user_msg <- paste("API Error:", substr(error_msg, 1, 50)) #<20>
+        logger::log_error(
+          "Unknown API error - Session: {session$token} - error: {error_msg}"
+        ) #<20>
       }
       
-      showNotification(paste("❌", user_msg), type = "error", duration = 5) #<20>
-      
+      showNotification( #<21>
+        paste("❌", user_msg), 
+        type = "error", 
+        duration = 5
+      ) #<21>
       return(paste("❌", user_msg))
-    }) #<5>
+    })  #<15>
   }) |> 
-    bindEvent(input$predict, ignoreInit = TRUE) #<21> 
+    bindEvent(input$predict, ignoreInit = TRUE) #<22>
 ```
 1. Record API request start time      
 2. Reactive values from UI    
 3. Logs when/if the prediction requests fail because of data validation issues (critical application logic problems).   
-4.  Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.    
-5. Handles all possible API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.    
+4. Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.    
+5. Handles API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.    
 6. Notification for predicting penguin mass   
 7. `httr2` API request  
 8. Record API response time   
-9. API prediction response data  
-10. Logs successful predictions and performance metrics/results 
-11. Logs performance issues that could impact user experience and/or indicate need for system optimization.   
-12. Notification for successful prediction    
-13. Prediction values  
-14. `tryCatch()` error message  
-15. API Response time  
-16. Logs complete prediction failures with diagnostic information for troubleshooting critical application functionality.   
-17. Logs when the API is unreachable, indicating critical system failure.  
-18. Logs API timeout events that suggest network issues or API overload.
-19. Logs unexpected API errors that don't match known failure patterns. 
-20. Notification for error  
-21. Trigger when Predict button is clicked. 
+9. API prediction response 
+10. Extracts prediction value 
+11. Logs successful predictions and performance metrics/results 
+12. Logs performance issues that could impact user experience and/or indicate need for system optimization.   
+13. Notification for successful prediction    
+14. Prediction values  
+15. `tryCatch()` error message  
+16. API Response time  
+17. Logs complete prediction failures with diagnostic information for troubleshooting critical application functionality.   
+18. Logs when the API is unreachable, indicating critical system failure.  
+19. Logs API timeout events that suggest network issues or API overload.
+20. Logs unexpected API errors that don't match known failure patterns. 
+21. Notification for error  
+22. Trigger when Predict button is clicked. 
 
 The `tryCatch()` handles all possible API communication failures (network issues, timeouts, malformed responses, etc.) and provides meaningful error messages (instead of crashing the application).
 
