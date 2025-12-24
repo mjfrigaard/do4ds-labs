@@ -11,7 +11,7 @@ import uvicorn
 import pandas as pd
 
 # connect to model board from lab2 
-model_board = pins.board_folder("../../../lab2/model-vetiver/models/")
+model_board = pins.board_folder("models/")
 
 # read pinned model
 sklearn_model = model_board.pin_read("penguin_model")

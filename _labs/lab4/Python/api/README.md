@@ -24,11 +24,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Run the api:
+4. Run the model: 
+
+```bash
+python3 model.py
+```
+
+5. Run the api:
 
 ```bash
 python3 mod-api.py
 ```
+
+View the API using the following URLS:
+
+<http://127.0.0.1:8080/>
+
+<http://127.0.0.1:8080/docs>
 
 ## Testing API
 
