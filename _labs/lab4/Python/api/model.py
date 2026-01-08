@@ -19,8 +19,10 @@ model = LinearRegression().fit(X, y)
 
 print(f"R^2 {model.score(X,y)}")
 print(f"Intercept {model.intercept_}")
+print(f"prototype_data {X}")
 print(f"Columns {X.columns}")
 print(f"Coefficients {model.coef_}")
+
 
 from vetiver import VetiverModel
 v = VetiverModel(model, model_name='penguin_model', prototype_data=X)

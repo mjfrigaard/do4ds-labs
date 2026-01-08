@@ -16,7 +16,7 @@ python3 --version
 
 ```bash
 # cd Python/app/ # run if not in app directory 
-/usr/bin/python3 -m venv .venv # using system Python because it has SSL
+/usr/bin/python3 -m venv .venv 
 source .venv/bin/activate  
 ```
 
@@ -24,8 +24,13 @@ source .venv/bin/activate
 
 ```bash
 pip install --upgrade pip
-pip install logging
 pip install -r requirements.txt
+```
+
+If new dependencies were added, update the `requirements.txt`
+
+```bash
+pip freeze > requirements.txt
 ```
 
 4. Verify

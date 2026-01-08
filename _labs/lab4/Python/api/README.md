@@ -14,7 +14,7 @@ python3 --version
 
 ```bash
 # cd Python/api/ # run if not in directory 
-/usr/bin/python3 -m venv .venv # using system Python because it has SSL
+/usr/bin/python3 -m venv .venv 
 source .venv/bin/activate  
 ```
 
@@ -24,7 +24,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Run the model: 
+4. Run the model (optional): 
+
+If you're running model.py, you'll also need `palmerpenguins` and `duckdb`.
+
+```bash
+pip install palmerpenguins
+pip install duckdb
+```
+
+This will create a new model in `models/` (if something changed).
 
 ```bash
 python3 model.py

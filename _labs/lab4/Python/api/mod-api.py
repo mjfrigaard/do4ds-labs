@@ -17,7 +17,7 @@ model_board = pins.board_folder("models/")
 sklearn_model = model_board.pin_read("penguin_model")
 print(f":-] Successfully loaded model: {type(sklearn_model)}")
 
-# check model for what features it expects
+# check model for the features it expects
 if hasattr(sklearn_model, 'feature_names_in_'):
     feature_names = sklearn_model.feature_names_in_
     print(f"Model expects features: {list(feature_names)}")
@@ -64,9 +64,11 @@ print(f":-] Created VetiverModel: {type(v)}")
 
 # create VetiverAPI and extract FastAPI app
 vetiver_api = vetiver.VetiverAPI(v, check_prototype=True)
+# can run with:
+# vetiver_api.run(port = 8080)
 
 # actual FastAPI application
-app = vetiver_api.app  # should be the FastAPI instance
+app = vetiver_api.app  
 
 print(f"FastAPI app type: {type(app)}")
 
