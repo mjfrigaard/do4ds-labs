@@ -79,6 +79,18 @@ sequenceDiagram
     Note over Prod: Rollback<br>if needed
 ```
 
+#### DEV Environments 
+
+The development environment (**Dev**) is the primary location where data scientists write and test their code. It's typically used for iteration and experimentation, and it's connected to version control (Git).  
+
+#### Test Environments 
+
+The testing environment (**Test**) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.  
+
+#### Production Environments 
+
+The 'live' environment that serves the end users is the production environment (**Prod**). Prod has strictly controlled access with a focus on stability and monitoring.       
+
 ```{mermaid}
 %%| fig-cap: 'Data Science Environments'
 %%| fig-width: 7.0
@@ -115,16 +127,10 @@ flowchart TB
     style Promote fill:#fff9c4,stroke:#f9a825,stroke-width:3px
 ```
 
-- The development environment (**Dev**) is where data scientists write and test code locally. 
-    - The Dev environment is used for rapid iteration and experimentation, and it's connected to version control (Git).     
-- The testing environment (**Test**) is a mirror of the production environment with realistic data (often anonymized). 
-    - The Test environment is integrated and validates with other systems, and user acceptance testing occurs here.      
-- The 'live' environment that serves the end users is the production environment (**Prod**). 
-    - Prod has strictly controlled access with a focus on stability and monitoring.       
-- **Git promotion** is the process of tagging a commit as ready for production. 
-    - This creates an immutable reference point and triggers production deployment pipeline.    
-- The **CI/CD Pipeline** is the automated process that builds, tests, and deploys the code. 
-    - This ensures consistency across environments and reduces human error in deployment. CI/CD automates testing at each stage, deployment between environments, rollback on failures, and monitoring and alerting. 
+
+**Git promotion** is the process of tagging a commit as ready for production. This creates an immutable reference point and triggers production deployment pipeline. The **CI/CD Pipeline** is the automated process that builds, tests, and deploys the code. 
+
+This ensures consistency across environments and reduces human error in deployment. CI/CD automates testing at each stage, deployment between environments, rollback on failures, and monitoring and alerting. 
 
 
 
@@ -132,7 +138,97 @@ flowchart TB
 
 > ***Why is Git so important to a good code promotion strategy?***
 
-Git gives 
+There is a canonical DevOps rule of thumb, 
+
+*If a change isn’t represented as a Git commit, it didn’t happen.*
+
+In mature CI-CD systems, Git defines the promotion workflow, not the pipeline. For example, if we have the following Git branching model:
+
+* `feature`: develop features and write unit tests   
+* `test`: write integration tests    
+* `main`: production deployment   
+
+Changes are committed to `feature*` → merged to `test` → merged to `main` 
+
+```{mermaid}
+%%| fig-cap: 'Git branches'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+gitGraph
+    commit id: "Initial commit"
+
+    branch test
+    checkout test
+    commit id: "Set up tests"
+
+    branch feature
+    checkout feature
+    commit id: "Develop feature"
+    commit id: "Unit tests"
+
+    checkout test
+    merge feature id: "Merge feature"
+    commit id: "Integration tests"
+
+    checkout main
+    merge test id: "Release"
+    
+    
+```
+
+
+The pipeline simply *reacts to Git events*. The code promotion logic lives in the branches, tags, merge policies, and not in brittle pipeline scripts.
+
+A core CI-CD principle:
+
+> **Build once, promote many times.**
+
+All commits are signed--we know who made the changes--and the `main` branch requires approval to merge (i.e., it's protected). This artifact immutability connects 'builds' to specific commit SHAs or by tagging releases (like `v1.4.3`).  
+
+The same code is promoted across environments so we can be sure untested code never reaches production. 
+
+Without Git, the code we need to be rebuilt in each environment. The tested code wouldn't necessarily be the deployed code, and environment drift would be inevitable.
+
+Git is the gatekeeper for CI-CD policies and integrates directly with enforcement mechanisms.
+
+> **If it’s not enforced in Git, it *will* be bypassed**
+
+**Git enables environment parity**. In DevOps, **environment drift is the enemy**. Dev, test, and prod differ only by data and credentials, and changes are promoted, not re-created.
+
+From a DevOps audit perspective, Git provides the code change/approval history, and the pipeline results tied to commits. Each release is also tagged. This makes it easy to answer the inevitable question, 
+
+> **“Which commit introduced this behavior in production?”**
+
+When production inevitably breaks, we can use Git to roll back by redeploying previous commits/tags. This avoids making ad-hoc changes in a production server. 
+
+Git promotion mechanics are standardized, so pipelines become reusable templates. This turns CI-CD into a system, not a script. 
+
+```{mermaid}
+%%| fig-cap: 'Typical CI-CD promotion pattern'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+
+flowchart TB
+  Feat("<code>feature/*</code>") -->|<em>Pull request</em>| Dev("<code>develop</code>")
+  Dev -->|<em>Release pull request</em>| Main("<code>main</code>")
+  Main -->|<em>Deploy</em>| Prod["<strong>production</strong>"]
+  Main -->|<em>Promote</em>| St("<code>staging</code>")
+  St -->|<em>Approve</em>| Prod
+    
+```
+
+Git is like a **state machine**, controlling the flow of changes.
+
+With Git-centered promotion:
+
+* Git = **intent**
+* Pipeline = **execution**
+* Artifact = **immutable**
+* Promotion = **merge or tag**
+
 
 > ***Can you have a code promotion strategy without Git?***
 
