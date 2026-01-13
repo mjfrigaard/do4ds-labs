@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-01-12">
+<meta name="dcterms.date" content="2026-01-13">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 5: Deployments and Code Promotion – DO4DS: Lab Solutions</title>
@@ -468,7 +468,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-01-12</p>
+      <p class="date">2026-01-13</p>
     </div>
   </div>
   
@@ -621,13 +621,15 @@ flowchart TB
 <p><em>If a change isn’t represented as a Git commit, it didn’t happen.</em></p>
 <p>In mature CI-CD systems, Git defines the promotion workflow, not the pipeline. For example, if we have the following Git branching model:</p>
 <ul>
-<li><code>feature</code>: develop features and write unit tests<br>
+<li><code>feature</code>: new capability (e.g., new model, new preprocessing step, new data connector). Branch off develop or <code>main</code>, open pull request early, iterate.<br>
 </li>
-<li><code>test</code>: write integration tests<br>
+<li><code>develop</code>: integration branch for ongoing work. <code>feature</code> branches merge here first; periodically promoted to <code>main</code> (release).<br>
 </li>
-<li><code>main</code>: production deployment</li>
+<li><code>staging</code>: mirrors production (<code>main</code>), but for final validation. <code>main</code> → <code>staging</code> (or vice versa) depending on release process. Used for end-to-end pipeline runs on near-prod data/infra.<br>
+</li>
+<li><code>main</code>: production-ready code and (often) reproducible pipeline definitions. Only <code>merge</code> via pull request; every commit should pass tests, lint, data checks. Often corresponds to what’s deployed (or what can be deployed).</li>
 </ul>
-<p>Changes are committed to <code>feature*</code> → merged to <code>test</code> → merged to <code>main</code></p>
+<p>Changes are committed to <code>feature*</code> → merged to <code>develop</code> → merged to <code>main</code>:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -635,29 +637,16 @@ flowchart TB
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-gitGraph
-    commit id: "Initial commit"
-
-    branch test
-    checkout test
-    commit id: "Set up tests"
-
-    branch feature
-    checkout feature
-    commit id: "Develop feature"
-    commit id: "Unit tests"
-
-    checkout test
-    merge feature id: "Merge feature"
-    commit id: "Integration tests"
-
-    checkout main
-    merge test id: "Release"
-    
+flowchart TB
+  F("&lt;code&gt;feature/*&lt;/code&gt;") --&gt;|"pull request"| D("&lt;code&gt;develop&lt;/code&gt;")
+  D --&gt;|release pull request| M("&lt;code&gt;main&lt;/code&gt;")
+  M --&gt;|deploy| P["&lt;strong&gt;production&lt;/strong&gt;"]
+  M --&gt;|promote| S("&lt;code&gt;staging&lt;/code&gt;")
+  S --&gt;|approve| P
     
 </pre>
 </div>
-<p></p><figcaption> Git branches</figcaption> </figure><p></p>
+<p></p><figcaption> Typical CI-CD promotion pattern</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
@@ -666,7 +655,39 @@ gitGraph
 <blockquote class="blockquote">
 <p><strong>Build once, promote many times.</strong></p>
 </blockquote>
-<p>All commits are signed–we know who made the changes–and the <code>main</code> branch requires approval to merge (i.e., it’s protected). This artifact immutability connects ‘builds’ to specific commit SHAs or by tagging releases (like <code>v1.4.3</code>).</p>
+<p>All commits are signed–we know who made the changes–and the <code>main</code> branch requires approval to merge (i.e., it’s protected). This artifact immutability connects ‘builds’ to specific commit SHAs or by tagging releases (like <code>v1.4.1</code>).</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+gitGraph
+    commit tag: "Initial commit" type: HIGHLIGHT
+    branch test
+    checkout test
+    commit tag: "test-setup"
+
+    branch feature
+    checkout feature
+    commit tag: "develop-feature"
+    commit
+    commit
+    commit tag: "test-feature"
+
+    checkout test
+    merge feature tag: "merge"
+    commit
+    commit tag: "integration-tests"
+
+    checkout main
+    merge test id: "v1.4.1" tag: "Release" type: REVERSE
+</pre>
+</div>
+<p></p><figcaption> Git artifact immutability</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 <p>The same code is promoted across environments so we can be sure untested code never reaches production.</p>
 <p>Without Git, the code we need to be rebuilt in each environment. The tested code wouldn’t necessarily be the deployed code, and environment drift would be inevitable.</p>
 <p>Git is the gatekeeper for CI-CD policies and integrates directly with enforcement mechanisms.</p>
@@ -680,26 +701,6 @@ gitGraph
 </blockquote>
 <p>When production inevitably breaks, we can use Git to roll back by redeploying previous commits/tags. This avoids making ad-hoc changes in a production server.</p>
 <p>Git promotion mechanics are standardized, so pipelines become reusable templates. This turns CI-CD into a system, not a script.</p>
-<div class="cell" data-fig-width="7" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
-
-flowchart TB
-  Feat("&lt;code&gt;feature/*&lt;/code&gt;") --&gt;|&lt;em&gt;Pull request&lt;/em&gt;| Dev("&lt;code&gt;develop&lt;/code&gt;")
-  Dev --&gt;|&lt;em&gt;Release pull request&lt;/em&gt;| Main("&lt;code&gt;main&lt;/code&gt;")
-  Main --&gt;|&lt;em&gt;Deploy&lt;/em&gt;| Prod["&lt;strong&gt;production&lt;/strong&gt;"]
-  Main --&gt;|&lt;em&gt;Promote&lt;/em&gt;| St("&lt;code&gt;staging&lt;/code&gt;")
-  St --&gt;|&lt;em&gt;Approve&lt;/em&gt;| Prod
-    
-</pre>
-</div>
-<p></p><figcaption> Typical CI-CD promotion pattern</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
 <p>Git is like a <strong>state machine</strong>, controlling the flow of changes.</p>
 <p>With Git-centered promotion:</p>
 <ul>
@@ -711,6 +712,23 @@ flowchart TB
 <blockquote class="blockquote">
 <p><strong><em>Can you have a code promotion strategy without Git?</em></strong></p>
 </blockquote>
+<p>Yes — you can do code promotion without Git, as long as you still have three things:</p>
+<ul>
+<li>Some way of creating ‘versioned artifacts’ (i.e., something immutable that can be promoted)<br>
+</li>
+<li>Blocks/gates requiring tests/approvals that must be passed before promotion.<br>
+</li>
+<li>Some kind of promotion mechanism to copy/move/retag the versioned artifact between environments.</li>
+</ul>
+<p>Without Git you still need substitutes for:</p>
+<ol type="1">
+<li>Diff / review: code review tooling in your platform, or document-style review on “release bundles”<br>
+</li>
+<li>Rollback: keep old artifacts and switch the environment pointer back<br>
+</li>
+<li>Traceability: manifests + checksums + approvals + build logs<br>
+A good minimum is: artifact hash + signed manifest + CI logs + approval record.</li>
+</ol>
 </section>
 <section id="git-cicd" class="level3">
 <h3 class="anchored" data-anchor-id="git-cicd">Git &amp; CI/CD</h3>
