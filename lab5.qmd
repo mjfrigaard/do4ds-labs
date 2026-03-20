@@ -30,7 +30,9 @@ The questions below come from the [Deployments and Code Promotion](https://do4ds
 
 > ***Write down a mental map of the relationship between the three environments for data science. Include the following terms: Git Promote, CI/CD, automation, deployment, dev, test, prod.***
 
-The figures from the [chapter](https://do4ds.com/chapters/sec1/1-5-deployments.html#separate-the-prod-environment) do an excellent job illustrating these environments, but I've added a sequence diagram: 
+The three environments for data science are: development, test, and production (not to be confused with the three *layers* of data science environments[^layers]).
+
+[^layers]: These [three layers](https://do4ds.com/chapters/sec1/1-1-env-as-code.html#environments-have-layers) are Packages (Python + R Packages), System (Python + R Packages, Other System Libraries, and Operating System), and Hardware (Virtual Hardware and Physical Hardware).
 
 ```{=html}
 <style>
@@ -45,6 +47,38 @@ The figures from the [chapter](https://do4ds.com/chapters/sec1/1-5-deployments.h
 }
 </style>
 ```
+
+```{mermaid}
+%%| fig-cap: 'Data Science Environments'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+flowchart TD
+    Git["Git"]
+
+    Git --> Track["<strong>Traceability</strong>:<br>Every change is logged with author, timestamp,<br>and purpose"]
+    Git --> Branch["<strong>Isolation</strong>:<br>Branches let developers experiment without<br>disturbing stable code"]
+    Git --> Gate["<strong>Gating</strong>:<br>Pull requests act as enforced review checkpoints<br>between environments"]
+
+    Track --> Audit["Supports auditing<br>& rollback"]
+    Branch --> Parallel["Enables parallel<br>development"]
+    Gate --> Quality["Maintains code<br>quality standards"]
+
+```
+
+#### DEV Environments 
+
+The development environment (**dev**) is the primary location where data scientists write new code. It's typically used for iteration and experimentation, and it's connected to version control (Git).  
+
+#### Test Environments 
+
+The testing environment (**test**) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.  
+
+#### Production Environments 
+
+The 'live' environment that serves the end users is the production environment (**prod**). Prod has strictly controlled access with a focus on stability and monitoring.  
+
+The figures from the [chapter](https://do4ds.com/chapters/sec1/1-5-deployments.html#separate-the-prod-environment) do an excellent job illustrating these environments, but I've added a sequence diagram: 
 
 ```{mermaid}
 %%| fig-cap: 'Data Science Environments'
@@ -79,17 +113,7 @@ sequenceDiagram
     Note over Prod: Rollback<br>if needed
 ```
 
-#### DEV Environments 
-
-The development environment (**Dev**) is the primary location where data scientists write and test their code. It's typically used for iteration and experimentation, and it's connected to version control (Git).  
-
-#### Test Environments 
-
-The testing environment (**Test**) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.  
-
-#### Production Environments 
-
-The 'live' environment that serves the end users is the production environment (**Prod**). Prod has strictly controlled access with a focus on stability and monitoring.       
+     
 
 ```{mermaid}
 %%| fig-cap: 'Data Science Environments'
@@ -97,42 +121,42 @@ The 'live' environment that serves the end users is the production environment (
 %%| fig-align: center
 %%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-flowchart TB
-    Dev[Development Environment]
-    Git[Git Repository]
-    CI[CI: Continuous Integration]
-    Test[Test Environment]
-    Promote[Git Promote]
-    CD[CD: Continuous Deployment]
-    Prod[Production Environment]
+
+flowchart TD
+    subgraph DevEnv["🔧 Development"]
+        DevCode("Code Writing<br>& Iteration")
+        Git("Version Control (Git)")
+        DevCode <--> Git
+    end
+
+    subgraph TestEnv["🧪 Testing"]
+        AnonData("Realistic<br>(Anonymized) Data")
+        SysVal("System <br>Validation")
+        UAT("User Acceptance<br>Testing (UAT)")
+        AnonData --> SysVal --> UAT
+    end
+
+    subgraph ProdEnv["🚀 Production"]
+        LiveApp("Live Application")
+        Monitor("Monitoring & Stability")
+        EndUser("End Users")
+        LiveApp --> Monitor
+        LiveApp --> EndUser
+    end
+
+    Git -->|"promote"| TestEnv
+    UAT -->|"approve & promote"| ProdEnv
+
+    style DevEnv fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style TestEnv fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    style ProdEnv fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
     
-    Dev -->|commit & push| Git
-    Git -->|webhook triggers| CI
-    CI -->|tests pass| Test
-    
-    Test -->|validation complete| Promote
-    Promote -->|create tag v1.0| Git
-    Git -->|tag triggers| CD
-    CD -->|deploy| Prod
-    
-    Prod -.->|rollback needed| Git
-    Git -.->|deploy previous tag| CD
-    
-    style Dev fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
-    style Test fill:#fff3e0,stroke:#f57c00,stroke-width:3px
-    style Prod fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
-    style Git fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    style CI fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style CD fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style Promote fill:#fff9c4,stroke:#f9a825,stroke-width:3px
 ```
 
 
-**Git promotion** is the process of tagging a commit as ready for production. This creates an immutable reference point and triggers production deployment pipeline. The **CI/CD Pipeline** is the automated process that builds, tests, and deploys the code. 
+**Git promotion** is the process of tagging a commit as ready for production. This creates an immutable reference point and triggers a production deployment pipeline. A **CI/CD Pipeline** is an automated process that builds, tests, and deploys the code. 
 
-This ensures consistency across environments and reduces human error in deployment. CI/CD automates testing at each stage, deployment between environments, rollback on failures, and monitoring and alerting. 
-
-
+Code promotion ensures consistency across all three environments and reduces human error in deployment. 
 
 ### Git & Data Science 
 

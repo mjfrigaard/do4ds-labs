@@ -2,15 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.30">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-01-13">
+<meta name="dcterms.date" content="2026-03-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 5: Deployments and Code Promotion – DO4DS: Lab Solutions</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -36,15 +39,14 @@ ul.task-list li input[type="checkbox"] {
 <link href="./app-log-r.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6c9f3dbd31c2b3248c3b51b47840d40c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-16ec7a15eea48abaa2cfb5de3bb63a69.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -468,7 +470,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-01-13</p>
+      <p class="date">2026-03-15</p>
     </div>
   </div>
   
@@ -506,7 +508,7 @@ ul.task-list li input[type="checkbox"] {
 <blockquote class="blockquote">
 <p><strong><em>Write down a mental map of the relationship between the three environments for data science. Include the following terms: Git Promote, CI/CD, automation, deployment, dev, test, prod.</em></strong></p>
 </blockquote>
-<p>The figures from the <a href="https://do4ds.com/chapters/sec1/1-5-deployments.html#separate-the-prod-environment">chapter</a> do an excellent job illustrating these environments, but I’ve added a sequence diagram:</p>
+<p>The three environments for data science are: development, test, and production (not to be confused with the three <em>layers</em> of data science environments<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>).</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -518,6 +520,41 @@ ul.task-list li input[type="checkbox"] {
   padding: 0.2em;
 }
 </style>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+flowchart TD
+    Git["Git"]
+
+    Git --&gt; Track["&lt;strong&gt;Traceability&lt;/strong&gt;:&lt;br&gt;Every change is logged with author, timestamp,&lt;br&gt;and purpose"]
+    Git --&gt; Branch["&lt;strong&gt;Isolation&lt;/strong&gt;:&lt;br&gt;Branches let developers experiment without&lt;br&gt;disturbing stable code"]
+    Git --&gt; Gate["&lt;strong&gt;Gating&lt;/strong&gt;:&lt;br&gt;Pull requests act as enforced review checkpoints&lt;br&gt;between environments"]
+
+    Track --&gt; Audit["Supports auditing&lt;br&gt;&amp; rollback"]
+    Branch --&gt; Parallel["Enables parallel&lt;br&gt;development"]
+    Gate --&gt; Quality["Maintains code&lt;br&gt;quality standards"]
+
+</pre>
+</div>
+<p></p><figcaption> Data Science Environments</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<section id="dev-environments" class="level4">
+<h4 class="anchored" data-anchor-id="dev-environments">DEV Environments</h4>
+<p>The development environment (<strong>dev</strong>) is the primary location where data scientists write new code. It’s typically used for iteration and experimentation, and it’s connected to version control (Git).</p>
+</section>
+<section id="test-environments" class="level4">
+<h4 class="anchored" data-anchor-id="test-environments">Test Environments</h4>
+<p>The testing environment (<strong>test</strong>) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.</p>
+</section>
+<section id="production-environments" class="level4">
+<h4 class="anchored" data-anchor-id="production-environments">Production Environments</h4>
+<p>The ‘live’ environment that serves the end users is the production environment (<strong>prod</strong>). Prod has strictly controlled access with a focus on stability and monitoring.</p>
+<p>The figures from the <a href="https://do4ds.com/chapters/sec1/1-5-deployments.html#separate-the-prod-environment">chapter</a> do an excellent job illustrating these environments, but I’ve added a sequence diagram:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -556,17 +593,6 @@ sequenceDiagram
 </div>
 </div>
 </div>
-<section id="dev-environments" class="level4">
-<h4 class="anchored" data-anchor-id="dev-environments">DEV Environments</h4>
-<p>The development environment (<strong>Dev</strong>) is the primary location where data scientists write and test their code. It’s typically used for iteration and experimentation, and it’s connected to version control (Git).</p>
-</section>
-<section id="test-environments" class="level4">
-<h4 class="anchored" data-anchor-id="test-environments">Test Environments</h4>
-<p>The testing environment (<strong>Test</strong>) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.</p>
-</section>
-<section id="production-environments" class="level4">
-<h4 class="anchored" data-anchor-id="production-environments">Production Environments</h4>
-<p>The ‘live’ environment that serves the end users is the production environment (<strong>Prod</strong>). Prod has strictly controlled access with a focus on stability and monitoring.</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -574,42 +600,44 @@ sequenceDiagram
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
-flowchart TB
-    Dev[Development Environment]
-    Git[Git Repository]
-    CI[CI: Continuous Integration]
-    Test[Test Environment]
-    Promote[Git Promote]
-    CD[CD: Continuous Deployment]
-    Prod[Production Environment]
+
+flowchart TD
+    subgraph DevEnv["🔧 Development"]
+        DevCode("Code Writing&lt;br&gt;&amp; Iteration")
+        Git("Version Control (Git)")
+        DevCode &lt;--&gt; Git
+    end
+
+    subgraph TestEnv["🧪 Testing"]
+        AnonData("Realistic&lt;br&gt;(Anonymized) Data")
+        SysVal("System &lt;br&gt;Validation")
+        UAT("User Acceptance&lt;br&gt;Testing (UAT)")
+        AnonData --&gt; SysVal --&gt; UAT
+    end
+
+    subgraph ProdEnv["🚀 Production"]
+        LiveApp("Live Application")
+        Monitor("Monitoring &amp; Stability")
+        EndUser("End Users")
+        LiveApp --&gt; Monitor
+        LiveApp --&gt; EndUser
+    end
+
+    Git --&gt;|"promote"| TestEnv
+    UAT --&gt;|"approve &amp; promote"| ProdEnv
+
+    style DevEnv fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style TestEnv fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    style ProdEnv fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
     
-    Dev --&gt;|commit &amp; push| Git
-    Git --&gt;|webhook triggers| CI
-    CI --&gt;|tests pass| Test
-    
-    Test --&gt;|validation complete| Promote
-    Promote --&gt;|create tag v1.0| Git
-    Git --&gt;|tag triggers| CD
-    CD --&gt;|deploy| Prod
-    
-    Prod -.-&gt;|rollback needed| Git
-    Git -.-&gt;|deploy previous tag| CD
-    
-    style Dev fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
-    style Test fill:#fff3e0,stroke:#f57c00,stroke-width:3px
-    style Prod fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
-    style Git fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    style CI fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style CD fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style Promote fill:#fff9c4,stroke:#f9a825,stroke-width:3px
 </pre>
 </div>
 <p></p><figcaption> Data Science Environments</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
-<p><strong>Git promotion</strong> is the process of tagging a commit as ready for production. This creates an immutable reference point and triggers production deployment pipeline. The <strong>CI/CD Pipeline</strong> is the automated process that builds, tests, and deploys the code.</p>
-<p>This ensures consistency across environments and reduces human error in deployment. CI/CD automates testing at each stage, deployment between environments, rollback on failures, and monitoring and alerting.</p>
+<p><strong>Git promotion</strong> is the process of tagging a commit as ready for production. This creates an immutable reference point and triggers a production deployment pipeline. A <strong>CI/CD Pipeline</strong> is an automated process that builds, tests, and deploys the code.</p>
+<p>Code promotion ensures consistency across all three environments and reduces human error in deployment.</p>
 </section>
 </section>
 <section id="git-data-science" class="level3">
@@ -747,6 +775,12 @@ A good minimum is: artifact hash + signed manifest + CI logs + approval record.<
 
 
 </section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>These <a href="https://do4ds.com/chapters/sec1/1-1-env-as-code.html#environments-have-layers">three layers</a> are Packages (Python + R Packages), System (Python + R Packages, Other System Libraries, and Operating System), and Hardware (Virtual Hardware and Physical Hardware).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->
