@@ -76,57 +76,5 @@ We would also have to make sure our repository's **Pages** settings (Settings â†
 
 ## Running Tests 
 
-You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run `R CMD check` on every push or pull request. Here's an example workflow file for that:
-
-
-The original [`_labs/lab5/publish-r-py.yml` file](https://github.com/alexkgold/do4ds/tree/main/_labs/lab5) is below for reference: 
-
-```yaml
-on:
-  workflow_dispatch:
-  push:
-    branches: main
-
-name: Quarto Publish
-
-jobs:
-  build-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-
-      - name: Install R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.2.0'
-          use-public-rspm: true
-
-      - name: Setup renv and install packages
-        uses: r-lib/actions/setup-renv@v2
-        with:
-          cache-version: 1
-        env:
-          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/all/latest
-
-      - name: Install Python and Dependencies
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-      - run: pip install jupyter
-      - run: pip install -r requirements.txt
-
-      - name: Render and Publish
-        uses: quarto-dev/quarto-actions/publish@v2
-        with:
-          target: gh-pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
+You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run 
 
