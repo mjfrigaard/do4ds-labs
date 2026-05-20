@@ -474,15 +474,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#example-actions" id="toc-example-actions" class="nav-link active" data-scroll-target="#example-actions">Example Actions</a>
+  <li><a href="#publishing-quartogithub-pages" id="toc-publishing-quartogithub-pages" class="nav-link active" data-scroll-target="#publishing-quartogithub-pages">Publishing Quarto/GitHub Pages</a>
   <ul>
-  <li><a href="#quartogithub-pages" id="toc-quartogithub-pages" class="nav-link" data-scroll-target="#quartogithub-pages">Quarto/GitHub Pages</a>
-  <ul class="collapse">
-  <li><a href="#what-it-does" id="toc-what-it-does" class="nav-link" data-scroll-target="#what-it-does">What it does</a></li>
-  </ul></li>
+  <li><a href="#workflow-file" id="toc-workflow-file" class="nav-link" data-scroll-target="#workflow-file">Workflow file</a></li>
+  <li><a href="#publish.yml" id="toc-publish.yml" class="nav-link" data-scroll-target="#publish.yml"><code>_publish.yml</code></a></li>
+  <li><a href="#what-they-do" id="toc-what-they-do" class="nav-link" data-scroll-target="#what-they-do">What they do</a></li>
   <li><a href="#running-tests" id="toc-running-tests" class="nav-link" data-scroll-target="#running-tests">Running Tests</a>
   <ul class="collapse">
-  <li><a href="#what-it-does-1" id="toc-what-it-does-1" class="nav-link" data-scroll-target="#what-it-does-1">What it does</a></li>
+  <li><a href="#what-it-does" id="toc-what-it-does" class="nav-link" data-scroll-target="#what-it-does">What it does</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -535,50 +534,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>In this lab, we’re going to cover using GitHub Actions (or just Actions) for deploying R or Python code (i.e., models, APIs, apps, etc) to a published website. View the original lab file <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab5">here</a>.</p>
-<section id="example-actions" class="level2">
-<h2 class="anchored" data-anchor-id="example-actions">Example Actions</h2>
 <p>To help explain/demonstrate GitHub Actions, I’ll cover a few examples I use often.</p>
-<section id="quartogithub-pages" class="level3">
-<h3 class="anchored" data-anchor-id="quartogithub-pages">Quarto/GitHub Pages</h3>
+<section id="publishing-quartogithub-pages" class="level2">
+<h2 class="anchored" data-anchor-id="publishing-quartogithub-pages">Publishing Quarto/GitHub Pages</h2>
 <p>This book is published using GitHub Pages, which is a free hosting service provided by GitHub. Quarto provides an easy Terminal command for publishing using GitHub Pages:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> publish gh-pages </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If I wanted to accomplish the same thing using GitHub Actions, I could create a workflow file in the <code>.github/workflows</code> directory of my repository. The workflow file would look something like this:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .github/workflows/publish.yml</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Publish Quarto Site to GitHub Pages</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">main</span><span class="kw">]</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">build-deploy</span><span class="kw">:</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">permissions</span><span class="kw">:</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">contents</span><span class="kw">:</span><span class="at"> write</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up Quarto</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> quarto-dev/quarto-actions/setup@v2</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Render and Publish to GitHub Pages</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> quarto-dev/quarto-actions/publish@v2</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">target</span><span class="kw">:</span><span class="at"> gh-pages</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">GITHUB_TOKEN</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<section id="what-it-does" class="level4">
-<h4 class="anchored" data-anchor-id="what-it-does">What it does</h4>
-<ul>
-<li>This triggers on every push to <code>main</code>, mirroring the behavior of running <code>quarto publish gh-pages</code> locally.</li>
-<li>The <code>contents: write</code> permission is required so the action can push the rendered output to the <code>gh-pages</code> branch.<br>
-</li>
-<li>The <code>GITHUB_TOKEN</code> is automatically provided by GitHub Actions — no manual secret setup required.</li>
-</ul>
-<p>We would also have to make sure our repository’s <strong>Pages</strong> settings (Settings → Pages) is configured to deploy from the <code>gh-pages</code> branch.</p>
+<p>The lab for this section will accomplish the same thing, but does so using a GitHub Action workflow file. However, if you run the commands above – as I did – the workflow files don’t exist because the site isn’t published via GitHub Actions. Instead, this repo uses local publishing.</p>
+<p>There are two valid ways to publish a Quarto book to GitHub Pages, and running <code>quarto publish gh-pages</code> creates a <em>local setup</em>. This means Quarto renders the files locally, then pushes the rendered HTML directly to the <code>gh-pages</code> branch. The commit log for this branch confirms it:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> log gh-pages <span class="at">--oneline</span> <span class="at">-5</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 76175e88 Built site for gh-pages</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 559df417 Built site for gh-pages</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>Built site for gh-pages</code> messages are Quarto’s signature commit message when it pushes to the branch itself. <strong>No workflow file is involved.</strong></p>
+<p>To convert this to CI publishing, we’ll have to create and commit <code>.github/workflows/publish.yml</code> and <code>_publish.yml</code> files, so GitHub Actions can render and deploy on every push to <code>main</code>.</p>
+<section id="workflow-file" class="level3">
+<h3 class="anchored" data-anchor-id="workflow-file">Workflow file</h3>
+<p>In the <code>.github/workflows/publish.yml</code> directory, create …</p>
+</section>
+<section id="publish.yml" class="level3">
+<h3 class="anchored" data-anchor-id="publish.yml"><code>_publish.yml</code></h3>
+<p>Create <code>_publish.yml</code> and include the following …</p>
+</section>
+<section id="what-they-do" class="level3">
+<h3 class="anchored" data-anchor-id="what-they-do">What they do</h3>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -622,7 +600,6 @@ flowchart TD
 </div>
 </div>
 </section>
-</section>
 <section id="running-tests" class="level3">
 <h3 class="anchored" data-anchor-id="running-tests">Running Tests</h3>
 <p>You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run <code>testthat</code> tests when code is pushed to the <code>test</code> branch, and only promote to the <code>prod</code> branch if the tests pass.</p>
@@ -661,8 +638,8 @@ flowchart TD
 <span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/check-r-package@v2</span></span>
 <span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
 <span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">error-on</span><span class="kw">:</span><span class="at"> </span><span class="st">'"error"'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<section id="what-it-does-1" class="level4">
-<h4 class="anchored" data-anchor-id="what-it-does-1">What it does</h4>
+<section id="what-it-does" class="level4">
+<h4 class="anchored" data-anchor-id="what-it-does">What it does</h4>
 <ul>
 <li>The workflow above triggers on <strong>pushes</strong> to <code>test</code> (from <code>dev</code>) and on <strong>pull requests</strong> targeting <code>prod</code><br>
 </li>
