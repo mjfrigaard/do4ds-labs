@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-09">
+<meta name="dcterms.date" content="2026-05-19">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 5: Deployments and Code Promotion – DO4DS: Lab Solutions</title>
@@ -443,11 +443,16 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#data-science-environments" id="toc-data-science-environments" class="nav-link" data-scroll-target="#data-science-environments">Data Science Environments</a>
   <ul class="collapse">
-  <li><a href="#dev-environments" id="toc-dev-environments" class="nav-link" data-scroll-target="#dev-environments">DEV Environments</a></li>
+  <li><a href="#development-environments" id="toc-development-environments" class="nav-link" data-scroll-target="#development-environments">Development Environments</a></li>
   <li><a href="#test-environments" id="toc-test-environments" class="nav-link" data-scroll-target="#test-environments">Test Environments</a></li>
   <li><a href="#production-environments" id="toc-production-environments" class="nav-link" data-scroll-target="#production-environments">Production Environments</a></li>
   </ul></li>
-  <li><a href="#git-data-science" id="toc-git-data-science" class="nav-link" data-scroll-target="#git-data-science">Git &amp; Data Science</a></li>
+  <li><a href="#git-data-science" id="toc-git-data-science" class="nav-link" data-scroll-target="#git-data-science">Git &amp; Data Science</a>
+  <ul class="collapse">
+  <li><a href="#artifact-immutability" id="toc-artifact-immutability" class="nav-link" data-scroll-target="#artifact-immutability">Artifact immutability</a></li>
+  <li><a href="#environment-drift" id="toc-environment-drift" class="nav-link" data-scroll-target="#environment-drift">Environment drift</a></li>
+  <li><a href="#environment-parity" id="toc-environment-parity" class="nav-link" data-scroll-target="#environment-parity">Environment parity</a></li>
+  </ul></li>
   <li><a href="#git-cicd" id="toc-git-cicd" class="nav-link" data-scroll-target="#git-cicd">Git &amp; CI/CD</a></li>
   <li><a href="#git-github-cicd-actions-version-control" id="toc-git-github-cicd-actions-version-control" class="nav-link" data-scroll-target="#git-github-cicd-actions-version-control">Git, GitHub, CI/CD, Actions, &amp; Version Control</a></li>
   </ul></li>
@@ -470,7 +475,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-04-09</p>
+      <p class="date">2026-05-19</p>
     </div>
   </div>
   
@@ -482,24 +487,6 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="callout callout-style-default callout-warning no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
-<div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: #282b2d;">
-<p>This section is being revised. Thank you for your patience.</p>
-</div>
-</div>
-</div>
-</div>
 <section id="comprehension-questions" class="level2">
 <h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
 <p>The questions below come from the <a href="https://do4ds.com/chapters/sec1/1-5-deployments.html">Deployments and Code Promotion</a> chapter.</p>
@@ -533,22 +520,22 @@ mindmap
       Code Writing
       Experimentation
       Git Promote
-        Push to feature branch
-        Pull request triggers CI/CD
+        Push to feature&lt;br&gt;branch
+        Pull request&lt;br&gt;triggers CI/CD
     Test
       Automation
         Unit tests
-        Integration tests
+        Integration&lt;br&gt;tests
         UAT
       CI/CD
-        Validates build
-        Runs test suite
+        Validates&lt;br&gt;build
+        Runs test&lt;br&gt;suite
     Prod
       Deployment
-        Automated release
-        Version tagged
+        Automated&lt;br&gt;release
+        Version&lt;br&gt;tagged
       Monitoring
-        Stability checks
+        Stability&lt;br&gt;checks
         Access control
 
 </pre>
@@ -557,17 +544,17 @@ mindmap
 </div>
 </div>
 </div>
-<section id="dev-environments" class="level4">
-<h4 class="anchored" data-anchor-id="dev-environments">DEV Environments</h4>
+<section id="development-environments" class="level4">
+<h4 class="anchored" data-anchor-id="development-environments">Development Environments</h4>
 <p>The development environment (<strong>dev</strong>) is the primary location where data scientists write new code. It’s typically used for iteration and experimentation, and it’s connected to version control (Git).</p>
 </section>
 <section id="test-environments" class="level4">
 <h4 class="anchored" data-anchor-id="test-environments">Test Environments</h4>
-<p>The testing environment (<strong>test</strong>) is a mirror of the production environment with realistic data (often anonymized). Test environments are integrated and validates with other systems, and user acceptance testing occurs here.</p>
+<p>The testing environment (<strong>test</strong>) is a mirror of the production environment with realistic data (often anonymized). Test environments are designed to check integration and validation with other systems. The test environment also typically includes user acceptance testing and/or system tests.</p>
 </section>
 <section id="production-environments" class="level4">
 <h4 class="anchored" data-anchor-id="production-environments">Production Environments</h4>
-<p>The ‘live’ environment that serves the end users is the production environment (<strong>prod</strong>). Prod has strictly controlled access with a focus on stability and monitoring.</p>
+<p>The ‘live’ environment that serves the end users is the production environment (<strong>prod</strong>). The production branch has strictly controlled access with a focus on stability and monitoring.</p>
 </section>
 </section>
 <section id="git-data-science" class="level3">
@@ -575,37 +562,47 @@ mindmap
 <blockquote class="blockquote">
 <p><strong><em>Why is Git so important to a good code promotion strategy?</em></strong></p>
 </blockquote>
-<p>Code promotion is the process of tagging a Git commit as ready for production. This creates a reference point, and if desired, can trigger a production deployment pipeline. If a change isn’t represented as a Git commit, it literally didn’t happen. Code promotion ensures consistency across all three environments and reduces human error in deployment.</p>
-<p>All commits are signed–we know who made the changes–and the prod branch requires approval to merge (i.e., it’s protected). This artifact immutability connects ‘builds’ to specific commit SHAs or by tagging releases. The same code is promoted across environments so we can be sure untested code never reaches production.</p>
-<p>Without Git, the code would need to be rebuilt in each environment, and the tested code wouldn’t necessarily be the deployed code, causing environment drift. Environment drift is when the code in production differs from the code that was tested. In DevOps, environment drift is the enemy because it leads to unpredictable behavior and makes debugging difficult.</p>
-<p>Git enables environment parity. The three environments (dev, test, and prod) differ only by data and credentials, and changes are promoted, not re-created. When production inevitably breaks, we can use Git to roll back by redeploying previous commits/tags. This avoids making ad-hoc changes in a production server.</p>
+<p>Code promotion is the process of tagging Git commits as ‘ready for production.’ This creates a reference point, which can trigger tests (i.e., in the <code>test</code> branch) or a production deployment pipeline (in the <code>prod</code> branch). With version control, if changes aren’t represented as Git commits, they literally didn’t happen. Git and code promotion ensures consistency across all three environments (dev, test, and prod) and reduces human error in deployment.</p>
+<section id="artifact-immutability" class="level4">
+<h4 class="anchored" data-anchor-id="artifact-immutability">Artifact immutability</h4>
+<p>With Git, all changes are signed–we –with specific commit SHAs or by tagging releases. Before any changes can be merged into a <code>prod</code> branch, approval is required (i.e., it’s protected). This <strong>artifact immutability</strong> connects ‘builds’ as they are promoted across environments, so we can be sure untested/non-reviewed code never reaches production.</p>
+</section>
+<section id="environment-drift" class="level4">
+<h4 class="anchored" data-anchor-id="environment-drift">Environment drift</h4>
+<p>Environment drift is when the production code differs from the tested code. Without a code promotion strategy and version control, the code would need to be rebuilt in each environment, so the tested code wouldn’t necessarily be the code deployed into production. In DevOps, environment drift is the enemy because it can lead to unpredictable behavior and makes debugging difficult.</p>
+</section>
+<section id="environment-parity" class="level4">
+<h4 class="anchored" data-anchor-id="environment-parity">Environment parity</h4>
+<p>Git enables environment parity. When used properly, our three environments (<code>dev</code>, <code>test</code>, and <code>prod</code>) differ only by data and credentials. Changes are promoted, not re-created. When production code inevitably breaks, developers can use Git to roll back and redeploying previous versions (via commit SHAs or tagged releases). This avoids making ad-hoc changes in a <code>prod</code> environment.</p>
 <hr>
 <blockquote class="blockquote">
 <p><strong><em>Can you have a code promotion strategy without Git?</em></strong></p>
 </blockquote>
-<p>Sure — code promotion can be done without Git, but you’d need to find a way to:</p>
+<p>Sure — code promotion can be done without Git, but we’d need to find a way to:</p>
 <ul>
-<li>Create some kind of ‘immutable versioned artifact’ (i.e., something to be promoted)<br>
+<li>Create some kind of ‘immutable versioned artifact’ (i.e., someway of tracking ‘who did what’, and preferably ‘when’)<br>
 </li>
-<li>Blocks/gates requiring tests/approvals that must be passed before promotion<br>
+<li>Blocks/gates requiring tests/approvals that must be passed before code is promoted<br>
 </li>
-<li>A promotion mechanism to copy/move/retag the immutable versioned artifact between environments</li>
+<li>A promotion mechanism to copy/move/retag each immutable versioned artifact between environments</li>
 </ul>
 <p>Also need substitutes for:</p>
 <ol type="1">
-<li>A way to view/review ‘diffs’, either by performing code review (or document-style review) on release bundles</li>
-<li>The ability to keep previous artifacts and switch the environments<br>
+<li>A way to view/review ‘diffs’, either by performing code review (or document-style review)<br>
+</li>
+<li>The ability to keep previous artifacts and switch between each environment<br>
 </li>
 <li>Some means of traceability that connects the artifacts, manifests, approvals, and build logs</li>
 </ol>
+</section>
 </section>
 <section id="git-cicd" class="level3">
 <h3 class="anchored" data-anchor-id="git-cicd">Git &amp; CI/CD</h3>
 <blockquote class="blockquote">
 <p><strong><em>What is the relationship between Git and CI/CD?</em></strong></p>
 </blockquote>
-<p>A CI/CD Pipeline is an automated process that builds, tests, and deploys the code. In CI-CD systems, Git defines the code promotion workflow, but not the pipeline. The pipeline simply <em>reacts</em> to Git events. The code promotion logic lives in the Git branches, tags, merge policies, but not in brittle pipeline scripts. This enables a “build once, promote many times” strategy, where the same tested artifact is promoted across environments.</p>
-<p>Git provides the code change/approval history, and the pipeline results tied to commits. Each release is also tagged, making it easy to track commits and introduced changes. This traceability is crucial for debugging and accountability. Git serves as the gatekeeper for CI-CD policies and integrates directly with enforcement mechanisms.</p>
+<p>A CI/CD Pipeline is an automated process that builds, tests, and deploys code. In CI-CD systems, Git ‘events’ define the code promotion workflow, not the pipeline. The pipeline simply <em>reacts</em> to Git events. The code promotion logic lives in the branches, tags, merge policies, etc. This enables a “build once, promote many times” strategy, where the same tested artifact is promoted across environments.</p>
+<p>Git provides the code change/approval history, and the pipeline results are tied to commits. Each release is also tagged, making it easy to track commits and introduced changes. This traceability is crucial for debugging and accountability. Git serves as the gatekeeper for CI-CD policies and integrates directly with enforcement mechanisms.</p>
 <p>Using Git turns CI-CD into a system, not a script.</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -614,14 +611,14 @@ mindmap
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 flowchart LR
-    GitEv["Git Event&lt;br&gt;(push, PR, merge)"] --&gt;|"triggers"| CICD["CI/CD Pipeline"]
-    CICD --&gt; CI["Continuous&lt;br&gt;Integration (CI)&lt;br&gt;Build &amp; Test"]
-    CICD --&gt; CD["Continuous&lt;br&gt;Delivery (CD)&lt;br&gt;Deploy"]
+    GitEv(["Git Event&lt;br&gt;(push, PR, merge)"]) --&gt;|"triggers"| CICD["CI/CD Pipeline"]
+    CICD --&gt; CI("Continuous&lt;br&gt;Integration (CI)&lt;br&gt;&lt;em&gt;Build &amp; Test&lt;/em&gt;")
+    CICD --&gt; CD("Continuous&lt;br&gt;Delivery (CD)&lt;br&gt;&lt;em&gt;Deploy&lt;/em&gt;")
 
-    style GitEv fill:#F9E79F,stroke:#D4AC0D,color:#000
-    style CICD fill:#D4E6F1,stroke:#2E86C1,color:#000
-    style CI fill:#D5F5E3,stroke:#1E8449,color:#000
-    style CD fill:#FADBD8,stroke:#C0392B,color:#000
+    style CI fill:#F9E79F,stroke:#D4AC0D,color:#000
+    style CD fill:#D4E6F1,stroke:#2E86C1,color:#000
+    style GitEv fill:#D5F5E3,stroke:#1E8449,color:#000
+    style CICD fill:#FADBD8,stroke:#C0392B,color:#000
 </pre>
 </div>
 <p></p><figcaption> Git &amp; CI/CD</figcaption> </figure><p></p>
@@ -629,38 +626,6 @@ flowchart LR
 </div>
 </div>
 <p>Think of Git as the source of truth and CI/CD as an automated response to changes in that truth. Git events — pushes, pull requests, merges — can fire a CI/CD pipeline.</p>
-<div class="cell" data-fig-width="7" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
-sequenceDiagram
-    actor Dev as Developer
-    participant Git as Git
-    participant CI as CI Pipeline
-    participant CD as CD Pipeline
-    participant Test as Test Env
-    participant Prod as Prod Env
-
-    Dev-&gt;&gt;Git: Push to feature branch
-    Git-&gt;&gt;CI: Triggers build &amp; tests
-    CI--&gt;&gt;Dev: ✅ Tests pass / ❌ Fail
-
-    Dev-&gt;&gt;Git: Merge PR to main
-    Git-&gt;&gt;CD: Triggers deployment
-    CD-&gt;&gt;Test: Deploy to test env
-    CD--&gt;&gt;Dev: ✅ Test deployment confirmed
-
-    Dev-&gt;&gt;Git: Tag release (v1.0)
-    Git-&gt;&gt;CD: Triggers production deployment
-    CD-&gt;&gt;Prod: Deploy to prod env
-</pre>
-</div>
-<p></p><figcaption> Git &amp; CI/CD</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
 <p><strong>Key distinctions between Git and CI/CD:</strong></p>
 <table class="caption-top table">
 <thead>
@@ -698,25 +663,32 @@ sequenceDiagram
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
 
 gitGraph
-   commit id: "Initial commit"
-   
-   branch feature
-   checkout feature
-   commit id: "New feature code"
-   commit id: "Unit tests pass ✅"
-   
-   checkout main
-   merge feature id: "Merge PR → triggers CI"
-   commit id: "Deploy to Test ✅"
+   commit id: "Initial codebase"
+
+   branch dev
+   checkout dev
+   commit id: "Experiment: model v1"
+   commit id: "Iterate: model v2"
+   commit id: "Iterate: model v3 ✅"
+
+   branch test
+   checkout test
+   commit id: "Deploy to Test env"
+   commit id: "Integration checks ✅"
+   commit id: "System tests ✅"
    commit id: "UAT approved ✅"
-   commit id: "Tag release v1.0 → triggers CD"
-   
+
+   checkout main
+   merge test id: "Merge to main"
+   commit id: "Tag release v1.0"
+
    branch prod
    checkout prod
    commit id: "Deploy to Prod 🚀"
+   commit id: "Monitoring active 📊"
 </pre>
 </div>
 <p></p><figcaption> Git &amp; CI/CD</figcaption> </figure><p></p>
@@ -724,15 +696,15 @@ gitGraph
 </div>
 </div>
 <p>In the <code>gitGraph</code> above:</p>
-<ol type="1">
-<li>The <code>feature</code> branch is where the developer writes and tests code locally<br>
+<ul>
+<li><strong><code>dev</code></strong> is where all experimentation happens — it never touches <code>main</code> directly<br>
 </li>
-<li>When a pull request is merged to <code>main</code>, this fires the CI pipeline (build &amp; test) and deploys to <code>test</code><br>
+<li><strong><code>test</code></strong> branches from <code>dev</code> once code is stable enough to validate, keeping <code>prod</code>-like conditions isolated<br>
 </li>
-<li><code>v1.0</code> is tagged to a release on the <code>main</code> branch, which fires the CD pipeline and deploys to <code>prod</code><br>
+<li><strong><code>main</code></strong> only receives code that has passed full UAT and system testing — it acts as the <strong>gatekeeper</strong><br>
 </li>
-<li>The <code>prod</code> branch represents the exact code running in the live environment, providing a clear snapshot for auditing and rollback</li>
-</ol>
+<li><strong><code>prod</code></strong> branches from <code>main</code> after a release is tagged, representing exactly what is live at any given time, making rollbacks straightforward</li>
+</ul>
 </section>
 <section id="git-github-cicd-actions-version-control" class="level3">
 <h3 class="anchored" data-anchor-id="git-github-cicd-actions-version-control">Git, GitHub, CI/CD, Actions, &amp; Version Control</h3>
@@ -744,32 +716,32 @@ gitGraph
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'default', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px"}}}%%
 
 mindmap
   root((Code&lt;br&gt;Management))
-    Version Control
-      Tracks changes over time
-      Enables rollback
-      Supports collaboration
-        Git
-          Local repositories
-          Branching and merging
-          Commit history
-            GitHub
-              Remote repositories
-              Pull requests
-              Code review
-                GitHubActions
-                  Workflow files
-                  Triggered by Git events
-                    CICD
-                      Continuous Integration
-                        Automated testing
-                        Build validation
-                      Continuous Delivery
-                        Automated deployment
-                        Environment promotion
+    &lt;strong&gt;Version Control&lt;/strong&gt;
+      &lt;em&gt;Tracks changes&lt;br&gt;over time&lt;/em&gt;
+      &lt;em&gt;Enables&lt;br&gt;rollback&lt;/em&gt;
+      &lt;em&gt;Supports&lt;br&gt;collaboration&lt;/em&gt;
+        &lt;strong&gt;Git&lt;/strong&gt;
+          &lt;em&gt;Local&lt;br&gt;repositories&lt;/em&gt;
+          &lt;em&gt;Branching&lt;br&gt;and merging&lt;/em&gt;
+          &lt;em&gt;Commit history&lt;/em&gt;
+            &lt;strong&gt;GitHub&lt;/strong&gt;
+              &lt;em&gt;Remote&lt;br&gt;repositories&lt;/em&gt;
+              &lt;em&gt;Pull&lt;br&gt;requests&lt;/em&gt;
+              &lt;em&gt;Code&lt;br&gt;review&lt;/em&gt;
+                &lt;strong&gt;GitHub Actions&lt;/strong&gt;
+                  &lt;em&gt;Workflow&lt;br&gt;files&lt;/em&gt;
+                  &lt;em&gt;Triggered by&lt;br&gt;Git events&lt;/em&gt;
+                    &lt;strong&gt;CICD&lt;/strong&gt;
+                      &lt;em&gt;Continuous&lt;br&gt;Integration&lt;/em&gt;
+                        &lt;em&gt;Automated&lt;br&gt;testing&lt;/em&gt;
+                        &lt;em&gt;Build&lt;br&gt;validation&lt;/em&gt;
+                      &lt;em&gt;Continuous&lt;br&gt;Delivery&lt;/em&gt;
+                        &lt;em&gt;Automated&lt;br&gt;deployment&lt;/em&gt;
+                        &lt;em&gt;Environment&lt;br&gt;promotion&lt;/em&gt;
 
 </pre>
 </div>

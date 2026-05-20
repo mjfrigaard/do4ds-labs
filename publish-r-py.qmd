@@ -22,11 +22,14 @@ co_box(
 )
 ```
 
-In this lab we're going to cover using GitHub Actions (or just Actions) for deploying your R or Python code (i.e., models, APIs, apps, etc). 
+In this lab, we're going to cover using GitHub Actions (or just Actions) for deploying R or Python code (i.e., models, APIs, apps, etc) to a published website. View the original lab file [here](https://github.com/alexkgold/do4ds/tree/main/_labs/lab5).
+
+
+## Example Actions
 
 To help explain/demonstrate GitHub Actions, I'll cover a few examples I use often. 
 
-## Quarto/GitHub Pages
+### Quarto/GitHub Pages
 
 This book is published using GitHub Pages, which is a free hosting service provided by GitHub. Quarto provides an easy Terminal command for publishing using GitHub Pages:
 
@@ -66,7 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### What it does:
+#### What it does
 
 - This triggers on every push to `main`, mirroring the behavior of running `quarto publish gh-pages` locally.
 - The `contents: write` permission is required so the action can push the rendered output to the `gh-pages` branch.    
@@ -74,7 +77,111 @@ jobs:
 
 We would also have to make sure our repository's **Pages** settings (Settings → Pages) is configured to deploy from the `gh-pages` branch.
 
-## Running Tests 
+```{=html}
+<style>
 
-You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run 
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+```
+
+```{mermaid}
+%%| fig-cap: 'Publishing to GitHub pages'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+flowchart TD
+    Push(["Developer<br>pushes to <code>main</code>"]) -->|"triggers"| GHA["GitHub Actions<br>Runner (ubuntu-latest)"]
+
+    GHA --> Step1("<strong>Step 1</strong><br>Checkout Repository<br><code>actions/checkout@v4</code>")
+    Step1 --> Step2("<strong>Step 2</strong><br>Set up Quarto<br><code>quarto-actions/setup@v2</code>")
+    Step2 --> Step3("<strong>Step 3</strong><br>Render & Publish<br><code>quarto-actions/publish@v2</code>")
+
+    Step3 -->|"authenticates with"| Token["<cdde>GITHUB_TOKEN</code><br>(auto-provided<br>by GitHub)"]
+    Token -->|"writes rendered output"| GHPages("<code>gh-pages</code><br>branch")
+    GHPages -->|"served as"| Site(["Live GitHub<br>Pages Site"])
+
+    style Push fill:#F9E79F,stroke:#D4AC0D,color:#000
+    style GHA fill:#D4E6F1,stroke:#2E86C1,color:#000
+    style Step1 fill:#EBF5FB,stroke:#2E86C1,color:#000
+    style Step2 fill:#EBF5FB,stroke:#2E86C1,color:#000
+    style Step3 fill:#EBF5FB,stroke:#2E86C1,color:#000
+    style Token fill:#FDEDEC,stroke:#C0392B,color:#000
+    style GHPages fill:#D5F5E3,stroke:#1E8449,color:#000
+    style Site fill:#D5F5E3,stroke:#1E8449,color:#000
+```
+
+
+### Running Tests 
+
+You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run `testthat` tests when code is pushed to the `test` branch, and only promote to the `prod` branch if the tests pass. 
+
+```yaml
+# stored in .github/workflows/r-package-tests.yml
+
+name: R Package Tests
+
+on:
+  push:
+    branches: [test]
+  pull_request:
+    branches: [prod]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::testthat
+            any::devtools
+
+      - name: Run tests
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"error"'
+```
+
+#### What it does
+
+- The workflow above triggers on **pushes** to `test` (from `dev`) and on **pull requests** targeting `prod`    
+- `error-on: '"error"'` means the workflow only fails on hard errors — warnings won't block promotion   
+- To enforce that tests must pass before merging to `prod`, enable branch protection rules in GitHub (Settings → Branches → Add rule for `prod`) and require this workflow as a status check   
+
+```{mermaid}
+%%| fig-cap: 'Running tests'
+%%| fig-width: 7.0
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+flowchart TD
+    DevBr(["<code>dev</code> branch"]) -->|"push to test"| TestBr("<code>test</code> branch")
+    TestBr -->|"triggers"| GHA["GitHub Actions<br>Run <code>testthat</code> suite"]
+    GHA -->|"✅ tests pass"| PR["Pull Request<br><code>test</code> → <code>prod</code>"]
+    GHA -->|"❌ tests fail"| Block["Promotion<br>Blocked"]
+    PR -->|"approved & merged"| ProdBr("<code>prod</code> branch")
+
+    style DevBr fill:#D4E6F1,stroke:#2E86C1,color:#000
+    style TestBr fill:#D5F5E3,stroke:#1E8449,color:#000
+    style ProdBr fill:#FADBD8,stroke:#C0392B,color:#000
+    style Block fill:#F9E79F,stroke:#D4AC0D,color:#000
+```
+
 
