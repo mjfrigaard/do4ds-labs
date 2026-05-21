@@ -76,16 +76,48 @@ The process involves three steps:
 
 ## Overview
 
-This architecture is comprised of three scripts:
+This architecture is comprised of three scripts in two folders:
 
+**`api/`**
+
+```{bash}
+#| eval: false 
+#| code-cold: false
+R/api/
+├── api.Rproj
+├── mod-api.R
+├── model.R #<1>
+├── models/
+│   └── penguin_model/
+├── my-db.duckdb
+├── plumber.R #<2>
+├── README.md
+├── renv/
+└── renv.lock
+
+```
 1. `model.R` builds and stores the model used for the predictions.  
-2. `plumber.R` builds and launches the `plumber` API.    
-3. `mod-api.R` reads the stored model and launches a `vetiver` API.
+2. `plumber.R` builds and launches the `plumber` API.  
+
+
+**`app/`**
+
+```{bash}
+#| eval: false 
+#| code-cold: false
+R/app/
+├── app-api.R #<1>
+├── app.Rproj
+├── renv/
+└── renv.lock
+
+```
+1. `mod-api.R` reads the stored model and launches a `vetiver` API.
 
 
 We'll go over each file in detail in the sections below. 
 
-### The model 
+### The model (`model.R`)
 
 The `model.R` file contains the necessary packages and functions to build the linear model we're going to use to make the predictions from our Shiny app.[^model-location] 
 
@@ -303,7 +335,7 @@ str(v$prototype)
 ```
 
 
-## The API
+## The API (`plumber.R`)
 
 The code below is from the `plumber.R` file. I've removed some of the `print()` and `cat()` statements to focus on each step.[^pins-documentation]
 
@@ -336,7 +368,6 @@ When R builds a linear model using categorical variables, it will convert these 
 #| eval: false 
 #| code-fold: false
 prep_pred_data <- function(input_data) {
-  
   species_levels <- levels(v$prototype$species)
   sex_levels <- levels(v$prototype$sex)
   
@@ -346,7 +377,6 @@ prep_pred_data <- function(input_data) {
     sex = factor(input_data$sex, levels = sex_levels),
     stringsAsFactors = FALSE
   )
-  
 }
 ```
 
