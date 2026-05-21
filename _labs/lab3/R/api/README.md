@@ -1,37 +1,157 @@
-# R penguins model api
+# Penguin Mass Predictor API
+
+Plumber API that serves a linear regression model predicting penguin body mass from bill length, species, and sex. The model is trained in `model.R`, versioned with `vetiver`, and pinned locally to `models/`.
 
 ```
-├── plumber.R                # main API file (vetiver + plumber)
-├── mod-api.R                # original API (vetiver API)
-├── model.R                  # model training script
-├── models/                  # vetiver pin board
+├── model.R            # train and pin the vetiver model
+├── mod-api.R          # minimal vetiver API (single endpoint)
+├── plumber.R          # full API with all endpoints
+├── models/            # vetiver pin board
 │   └── penguin_model
-│       └── 20251004T054448Z-355a4
-└── renv.lock               # dependency management
+└── renv.lock
+```
+
+## Model
+
+`model.R` queries `my-db.duckdb` (Palmer Penguins data), trains a linear model, and pins a `vetiver` model object to `models/`.
+
+```r
+lm(body_mass_g ~ bill_length_mm + species + sex, data = df)
+```
+
+The `vetiver` prototype defines the expected input shape:
+
+| Column | Type | Values |
+|---|---|---|
+| `bill_length_mm` | numeric | 30–60 |
+| `species` | factor | `Adelie`, `Chinstrap`, `Gentoo` |
+| `sex` | factor | `female`, `male` |
+
+Run once before starting either API:
+
+```bash
+Rscript model.R
 ```
 
 ## mod-api.R
 
-```r
+Minimal API generated directly by `vetiver`. Exposes a single `/predict` endpoint using `vetiver`'s default input/output format.
 
+```r
+app <- plumber::pr() |> vetiver::vetiver_api(v)
+app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
+```
+
+Start:
+
+```bash
+Rscript -e "source('mod-api.R')"
+```
+
+The `vetiver` default endpoint expects the prototype format directly:
+
+```bash
+curl -X POST http://127.0.0.1:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"bill_length_mm": [45], "species": ["Adelie"], "sex": ["male"]}'
 ```
 
 ## plumber.R
 
-### handle_ping()
+Full API with health checks, model introspection, and three prediction endpoints.
+
+Start:
+
+```bash
+Rscript -e "plumber::plumb(file='plumber.R')\$run()"
+```
+
+### Endpoints
+
+#### Health
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/ping` | Basic liveness check |
+| GET | `/health` | Model name, version, R version |
 
 ```bash
 curl http://127.0.0.1:8080/ping
 ```
 
-### handle_health()
-
 ```bash
 curl http://127.0.0.1:8080/health
 ```
 
-### handle_model_prototype()
+#### Model Info
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/model-info` | Name, class, version, required packages |
+| GET | `/model-prototype` | Expected column types and factor levels |
+| GET | `/input-schema` | Field descriptions and valid values |
+
+```bash
+curl http://127.0.0.1:8080/model-info
+```
 
 ```bash
 curl http://127.0.0.1:8080/model-prototype
 ```
+
+```bash
+curl http://127.0.0.1:8080/input-schema
+```
+
+#### Predictions
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/predict` | Single or batch prediction |
+| POST | `/predict-validated` | Prediction with input validation |
+| POST | `/predict-batch` | Batch prediction (arrays) |
+
+All endpoints expect `species` and `sex` as strings (converted to factors internally by `prep_pred_data()`). The response is `{".pred": [<value>]}`.
+
+Single prediction:
+
+```bash
+curl -X POST http://127.0.0.1:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
+```
+
+Prediction with validation (returns 400 on bad input):
+
+```bash
+curl -X POST http://127.0.0.1:8080/predict-validated \
+  -H "Content-Type: application/json" \
+  -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
+```
+
+Batch prediction:
+
+```bash
+curl -X POST http://127.0.0.1:8080/predict-batch \
+  -H "Content-Type: application/json" \
+  -d '{"bill_length_mm": [45, 39, 50], "species": ["Adelie", "Adelie", "Gentoo"], "sex": ["male", "female", "male"]}'
+```
+
+## How the Shiny app uses this API
+
+The Shiny app in `../app/` calls `POST /predict` on this API. It sends a single-row JSON payload with `bill_length_mm` (numeric), `species` (string), and `sex` (lowercase string). The API returns `{".pred": [<grams>]}` and the app displays the value.
+
+```
+User input (UI)
+    │
+    ▼
+vals() reactive — data.frame(bill_length_mm, species, tolower(sex))
+    │
+    ▼
+httr2::req_body_json() → POST /predict → prep_pred_data() → predict(v, .)
+    │
+    ▼
+response$.pred[[1]] → renderText → "4180.8 grams"
+```
+
+The app does **not** one-hot encode the categorical variables — the API handles factor conversion internally.

@@ -59,10 +59,9 @@ server <- function(input, output) {
   vals <- reactive({
     data.frame(
       bill_length_mm = input$bill_length,
-      species_Chinstrap = as.numeric(input$species == "Chinstrap"),
-      species_Gentoo = as.numeric(input$species == "Gentoo"),
-      sex_male = as.numeric(input$sex == "Male")
-      )
+      species = input$species,
+      sex = tolower(input$sex)
+    )
   })
   
   pred <- reactive({
@@ -83,7 +82,7 @@ server <- function(input, output) {
     showNotification("✅ Prediction successful!", 
                      type = "default", duration = 10)
         
-    response$.pred[1]
+    response$.pred[[1]]
         
     }, error = function(e) {
       error_msg <- conditionMessage(e)

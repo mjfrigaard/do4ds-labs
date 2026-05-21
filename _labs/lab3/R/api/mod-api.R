@@ -2,12 +2,6 @@
 library(vetiver)
 library(pins)
 
-# connect to previous (lab2) model board
-# model_board <- pins::board_folder("../../../lab2/R/models/")
-# 
-# read pinned vetiver model
-# v <- vetiver::vetiver_pin_read(model_board, "penguin_model")
-
 # connect to lab3 model board ----
 model_board <- pins::board_folder("models/")
 
