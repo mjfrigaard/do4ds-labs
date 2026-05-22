@@ -2,7 +2,7 @@
 library(vetiver)
 library(pins)
 
-# connect to lab3 model board ----
+# connect to lab03 model board ----
 model_board <- pins::board_folder("models/")
 
 # read pinned vetiver model ----

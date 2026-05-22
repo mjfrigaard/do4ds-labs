@@ -52,7 +52,7 @@ Should show:
 
 Launch API:
 
-In a separate Terminal, launch the API by navigating to `do4ds-labs/_labs/lab4/Python/api/` and entering:
+In a separate Terminal, launch the API by navigating to `do4ds-labs/_labs/lab04/Python/api/` and entering:
 
 ```bash
 # source .env/bin/activate # if not activated 
