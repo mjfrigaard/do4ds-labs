@@ -27,11 +27,11 @@ I isolated development for the R Shiny app and API for lab 3 into separate `app/
 ```{r}
 #| eval: false 
 #| echo: false
-fs::dir_tree("_labs/lab3/R", recurse = 1)
+fs::dir_tree("_labs/lab03/R", recurse = 1)
 ```
 
 ```{verbatim}
-_labs/lab3/R
+_labs/lab03/R
 ├── R.Rproj
 ├── api #<1>
 │   ├── api.Rproj
@@ -49,7 +49,7 @@ _labs/lab3/R
 
 ## API
 
-The [`_labs/lab3/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab3/R/api/mod-api.R) contains the following:
+The [`_labs/lab03/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab03/R/api/mod-api.R) contains the following:
 
 ```{r}
 #| eval: false
@@ -58,7 +58,7 @@ library(vetiver)
 library(pins)
 
 # connect to model board
-model_board <- pins::board_folder("../../../lab2/R/models/")
+model_board <- pins::board_folder("../../../lab02/R/models/")
 
 # read pinned vetiver model
 v <- vetiver::vetiver_pin_read(model_board, "penguin_model")
@@ -76,7 +76,7 @@ The API will keep running when you run the app.
 app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
 ```
 
-![`plumber` API for `vetiver` model](img/lab3-r-plumber-router.png){fig-align="center" width="100%"}
+![`plumber` API for `vetiver` model](img/lab03-r-plumber-router.png){fig-align="center" width="100%"}
 
 Now we have a working API! We'll explore the UI in the sections below. Let's launch the app.[^plumber]
 
@@ -86,7 +86,7 @@ Now we have a working API! We'll explore the UI in the sections below. Let's lau
 
 I've made a few changes to the UI layout in `app-api.R`, so when I launched the app in a new RStudio session I see the following:
 
-![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align="center" width="100%"}
+![Launch `app-api.R`](img/lab03-r-shiny-launch.png){fig-align="center" width="100%"}
 
 View the UI changes below:
 
@@ -254,13 +254,12 @@ response <- httr2::request(api_url)
 ```{mermaid}
 %%| fig-width: 6.5
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 graph TD
 	A(["<strong>request()</strong> URL"]) --> B("Creates base<br>request object")
 	B --> C("Contains URL and<br>default settings")
 
-style A fill:#d8e4ff
 
 ```
 
@@ -281,14 +280,13 @@ style A fill:#d8e4ff
 ```{mermaid}
 %%| fig-width: 6.5
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 graph TD
 	A(["Request Object"]) --> B("<strong>req_method()</strong>")
 	B --> C("Sets HTTP verb")
 	C --> D("GET/POST/PUT/DELETE/PATCH")
 
-style A fill:#d8e4ff
 
 ```
 
@@ -316,14 +314,13 @@ response <- httr2::request(api_url) |>
 ```{mermaid}
 %%| fig-width: 6.5
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 graph TD
 	A(["R Object"]) --> B("<strong>req_body_json()</strong>")
 	B --> C("Converts to JSON")
 	C --> D("Adds to request body")
 
-style A fill:#d8e4ff
 
 ```
 
@@ -360,14 +357,13 @@ What happens:\
 ```{mermaid}
 %%| fig-width: 6.5
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 graph TD
 	A(["Complete Request<br>Object"]) --> B("<strong>req_perform()</strong>")
 	B --> C("Sends HTTP request")
 	C --> D("Returns response<br>object")
 
-style A fill:#d8e4ff
 
 ```
 
@@ -399,14 +395,13 @@ response <- httr2::request(api_url) |>
 ```{mermaid}
 %%| fig-width: 6.5
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 graph TD
       A(["JSON Response Body"]) --> B("<strong>resp_body_json()</strong>")
       B --> C("Parses JSON to R objects")
       C --> D("Lists, data.frames, etc.")
 
-style A fill:#d8e4ff
 
 ```
 
@@ -424,21 +419,21 @@ response <- httr2::request(api_url) |>
 
 Now when we launch the app, the preview of the parameters are in a `data.frame` (not a list):
 
-![Parameters as `data.frame()`](img/lab3-r-shiny-data-frame.png){fig-align="center" width="100%"}
+![Parameters as `data.frame()`](img/lab03-r-shiny-data-frame.png){fig-align="center" width="100%"}
 
 When we click **Predict**, we see notifications and the value is returned:
 
-![API request (with predictions returned)](img/lab3-r-shiny-api-req.png){fig-align="center" width="100%"}
+![API request (with predictions returned)](img/lab03-r-shiny-api-req.png){fig-align="center" width="100%"}
 
 ### Back in the API
 
 If we return to the plumber UI, we can click on **Return predictions from model using 4 features**, change the JSON values to match our parameters in the app, and click **TRY**:
 
-![`plumber` API request body](img/lab3-r-plumber-req-body.png){fig-align="center" width="100%"}
+![`plumber` API request body](img/lab03-r-plumber-req-body.png){fig-align="center" width="100%"}
 
 And we can compare the response to the value we saw in the app:
 
-![`plumber` API response](img/lab3-r-plumber-response.png){fig-align="center" width="100%"}
+![`plumber` API response](img/lab03-r-plumber-response.png){fig-align="center" width="100%"}
 
 A diagram of the Shiny inputs sent(i.e., the **Predict** button), reactives, and the API request is below:
 
@@ -459,7 +454,7 @@ A diagram of the Shiny inputs sent(i.e., the **Predict** button), reactives, and
 ```{mermaid}
 %%| fig-cap: 'Input Dependencies'
 %%| fig-align: center
-%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
 
 sequenceDiagram
     participant Customer as Shiny<br>App
@@ -524,7 +519,7 @@ To view the original code in `app-api.R`, expand the section below:
 #| label: print-app-api-R
 #| echo: false
 library(readr)
-readr::read_lines("_labs/lab3/app-api.R") |> 
+readr::read_lines("_labs/lab03/app-api.R") |> 
   base::noquote() |> 
   writeLines()
 ```

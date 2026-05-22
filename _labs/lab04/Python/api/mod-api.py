@@ -10,7 +10,7 @@ import pins
 import uvicorn
 import pandas as pd
 
-# connect to model board from lab2 
+# connect to model board from lab02 
 model_board = pins.board_folder("models/")
 
 # read pinned model
