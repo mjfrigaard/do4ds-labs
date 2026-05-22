@@ -5,16 +5,21 @@
 1. Determine Python
 
 ```bash
-# check  Python version
 which python3
+```
+
+```bash
+# check  Python version
 python3 --version
 ```
 
 2. Create virtual environment 
 
 ```bash
-# cd Python/app/ # run if not in app directory 
 /usr/bin/python3 -m venv .env # using system Python because it has SSL
+```
+
+```bash
 source .env/bin/activate  
 ```
 
@@ -22,22 +27,20 @@ source .env/bin/activate
 
 ```bash
 pip install --upgrade pip
+```
+
+```bash
 pip install shiny requests
 ```
 
 4. Verify
 
 ```bash
-# verify install
 python -c "import shiny; print('✅ Shiny installed:', shiny.__version__)"
-python -c "import requests; print('✅ Requests installed:', requests.__version__)
 ```
 
-Should show: 
-
 ```bash
-# ✅ Shiny installed: 1.4.0
-# ✅ Requests installed: 2.32.5
+python -c "import requests; print('✅ Requests installed:', requests.__version__)
 ```
 
 ## Launch
@@ -46,6 +49,9 @@ Launch API:
 
 ```bash
 cd api/
+```
+
+```bash
 # source .env/bin/activate # if not activated 
 python3 mod-api.py
 ```
