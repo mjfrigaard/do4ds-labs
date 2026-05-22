@@ -5,16 +5,20 @@ To run API (in `Python/api/` folder):
 1. Determine Python
 
 ```bash
-# check  Python version
 which python3
+```
+
+```bash
 python3 --version
 ```
 
 2. Create virtual environment 
 
 ```bash
-# cd Python/api/ # run if not in directory 
 /usr/bin/python3 -m venv .env # using system Python because it has SSL
+```
+
+```bash
 source .env/bin/activate  
 ```
 
