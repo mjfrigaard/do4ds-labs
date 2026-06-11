@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-05-21">
+<meta name="dcterms.date" content="2026-06-11">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>plumber2 – DO4DS: Lab Solutions</title>
@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -74,6 +109,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -436,8 +475,45 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#apis-refresher" id="toc-apis-refresher" class="nav-link active" data-scroll-target="#apis-refresher">APIs (refresher)</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#the-model-model.r" id="toc-the-model-model.r" class="nav-link" data-scroll-target="#the-model-model.r">The model (<code>model.R</code>)</a></li>
+  <li><a href="#sec-api" id="toc-sec-api" class="nav-link" data-scroll-target="#sec-api">The API (<code>plumber.R</code>)</a>
+  <ul>
+  <li><a href="#plumber-vs-plumber2" id="toc-plumber-vs-plumber2" class="nav-link" data-scroll-target="#plumber-vs-plumber2">plumber vs plumber2</a></li>
+  <li><a href="#load-model" id="toc-load-model" class="nav-link" data-scroll-target="#load-model">Load model</a></li>
+  <li><a href="#prepare-prediction-data" id="toc-prepare-prediction-data" class="nav-link" data-scroll-target="#prepare-prediction-data">Prepare prediction data</a></li>
+  <li><a href="#handler-functions" id="toc-handler-functions" class="nav-link" data-scroll-target="#handler-functions">Handler functions</a>
+  <ul class="collapse">
+  <li><a href="#health" id="toc-health" class="nav-link" data-scroll-target="#health">Health</a></li>
+  <li><a href="#model-info" id="toc-model-info" class="nav-link" data-scroll-target="#model-info">Model Info</a></li>
+  <li><a href="#documentation" id="toc-documentation" class="nav-link" data-scroll-target="#documentation">Documentation</a></li>
+  <li><a href="#predictions" id="toc-predictions" class="nav-link" data-scroll-target="#predictions">Predictions</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#the-router" id="toc-the-router" class="nav-link" data-scroll-target="#the-router">The Router</a>
+  <ul>
+  <li><a href="#get-endpoints" id="toc-get-endpoints" class="nav-link" data-scroll-target="#get-endpoints"><code>GET</code> Endpoints</a></li>
+  <li><a href="#post-endpoints" id="toc-post-endpoints" class="nav-link" data-scroll-target="#post-endpoints"><code>POST</code> Endpoints</a></li>
+  </ul></li>
+  <li><a href="#the-server" id="toc-the-server" class="nav-link" data-scroll-target="#the-server">The Server</a></li>
+  <li><a href="#the-shiny-app-app-api.r" id="toc-the-shiny-app-app-api.r" class="nav-link" data-scroll-target="#the-shiny-app-app-api.r">The Shiny App (<code>app-api.R</code>)</a>
+  <ul>
+  <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
+  <li><a href="#reactive-values" id="toc-reactive-values" class="nav-link" data-scroll-target="#reactive-values">Reactive values</a></li>
+  <li><a href="#predictions-1" id="toc-predictions-1" class="nav-link" data-scroll-target="#predictions-1">Predictions</a></li>
+  <li><a href="#httr2-requestresponse-pipeline" id="toc-httr2-requestresponse-pipeline" class="nav-link" data-scroll-target="#httr2-requestresponse-pipeline">httr2 request/response pipeline</a></li>
+  <li><a href="#outputs" id="toc-outputs" class="nav-link" data-scroll-target="#outputs">Outputs</a></li>
+  <li><a href="#full-server" id="toc-full-server" class="nav-link" data-scroll-target="#full-server">Full server</a></li>
+  </ul></li>
+  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -455,7 +531,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-05-21</p>
+      <p class="date">2026-06-11</p>
     </div>
   </div>
   
@@ -485,8 +561,1375 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>This chapter covers building and consuming an R API using <a href="https://plumber2.posit.co/"><code>plumber2</code></a> (when do4ds was written, the original <a href="https://www.rplumber.io/"><code>plumber</code></a> package was used). We’ll build the same penguin body mass prediction API from <a href="./lab03.html">lab 3</a> and connect it to a Shiny application, but update the API to use <code>plumber2</code>’s syntax.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"plumber2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="apis-refresher" class="level2">
+<h2 class="anchored" data-anchor-id="apis-refresher">APIs (refresher)</h2>
+<p>APIs (Application Programming Interfaces) are covered in <a href="./lab03.html">lab 3</a>. They work like placing an order in a restaurant:</p>
+<style>
+.codeStyle span:not(.nodeLabel) {
+  font-family: monospace;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d80808 !important;
+  background-color: #ffffff;
+  padding: 0.2em;
+}
+</style>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+sequenceDiagram
+    participant Customer as Shiny App
+    participant Waiter as API
+    participant Kitchen as ML Model
+
+    Customer-&gt;&gt;Waiter: "I'd like a&lt;br/&gt;prediction for&lt;br/&gt;bill_length=45,&lt;br/&gt;species=Adelie"
+    Waiter-&gt;&gt;Kitchen: Prepare data &amp;&lt;br/&gt;make prediction
+    Kitchen-&gt;&gt;Waiter: Prediction: 4180.8 grams
+    Waiter-&gt;&gt;Customer: Returns prediction
+</pre>
+</div>
+<p></p><figcaption> Refresher on APIs</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The process involves three steps:</p>
+<ol type="1">
+<li>The Shiny app asks for predictions.</li>
+<li>The <code>plumber2</code> API takes the values selected in the UI (as requests), and returns predictions (as responses).</li>
+<li>ML Model does the <em>actual</em> work of calculating the predictions.</li>
+</ol>
+</section>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>The updated <code>plumber2</code> files are in the following folders:</p>
+<p><strong><code>api/</code></strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">R/api/</span></span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> api.Rproj</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> model.R</span>
+<span id="annotated-cell-2-4"><a href="#annotated-cell-2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> models/</span>
+<span id="annotated-cell-2-5"><a href="#annotated-cell-2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   └── penguin_model/</span>
+<span id="annotated-cell-2-6"><a href="#annotated-cell-2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> my-db.duckdb</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-7" class="code-annotation-target"><a href="#annotated-cell-2-7" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> plumber.R</span>
+<span id="annotated-cell-2-8"><a href="#annotated-cell-2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> README.md</span>
+<span id="annotated-cell-2-9"><a href="#annotated-cell-2-9" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> renv/</span>
+<span id="annotated-cell-2-10"><a href="#annotated-cell-2-10" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> renv.lock</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="3" data-code-annotation="1"><code>model.R</code> builds and stores the model used for predictions.</span>
+</dd>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="7" data-code-annotation="2"><code>plumber.R</code> builds and launches the <code>plumber2</code> API.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p><strong><code>app/</code></strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">R/app/</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-2" class="code-annotation-target"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.R</span>
+<span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app.Rproj</span>
+<span id="annotated-cell-3-4"><a href="#annotated-cell-3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> renv/</span>
+<span id="annotated-cell-3-5"><a href="#annotated-cell-3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> renv.lock</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-3" data-code-lines="2" data-code-annotation="1"><code>app-api.R</code> is the Shiny application that sends requests to the API.</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="the-model-model.r" class="level2">
+<h2 class="anchored" data-anchor-id="the-model-model.r">The model (<code>model.R</code>)</h2>
+<p>The <code>model.R</code> file contains the packages and functions to build the linear model used to generate predictions from our Shiny app.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide model.R</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="1">1</button><span id="annotated-cell-4-1" class="code-annotation-target"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(palmerpenguins)</span>
+<span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(duckdb)</span>
+<span id="annotated-cell-4-3"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI)</span>
+<span id="annotated-cell-4-4"><a href="#annotated-cell-4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="annotated-cell-4-5"><a href="#annotated-cell-4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vetiver)</span>
+<span id="annotated-cell-4-6"><a href="#annotated-cell-4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pins)</span>
+<span id="annotated-cell-4-7"><a href="#annotated-cell-4-7" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="2">2</button><span id="annotated-cell-4-8" class="code-annotation-target"><a href="#annotated-cell-4-8" aria-hidden="true" tabindex="-1"></a>con <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">"my-db.duckdb"</span>)</span>
+<span id="annotated-cell-4-9"><a href="#annotated-cell-4-9" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="3">3</button><span id="annotated-cell-4-10" class="code-annotation-target"><a href="#annotated-cell-4-10" aria-hidden="true" tabindex="-1"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_register</span>(con, <span class="st">"penguins_raw"</span>, palmerpenguins<span class="sc">::</span>penguins)</span>
+<span id="annotated-cell-4-11"><a href="#annotated-cell-4-11" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="4">4</button><span id="annotated-cell-4-12" class="code-annotation-target"><a href="#annotated-cell-4-12" aria-hidden="true" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(</span>
+<span id="annotated-cell-4-13"><a href="#annotated-cell-4-13" aria-hidden="true" tabindex="-1"></a>  con,</span>
+<span id="annotated-cell-4-14"><a href="#annotated-cell-4-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_raw"</span></span>
+<span id="annotated-cell-4-15"><a href="#annotated-cell-4-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="annotated-cell-4-16"><a href="#annotated-cell-4-16" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="5">5</button><span id="annotated-cell-4-17" class="code-annotation-target"><a href="#annotated-cell-4-17" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbGetQuery</span>(</span>
+<span id="annotated-cell-4-18"><a href="#annotated-cell-4-18" aria-hidden="true" tabindex="-1"></a>  con,</span>
+<span id="annotated-cell-4-19"><a href="#annotated-cell-4-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"SELECT bill_length_mm, species, sex, body_mass_g</span></span>
+<span id="annotated-cell-4-20"><a href="#annotated-cell-4-20" aria-hidden="true" tabindex="-1"></a><span class="st">   FROM penguins</span></span>
+<span id="annotated-cell-4-21"><a href="#annotated-cell-4-21" aria-hidden="true" tabindex="-1"></a><span class="st">   WHERE body_mass_g IS NOT NULL</span></span>
+<span id="annotated-cell-4-22"><a href="#annotated-cell-4-22" aria-hidden="true" tabindex="-1"></a><span class="st">   AND bill_length_mm BETWEEN 30 AND 60</span></span>
+<span id="annotated-cell-4-23"><a href="#annotated-cell-4-23" aria-hidden="true" tabindex="-1"></a><span class="st">   AND sex IS NOT NULL</span></span>
+<span id="annotated-cell-4-24"><a href="#annotated-cell-4-24" aria-hidden="true" tabindex="-1"></a><span class="st">   AND species IS NOT NULL"</span></span>
+<span id="annotated-cell-4-25"><a href="#annotated-cell-4-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="annotated-cell-4-26"><a href="#annotated-cell-4-26" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="6">6</button><span id="annotated-cell-4-27" class="code-annotation-target"><a href="#annotated-cell-4-27" aria-hidden="true" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con)</span>
+<span id="annotated-cell-4-28"><a href="#annotated-cell-4-28" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="7">7</button><span id="annotated-cell-4-29" class="code-annotation-target"><a href="#annotated-cell-4-29" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> bill_length_mm <span class="sc">+</span> species <span class="sc">+</span> sex, <span class="at">data =</span> df)</span>
+<span id="annotated-cell-4-30"><a href="#annotated-cell-4-30" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="8">8</button><span id="annotated-cell-4-31" class="code-annotation-target"><a href="#annotated-cell-4-31" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> vetiver<span class="sc">::</span><span class="fu">vetiver_model</span>(</span>
+<span id="annotated-cell-4-32"><a href="#annotated-cell-4-32" aria-hidden="true" tabindex="-1"></a>  model,</span>
+<span id="annotated-cell-4-33"><a href="#annotated-cell-4-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_name =</span> <span class="st">"penguin_model"</span>,</span>
+<span id="annotated-cell-4-34"><a href="#annotated-cell-4-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">description =</span> <span class="st">"Linear model predicting penguin body mass from bill length, species, and sex"</span>,</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="9">9</button><span id="annotated-cell-4-35" class="code-annotation-target"><a href="#annotated-cell-4-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">save_prototype =</span> <span class="cn">TRUE</span></span>
+<span id="annotated-cell-4-36"><a href="#annotated-cell-4-36" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="annotated-cell-4-37"><a href="#annotated-cell-4-37" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-4" data-target-annotation="10">10</button><span id="annotated-cell-4-38" class="code-annotation-target"><a href="#annotated-cell-4-38" aria-hidden="true" tabindex="-1"></a>model_board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"./models"</span>)</span>
+<span id="annotated-cell-4-39"><a href="#annotated-cell-4-39" aria-hidden="true" tabindex="-1"></a>vetiver<span class="sc">::</span><span class="fu">vetiver_pin_write</span>(model_board, v)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-4" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="1,6" data-code-annotation="1">Load packages.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="8" data-code-annotation="2">Connect to <code>duckdb</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="10" data-code-annotation="3">Register the penguins <code>data.frame</code> with <code>duckdb</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="12,15" data-code-annotation="4">Create a persistent table.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="17,25" data-code-annotation="5">Query and filter penguins data.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="27" data-code-annotation="6">Disconnect from database.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="29" data-code-annotation="7">Train the model using categorical variables directly (R handles dummy variable creation).</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="31,36" data-code-annotation="8">Create <code>vetiver</code> model.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="35" data-code-annotation="9">Save the expected input format.</span>
+</dd>
+<dt data-target-cell="annotated-cell-4" data-target-annotation="10">10</dt>
+<dd>
+<span data-code-cell="annotated-cell-4" data-code-lines="38,39" data-code-annotation="10">Write model to board.</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+graph LR
+    subgraph Training["&lt;strong&gt;Model Training&lt;/strong&gt;"]
+        ModelR(["&lt;strong&gt;model.R&lt;/strong&gt;"])
+        DuckDB[("DuckDB &lt;br&gt; (as &lt;strong&gt;my-db.duckdb&lt;/strong&gt;)")]
+        PinBoard("Pin Board&lt;br/&gt;&lt;strong&gt;models/penguin_model/&lt;/strong&gt;")
+
+        ModelR --&gt;|"&lt;em&gt;loads data from&lt;/em&gt;"| DuckDB
+        ModelR --&gt;|"&lt;em&gt;trains lm() model&lt;/em&gt;"| LM[/"Linear Model"/]
+        LM --&gt;|"&lt;em&gt;wrapped by&lt;/em&gt;"| Vetiver[/"Vetiver Model"/]
+        Vetiver --&gt;|"&lt;em&gt;saved to&lt;/em&gt;"| PinBoard
+    end
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>Running <code>model.R</code> creates the <code>models/</code> directory and <code>duckdb</code> database file:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>├── models</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>│   └── penguin_model</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>│       └── 20251005T062750Z-74445</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>│           ├── data.txt</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>│           └── penguin_model.rds</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>└── my-db.duckdb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>prototype</code> stored in the <code>vetiver</code> model contains the expected input format, including column names, data types, and factor levels:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"models/"</span>) <span class="sc">|&gt;</span> vetiver<span class="sc">::</span><span class="fu">vetiver_pin_read</span>(<span class="st">"penguin_model"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(v<span class="sc">$</span>prototype)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Classes 'tbl_df', 'tbl' and 'data.frame': 0 obs. of  3 variables:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ bill_length_mm: num</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ species       : Factor w/ 3 levels "Adelie","Chinstrap",..:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ sex           : Factor w/ 2 levels "female","male":</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-api" class="level2">
+<h2 class="anchored" data-anchor-id="sec-api">The API (<code>plumber.R</code>)</h2>
+<p>The <code>plumber.R</code> file defines handler functions and assembles a <code>plumber2</code> router.</p>
+<section id="plumber-vs-plumber2" class="level3">
+<h3 class="anchored" data-anchor-id="plumber-vs-plumber2">plumber vs plumber2</h3>
+<p><code>plumber2</code> is a complete rewrite and uses different function names and handler signatures:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 37%">
+<col style="width: 41%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Task</th>
+<th><code>plumber</code></th>
+<th><code>plumber2</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Create router</td>
+<td><code>pr()</code></td>
+<td><code>api()</code></td>
+</tr>
+<tr class="even">
+<td>Add GET route</td>
+<td><code>pr_get()</code></td>
+<td><code>api_get()</code></td>
+</tr>
+<tr class="odd">
+<td>Add POST route</td>
+<td><code>pr_post()</code></td>
+<td><code>api_post()</code></td>
+</tr>
+<tr class="even">
+<td>Start server</td>
+<td><code>pr_run()</code></td>
+<td><code>api_run()</code></td>
+</tr>
+<tr class="odd">
+<td>JSON serializer</td>
+<td><code>serializer_json()</code></td>
+<td><code>format_json()</code></td>
+</tr>
+<tr class="even">
+<td>Request body</td>
+<td><code>jsonlite::fromJSON(req$postBody)</code></td>
+<td><code>body</code> argument</td>
+</tr>
+<tr class="odd">
+<td>Set response status</td>
+<td><code>res$status &lt;- 500</code></td>
+<td><code>response$status &lt;- 500L</code></td>
+</tr>
+</tbody>
+</table>
+<p>The most important change is in handler function signatures. In <code>plumber</code>, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually.</p>
+<p>In <code>plumber2</code>, they are separated:</p>
+<ul>
+<li>Path parameters: come as named arguments (e.g., <code>/users/&lt;id&gt;</code> → <code>function(id)</code>)</li>
+<li>Query parameters: accessed via the <code>query</code> argument</li>
+<li>Request body: accessed via the <code>body</code> argument (already parsed from JSON)</li>
+</ul>
+</section>
+<section id="load-model" class="level3">
+<h3 class="anchored" data-anchor-id="load-model">Load model</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-7"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="1">1</button><span id="annotated-cell-7-1" class="code-annotation-target"><a href="#annotated-cell-7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vetiver)</span>
+<span id="annotated-cell-7-2"><a href="#annotated-cell-7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pins)</span>
+<span id="annotated-cell-7-3"><a href="#annotated-cell-7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plumber2)</span>
+<span id="annotated-cell-7-4"><a href="#annotated-cell-7-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="2">2</button><span id="annotated-cell-7-5" class="code-annotation-target"><a href="#annotated-cell-7-5" aria-hidden="true" tabindex="-1"></a>model_board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_folder</span>(<span class="st">"models/"</span>)</span>
+<span id="annotated-cell-7-6"><a href="#annotated-cell-7-6" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-7" data-target-annotation="3">3</button><span id="annotated-cell-7-7" class="code-annotation-target"><a href="#annotated-cell-7-7" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> vetiver<span class="sc">::</span><span class="fu">vetiver_pin_read</span>(model_board, <span class="st">"penguin_model"</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-7" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="1,3" data-code-annotation="1">Packages.</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="5" data-code-annotation="2">Connect to model board.</span>
+</dd>
+<dt data-target-cell="annotated-cell-7" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-7" data-code-lines="7" data-code-annotation="3">Read pinned <code>vetiver</code> model.</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="prepare-prediction-data" class="level3">
+<h3 class="anchored" data-anchor-id="prepare-prediction-data">Prepare prediction data</h3>
+<p>JSON doesn’t have factors—only strings. The <code>prep_pred_data()</code> helper bridges the gap by converting <code>species</code> and <code>sex</code> strings to factors using the levels stored in the <code>vetiver</code> model prototype.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>prep_pred_data <span class="ot">&lt;-</span> <span class="cf">function</span>(input_data) {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  species_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>species)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  sex_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>sex)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> <span class="fu">as.numeric</span>(input_data<span class="sc">$</span>bill_length_mm),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">species =</span> <span class="fu">factor</span>(input_data<span class="sc">$</span>species, <span class="at">levels =</span> species_levels),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex =</span> <span class="fu">factor</span>(input_data<span class="sc">$</span>sex, <span class="at">levels =</span> sex_levels),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+graph TB
+    subgraph JSON["JSON from Shiny"]
+        J1[/"species: 'Adelie'&lt;br/&gt;(string)"/]
+        J2[/"sex: 'male'&lt;br/&gt;(string)"/]
+    end
+
+    subgraph Model["Model Expects"]
+        M1[\"species: factor&lt;br/&gt;(with levels)"\]
+        M2[\"sex: factor&lt;br/&gt;(with levels)"\]
+    end
+
+    subgraph Helper["Helper Function"]
+        H("prep_pred_data()")
+    end
+
+    J1 &amp; J2 --&gt; Helper
+    Helper --&gt; M1 &amp; M2
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="handler-functions" class="level3">
+<h3 class="anchored" data-anchor-id="handler-functions">Handler functions</h3>
+<p>Each handler specializes in a different type of request. We’ll organize these into four categories: health, model info, documentation, and predictions.</p>
+<p>The <code>#*</code> annotation comments define the HTTP method, path, and serializer for each handler when the file is loaded by <code>plumber2</code>.</p>
+<section id="health" class="level4">
+<h4 class="anchored" data-anchor-id="health">Health</h4>
+<section id="ping" class="level5">
+<h5 class="anchored" data-anchor-id="ping"><strong><code>/ping</code></strong></h5>
+<p>A minimal health check that returns a status and timestamp:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide handle_ping()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Basic health check</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /ping</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>handle_ping <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">status =</span> <span class="st">"alive"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">timestamp =</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>Test with <code>curl</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>curl http://127.0.0.1:8080/ping</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"status"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"alive"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"2025-10-08 08:31:51"</span><span class="ot">]</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="health-1" class="level5">
+<h5 class="anchored" data-anchor-id="health-1"><strong><code>/health</code></strong></h5>
+<p>An extended health check that includes model metadata and R version:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide handle_health()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Detailed health check</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /health</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>handle_health <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">status =</span> <span class="st">"healthy"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">timestamp =</span> <span class="fu">Sys.time</span>(),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_name =</span> v<span class="sc">$</span>model_name,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_version =</span> v<span class="sc">$</span>metadata<span class="sc">$</span>version,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">r_version =</span> R.version.string</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>curl http://127.0.0.1:8080/health</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"status"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"healthy"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"2025-10-08 08:38:29"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_name"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"penguin_model"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_version"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"20251005T062750Z-74445"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"r_version"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"R version 4.5.1 (2025-06-13)"</span><span class="ot">]</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="model-info" class="level4">
+<h4 class="anchored" data-anchor-id="model-info">Model Info</h4>
+<section id="model-prototype" class="level5">
+<h5 class="anchored" data-anchor-id="model-prototype"><strong><code>/model-prototype</code></strong></h5>
+<p>Returns the expected input format for all prediction requests:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide handle_model_prototype()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Get model prototype information</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /model-prototype</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>handle_model_prototype <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">prototype =</span> <span class="fu">list</span>(</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> <span class="st">"numeric"</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">species =</span> <span class="fu">list</span>(</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"factor"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>species)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex =</span> <span class="fu">list</span>(</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"factor"</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>sex)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_class =</span> <span class="fu">class</span>(v<span class="sc">$</span>model)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>curl http://127.0.0.1:8080/model-prototype</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details>
+<summary>
+show/hide JSON response from model-prototype
+</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"prototype"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bill_length_mm"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"numeric"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"species"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"factor"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"levels"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Adelie"</span><span class="ot">,</span> <span class="st">"Chinstrap"</span><span class="ot">,</span> <span class="st">"Gentoo"</span><span class="ot">]</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"sex"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"factor"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"levels"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"female"</span><span class="ot">,</span> <span class="st">"male"</span><span class="ot">]</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_class"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"butchered_lm"</span><span class="ot">,</span> <span class="st">"lm"</span><span class="ot">]</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</section>
+<section id="model-info-1" class="level5">
+<h5 class="anchored" data-anchor-id="model-info-1"><strong><code>/model-info</code></strong></h5>
+<p>Returns comprehensive metadata about the deployed model:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide handle_model_info()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Get model information and metadata</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /model-info</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>handle_model_info <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_name =</span> v<span class="sc">$</span>model_name,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_class =</span> <span class="fu">class</span>(v<span class="sc">$</span>model)[<span class="dv">1</span>],</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">version =</span> v<span class="sc">$</span>metadata<span class="sc">$</span>version,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">created =</span> v<span class="sc">$</span>metadata<span class="sc">$</span>created,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">required_pkgs =</span> v<span class="sc">$</span>metadata<span class="sc">$</span>required_pkgs,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">description =</span> v<span class="sc">$</span>description <span class="sc">%||%</span> <span class="st">"No description available"</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<details>
+<summary>
+show/hide JSON response from model-info
+</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_name"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"penguin_model"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_class"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"butchered_lm"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"20251005T062750Z-74445"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"created"</span><span class="fu">:</span> <span class="fu">{},</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"required_pkgs"</span><span class="fu">:</span> <span class="fu">{},</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Linear model predicting penguin body mass from bill length, species, and sex"</span><span class="ot">]</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</section>
+</section>
+<section id="documentation" class="level4">
+<h4 class="anchored" data-anchor-id="documentation">Documentation</h4>
+<section id="input-schema" class="level5">
+<h5 class="anchored" data-anchor-id="input-schema"><strong><code>/input-schema</code></strong></h5>
+<p>Returns the field specifications and an example request:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide handle_input_schema()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Get input schema and example</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /input-schema</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>handle_input_schema <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">required_fields =</span> <span class="fu">list</span>(</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> <span class="fu">list</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"numeric"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">description =</span> <span class="st">"Bill length in millimeters"</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">60</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">species =</span> <span class="fu">list</span>(</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"string (converted to factor)"</span>,</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">description =</span> <span class="st">"Penguin species"</span>,</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">valid_values =</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>species)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex =</span> <span class="fu">list</span>(</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"string (converted to factor)"</span>,</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">description =</span> <span class="st">"Penguin sex"</span>,</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">valid_values =</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>sex)</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">example =</span> <span class="fu">list</span>(</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> <span class="fl">45.5</span>,</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">species =</span> <span class="st">"Gentoo"</span>,</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex =</span> <span class="st">"male"</span></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+</section>
+<section id="predictions" class="level4">
+<h4 class="anchored" data-anchor-id="predictions">Predictions</h4>
+<section id="predict" class="level5">
+<h5 class="anchored" data-anchor-id="predict"><strong><code>/predict</code></strong></h5>
+<p>The main prediction endpoint. In <code>plumber2</code>, the <code>body</code> argument replaces the <code>req$postBody</code> + <code>jsonlite::fromJSON()</code> pattern from <code>plumber</code>—<code>plumber2</code> parses the JSON request body automatically.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide handle_predict()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-21"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-21-1"><a href="#annotated-cell-21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Predict penguin body mass</span></span>
+<span id="annotated-cell-21-2"><a href="#annotated-cell-21-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="annotated-cell-21-3"><a href="#annotated-cell-21-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict</span></span>
+<span id="annotated-cell-21-4"><a href="#annotated-cell-21-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="1">1</button><span id="annotated-cell-21-5" class="code-annotation-target"><a href="#annotated-cell-21-5" aria-hidden="true" tabindex="-1"></a>handle_predict <span class="ot">&lt;-</span> <span class="cf">function</span>(body, response) {</span>
+<span id="annotated-cell-21-6"><a href="#annotated-cell-21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-21-7"><a href="#annotated-cell-21-7" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>({</span>
+<span id="annotated-cell-21-8"><a href="#annotated-cell-21-8" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="2">2</button><span id="annotated-cell-21-9" class="code-annotation-target"><a href="#annotated-cell-21-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.list</span>(body) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.data.frame</span>(body)) {</span>
+<span id="annotated-cell-21-10"><a href="#annotated-cell-21-10" aria-hidden="true" tabindex="-1"></a>      body <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(body)</span>
+<span id="annotated-cell-21-11"><a href="#annotated-cell-21-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-21-12"><a href="#annotated-cell-21-12" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="3">3</button><span id="annotated-cell-21-13" class="code-annotation-target"><a href="#annotated-cell-21-13" aria-hidden="true" tabindex="-1"></a>    pred_data <span class="ot">&lt;-</span> <span class="fu">prep_pred_data</span>(body)</span>
+<span id="annotated-cell-21-14"><a href="#annotated-cell-21-14" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="4">4</button><span id="annotated-cell-21-15" class="code-annotation-target"><a href="#annotated-cell-21-15" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">&lt;-</span> <span class="fu">predict</span>(v, pred_data)</span>
+<span id="annotated-cell-21-16"><a href="#annotated-cell-21-16" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="5">5</button><span id="annotated-cell-21-17" class="code-annotation-target"><a href="#annotated-cell-21-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.data.frame</span>(prediction) <span class="sc">&amp;&amp;</span> <span class="st">".pred"</span> <span class="sc">%in%</span> <span class="fu">names</span>(prediction)) {</span>
+<span id="annotated-cell-21-18"><a href="#annotated-cell-21-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(<span class="at">.pred =</span> prediction<span class="sc">$</span>.pred)</span>
+<span id="annotated-cell-21-19"><a href="#annotated-cell-21-19" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="annotated-cell-21-20"><a href="#annotated-cell-21-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(<span class="at">.pred =</span> <span class="fu">as.numeric</span>(prediction))</span>
+<span id="annotated-cell-21-21"><a href="#annotated-cell-21-21" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-21-22"><a href="#annotated-cell-21-22" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-21" data-target-annotation="6">6</button><span id="annotated-cell-21-23" class="code-annotation-target"><a href="#annotated-cell-21-23" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-21-24"><a href="#annotated-cell-21-24" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">500</span>L</span>
+<span id="annotated-cell-21-25"><a href="#annotated-cell-21-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="annotated-cell-21-26"><a href="#annotated-cell-21-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">error =</span> <span class="fu">conditionMessage</span>(e),</span>
+<span id="annotated-cell-21-27"><a href="#annotated-cell-21-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">timestamp =</span> <span class="fu">as.character</span>(<span class="fu">Sys.time</span>())</span>
+<span id="annotated-cell-21-28"><a href="#annotated-cell-21-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-21-29"><a href="#annotated-cell-21-29" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="annotated-cell-21-30"><a href="#annotated-cell-21-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-21-31"><a href="#annotated-cell-21-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="annotated-cell-21-32"><a href="#annotated-cell-21-32" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-21" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="5" data-code-annotation="1"><code>body</code> is parsed from JSON automatically by <code>plumber2</code>; <code>response</code> is used to set status codes.</span>
+</dd>
+<dt data-target-cell="annotated-cell-21" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="9,11" data-code-annotation="2">Handle both single prediction and batch.</span>
+</dd>
+<dt data-target-cell="annotated-cell-21" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="13" data-code-annotation="3">Convert strings to factors.</span>
+</dd>
+<dt data-target-cell="annotated-cell-21" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="15" data-code-annotation="4">Make prediction.</span>
+</dd>
+<dt data-target-cell="annotated-cell-21" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="17,21" data-code-annotation="5">Handle different return types from <code>vetiver</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-21" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-21" data-code-lines="23,29" data-code-annotation="6">Error handling — <code>response$status &lt;- 500L</code> replaces <code>res$status &lt;- 500</code> from <code>plumber</code>.</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+graph TB
+    JSON(["JSON Body: &lt;br/&gt;'{'bill_length_mm':45,...}'"])
+
+    JSON --&gt;|"&lt;em&gt;parsed by plumber2&lt;/em&gt;"| Body("R List:&lt;br/&gt;list(bill_length_mm=45,...)")
+
+    Body --&gt;|"&lt;em&gt;as.data.frame()&lt;/em&gt;"| DF("Data Frame:&lt;br/&gt;1 row × 3 columns")
+
+    DF --&gt;|"&lt;em&gt;prep_pred_data()&lt;/em&gt;"| Factors("Proper Types:&lt;br/&gt;numeric + factors")
+
+    Factors --&gt;|"&lt;em&gt;predict()&lt;/em&gt;"| Result("Number:&lt;br/&gt;4180.797")
+
+    Result --&gt;|"&lt;em&gt;list()&lt;/em&gt;"| Response(["{'.pred':[4180.797]}"])
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>curl -X POST http://127.0.0.1:8080/predict \</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  -H "Content-Type: application/json" \</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">".pred"</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">4180.7965</span><span class="ot">]</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="predict-validated" class="level5">
+<h5 class="anchored" data-anchor-id="predict-validated"><strong><code>/predict-validated</code></strong></h5>
+<p>Validates all inputs before making a prediction and returns descriptive error messages on failure:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide handle_predict_validated()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-24"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-24-1"><a href="#annotated-cell-24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Predict with input validation</span></span>
+<span id="annotated-cell-24-2"><a href="#annotated-cell-24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="annotated-cell-24-3"><a href="#annotated-cell-24-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict-validated</span></span>
+<span id="annotated-cell-24-4"><a href="#annotated-cell-24-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="annotated-cell-24-5"><a href="#annotated-cell-24-5" aria-hidden="true" tabindex="-1"></a>handle_predict_validated <span class="ot">&lt;-</span> <span class="cf">function</span>(body, response) {</span>
+<span id="annotated-cell-24-6"><a href="#annotated-cell-24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-24-7"><a href="#annotated-cell-24-7" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>({</span>
+<span id="annotated-cell-24-8"><a href="#annotated-cell-24-8" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="1">1</button><span id="annotated-cell-24-9" class="code-annotation-target"><a href="#annotated-cell-24-9" aria-hidden="true" tabindex="-1"></a>    required_fields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"bill_length_mm"</span>, <span class="st">"species"</span>, <span class="st">"sex"</span>)</span>
+<span id="annotated-cell-24-10"><a href="#annotated-cell-24-10" aria-hidden="true" tabindex="-1"></a>    missing_fields <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(required_fields, <span class="fu">names</span>(body))</span>
+<span id="annotated-cell-24-11"><a href="#annotated-cell-24-11" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="2">2</button><span id="annotated-cell-24-12" class="code-annotation-target"><a href="#annotated-cell-24-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(missing_fields) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="annotated-cell-24-13"><a href="#annotated-cell-24-13" aria-hidden="true" tabindex="-1"></a>      response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span>L</span>
+<span id="annotated-cell-24-14"><a href="#annotated-cell-24-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="annotated-cell-24-15"><a href="#annotated-cell-24-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">error =</span> <span class="st">"Missing required fields"</span>,</span>
+<span id="annotated-cell-24-16"><a href="#annotated-cell-24-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">missing =</span> missing_fields,</span>
+<span id="annotated-cell-24-17"><a href="#annotated-cell-24-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">hint =</span> <span class="st">"Required fields: bill_length_mm, species, sex"</span></span>
+<span id="annotated-cell-24-18"><a href="#annotated-cell-24-18" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="annotated-cell-24-19"><a href="#annotated-cell-24-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-24-20"><a href="#annotated-cell-24-20" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="3">3</button><span id="annotated-cell-24-21" class="code-annotation-target"><a href="#annotated-cell-24-21" aria-hidden="true" tabindex="-1"></a>    valid_species <span class="ot">&lt;-</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>species)</span>
+<span id="annotated-cell-24-22"><a href="#annotated-cell-24-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span>body<span class="sc">$</span>species <span class="sc">%in%</span> valid_species) {</span>
+<span id="annotated-cell-24-23"><a href="#annotated-cell-24-23" aria-hidden="true" tabindex="-1"></a>      response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span>L</span>
+<span id="annotated-cell-24-24"><a href="#annotated-cell-24-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="annotated-cell-24-25"><a href="#annotated-cell-24-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">error =</span> <span class="st">"Invalid species"</span>,</span>
+<span id="annotated-cell-24-26"><a href="#annotated-cell-24-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">provided =</span> body<span class="sc">$</span>species,</span>
+<span id="annotated-cell-24-27"><a href="#annotated-cell-24-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">valid_options =</span> valid_species</span>
+<span id="annotated-cell-24-28"><a href="#annotated-cell-24-28" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="annotated-cell-24-29"><a href="#annotated-cell-24-29" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-24-30"><a href="#annotated-cell-24-30" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="4">4</button><span id="annotated-cell-24-31" class="code-annotation-target"><a href="#annotated-cell-24-31" aria-hidden="true" tabindex="-1"></a>    valid_sex <span class="ot">&lt;-</span> <span class="fu">levels</span>(v<span class="sc">$</span>prototype<span class="sc">$</span>sex)</span>
+<span id="annotated-cell-24-32"><a href="#annotated-cell-24-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span>body<span class="sc">$</span>sex <span class="sc">%in%</span> valid_sex) {</span>
+<span id="annotated-cell-24-33"><a href="#annotated-cell-24-33" aria-hidden="true" tabindex="-1"></a>      response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span>L</span>
+<span id="annotated-cell-24-34"><a href="#annotated-cell-24-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="annotated-cell-24-35"><a href="#annotated-cell-24-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">error =</span> <span class="st">"Invalid sex"</span>,</span>
+<span id="annotated-cell-24-36"><a href="#annotated-cell-24-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">provided =</span> body<span class="sc">$</span>sex,</span>
+<span id="annotated-cell-24-37"><a href="#annotated-cell-24-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">valid_options =</span> valid_sex</span>
+<span id="annotated-cell-24-38"><a href="#annotated-cell-24-38" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="annotated-cell-24-39"><a href="#annotated-cell-24-39" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-24-40"><a href="#annotated-cell-24-40" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="5">5</button><span id="annotated-cell-24-41" class="code-annotation-target"><a href="#annotated-cell-24-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(body<span class="sc">$</span>bill_length_mm) <span class="sc">||</span></span>
+<span id="annotated-cell-24-42"><a href="#annotated-cell-24-42" aria-hidden="true" tabindex="-1"></a>        body<span class="sc">$</span>bill_length_mm <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">||</span></span>
+<span id="annotated-cell-24-43"><a href="#annotated-cell-24-43" aria-hidden="true" tabindex="-1"></a>        body<span class="sc">$</span>bill_length_mm <span class="sc">&gt;</span> <span class="dv">60</span>) {</span>
+<span id="annotated-cell-24-44"><a href="#annotated-cell-24-44" aria-hidden="true" tabindex="-1"></a>      response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span>L</span>
+<span id="annotated-cell-24-45"><a href="#annotated-cell-24-45" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="annotated-cell-24-46"><a href="#annotated-cell-24-46" aria-hidden="true" tabindex="-1"></a>        <span class="at">error =</span> <span class="st">"bill_length_mm must be numeric between 30 and 60"</span>,</span>
+<span id="annotated-cell-24-47"><a href="#annotated-cell-24-47" aria-hidden="true" tabindex="-1"></a>        <span class="at">provided =</span> body<span class="sc">$</span>bill_length_mm,</span>
+<span id="annotated-cell-24-48"><a href="#annotated-cell-24-48" aria-hidden="true" tabindex="-1"></a>        <span class="at">valid_range =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">60</span>)</span>
+<span id="annotated-cell-24-49"><a href="#annotated-cell-24-49" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="annotated-cell-24-50"><a href="#annotated-cell-24-50" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-24-51"><a href="#annotated-cell-24-51" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="6">6</button><span id="annotated-cell-24-52" class="code-annotation-target"><a href="#annotated-cell-24-52" aria-hidden="true" tabindex="-1"></a>    pred_data <span class="ot">&lt;-</span> <span class="fu">prep_pred_data</span>(body)</span>
+<span id="annotated-cell-24-53"><a href="#annotated-cell-24-53" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">&lt;-</span> <span class="fu">predict</span>(v, pred_data)</span>
+<span id="annotated-cell-24-54"><a href="#annotated-cell-24-54" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="7">7</button><span id="annotated-cell-24-55" class="code-annotation-target"><a href="#annotated-cell-24-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="annotated-cell-24-56"><a href="#annotated-cell-24-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">prediction =</span> <span class="fu">as.numeric</span>(prediction),</span>
+<span id="annotated-cell-24-57"><a href="#annotated-cell-24-57" aria-hidden="true" tabindex="-1"></a>      <span class="at">input =</span> body,</span>
+<span id="annotated-cell-24-58"><a href="#annotated-cell-24-58" aria-hidden="true" tabindex="-1"></a>      <span class="at">model_version =</span> v<span class="sc">$</span>metadata<span class="sc">$</span>version,</span>
+<span id="annotated-cell-24-59"><a href="#annotated-cell-24-59" aria-hidden="true" tabindex="-1"></a>      <span class="at">timestamp =</span> <span class="fu">Sys.time</span>()</span>
+<span id="annotated-cell-24-60"><a href="#annotated-cell-24-60" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-24-61"><a href="#annotated-cell-24-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-24-62"><a href="#annotated-cell-24-62" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-24-63"><a href="#annotated-cell-24-63" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">500</span>L</span>
+<span id="annotated-cell-24-64"><a href="#annotated-cell-24-64" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="annotated-cell-24-65"><a href="#annotated-cell-24-65" aria-hidden="true" tabindex="-1"></a>      <span class="at">error =</span> <span class="fu">conditionMessage</span>(e),</span>
+<span id="annotated-cell-24-66"><a href="#annotated-cell-24-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">timestamp =</span> <span class="fu">as.character</span>(<span class="fu">Sys.time</span>())</span>
+<span id="annotated-cell-24-67"><a href="#annotated-cell-24-67" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-24-68"><a href="#annotated-cell-24-68" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="annotated-cell-24-69"><a href="#annotated-cell-24-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-24-70"><a href="#annotated-cell-24-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="annotated-cell-24-71"><a href="#annotated-cell-24-71" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-24" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="9,10" data-code-annotation="1">Check for required fields.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="12,19" data-code-annotation="2">Return 400 if fields are missing.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="21,29" data-code-annotation="3">Validate species value.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="31,39" data-code-annotation="4">Validate sex value.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="41,50" data-code-annotation="5">Validate bill length range.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="52,53" data-code-annotation="6">Prepare data and predict.</span>
+</dd>
+<dt data-target-cell="annotated-cell-24" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-24" data-code-lines="55,60" data-code-annotation="7">Return prediction with metadata.</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+graph TD
+    Start(["Request&lt;br&gt;Received"])
+
+    Start --&gt; Check1{All fields&lt;br/&gt;present?}
+    Check1 --&gt;|No| Error1("400: Missing fields")
+    Check1 --&gt;|Yes| Check2{Species&lt;br/&gt;valid?}
+
+    Check2 --&gt;|No| Error2("400: Invalid species")
+    Check2 --&gt;|Yes| Check3{Sex&lt;br/&gt;valid?}
+
+    Check3 --&gt;|No| Error3("400: Invalid sex")
+    Check3 --&gt;|Yes| Check4{Bill length&lt;br/&gt;30-60mm?}
+
+    Check4 --&gt;|No| Error4("400: Out of range")
+    Check4 --&gt;|Yes| Predict("Make Prediction")
+
+    Predict --&gt; Success(["Return prediction&lt;br/&gt;with metadata"])
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>An invalid <code>species</code> value returns a 400 error with the valid options:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>curl -X POST http://127.0.0.1:8080/predict-validated \</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>   -H "Content-Type: application/json" \</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>   -d '{"bill_length_mm": 45, "species": "Emperor", "sex": "male"}'</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"error"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Invalid species"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"provided"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Emperor"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"valid_options"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Adelie"</span><span class="ot">,</span> <span class="st">"Chinstrap"</span><span class="ot">,</span> <span class="st">"Gentoo"</span><span class="ot">]</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="predict-batch" class="level5">
+<h5 class="anchored" data-anchor-id="predict-batch"><strong><code>/predict-batch</code></strong></h5>
+<p>Accepts arrays of values to return multiple predictions in a single request:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide handle_predict_batch()</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-27"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-27-1"><a href="#annotated-cell-27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* Batch predictions</span></span>
+<span id="annotated-cell-27-2"><a href="#annotated-cell-27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#*</span></span>
+<span id="annotated-cell-27-3"><a href="#annotated-cell-27-3" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict-batch</span></span>
+<span id="annotated-cell-27-4"><a href="#annotated-cell-27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="annotated-cell-27-5"><a href="#annotated-cell-27-5" aria-hidden="true" tabindex="-1"></a>handle_predict_batch <span class="ot">&lt;-</span> <span class="cf">function</span>(body, response) {</span>
+<span id="annotated-cell-27-6"><a href="#annotated-cell-27-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-27-7"><a href="#annotated-cell-27-7" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>({</span>
+<span id="annotated-cell-27-8"><a href="#annotated-cell-27-8" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-27" data-target-annotation="1">1</button><span id="annotated-cell-27-9" class="code-annotation-target"><a href="#annotated-cell-27-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.data.frame</span>(body)) {</span>
+<span id="annotated-cell-27-10"><a href="#annotated-cell-27-10" aria-hidden="true" tabindex="-1"></a>      body <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(body)</span>
+<span id="annotated-cell-27-11"><a href="#annotated-cell-27-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-27-12"><a href="#annotated-cell-27-12" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-27" data-target-annotation="2">2</button><span id="annotated-cell-27-13" class="code-annotation-target"><a href="#annotated-cell-27-13" aria-hidden="true" tabindex="-1"></a>    pred_data <span class="ot">&lt;-</span> <span class="fu">prep_pred_data</span>(body)</span>
+<span id="annotated-cell-27-14"><a href="#annotated-cell-27-14" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-27" data-target-annotation="3">3</button><span id="annotated-cell-27-15" class="code-annotation-target"><a href="#annotated-cell-27-15" aria-hidden="true" tabindex="-1"></a>    predictions <span class="ot">&lt;-</span> <span class="fu">predict</span>(v, pred_data)</span>
+<span id="annotated-cell-27-16"><a href="#annotated-cell-27-16" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-27" data-target-annotation="4">4</button><span id="annotated-cell-27-17" class="code-annotation-target"><a href="#annotated-cell-27-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="annotated-cell-27-18"><a href="#annotated-cell-27-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">predictions =</span> <span class="fu">as.numeric</span>(predictions),</span>
+<span id="annotated-cell-27-19"><a href="#annotated-cell-27-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">count =</span> <span class="fu">nrow</span>(pred_data),</span>
+<span id="annotated-cell-27-20"><a href="#annotated-cell-27-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">timestamp =</span> <span class="fu">Sys.time</span>()</span>
+<span id="annotated-cell-27-21"><a href="#annotated-cell-27-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-27-22"><a href="#annotated-cell-27-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-27-23"><a href="#annotated-cell-27-23" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-27-24"><a href="#annotated-cell-27-24" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">500</span>L</span>
+<span id="annotated-cell-27-25"><a href="#annotated-cell-27-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="annotated-cell-27-26"><a href="#annotated-cell-27-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">error =</span> <span class="fu">conditionMessage</span>(e),</span>
+<span id="annotated-cell-27-27"><a href="#annotated-cell-27-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">timestamp =</span> <span class="fu">as.character</span>(<span class="fu">Sys.time</span>())</span>
+<span id="annotated-cell-27-28"><a href="#annotated-cell-27-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="annotated-cell-27-29"><a href="#annotated-cell-27-29" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="annotated-cell-27-30"><a href="#annotated-cell-27-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-27-31"><a href="#annotated-cell-27-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="annotated-cell-27-32"><a href="#annotated-cell-27-32" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-27" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-27" data-code-lines="9,11" data-code-annotation="1">Ensure we have a <code>data.frame</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-27" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-27" data-code-lines="13" data-code-annotation="2">Prepare data.</span>
+</dd>
+<dt data-target-cell="annotated-cell-27" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-27" data-code-lines="15" data-code-annotation="3">Make predictions.</span>
+</dd>
+<dt data-target-cell="annotated-cell-27" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-27" data-code-lines="17,21" data-code-annotation="4">Return predictions, count, and timestamp.</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>curl -X POST http://127.0.0.1:8080/predict-batch \</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>   -H "Content-Type: application/json" \</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>   -d '{</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>     "bill_length_mm": [45, 39, 50],</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>     "species": ["Adelie", "Adelie", "Gentoo"],</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>     "sex": ["male", "female", "male"]</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>   }'</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"predictions"</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">4180.7965</span><span class="ot">,</span> <span class="fl">3438.2083</span><span class="ot">,</span> <span class="fl">5438.3484</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"count"</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">3</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"2025-10-08 13:45:41"</span><span class="ot">]</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+</section>
+</section>
+<section id="the-router" class="level2">
+<h2 class="anchored" data-anchor-id="the-router">The Router</h2>
+<p>The last section of <code>plumber.R</code> assembles a router by chaining handler registrations with <code>api()</code>. In <code>plumber2</code>, <code>api()</code> replaces <code>pr()</code> and the <code>api_get()</code>/<code>api_post()</code> functions replace <code>pr_get()</code>/<code>pr_post()</code>.</p>
+<p>Each <code>api_get()</code> or <code>api_post()</code> call maps a URL path and HTTP method to a handler function. The <code>serializer</code> argument controls how the return value is converted for the response.</p>
+<section id="get-endpoints" class="level3">
+<h3 class="anchored" data-anchor-id="get-endpoints"><code>GET</code> Endpoints</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide GET endpoints</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-30"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-30-1"><a href="#annotated-cell-30-1" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> plumber2<span class="sc">::</span><span class="fu">api</span>() <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-30" data-target-annotation="1">1</button><span id="annotated-cell-30-2" class="code-annotation-target"><a href="#annotated-cell-30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_get</span>(</span>
+<span id="annotated-cell-30-3"><a href="#annotated-cell-30-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/ping"</span>,</span>
+<span id="annotated-cell-30-4"><a href="#annotated-cell-30-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_ping,</span>
+<span id="annotated-cell-30-5"><a href="#annotated-cell-30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="annotated-cell-30-6"><a href="#annotated-cell-30-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-30-7"><a href="#annotated-cell-30-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_get</span>(</span>
+<span id="annotated-cell-30-8"><a href="#annotated-cell-30-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/health"</span>,</span>
+<span id="annotated-cell-30-9"><a href="#annotated-cell-30-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_health,</span>
+<span id="annotated-cell-30-10"><a href="#annotated-cell-30-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="annotated-cell-30-11"><a href="#annotated-cell-30-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-30-12"><a href="#annotated-cell-30-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_get</span>(</span>
+<span id="annotated-cell-30-13"><a href="#annotated-cell-30-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/model-prototype"</span>,</span>
+<span id="annotated-cell-30-14"><a href="#annotated-cell-30-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_model_prototype,</span>
+<span id="annotated-cell-30-15"><a href="#annotated-cell-30-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="annotated-cell-30-16"><a href="#annotated-cell-30-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-30-17"><a href="#annotated-cell-30-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_get</span>(</span>
+<span id="annotated-cell-30-18"><a href="#annotated-cell-30-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/model-info"</span>,</span>
+<span id="annotated-cell-30-19"><a href="#annotated-cell-30-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_model_info,</span>
+<span id="annotated-cell-30-20"><a href="#annotated-cell-30-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="annotated-cell-30-21"><a href="#annotated-cell-30-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-30" data-target-annotation="2">2</button><span id="annotated-cell-30-22" class="code-annotation-target"><a href="#annotated-cell-30-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_get</span>(</span>
+<span id="annotated-cell-30-23"><a href="#annotated-cell-30-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/input-schema"</span>,</span>
+<span id="annotated-cell-30-24"><a href="#annotated-cell-30-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_input_schema,</span>
+<span id="annotated-cell-30-25"><a href="#annotated-cell-30-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="annotated-cell-30-26"><a href="#annotated-cell-30-26" aria-hidden="true" tabindex="-1"></a>  )</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-30" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-30" data-code-lines="2" data-code-annotation="1"><code>api_get()</code> replaces <code>pr_get()</code>; <code>format_json()</code> replaces <code>serializer_json()</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-30" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-30" data-code-lines="22" data-code-annotation="2">Each <code>api_get()</code> call adds one <code>GET</code> route to the router’s dispatch table.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p><strong>Route table after <code>GET</code> registrations:</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 25%">
+<col style="width: 28%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Method</th>
+<th>Handler</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/ping</code></td>
+<td>GET</td>
+<td><code>handle_ping()</code></td>
+<td>Quick health check</td>
+</tr>
+<tr class="even">
+<td><code>/health</code></td>
+<td>GET</td>
+<td><code>handle_health()</code></td>
+<td>Detailed status</td>
+</tr>
+<tr class="odd">
+<td><code>/model-prototype</code></td>
+<td>GET</td>
+<td><code>handle_model_prototype()</code></td>
+<td>Input format</td>
+</tr>
+<tr class="even">
+<td><code>/model-info</code></td>
+<td>GET</td>
+<td><code>handle_model_info()</code></td>
+<td>Model metadata</td>
+</tr>
+<tr class="odd">
+<td><code>/input-schema</code></td>
+<td>GET</td>
+<td><code>handle_input_schema()</code></td>
+<td>Field documentation</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="post-endpoints" class="level3">
+<h3 class="anchored" data-anchor-id="post-endpoints"><code>POST</code> Endpoints</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide POST endpoints</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_post</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/predict"</span>,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_predict,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_post</span>(</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/predict-validated"</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_predict_validated,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">api_post</span>(</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"/predict-batch"</span>,</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">handler =</span> handle_predict_batch,</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">serializer =</span> <span class="fu">format_json</span>()</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p><strong>Updated route table:</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 25%">
+<col style="width: 28%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Method</th>
+<th>Handler</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/predict</code></td>
+<td>POST</td>
+<td><code>handle_predict()</code></td>
+<td>Basic prediction</td>
+</tr>
+<tr class="even">
+<td><code>/predict-validated</code></td>
+<td>POST</td>
+<td><code>handle_predict_validated()</code></td>
+<td>Prediction with validation</td>
+</tr>
+<tr class="odd">
+<td><code>/predict-batch</code></td>
+<td>POST</td>
+<td><code>handle_predict_batch()</code></td>
+<td>Multiple predictions</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="the-server" class="level2">
+<h2 class="anchored" data-anchor-id="the-server">The Server</h2>
+<p><code>api_run()</code> replaces <code>pr_run()</code> to start the server:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>app <span class="sc">|&gt;</span> plumber2<span class="sc">::</span><span class="fu">api_run</span>(<span class="at">port =</span> <span class="dv">8080</span>, <span class="at">host =</span> <span class="st">"127.0.0.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With the API running, we can connect to it from a Shiny application.</p>
+</section>
+<section id="the-shiny-app-app-api.r" class="level2">
+<h2 class="anchored" data-anchor-id="the-shiny-app-app-api.r">The Shiny App (<code>app-api.R</code>)</h2>
+<p>The <code>app-api.R</code> file is a Shiny application that sends user input to the API and displays the prediction. It lives in the separate <code>app/</code> directory.</p>
+<p>The API URL is defined at the top of the file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>api_url <span class="ot">&lt;-</span> <span class="st">"http://127.0.0.1:8080/predict"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="ui" class="level3">
+<h3 class="anchored" data-anchor-id="ui">UI</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide UI</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">page_sidebar</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Penguin Mass Predictor"</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">theme =</span> <span class="fu">bs_theme</span>(<span class="at">bootswatch =</span> <span class="st">"sketchy"</span>),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">sidebar =</span> <span class="fu">sidebar</span>(</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sliderInput</span>(</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"bill_length"</span>,</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Bill Length (mm)"</span>,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="dv">30</span>, <span class="at">max =</span> <span class="dv">60</span>, <span class="at">value =</span> <span class="dv">45</span>, <span class="at">step =</span> <span class="dv">1</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"sex"</span>,</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Sex"</span>,</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"male"</span>, <span class="st">"female"</span>),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"male"</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">selectInput</span>(</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"species"</span>,</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Species"</span>,</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>),</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">selected =</span> <span class="st">"Adelie"</span></span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">actionButton</span>(</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">inputId =</span> <span class="st">"predict"</span>,</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">"Predict"</span>,</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">"btn-primary"</span></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout_columns</span>(</span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Penguin Parameters"</span>),</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(<span class="fu">verbatimTextOutput</span>(<span class="st">"vals"</span>))</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">card</span>(</span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_header</span>(<span class="st">"Predicted Mass"</span>),</span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">card_body</span>(</span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">value_box</span>(</span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase_layout =</span> <span class="st">"left center"</span>,</span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Grams"</span>,</span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>          <span class="at">value =</span> <span class="fu">textOutput</span>(<span class="st">"pred"</span>),</span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">showcase =</span> <span class="fu">bs_icon</span>(<span class="st">"graph-up"</span>),</span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>          <span class="at">max_height =</span> <span class="st">"200px"</span>,</span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>          <span class="at">min_height =</span> <span class="st">"200px"</span></span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_widths =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">5</span>)</span>
+<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="reactive-values" class="level3">
+<h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
+<p>Because the <code>plumber2</code> API’s <code>/predict</code> endpoint accepts <code>species</code> and <code>sex</code> as strings (not dummy variables), <code>vals()</code> can pass them directly—no numeric encoding required:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-35"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-35-1"><a href="#annotated-cell-35-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="annotated-cell-35-2"><a href="#annotated-cell-35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="annotated-cell-35-3"><a href="#annotated-cell-35-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-35" data-target-annotation="1">1</button><span id="annotated-cell-35-4" class="code-annotation-target"><a href="#annotated-cell-35-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">species =</span> input<span class="sc">$</span>species,</span>
+<span id="annotated-cell-35-5"><a href="#annotated-cell-35-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex =</span> input<span class="sc">$</span>sex</span>
+<span id="annotated-cell-35-6"><a href="#annotated-cell-35-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="annotated-cell-35-7"><a href="#annotated-cell-35-7" aria-hidden="true" tabindex="-1"></a>})</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-35" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-35" data-code-lines="4,5" data-code-annotation="1">Species and sex are sent as strings (<code>"Adelie"</code>, <code>"male"</code>); <code>prep_pred_data()</code> in the API converts them to factors.</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>This is simpler than the original approach, which required manual dummy variable creation (<code>species_Chinstrap = as.numeric(input$species == "Chinstrap")</code>, etc.).</p>
+</section>
+<section id="predictions-1" class="level3">
+<h3 class="anchored" data-anchor-id="predictions-1">Predictions</h3>
+<p>The <code>pred</code> reactive sends <code>vals()</code> to the API and extracts the prediction from the response:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>show/hide pred reactive</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-36"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-36-1"><a href="#annotated-cell-36-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="annotated-cell-36-2"><a href="#annotated-cell-36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
+<span id="annotated-cell-36-3"><a href="#annotated-cell-36-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-36-4"><a href="#annotated-cell-36-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-36" data-target-annotation="1">1</button><span id="annotated-cell-36-5" class="code-annotation-target"><a href="#annotated-cell-36-5" aria-hidden="true" tabindex="-1"></a>    response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-36" data-target-annotation="2">2</button><span id="annotated-cell-36-6" class="code-annotation-target"><a href="#annotated-cell-36-6" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-36" data-target-annotation="3">3</button><span id="annotated-cell-36-7" class="code-annotation-target"><a href="#annotated-cell-36-7" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_body_json</span>(<span class="fu">vals</span>()) <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-36" data-target-annotation="4">4</button><span id="annotated-cell-36-8" class="code-annotation-target"><a href="#annotated-cell-36-8" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-36" data-target-annotation="5">5</button><span id="annotated-cell-36-9" class="code-annotation-target"><a href="#annotated-cell-36-9" aria-hidden="true" tabindex="-1"></a>      httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span>
+<span id="annotated-cell-36-10"><a href="#annotated-cell-36-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-36-11"><a href="#annotated-cell-36-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="st">"Prediction successful!"</span>, <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-36-12"><a href="#annotated-cell-36-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-36-13"><a href="#annotated-cell-36-13" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>.pred[[<span class="dv">1</span>]]</span>
+<span id="annotated-cell-36-14"><a href="#annotated-cell-36-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-36-15"><a href="#annotated-cell-36-15" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="annotated-cell-36-16"><a href="#annotated-cell-36-16" aria-hidden="true" tabindex="-1"></a>    error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
+<span id="annotated-cell-36-17"><a href="#annotated-cell-36-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-36-18"><a href="#annotated-cell-36-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-36-19"><a href="#annotated-cell-36-19" aria-hidden="true" tabindex="-1"></a>      user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
+<span id="annotated-cell-36-20"><a href="#annotated-cell-36-20" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="annotated-cell-36-21"><a href="#annotated-cell-36-21" aria-hidden="true" tabindex="-1"></a>      user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="annotated-cell-36-22"><a href="#annotated-cell-36-22" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="annotated-cell-36-23"><a href="#annotated-cell-36-23" aria-hidden="true" tabindex="-1"></a>      user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
+<span id="annotated-cell-36-24"><a href="#annotated-cell-36-24" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="annotated-cell-36-25"><a href="#annotated-cell-36-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-36-26"><a href="#annotated-cell-36-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"Error:"</span>, user_msg), <span class="at">type =</span> <span class="st">"warn"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="annotated-cell-36-27"><a href="#annotated-cell-36-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="st">"Error:"</span>, user_msg)</span>
+<span id="annotated-cell-36-28"><a href="#annotated-cell-36-28" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="annotated-cell-36-29"><a href="#annotated-cell-36-29" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-36-30"><a href="#annotated-cell-36-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-36" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-36" data-code-lines="5" data-code-annotation="1"><code>request()</code> creates the base request object with the API URL.</span>
+</dd>
+<dt data-target-cell="annotated-cell-36" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-36" data-code-lines="6" data-code-annotation="2"><code>req_method("POST")</code> sets the HTTP verb.</span>
+</dd>
+<dt data-target-cell="annotated-cell-36" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-36" data-code-lines="7" data-code-annotation="3"><code>req_body_json()</code> serializes <code>vals()</code> as JSON and sets <code>Content-Type: application/json</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-36" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-36" data-code-lines="8" data-code-annotation="4"><code>req_perform()</code> sends the request and returns a response object.</span>
+</dd>
+<dt data-target-cell="annotated-cell-36" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-36" data-code-lines="9" data-code-annotation="5"><code>resp_body_json()</code> parses the JSON response body into an R list.</span>
+</dd>
+</dl>
+</div>
+</div>
+</section>
+<section id="httr2-requestresponse-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="httr2-requestresponse-pipeline">httr2 request/response pipeline</h3>
+<p>The five <code>httr2</code> functions work as a pipeline, each building on the previous step:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+graph TD
+    ReqObj(["request(url)"]) --&gt;|"sets URL"| MethObj
+    MethObj(["req_method('POST')"]) --&gt;|"sets verb"| BodyObj
+    BodyObj(["req_body_json(data)"]) --&gt;|"attaches body"| PerfObj
+    PerfObj(["req_perform()"]) --&gt;|"sends request"| RespObj
+    RespObj(["resp_body_json()"]) --&gt;|"parses response"| Result(["R list"])
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 62%">
+<col style="width: 37%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>request(url)</code></td>
+<td>Creates a base request with the target URL</td>
+</tr>
+<tr class="even">
+<td><code>req_method("POST")</code></td>
+<td>Sets the HTTP verb (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>req_body_json(data)</code></td>
+<td>Converts <code>data</code> to JSON and sets it as the request body</td>
+</tr>
+<tr class="even">
+<td><code>req_perform()</code></td>
+<td>Sends the assembled request; returns a response object</td>
+</tr>
+<tr class="odd">
+<td><code>resp_body_json()</code></td>
+<td>Parses the JSON response body into an R list</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="outputs" class="level3">
+<h3 class="anchored" data-anchor-id="outputs">Outputs</h3>
+<p>The server renders <code>vals()</code> and <code>pred()</code> to the UI:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>output<span class="sc">$</span>vals <span class="ot">&lt;-</span> <span class="fu">renderPrint</span>(<span class="fu">vals</span>())</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>output<span class="sc">$</span>pred <span class="ot">&lt;-</span> <span class="fu">renderText</span>({</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">pred</span>()</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.numeric</span>(p)) <span class="fu">round</span>(p, <span class="dv">1</span>) <span class="cf">else</span> p</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="full-server" class="level3">
+<h3 class="anchored" data-anchor-id="full-server">Full server</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>show/hide full server</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">bill_length_mm =</span> input<span class="sc">$</span>bill_length,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">species =</span> input<span class="sc">$</span>species,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">sex =</span> input<span class="sc">$</span>sex</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"Predicting penguin mass..."</span>, <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>      response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(<span class="fu">vals</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_perform</span>() <span class="sc">|&gt;</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">resp_body_json</span>()</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="st">"Prediction successful!"</span>, <span class="at">type =</span> <span class="st">"default"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>      response<span class="sc">$</span>.pred[[<span class="dv">1</span>]]</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>      error_msg <span class="ot">&lt;-</span> <span class="fu">conditionMessage</span>(e)</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"Connection refused|couldn't connect"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"API not available - is the server running on port 8080?"</span></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"timeout|timed out"</span>, error_msg, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="st">"Request timed out - API may be overloaded"</span></span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>        user_msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"API Error:"</span>, <span class="fu">substr</span>(error_msg, <span class="dv">1</span>, <span class="dv">50</span>))</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">showNotification</span>(<span class="fu">paste</span>(<span class="st">"Error:"</span>, user_msg), <span class="at">type =</span> <span class="st">"warn"</span>, <span class="at">duration =</span> <span class="dv">10</span>)</span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(<span class="st">"Error:"</span>, user_msg)</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bindEvent</span>(input<span class="sc">$</span>predict, <span class="at">ignoreInit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>vals <span class="ot">&lt;-</span> <span class="fu">renderPrint</span>(<span class="fu">vals</span>())</span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>pred <span class="ot">&lt;-</span> <span class="fu">renderText</span>({</span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">pred</span>()</span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.numeric</span>(p)) <span class="fu">round</span>(p, <span class="dv">1</span>) <span class="cf">else</span> p</span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(<span class="at">ui =</span> ui, <span class="at">server =</span> server)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+</section>
+<section id="verify" class="level2">
+<h2 class="anchored" data-anchor-id="verify">Verify</h2>
+<p>The full request/response flow from button click to displayed prediction:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+
+sequenceDiagram
+    participant Shiny as Shiny App
+    participant Handler as handle_predict()
+    participant Helper as prep_pred_data()
+    participant Model as Linear Model
+
+    Shiny-&gt;&gt;Handler: POST /predict&lt;br/&gt;{"bill_length_mm": 45,&lt;br/&gt;"species": "Adelie",&lt;br/&gt;"sex": "male"}
+
+    Note over Handler: 1) body parsed&lt;br&gt;by plumber2
+    Note over Handler: 2) Convert to&lt;br&gt;data.frame
+    Handler-&gt;&gt;Helper: prep_pred_data()
+    Helper--&gt;&gt;Handler: data.frame with factors
+
+    Note over Handler: 3) Predict
+    Handler-&gt;&gt;Model: predict(v, data)
+    Note over Model: y = β₀ + β₁×bill_length +&lt;br&gt;β₂×species + β₃×sex
+    Model--&gt;&gt;Handler: 4180.797
+
+    Note over Handler: 4) Format&lt;br&gt;response
+    Handler--&gt;&gt;Shiny: {".pred": [4180.797]}
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>To keep environments self-contained and reproducible, initialize <code>renv</code> in each directory:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
