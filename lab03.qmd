@@ -27,28 +27,18 @@ The original files in `_labs/lab03` are below:
 ```{bash}
 #| code-fold: false
 #| eval: false
-_labs/lab03/
-├── py-data-load.py #<1>
-├── r-data-load.R   #<2>
-├── Python #<3>
-│   ├── api
-│   ├── app
-│   ├── model-db.qmd
-│   ├── py-data-load.py
-│   └── Python.Rproj #<3>
-└── R #<4>
-    ├── api
-    ├── app
-    ├── eda-db.html
-    ├── eda-db.qmd
-    ├── r-data-load.R
-    └── R.Rproj #<4>
-
+├── app-api.py #<1>
+├── app-api.R #<2>
+├── eda-db.qmd #<3>
+├── model-db.qmd #<3>
+├── py-data-load.py #<4>
+└── r-data-load.R #<5>
 ```
-1. Database connection via Python   
-2. Database connection via R      
-3. Python Shiny app 
-4. R Shiny app 
+1. Python Shiny app 
+2. R Shiny app 
+3. EDA files (quarto)
+4. Database connection via R   
+5. Database connection via Python   
 
 In the previous labs, we build a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
 
@@ -65,39 +55,39 @@ In Python, there is a large database ecosystem (i.e., many driver options). ORM 
 ```{mermaid}
 %%| fig-cap: 'Python DB Connections'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph PyApp["Python App"]
-        PyCode(["<strong>app-api.py</strong>"])
+        PyCode("<strong>app-api.py</strong>")
     end
 
     
     subgraph PyPkg["<strong>Python Packages</strong>"]
-        DBPkg("DB Package<br/><strong>psycopg2</strong>, <strong>pymysql</strong>, <strong>sqlite3</strong>")
-        ODBCPkg("ODBC Package<br/><strong>pyodbc</strong>")
-        JDBCPkg("JDBC Package<br/><strong>jaydebeapi</strong>")
+        DBPkg("DB Package<br><strong>psycopg2</strong>, <strong>pymysql</strong>, <strong>sqlite3</strong>")
+        ODBCPkg("ODBC Package<br><strong>pyodbc</strong>")
+        JDBCPkg("JDBC Package<br><strong>jaydebeapi</strong>")
     end
     
     %%% Tints of #35605a
 
     subgraph Driver["<strong>Driver Layer</strong>"]
-        NatDrv("Native Driver<br/>libpq, MySQL C API")
-        ODBCDrv("ODBC Driver<br/>Vendor-specific")
-        JDBCDrv("JDBC Driver<br/>.jar files")
+        NatDrv("Native Driver<br>libpq, MySQL C API")
+        ODBCDrv("ODBC Driver<br>Vendor-specific")
+        JDBCDrv("JDBC Driver<br>.jar files")
     end
 
     %% Tints of #6b818c
     
     subgraph System["<strong>System Layer</strong>"]
-        ODBCSys("ODBC Manager<br/>System ODBC")
-        JAVASys("Java Runtime<br/>JVM/JRE")
+        ODBCSys("ODBC Manager<br>System ODBC")
+        JAVASys("Java Runtime<br>JVM/JRE")
     end
 
     %% Tints of #00120b
     
     subgraph DB["Database"]
-        DBServ[("<strong>Database Server</strong>")]
+        DBServ("<strong>Database Server</strong>")
     end
 
     
@@ -117,6 +107,12 @@ graph TB
     JDBCPkg --> JDBCDrv
     JDBCDrv --> JAVASys
     JAVASys --> DBServ
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style PyApp fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style PyPkg fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Driver fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style System fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DB fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 
 ```
@@ -129,45 +125,45 @@ In R, the **`DBI` package provides a universal interface** (same code works acro
 ```{mermaid}
 %%| fig-cap: 'R Database Connection Pathways'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph RApp["<strong>R App</strong>"]
-        A(["<strong>app-api.R</strong>"])
+        A("<strong>app-api.R</strong>")
     end
 
     
     subgraph RPkgs["<strong>R Packages</strong>"]
-        B("DB Packages<br/><strong>RPostgres</strong>, <strong>RMySQL</strong>, <strong>RSQLite</strong>")
-        C("ODBC Package<br/><strong>odbc</strong>")
-        D("JDBC Package<br/><strong>RJDBC</strong>")
+        B("DB Packages<br><strong>RPostgres</strong>, <strong>RMySQL</strong>, <strong>RSQLite</strong>")
+        C("ODBC Package<br><strong>odbc</strong>")
+        D("JDBC Package<br><strong>RJDBC</strong>")
     end
 
     %%% Tints of #35605a
     
     subgraph DBI["<strong>R Standard Interface</strong>"]
-        E("DBI<br/>Database Interface")
+        E("DBI<br>Database Interface")
     end
 
     %% Tints of #6b818c
 
     
     subgraph Driver["<strong>Driver Layer</strong>"]
-        F("Native Driver<br/>libpq, MySQL C API")
-        G("ODBC Driver<br/>Vendor-specific")
-        H("JDBC Driver<br/>.jar files")
+        F("Native Driver<br>libpq, MySQL C API")
+        G("ODBC Driver<br>Vendor-specific")
+        H("JDBC Driver<br>.jar files")
     end
 
     %% Tints of #6b818c
     
     subgraph System["<strong>System Layer</strong>"]
-        I("ODBC Manager<br/>System ODBC")
-        J("Java Runtime<br/>JVM/JRE")
+        I("ODBC Manager<br>System ODBC")
+        J("Java Runtime<br>JVM/JRE")
     end
 
     
     subgraph DB["<strong>Database</strong>"]
-        K[("<strong>Database Server</strong>")]
+        K("<strong>Database Server</strong>")
     end
 
     
@@ -192,6 +188,13 @@ graph TB
     E --> H
     H --> J
     J --> K
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style RApp fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style RPkgs fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DBI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Driver fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style System fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DB fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -200,18 +203,21 @@ Both R and Python native database drivers bypass the system layer and connect di
 ```{mermaid}
 %%| fig-cap: 'DB Connection Mental Model Differences'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
-graph TD
+graph LR
     subgraph RPhil["R Philosophy"]
-        A(["DBI as Universal Interface"]) --> B("All paths converge to DBI")
-        B --> C(["Consistent API regardless of driver"])
+        A("DBI as Universal<br>Interface") --> B("All paths<br>converge to<br>DBI")
+        B --> C("Consistent API<br>regardless of<br>driver")
     end
     
     subgraph PyPhil["Python Philosophy"]
-        D(["DB-API 2.0 as Standard"]) --> E("Multiple competing approaches")
-        E --> F(["Choose best tool for job"])
+        D("DB-API 2.0 as<br>Standard") --> E("Multiple<br>competing<br>approaches")
+        E --> F("Choose best<br>tool for job")
     end
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style RPhil fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style PyPhil fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 
     
@@ -226,16 +232,17 @@ In general, APIs are like the digital 'plumbing' that makes connections between 
 ```{mermaid}
 %%| fig-cap: 'APIs'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    DS(["Data Scientist"]) --> Req["API Request"]
-    Req --> ApiServ["API Server"]
-    ApiServ --> DataProcMod["Data Processing/Model"]
-    DataProcMod --> Res(["Results"])
+    DS("Data Scientist") --> Req("API Request")
+    Req --> ApiServ("API Server")
+    ApiServ --> DataProcMod("Data Processing/Model")
+    DataProcMod --> Res("Results")
     Res --> ApiServ
-    ApiServ --> APIResp(["API Response"])
+    ApiServ --> APIResp("API Response")
     APIResp --> DS
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
     
 ```
@@ -252,29 +259,30 @@ APIs have standardized language that allows different software systems to commun
 #### Python APIs
 
 ```{mermaid}
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
 	subgraph "Python APIs"
-		A2(["<strong>Python Code</strong>"]) --> B2("<strong>requests</strong> package")
+		A2("<strong>Python Code</strong>") --> B2("<strong>requests</strong> package")
 		B2 --> C2("<strong>requests.method</strong> call")
-		C2 --> D2("<strong>method</strong> parameter<br/>GET/POST/PUT/DELETE")
-		C2 --> E2("<strong>headers</strong> parameter<br/>dict of headers")
-		C2 --> F2("<strong>params</strong> parameter<br/>URL query parameters")
-		C2 --> G2("<strong>json</strong> parameter<br/>Request payload")
+		C2 --> D2("<strong>method</strong> parameter<br>GET/POST/PUT/DELETE")
+		C2 --> E2("<strong>headers</strong> parameter<br>dict of headers")
+		C2 --> F2("<strong>params</strong> parameter<br>URL query parameters")
+		C2 --> G2("<strong>json</strong> parameter<br>Request payload")
 		D2 --> H2("HTTP Request")
 		E2 --> H2
 		F2 --> H2
 		G2 --> H2
-		H2 --> I2["API Server"]
-		I2 --> J2["HTTP Response"]
-		J2 --> K2["<strong>response.status_code</strong><br/>200, 404, 500, etc."]
-		J2 --> L2["<strong>response.headers</strong><br/>Response metadata"]
-		J2 --> M2["<strong>response.json</strong><br/>JSON parsing"]
-		K2 --> N2(["<strong>Python Response Object</strong>"])
+		H2 --> I2("API Server")
+		I2 --> J2("HTTP Response")
+		J2 --> K2("<strong>response.status_code</strong><br>200, 404, 500, etc.")
+		J2 --> L2("<strong>response.headers</strong><br>Response metadata")
+		J2 --> M2("<strong>response.json</strong><br>JSON parsing")
+		K2 --> N2("<strong>Python Response Object</strong>")
 		L2 --> N2
 		M2 --> N2
 	end
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
     
 ```
@@ -282,29 +290,31 @@ graph LR
 #### R APIs
 
 ```{mermaid}
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph RApi["R APIs"]
-        A1(["R Code"]) --> B1["<strong>httr2</strong><br>package"]
+        A1("R Code") --> B1("<strong>httr2</strong><br>package")
         B1 --> C1("<strong>request()</strong> object")
-        C1 --> D1("<strong>req_method()</strong><br/>GET/POST/PUT/DELETE")
-        C1 --> E1("<strong>req_headers()</strong><br/>Content-Type, Auth, etc.")
-        C1 --> F1("<strong>req_url_query()</strong><br/>?param=value&key=data")
-        C1 --> G1("<strong>req_body_json()</strong><br/>Request payload")
+        C1 --> D1("<strong>req_method()</strong><br>GET/POST/PUT/DELETE")
+        C1 --> E1("<strong>req_headers()</strong><br>Content-Type, Auth, etc.")
+        C1 --> F1("<strong>req_url_query()</strong><br>?param=value&key=data")
+        C1 --> G1("<strong>req_body_json()</strong><br>Request payload")
         D1 --> H1("HTTP Request")
         E1 --> H1
         F1 --> H1
         G1 --> H1
-        H1 --> I1["API Server"]
-        I1 --> J1["HTTP Response"]
-        J1 --> K1["<strong>resp_status()</strong><br/>200, 404, 500, etc."]
-        J1 --> L1["<strong>resp_headers()</strong><br/>Response metadata"]
-        J1 --> M1["<strong>resp_body_json()</strong><br/>JSON parsing"]
-        K1 --> N1(["R Response Object"])
+        H1 --> I1("API Server")
+        I1 --> J1("HTTP Response")
+        J1 --> K1("<strong>resp_status()</strong><br>200, 404, 500, etc.")
+        J1 --> L1("<strong>resp_headers()</strong><br>Response metadata")
+        J1 --> M1("<strong>resp_body_json()</strong><br>JSON parsing")
+        K1 --> N1("R Response Object")
         L1 --> N1
         M1 --> N1
     end
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style RApi fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 ```
 
@@ -313,7 +323,7 @@ graph LR
 
 
 
-### In lab 2
+### Previously, in lab 2
 
 We previously turned our Python `scikit-learn` model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`.[^lab02-with-py] 
 
@@ -328,18 +338,15 @@ The sections below cover how to create and communicate with APIs.  I've split ea
 
 ## <strong>Python Shiny App</strong> 
 
-The original Python App files can be found in the [`_labs/lab03/Python/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/Python). 
+The original Python App files can be found in the [`_labs/lab03/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/). 
 
 ```{bash}
 #| code-fold: false
 #| eval: false
-_labs/lab03/Python/app
+_labs/lab03/
 ├── app-api.py
-├── app.Rproj
-├── README.md
-└── requirements.txt
-
-1 directory, 4 files
+├── model-db.qmd
+└──  py-data-load.py
 ```
 
 ### Model EDA {#sec-model-db}
@@ -520,14 +527,13 @@ readr::read_lines("_labs/lab03/py-data-load.py") |>
 
 The R App API files can be found in the [`_labs/lab03/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/). 
 
-```{r}
+```{bash}
 #| collapse: true
 #| eval: false
-fs::dir_tree(path = "_labs/lab03/")
-## _labs/lab03/
-## ├── app-api.R
-## ├── eda-db.qmd
-## └── r-data-load.R
+_labs/lab03/
+├── app-api.R
+├── eda-db.qmd
+└── r-data-load.R
 ```
 
 ### Model EDA {#sec-eda-db.qmd}

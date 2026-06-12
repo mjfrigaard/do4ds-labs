@@ -42,7 +42,7 @@ In this lab, I'll be updating the  Shiny for Python application from [lab 3](py-
 %%| fig-cap: 'Python Shiny App and API'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"18px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant User
@@ -60,6 +60,11 @@ sequenceDiagram
     API->>Reactive: Returns prediction
     Reactive->>Output: Updates display
     Output->>User: Shows predicted mass
+    style User fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Input fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Reactive fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Output fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 ```
 
@@ -138,28 +143,31 @@ logging.info("Shiny for Python application initialized") #<10>
 %%| fig-cap: 'Python logging'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    LogMessage(["<strong>Log<br>created</strong>"]) --> Logger("Python<br>logger")
+    LogMessage("<strong>Log<br>created</strong>") --> Logger("Python<br>logger")
     Logger --> FileHandler("<strong>logging.FileHandler</strong>")
     Logger --> ConsoleHandler("<strong>logging.StreamHandler</strong>")
     
     subgraph FH["FileHandler"]
         FH1("mode='a'<br>(append mode)")
         FH2("Creates file if doesn't exist")
-        FH3(["<strong>Writes to: logs/shiny_app.log</strong>"])
+        FH3("<strong>Writes to: logs/shiny_app.log</strong>")
     end
 
     FileHandler -.-> FH1 & FH2 & FH3
     
     subgraph SH["StreamHandler"]
         SH1("Default: <em>sys.stderr</em>")
-        SH2(["<strong>Outputs to console/terminal</strong>"])
+        SH2("<strong>Outputs to console/terminal</strong>")
         SH3("Real-time display")
     end
 
     ConsoleHandler -.-> SH1 & SH2 & SH3
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style FH fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style SH fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
     
 ```
@@ -313,16 +321,17 @@ To render the `session_id`, we define `session_display()` under the [`@render.te
 %%| fig-cap: 'Session ID'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
-    Decorator(["<strong>@render.text</strong>"]) --"<em>defines</em>"--> Function("session_display()")
+    Decorator("<strong>@render.text</strong>") --"<em>defines</em>"--> Function("session_display()")
     Function --> Registration{{"Registers with Shiny's<br>reactive system"}}
     Registration --"<em>binds to</em>"--> UIBinding("ui.output_text('session_display')")
-    UIBinding --> AutoUpdate(["<strong>Automatically updates<br>UI when called</strong>"])
+    UIBinding --> AutoUpdate("<strong>Automatically updates<br>UI when called</strong>")
     
 
 	style Registration text-align:center
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 ```
 
@@ -338,25 +347,25 @@ The diagram below attempts to capture the hierarchy of the UI functions:
 %%| fig-cap: 'Predictions (UI)'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph "UI Hierarchy"
-        Card(["ui.card(<strong>'Results'</strong>) container"])
+        Card("ui.card(<strong>'Results'</strong>) container")
         Header("ui.card_header(<strong>'Results'</strong>)")
     end
     
     subgraph Inputs["Input Values"]
         InputHeader("ui.h3(<strong>'Input Values'</strong>)")
         subgraph iDiv["<strong>ui.div()</strong>"]
-            InpValOut(["ui.output('<strong>vals_out</strong>')"])
+            InpValOut("ui.output('<strong>vals_out</strong>')")
         end
     end
     
     subgraph Preds["Predictions"]
         PredHeader("ui.h3(<strong>'Predicted Mass'</strong>)")
         subgraph pDiv["<strong>ui.div()</strong>"]
-            PredOut(["ui.output_text('<strong>pred_out</strong>')"])
+            PredOut("ui.output_text('<strong>pred_out</strong>')")
         end
     end
     
@@ -365,6 +374,11 @@ graph TD
     Header --> Preds
     PredHeader --"<em>Styled container</em>" --> pDiv
     InputHeader --"<em>Styled container</em>" --> iDiv
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Inputs fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style iDiv fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Preds fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style pDiv fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
     
     
@@ -486,13 +500,13 @@ I've separated the server code for the **Input Values** and **Predicted Mass** s
 %%| fig-cap: 'Reactive Inputs'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Inputs["Reactive Inputs"]
-        InputBillLength[/"<strong>input.bill_length()</strong>"/]
-        InputSex[/"<strong>input.sex()</strong>"/]
-        InputSpecies[/"<strong>input.species()</strong>"/]
+        InputBillLength("<strong>input.bill_length()</strong>")
+        InputSex("<strong>input.sex()</strong>")
+        InputSpecies("<strong>input.species()</strong>")
     end
 
         
@@ -500,15 +514,17 @@ graph LR
     APIFormat("API Format<br>Creation")
     
     subgraph "Logging Behaviors"
-        ValidationLog(["<strong>logging.warning for out-of-range</strong>"])
-        DebugLog(["<strong>logging.debug for data prep</strong>"])
-        SessionLog(["<strong>Session-specific logging</strong>"])
+        ValidationLog("<strong>logging.warning for out-of-range</strong>")
+        DebugLog("<strong>logging.debug for data prep</strong>")
+        SessionLog("<strong>Session-specific logging</strong>")
     end
     
     InputBillLength --> Validation
     InputSex & InputSpecies --"data<br>transformation"--> APIFormat
     Validation --> ValidationLog
     APIFormat --> DebugLog
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Inputs fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 
 
@@ -640,7 +656,7 @@ This combines the performance benefits of caching with the user control of manua
 %%| fig-cap: 'Predicted Values'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'13px', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph Dec["<strong>Decorator Stack</strong>"]
@@ -652,10 +668,10 @@ graph TD
     end
     
 
-        ButtonClick(["User clicks <strong>Predict</strong>"])
+        ButtonClick("User clicks <strong>Predict</strong>")
         EventTrigger[Event decorator activates]
         ExecuteFunction[Function executes]
-        CacheResult(["<strong>Result cached</strong>"])
+        CacheResult("<strong>Result cached</strong>")
 
     
 
@@ -663,6 +679,9 @@ graph TD
     EventTrigger --"<em>Caching Layer</em>"---> CalcDec
     Function ---> ExecuteFunction
     ExecuteFunction --> CacheResult
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Dec fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style CalcDec fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 ```
 
@@ -733,10 +752,10 @@ The `print` statements give us an indication of what was returned in the HTTP st
 %%| fig-cap: 'HTTP Status Codes Explained'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    A(["<strong>HTTP Status Codes</strong>"]) --> B("<code>2xx</code> Success")
+    A("<strong>HTTP Status Codes</strong>") --> B("<code>2xx</code> Success")
     A --> C("<code>4xx</code> Client Error")
     A --> D("<code>5xx</code> Server Error")
     
@@ -750,6 +769,7 @@ graph LR
     
     D --> D1("<code>500</code> Internal Server Error")
     D --> D2("<code>503</code> Service Unavailable")
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -958,21 +978,21 @@ def pred_out():
 %%| fig-cap: 'API Errors for Predictions'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'18px', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart TD
     subgraph "<strong>Error Flow</strong>"
-        APIRetError(["<strong>API returns<br>error</strong>"])
+        APIRetError("<strong>API returns<br>error</strong>")
         StringResult("<strong>pred()</strong><br>returns string")
         TypeCheck("<strong>isinstance()</strong><br>check fails")
         DirectDisplay("Display<br>error")
     end
     
     subgraph "<strong>Errors Displayed</strong>"
-        ConnError(["<em><strong>Connection<br>Error: ...</strong></em>"])
-        TimeoutError(["<em><strong>Request timed<br>out...</strong></em>"])
-        APIError(["<em><strong>API Error<br>500: ...</strong></em>"])
-        FormatError(["<em><strong>Unexpected<br>response format</strong></em>"])
+        ConnError("<em><strong>Connection<br>Error: ...</strong></em>")
+        TimeoutError("<em><strong>Request timed<br>out...</strong></em>")
+        APIError("<em><strong>API Error<br>500: ...</strong></em>")
+        FormatError("<em><strong>Unexpected<br>response format</strong></em>")
     end
     
     APIRetError --> StringResult
@@ -982,6 +1002,7 @@ flowchart TD
     DirectDisplay --> TimeoutError
     DirectDisplay --> APIError
     DirectDisplay --> FormatError
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 ```
 
@@ -1055,25 +1076,29 @@ The UI displays the API health check with a `ui.output_text()`:
 %%| fig-cap: 'API Health Check'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph UI["UI Layer"]
-        A(["<strong>ui.h5()</strong><br>header"]) --> B("<strong>ui.output_text()</strong>")
+        A("<strong>ui.h5()</strong><br>header") --> B("<strong>ui.output_text()</strong>")
     end
     
     subgraph SERVER["Server Layer"]
-        C("<strong>@reactive.calc</strong><br/>api_health_check") --> D("<strong>@render.text</strong><br/>api_status")
+        C("<strong>@reactive.calc</strong><br>api_health_check") --> D("<strong>@render.text</strong><br>api_status")
     end
     
     subgraph API["API Layer"]
-        E(["<strong>GET /ping</strong> endpoint"])
+        E("<strong>GET /ping</strong> endpoint")
     end
     
     B -.Displays.-> D
     D -.Calls.-> C
     C -.HTTP Request.-> E
     E -.Response.-> C
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style SERVER fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style API fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -1215,13 +1240,13 @@ Below is a sequence diagram illustrating the `ping` sent to the API, the logs ge
 %%| fig-cap: 'API Health Check Flow'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     autonumber
     participant UI as UI
-    participant Render as @render.text<br/>api_status()
-    participant Calc as @reactive.calc<br/>api_health_check()
+    participant Render as @render.text<br>api_status()
+    participant Calc as @reactive.calc<br>api_health_check()
     participant Log as Logging
     participant API as API
     
@@ -1232,17 +1257,17 @@ sequenceDiagram
     Calc->>Log: DEBUG: Checking API health
     Calc->>Calc: Record start_time
     
-    Calc->>API: GET http://127.0.0.1:8080/ping<br/>(timeout=5s)
+    Calc->>API: GET http://127.0.0.1:8080/ping<br>(timeout=5s)
     
     alt Success (200 OK)
         API-->>Calc: 200 {"message": "pong"}
         Calc->>Calc: Calculate response_time
-        Calc->>Log: INFO: Health check successful<br/>response_time: 0.15s
+        Calc->>Log: INFO: Health check successful<br>response_time: 0.15s
         Calc-->>Render: "✅ API is running... 0.15s"
         
     else Non-200 Status
         API-->>Calc: 404 / 500 / 503
-        Calc->>Log: WARNING: Ping failed<br/>status: 404
+        Calc->>Log: WARNING: Ping failed<br>status: 404
         Calc-->>Render: "⚠️ API ping failed: 404"
         
     else ConnectionError
@@ -1251,7 +1276,7 @@ sequenceDiagram
         Calc-->>Render: "❌ Cannot connect to API..."
         
     else Timeout
-        Note over API: Processing...<br/>(>5 seconds)
+        Note over API: Processing...<br>(>5 seconds)
         Calc--xAPI: Timeout!
         Calc->>Log: WARNING: Timeout
         Calc-->>Render: "⚠️ API health check timeout"
@@ -1272,6 +1297,11 @@ sequenceDiagram
         Calc-->>Render: Updated status
         Render-->>UI: Update display
     end
+    style UI fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Render fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Calc fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Log fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -1312,20 +1342,20 @@ Below is an overview of recent log display architecture:
 %%| fig-cap: 'Log file monitoring architecture'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph UI["UI"]
 	    subgraph H5["ui.h5() Header"]
 		    subgraph DIV["ui.div() Container"]
-			    C(["<strong>ui.output_text()</strong><br>display"])
+			    C("<strong>ui.output_text()</strong><br>display")
 		    end
 	    end
 
     end
     
     subgraph SERVER["Server"]
-        D("<strong>@reactive.file_reader()</strong><br/>reads <strong>log_file_content</strong>") --> E(["<strong>@render.text</strong><br/>recent_logs_display"])
+        D("<strong>@reactive.file_reader()</strong><br>reads <strong>log_file_content</strong>") --> E("<strong>@render.text</strong><br>recent_logs_display")
     end
     
     subgraph FS["File System"]
@@ -1341,6 +1371,13 @@ graph TB
     E -.Calls.-> D
     D -.Watches.-> F
     F -.Changes trigger.-> D
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style H5 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DIV fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style SERVER fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style FS fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style WRITE fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
     
 ```
@@ -1421,12 +1458,12 @@ Below is a sequence diagram illustrating the log configuration, log file creatio
 %%| fig-cap: 'Recent log file monitoring'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     autonumber
     participant App as App Code
-    participant Log as Log File<br/>(shiny_app.log)
+    participant Log as Log File<br>(shiny_app.log)
     participant Watcher as @reactive.file_reader
     participant Content as log_file_content()
     participant Display as recent_logs_display()
@@ -1443,7 +1480,7 @@ sequenceDiagram
     Content->>Log: open(log_file_path, 'r')
     Log-->>Content: ['INFO - Started\n', 'ERROR - Failed\n']
     
-    Content->>Content: Return dict with<br/>lines, timestamp, count
+    Content->>Content: Return dict with<br>lines, timestamp, count
     Content-->>Display: log_data
     
     Display->>Display: Extract lines
@@ -1465,7 +1502,13 @@ sequenceDiagram
     Display->>Display: Process again
     Display-->>UI: Updated display
     
-    Note over UI: User sees<br>new log<br/>automatically!
+    Note over UI: User sees<br>new log<br>automatically!
+    style App fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Log fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Watcher fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Content fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Display fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 
@@ -1546,10 +1589,10 @@ I've included a few more mermaid diagrams illustrating the topics covered in thi
 %%| fig-cap: 'Logging Levels Decision Tree'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    A(["Event"]) --> B{"What happened?"}
+    A("Event") --> B{"What happened?"}
     
     B -->|Normal operation| C("<strong>logging.info()</strong>")
     B -->|Unexpected but recoverable| D("<strong>logging.warning()</strong>")
@@ -1557,17 +1600,18 @@ graph LR
     B -->|System crash imminent| F("<strong>logging.critical()</strong>")
     B -->|Detailed troubleshooting| G("<strong>logging.debug()</strong>")
     
-    C --> C1["Examples:<br/>1. Prediction successful<br/>2. Session started"]
-    D --> D1["Examples:<br/>1. Slow response<br/>2. Unexpected format<br/>Timeout"]
-    E --> E1["Examples:<br/>1. Connection refused<br/>2. HTTP error<br/>Parse failure"]
-    F --> F1["Examples:<br/>1. Out of memory<br/>2. Database corrupted"]
-    G --> G1["Examples:<br/>1. Variable values<br/>2. Detailed flow"]
+    C --> C1("Examples:<br>1. Prediction successful<br>2. Session started")
+    D --> D1("Examples:<br>1. Slow response<br>2. Unexpected format<br>Timeout")
+    E --> E1("Examples:<br>1. Connection refused<br>2. HTTP error<br>Parse failure")
+    F --> F1("Examples:<br>1. Out of memory<br>2. Database corrupted")
+    G --> G1("Examples:<br>1. Variable values<br>2. Detailed flow")
     
     style C1 text-align:left
     style D1 text-align:left
     style E1 text-align:left
     style F1 text-align:left
     style G1 text-align:left
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
     
 ```
@@ -1578,7 +1622,7 @@ graph LR
 %%| fig-cap: 'Timeout vs. connection error'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant App as Health Check
@@ -1594,10 +1638,13 @@ sequenceDiagram
     App->>Network: Try to connect
     Network->>API: Connection established
     App->>API: GET /ping
-    Note over API: Processing...<br/>(taking too long)
+    Note over API: Processing...<br>(taking too long)
     Note over App: 5 seconds pass...
     App--xAPI: Give up waiting
     App->>App: Timeout exception
+    style App fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Network fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -1609,7 +1656,7 @@ Below is a diagram illustrating how the configured logs are updated in the appli
 %%| fig-cap: 'App log file monitoring'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     autonumber
@@ -1620,7 +1667,7 @@ sequenceDiagram
     participant API as FastAPI
     participant Model as Model
     
-    User->>ShinyUI: Enters penguin data<br/>(bill=45mm, species=Gentoo, sex=Male)
+    User->>ShinyUI: Enters penguin data<br>(bill=45mm, species=Gentoo, sex=Male)
     ShinyUI->>ShinyServer: Input values change
     ShinyServer->>Logger: Log input values
     
@@ -1628,18 +1675,24 @@ sequenceDiagram
     ShinyUI->>ShinyServer: Trigger prediction
     ShinyServer->>Logger: Log prediction request start
     
-    ShinyServer->>API: POST /predict<br/>{"bill_length_mm": 45.0,<br/>"species_Gentoo": 1, ...}
+    ShinyServer->>API: POST /predict<br>{"bill_length_mm": 45.0,<br>"species_Gentoo": 1, ...}
     API->>API: Validate input format
     API->>Model: Pass data to model
     Model->>Model: Calculate prediction
     Model->>API: Return prediction (e.g., 4500.0)
-    API->>ShinyServer: HTTP 200<br/>{".pred": [4500.0]}
+    API->>ShinyServer: HTTP 200<br>{".pred": [4500.0]}
     
-    ShinyServer->>Logger: Log successful prediction<br/>(response time, result)
-    ShinyServer->>ShinyUI: Update display:<br/>"4500.0 grams"
+    ShinyServer->>Logger: Log successful prediction<br>(response time, result)
+    ShinyServer->>ShinyUI: Update display:<br>"4500.0 grams"
     ShinyUI->>User: Shows prediction
     
     Note over ShinyServer,Logger: Simultaneously monitoring
     Logger->>ShinyUI: Update recent logs display
+    style User fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style ShinyUI fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style ShinyServer fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Logger fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Model fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 

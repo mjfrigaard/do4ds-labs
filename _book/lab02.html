@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-05-22">
+<meta name="dcterms.date" content="2026-06-12">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 2: Project Architecture – DO4DS: Lab Solutions</title>
@@ -512,7 +512,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-05-22</p>
+      <p class="date">2026-06-12</p>
     </div>
   </div>
   
@@ -570,7 +570,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
     Present("Presentation&lt;br&gt;Layer") -.-&gt; Process("Processing&lt;br&gt;Layer")
     Process -.-&gt; Data("Data&lt;br&gt;Layer")
@@ -588,9 +588,10 @@ flowchart TD
     end
     
     %% #b5c0c5 is a tint of #6b818c
-    style UI fill:#b5c0c5 
-    style BL fill:#d8e4ff
-    style DS fill:#31e981
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style BL fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DS fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 </pre>
 </div>
@@ -653,40 +654,24 @@ flowchart TD
 <p>We’ll use the <code>reticulate</code> package below to install the other packages in the <code>model-vetiver.qmd</code> lab.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-error">
-<pre><code>Error in `use_virtualenv()`:
-! Directory ~/.virtualenvs/myenv is not a Python virtualenv</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"duckdb"</span>, <span class="st">"vetiver"</span>, </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">"pins"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="st">"myenv"</span> <span class="sc">%in%</span> <span class="fu">virtualenv_list</span>()) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">virtualenv_create</span>(<span class="st">"myenv"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"duckdb"</span>, <span class="st">"vetiver"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"pins"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we can import the Python packages/functions.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> palmerpenguins <span class="im">import</span> load_penguins</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'palmerpenguins'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pandas <span class="im">import</span> get_dummies</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'pandas'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'sklearn'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> preprocessing</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'sklearn'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> duckdb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'duckdb'</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> palmerpenguins <span class="im">import</span> load_penguins</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pandas <span class="im">import</span> get_dummies</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> preprocessing</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> duckdb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="using-duckdb" class="level3">
 <h3 class="anchored" data-anchor-id="using-duckdb">Using <code>duckdb</code></h3>
@@ -722,35 +707,28 @@ NameError: name 'df' is not defined</code></pre>
 </div>
 <p>Below we <strong>load the penguins data</strong>, connect to <code>duckdb</code>, then create the table:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>penguins_data <span class="op">=</span> load_penguins()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'load_penguins' is not defined</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>con <span class="op">=</span> duckdb.<span class="ex">connect</span>(<span class="st">'my-db.duckdb'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'duckdb' is not defined</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>penguins_data <span class="op">=</span> load_penguins()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>con <span class="op">=</span> duckdb.<span class="ex">connect</span>(<span class="st">'my-db.duckdb'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The <code>load_penguins()</code> function put the penguins data into a DataFrame, then we can insert it into DuckDB <em>before</em> querying:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'con' is not defined</code></pre>
+<pre><code>&lt;_duckdb.DuckDBPyConnection object at 0x7bb04ac258f0&gt;</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'con' is not defined</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>con.close()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'con' is not defined</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>con.close()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Confirm the data:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'df' is not defined</code></pre>
+<pre><code>  species     island  bill_length_mm  ...  body_mass_g     sex  year
+0  Adelie  Torgersen            39.1  ...       3750.0    male  2007
+1  Adelie  Torgersen            39.5  ...       3800.0  female  2007
+2  Adelie  Torgersen            40.3  ...       3250.0  female  2007
+
+[3 rows x 8 columns]</code></pre>
 </div>
 </div>
 </section>
@@ -758,39 +736,31 @@ NameError: name 'df' is not defined</code></pre>
 <h3 class="anchored" data-anchor-id="create-a-model">Create a <code>model</code></h3>
 <p>The model is created below (like lab 1).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> get_dummies(df[[<span class="st">'bill_length_mm'</span>, <span class="st">'species'</span>, <span class="st">'sex'</span>]], drop_first <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'get_dummies' is not defined</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">'body_mass_g'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'df' is not defined</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LinearRegression().fit(X, y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'LinearRegression' is not defined</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> get_dummies(df[[<span class="st">'bill_length_mm'</span>, <span class="st">'species'</span>, <span class="st">'sex'</span>]], drop_first <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">'body_mass_g'</span>]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LinearRegression().fit(X, y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="print-model-information" class="level3">
 <h3 class="anchored" data-anchor-id="print-model-information">Print <code>model</code> information</h3>
 <p>This will print the model information.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"R^2 </span><span class="sc">{</span>model<span class="sc">.</span>score(X,y)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"R^2 </span><span class="sc">{</span>model<span class="sc">.</span>score(X,y)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'model' is not defined</code></pre>
+<pre><code>R^2 0.8555368759537614</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Intercept </span><span class="sc">{</span>model<span class="sc">.</span>intercept_<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Intercept </span><span class="sc">{</span>model<span class="sc">.</span>intercept_<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'model' is not defined</code></pre>
+<pre><code>Intercept 2169.2697209393996</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Columns </span><span class="sc">{</span>X<span class="sc">.</span>columns<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Columns </span><span class="sc">{</span>X<span class="sc">.</span>columns<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'X' is not defined</code></pre>
+<pre><code>Columns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'], dtype='str')</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Coefficients </span><span class="sc">{</span>model<span class="sc">.</span>coef_<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Coefficients </span><span class="sc">{</span>model<span class="sc">.</span>coef_<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'model' is not defined</code></pre>
+<pre><code>Coefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]</code></pre>
 </div>
 </div>
 </section>
@@ -799,14 +769,8 @@ NameError: name 'df' is not defined</code></pre>
 <h2 class="anchored" data-anchor-id="model---vetivermodel"><code>model</code> -&gt; <code>VetiverModel</code></h2>
 <p>The model is created with <code>VetiverModel()</code>, which is a <strong>wrapper class</strong> that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'vetiver'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> VetiverModel(model, model_name<span class="op">=</span><span class="st">'penguin_model'</span>, prototype_data<span class="op">=</span>X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'VetiverModel' is not defined</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> VetiverModel(model, model_name<span class="op">=</span><span class="st">'penguin_model'</span>, prototype_data<span class="op">=</span>X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <style>
 
@@ -824,12 +788,12 @@ NameError: name 'df' is not defined</code></pre>
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    RawMod(["&lt;strong&gt;Raw sklearn model&lt;/strong&gt;"]) --&gt; VMod("&lt;strong&gt;VetiverModel()&lt;/strong&gt;&lt;br&gt;wrapper")
-    VMod --&gt; ModMeta(["&lt;strong&gt;Model + Metadata&lt;/strong&gt;"])
-    ModMeta --&gt; Dep(["&lt;strong&gt;Deployment Ready&lt;/strong&gt;"])
+    RawMod("&lt;strong&gt;Raw sklearn model&lt;/strong&gt;") --&gt; VMod("&lt;strong&gt;VetiverModel()&lt;/strong&gt;&lt;br&gt;wrapper")
+    VMod --&gt; ModMeta("&lt;strong&gt;Model + Metadata&lt;/strong&gt;")
+    ModMeta --&gt; Dep("&lt;strong&gt;Deployment Ready&lt;/strong&gt;")
     
     subgraph Vet["&lt;em&gt;What it creates&lt;/em&gt;"]
         InSch("Input Schema")
@@ -846,9 +810,8 @@ flowchart LR
     VMod --&gt; Ser
 
     %% Style for outputs %%
-    style RawMod fill:#d8e4ff
-    style ModMeta fill:#31e981
-    style Dep fill:#31e981
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Vet fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 </pre>
 </div>
@@ -864,12 +827,12 @@ flowchart LR
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    BrdFldr(["&lt;strong&gt;board_folder()&lt;/strong&gt;"]) --&gt; FSI("File System Interface")
-    FSI --&gt; VerStor(["&lt;strong&gt;Versioned Storage&lt;/strong&gt;"])
-    VerStor --&gt; MetaTr(["&lt;strong&gt;Metadata Tracking&lt;/strong&gt;"])
+    BrdFldr("&lt;strong&gt;board_folder()&lt;/strong&gt;") --&gt; FSI("File System Interface")
+    FSI --&gt; VerStor("&lt;strong&gt;Versioned Storage&lt;/strong&gt;")
+    VerStor --&gt; MetaTr("&lt;strong&gt;Metadata Tracking&lt;/strong&gt;")
     
     subgraph BF["&lt;em&gt;What it creates&lt;/em&gt;"]
         DirStr("Directory Structure")
@@ -882,9 +845,8 @@ flowchart LR
     FSI --&gt; PinMngMnt
 
     %% Style for outputs %%
-    style BrdFldr fill:#d8e4ff
-    style VerStor fill:#31e981
-    style MetaTr fill:#31e981
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style BF fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 </pre>
 </div>
@@ -893,31 +855,33 @@ flowchart LR
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-24"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-24-1"><a href="#annotated-cell-24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
-<span id="annotated-cell-24-2"><a href="#annotated-cell-24-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_folder</span>
-<span id="annotated-cell-24-3"><a href="#annotated-cell-24-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> vetiver_pin_write</span>
-<span id="annotated-cell-24-4"><a href="#annotated-cell-24-4" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="1">1</button><span id="annotated-cell-24-5" class="code-annotation-target"><a href="#annotated-cell-24-5" aria-hidden="true" tabindex="-1"></a>temp_dir <span class="op">=</span> tempfile.mkdtemp()</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-24" data-target-annotation="2">2</button><span id="annotated-cell-24-6" class="code-annotation-target"><a href="#annotated-cell-24-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
-<span id="annotated-cell-24-7"><a href="#annotated-cell-24-7" aria-hidden="true" tabindex="-1"></a>vetiver_pin_write(model_board, v)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-14"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-14-1"><a href="#annotated-cell-14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="annotated-cell-14-2"><a href="#annotated-cell-14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_folder</span>
+<span id="annotated-cell-14-3"><a href="#annotated-cell-14-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> vetiver_pin_write</span>
+<span id="annotated-cell-14-4"><a href="#annotated-cell-14-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="1">1</button><span id="annotated-cell-14-5" class="code-annotation-target"><a href="#annotated-cell-14-5" aria-hidden="true" tabindex="-1"></a>temp_dir <span class="op">=</span> tempfile.mkdtemp()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="2">2</button><span id="annotated-cell-14-6" class="code-annotation-target"><a href="#annotated-cell-14-6" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
+<span id="annotated-cell-14-7"><a href="#annotated-cell-14-7" aria-hidden="true" tabindex="-1"></a>vetiver_pin_write(model_board, v)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-annotation">
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-24" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-14" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-24" data-code-lines="5" data-code-annotation="1">Use temp directory<br>
+<span data-code-cell="annotated-cell-14" data-code-lines="5" data-code-annotation="1">Use temp directory<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-24" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-14" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-24" data-code-lines="6" data-code-annotation="2"><code>allow_pickle_read</code> allows reading Python pickle files (needed for <code>scikit-learn</code> models)</span>
+<span data-code-cell="annotated-cell-14" data-code-lines="6" data-code-annotation="2"><code>allow_pickle_read</code> allows reading Python pickle files (needed for <code>scikit-learn</code> models)</span>
 </dd>
 </dl>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'pins'
-ModuleNotFoundError: No module named 'vetiver'
-NameError: name 'board_folder' is not defined
-NameError: name 'vetiver_pin_write' is not defined</code></pre>
+<pre><code>Model Cards provide a framework for transparent, responsible reporting. 
+ Use the vetiver `.qmd` Quarto template as a place to start, 
+ with vetiver.model_card()
+Writing pin:
+Name: 'penguin_model'
+Version: 20260612T120034Z-a6861</code></pre>
 </div>
 </div>
 <ul>
@@ -925,68 +889,71 @@ NameError: name 'vetiver_pin_write' is not defined</code></pre>
 <li><p><strong><code>vetiver_pin_write()</code></strong> receives the <code>model_board</code>, which is our <code>board_folder</code> object pointing to <code>temp_dir/models</code> and <code>v</code> (our <code>VetiverModel</code> wrapping the <code>LinearRegression</code>).</p></li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Model saved to: /tmp/tmpsfj0w1q2/models</code></pre>
+<pre><code>Model saved to: /tmp/tmpnj5fiqa9/models</code></pre>
 </div>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>show/hide print_tree()</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_tree(directory, prefix<span class="op">=</span><span class="st">""</span>, max_depth<span class="op">=</span><span class="va">None</span>, current_depth<span class="op">=</span><span class="dv">0</span>):</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Print a tree structure of directory contents."""</span></span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_depth <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> current_depth <span class="op">&gt;</span> max_depth:</span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    items <span class="op">=</span> <span class="bu">sorted</span>(os.listdir(directory))</span>
-<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(items):</span>
-<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(directory, item)</span>
-<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>        is_last <span class="op">=</span> i <span class="op">==</span> <span class="bu">len</span>(items) <span class="op">-</span> <span class="dv">1</span></span>
-<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>        current_prefix <span class="op">=</span> <span class="st">"└── "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"├── "</span></span>
-<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}{</span>current_prefix<span class="sc">}{</span>item<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.isdir(path):</span>
-<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>            extension <span class="op">=</span> <span class="st">"    "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"│   "</span></span>
-<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>            print_tree(path, prefix <span class="op">+</span> extension, max_depth, current_depth <span class="op">+</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_tree(directory, prefix<span class="op">=</span><span class="st">""</span>, max_depth<span class="op">=</span><span class="va">None</span>, current_depth<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Print a tree structure of directory contents."""</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_depth <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> current_depth <span class="op">&gt;</span> max_depth:</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    items <span class="op">=</span> <span class="bu">sorted</span>(os.listdir(directory))</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(items):</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(directory, item)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>        is_last <span class="op">=</span> i <span class="op">==</span> <span class="bu">len</span>(items) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>        current_prefix <span class="op">=</span> <span class="st">"└── "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"├── "</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}{</span>current_prefix<span class="sc">}{</span>item<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.isdir(path):</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>            extension <span class="op">=</span> <span class="st">"    "</span> <span class="cf">if</span> is_last <span class="cf">else</span> <span class="st">"│   "</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>            print_tree(path, prefix <span class="op">+</span> extension, max_depth, current_depth <span class="op">+</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>Below is a tree of the model folder:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpsfj0w1q2/models'</code></pre>
+<pre><code>└── penguin_model
+    └── 20260612T120034Z-a6861
+        ├── data.txt
+        └── penguin_model.joblib</code></pre>
 </div>
 </div>
 </section>
 <section id="what-is-in-penguin_model" class="level3">
 <h3 class="anchored" data-anchor-id="what-is-in-penguin_model">What is in <code>penguin_model/</code>?</h3>
 <p>The <code>penguin_model</code> board folder is described below:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-28"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-28" data-target-annotation="1">1</button><span id="annotated-cell-28-1" class="code-annotation-target"><a href="#annotated-cell-28-1" aria-hidden="true" tabindex="-1"></a>└── penguin_model</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-28" data-target-annotation="2">2</button><span id="annotated-cell-28-2" class="code-annotation-target"><a href="#annotated-cell-28-2" aria-hidden="true" tabindex="-1"></a>    └── CURRENT-DATE-TIME-aba30/</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-28" data-target-annotation="3">3</button><span id="annotated-cell-28-3" class="code-annotation-target"><a href="#annotated-cell-28-3" aria-hidden="true" tabindex="-1"></a>        ├── data.txt</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-28" data-target-annotation="4">4</button><span id="annotated-cell-28-4" class="code-annotation-target"><a href="#annotated-cell-28-4" aria-hidden="true" tabindex="-1"></a>        └── penguin_model.joblib</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-18"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="1">1</button><span id="annotated-cell-18-1" class="code-annotation-target"><a href="#annotated-cell-18-1" aria-hidden="true" tabindex="-1"></a>└── penguin_model</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="2">2</button><span id="annotated-cell-18-2" class="code-annotation-target"><a href="#annotated-cell-18-2" aria-hidden="true" tabindex="-1"></a>    └── CURRENT-DATE-TIME-aba30/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="3">3</button><span id="annotated-cell-18-3" class="code-annotation-target"><a href="#annotated-cell-18-3" aria-hidden="true" tabindex="-1"></a>        ├── data.txt</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-18" data-target-annotation="4">4</button><span id="annotated-cell-18-4" class="code-annotation-target"><a href="#annotated-cell-18-4" aria-hidden="true" tabindex="-1"></a>        └── penguin_model.joblib</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-28" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-28" data-code-lines="1" data-code-annotation="1"><code>pin</code> name directory<br>
+<span data-code-cell="annotated-cell-18" data-code-lines="1" data-code-annotation="1"><code>pin</code> name directory<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-28" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-28" data-code-lines="2" data-code-annotation="2">Version directory timestamp + hash<br>
+<span data-code-cell="annotated-cell-18" data-code-lines="2" data-code-annotation="2">Version directory timestamp + hash<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-28" data-target-annotation="3">3</dt>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-28" data-code-lines="3" data-code-annotation="3">Model metadata (what, when, how big)<br>
+<span data-code-cell="annotated-cell-18" data-code-lines="3" data-code-annotation="3">Model metadata (what, when, how big)<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-28" data-target-annotation="4">4</dt>
+<dt data-target-cell="annotated-cell-18" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-28" data-code-lines="4" data-code-annotation="4">Serialized model (the actual trained model + <code>VetiverModel</code> wrapper with all the prediction logic)</span>
+<span data-code-cell="annotated-cell-18" data-code-lines="4" data-code-annotation="4">Serialized model (the actual trained model + <code>VetiverModel</code> wrapper with all the prediction logic)</span>
 </dd>
 </dl>
 <p>The board folder handles versioning automatically and manages metadata about what’s stored.</p>
@@ -995,24 +962,21 @@ NameError: name 'vetiver_pin_write' is not defined</code></pre>
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    Mod(["&lt;strong&gt;model&lt;/strong&gt;"]) --&gt; VetMod("&lt;strong&gt;VetiverModel(model)&lt;/strong&gt;")
+    Mod("&lt;strong&gt;model&lt;/strong&gt;") --&gt; VetMod("&lt;strong&gt;VetiverModel(model)&lt;/strong&gt;")
     VetMod --&gt; VPW("&lt;strong&gt;vetiver_pin_write()&lt;/strong&gt;")
-    VPW --&gt; Joblib(["Serialized &lt;strong&gt;.joblib&lt;/strong&gt;"])
-    VPW --&gt; Meta(["Metadata &lt;strong&gt;.txt&lt;/strong&gt;"])
+    VPW --&gt; Joblib("Serialized &lt;strong&gt;.joblib&lt;/strong&gt;")
+    VPW --&gt; Meta("Metadata &lt;strong&gt;.txt&lt;/strong&gt;")
     
-    Rep[["To&lt;br&gt;reproduce..."]] --&gt; VPR("&lt;strong&gt;vetiver_pin_read()&lt;/strong&gt;")
+    Rep("To&lt;br&gt;reproduce...") --&gt; VPR("&lt;strong&gt;vetiver_pin_read()&lt;/strong&gt;")
     VPR --&gt; Joblib
     VPR --&gt; Meta
-    VPR --&gt; Recon(["Reconstructed&lt;br&gt;&lt;strong&gt;VetiverModel()&lt;/strong&gt;"])
+    VPR --&gt; Recon("Reconstructed&lt;br&gt;&lt;strong&gt;VetiverModel()&lt;/strong&gt;")
 
     %% Style for outputs %%
-    style Mod fill:#d8e4ff
-    style Recon fill:#31e981
-    style Meta fill:#31e981
-    style Joblib fill:#31e981
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
 
 </pre>
@@ -1027,14 +991,8 @@ flowchart LR
 <h2 class="anchored" data-anchor-id="vetivermodel---vetiverapi"><code>VetiverModel</code> -&gt; <code>VetiverAPI</code></h2>
 <p>Finally, we’ll turn the model into an API.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>ModuleNotFoundError: No module named 'vetiver'</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>NameError: name 'VetiverAPI' is not defined</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><strong><code>VetiverAPI()</code></strong> creates a production-ready web API that wraps the trained model, validates inputs, and returns predictions via HTTP.</p>
 <div class="cell" data-layout-align="center">
@@ -1042,24 +1000,25 @@ flowchart LR
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    VetMod(["&lt;strong&gt;VetiverModel()&lt;/strong&gt;"]) --&gt; VetAPI("&lt;strong&gt;VetiverAPI()&lt;/strong&gt;")
+    VetMod("&lt;strong&gt;VetiverModel()&lt;/strong&gt;") --&gt; VetAPI("&lt;strong&gt;VetiverAPI()&lt;/strong&gt;")
     VetAPI --&gt; REST("&lt;strong&gt;REST&lt;/strong&gt; API&lt;br&gt;Server")
     REST --&gt; HttpEP("&lt;strong&gt;HTTP&lt;/strong&gt;&lt;br&gt;Endpoints")
     
-    HttpEP --&gt; Post(["&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict"])
-    HttpEP --&gt; GetPing(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping"])
-    HttpEP --&gt; GetProto(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype"])
-    HttpEP --&gt; GetMeta(["&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata"])
+    HttpEP --&gt; Post("&lt;strong&gt;POST&lt;/strong&gt;&lt;br&gt;/predict")
+    HttpEP --&gt; GetPing("&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/ping")
+    HttpEP --&gt; GetProto("&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/prototype")
+    HttpEP --&gt; GetMeta("&lt;strong&gt;GET&lt;/strong&gt;&lt;br&gt;/metadata")
 
     %% Style for outputs %%
-    style VetMod fill:#d8e4ff,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style Post fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style GetPing fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style GetProto fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
-    style GetMeta fill:#31e981,stroke-width:1px,rx:10,ry:10,font-size:16px
+    style VetMod stroke-width:1px, rx:10, ry:10, font-size:16px
+    style Post stroke-width:1px, rx:10, ry:10, font-size:16px
+    style GetPing stroke-width:1px, rx:10, ry:10, font-size:16px
+    style GetProto stroke-width:1px, rx:10, ry:10, font-size:16px
+    style GetMeta stroke-width:1px, rx:10, ry:10, font-size:16px
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 </pre>
 </div>

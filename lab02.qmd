@@ -56,7 +56,7 @@ If you'd like to see the same process using R, check out the [R version](model-v
 
 ```{mermaid}
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
     Present("Presentation<br>Layer") -.-> Process("Processing<br>Layer")
     Process -.-> Data("Data<br>Layer")
@@ -74,6 +74,10 @@ flowchart TD
     end
     
     %% #b5c0c5 is a tint of #6b818c
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style BL fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style DS fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -120,14 +124,17 @@ We'll use the `reticulate` package below to install the other packages in the `m
 
 ```{r}
 #| results: hide
-#| message: false 
+#| message: false
 #| warning: false
 library(reticulate)
+if (!"myenv" %in% virtualenv_list()) {
+  virtualenv_create("myenv")
+}
 use_virtualenv("myenv", required = TRUE)
 virtualenv_install(
-  envname = "myenv", 
-  packages = c("palmerpenguins", "pandas", "numpy", 
-               "scikit-learn", "duckdb", "vetiver", 
+  envname = "myenv",
+  packages = c("palmerpenguins", "pandas", "numpy",
+               "scikit-learn", "duckdb", "vetiver",
                 "pins"))
 ```
 
@@ -246,12 +253,12 @@ v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
 ```{mermaid}
 %%| fig-cap: 'VetiverModel()'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    RawMod(["<strong>Raw sklearn model</strong>"]) --> VMod("<strong>VetiverModel()</strong><br>wrapper")
-    VMod --> ModMeta(["<strong>Model + Metadata</strong>"])
-    ModMeta --> Dep(["<strong>Deployment Ready</strong>"])
+    RawMod("<strong>Raw sklearn model</strong>") --> VMod("<strong>VetiverModel()</strong><br>wrapper")
+    VMod --> ModMeta("<strong>Model + Metadata</strong>")
+    ModMeta --> Dep("<strong>Deployment Ready</strong>")
     
     subgraph Vet["<em>What it creates</em>"]
         InSch("Input Schema")
@@ -268,6 +275,8 @@ flowchart LR
     VMod --> Ser
 
     %% Style for outputs %%
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Vet fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -278,12 +287,12 @@ In this version, we're going to save our `pins` board to a temporary location (`
 ```{mermaid}
 %%| fig-cap: 'board_folder()'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    BrdFldr(["<strong>board_folder()</strong>"]) --> FSI("File System Interface")
-    FSI --> VerStor(["<strong>Versioned Storage</strong>"])
-    VerStor --> MetaTr(["<strong>Metadata Tracking</strong>"])
+    BrdFldr("<strong>board_folder()</strong>") --> FSI("File System Interface")
+    FSI --> VerStor("<strong>Versioned Storage</strong>")
+    VerStor --> MetaTr("<strong>Metadata Tracking</strong>")
     
     subgraph BF["<em>What it creates</em>"]
         DirStr("Directory Structure")
@@ -296,6 +305,8 @@ flowchart LR
     FSI --> PinMngMnt
 
     %% Style for outputs %%
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style BF fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 
 ```
@@ -370,20 +381,21 @@ The board folder handles versioning automatically and manages metadata about wha
 ```{mermaid}
 %%| fig-cap: 'vetiver_pin_write()'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    Mod(["<strong>model</strong>"]) --> VetMod("<strong>VetiverModel(model)</strong>")
+    Mod("<strong>model</strong>") --> VetMod("<strong>VetiverModel(model)</strong>")
     VetMod --> VPW("<strong>vetiver_pin_write()</strong>")
-    VPW --> Joblib(["Serialized <strong>.joblib</strong>"])
-    VPW --> Meta(["Metadata <strong>.txt</strong>"])
+    VPW --> Joblib("Serialized <strong>.joblib</strong>")
+    VPW --> Meta("Metadata <strong>.txt</strong>")
     
-    Rep[["To<br>reproduce..."]] --> VPR("<strong>vetiver_pin_read()</strong>")
+    Rep("To<br>reproduce...") --> VPR("<strong>vetiver_pin_read()</strong>")
     VPR --> Joblib
     VPR --> Meta
-    VPR --> Recon(["Reconstructed<br><strong>VetiverModel()</strong>"])
+    VPR --> Recon("Reconstructed<br><strong>VetiverModel()</strong>")
 
     %% Style for outputs %%
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
     
 
 ```
@@ -402,17 +414,17 @@ app = VetiverAPI(v, check_prototype = True)
 ```{mermaid}
 %%| fig-cap: 'VetiverAPI()'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"16px", 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart LR
-    VetMod(["<strong>VetiverModel()</strong>"]) --> VetAPI("<strong>VetiverAPI()</strong>")
+    VetMod("<strong>VetiverModel()</strong>") --> VetAPI("<strong>VetiverAPI()</strong>")
     VetAPI --> REST("<strong>REST</strong> API<br>Server")
     REST --> HttpEP("<strong>HTTP</strong><br>Endpoints")
     
-    HttpEP --> Post(["<strong>POST</strong><br>/predict"])
-    HttpEP --> GetPing(["<strong>GET</strong><br>/ping"])
-    HttpEP --> GetProto(["<strong>GET</strong><br>/prototype"])
-    HttpEP --> GetMeta(["<strong>GET</strong><br>/metadata"])
+    HttpEP --> Post("<strong>POST</strong><br>/predict")
+    HttpEP --> GetPing("<strong>GET</strong><br>/ping")
+    HttpEP --> GetProto("<strong>GET</strong><br>/prototype")
+    HttpEP --> GetMeta("<strong>GET</strong><br>/metadata")
 
     %% Style for outputs %%
     style VetMod stroke-width:1px, rx:10, ry:10, font-size:16px
@@ -420,6 +432,7 @@ flowchart LR
     style GetPing stroke-width:1px, rx:10, ry:10, font-size:16px
     style GetProto stroke-width:1px, rx:10, ry:10, font-size:16px
     style GetMeta stroke-width:1px, rx:10, ry:10, font-size:16px
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 ```
 
