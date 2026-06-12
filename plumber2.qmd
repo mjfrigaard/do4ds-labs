@@ -51,17 +51,20 @@ APIs (Application Programming Interfaces) are covered in [lab 3](lab03.qmd). The
 %%| fig-cap: 'Refresher on APIs'
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant Customer as Shiny App
     participant Waiter as API
     participant Kitchen as ML Model
 
-    Customer->>Waiter: "I'd like a<br/>prediction for<br/>bill_length=45,<br/>species=Adelie"
-    Waiter->>Kitchen: Prepare data &<br/>make prediction
+    Customer->>Waiter: "I'd like a<br>prediction for<br>bill_length=45,<br>species=Adelie"
+    Waiter->>Kitchen: Prepare data &<br>make prediction
     Kitchen->>Waiter: Prediction: 4180.8 grams
     Waiter->>Customer: Returns prediction
+    style Customer fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Waiter fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Kitchen fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 The process involves three steps:
@@ -170,19 +173,21 @@ vetiver::vetiver_pin_write(model_board, v) #<10>
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Training["<strong>Model Training</strong>"]
-        ModelR(["<strong>model.R</strong>"])
-        DuckDB[("DuckDB <br> (as <strong>my-db.duckdb</strong>)")]
-        PinBoard("Pin Board<br/><strong>models/penguin_model/</strong>")
+        ModelR("<strong>model.R</strong>")
+        DuckDB("DuckDB <br> (as <strong>my-db.duckdb</strong>)")
+        PinBoard("Pin Board<br><strong>models/penguin_model/</strong>")
 
         ModelR -->|"<em>loads data from</em>"| DuckDB
-        ModelR -->|"<em>trains lm() model</em>"| LM[/"Linear Model"/]
-        LM -->|"<em>wrapped by</em>"| Vetiver[/"Vetiver Model"/]
+        ModelR -->|"<em>trains lm() model</em>"| LM("Linear Model")
+        LM -->|"<em>wrapped by</em>"| Vetiver("Vetiver Model")
         Vetiver -->|"<em>saved to</em>"| PinBoard
     end
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Training fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 ```
 
 Running `model.R` creates the `models/` directory and `duckdb` database file:
@@ -275,17 +280,17 @@ prep_pred_data <- function(input_data) {
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph JSON["JSON from Shiny"]
-        J1[/"species: 'Adelie'<br/>(string)"/]
-        J2[/"sex: 'male'<br/>(string)"/]
+        J1("species: 'Adelie'<br>(string)")
+        J2("sex: 'male'<br>(string)")
     end
 
     subgraph Model["Model Expects"]
-        M1[\"species: factor<br/>(with levels)"\]
-        M2[\"sex: factor<br/>(with levels)"\]
+        M1("species: factor<br>(with levels)")
+        M2("sex: factor<br>(with levels)")
     end
 
     subgraph Helper["Helper Function"]
@@ -294,6 +299,10 @@ graph TB
 
     J1 & J2 --> Helper
     Helper --> M1 & M2
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style JSON fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Model fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Helper fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 ```
 
 ### Handler functions
@@ -567,20 +576,21 @@ handle_predict <- function(body, response) { #<1>
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
-    JSON(["JSON Body: <br/>'{'bill_length_mm':45,...}'"])
+    JSON("JSON Body: <br>'{'bill_length_mm':45,...}'")
 
-    JSON -->|"<em>parsed by plumber2</em>"| Body("R List:<br/>list(bill_length_mm=45,...)")
+    JSON -->|"<em>parsed by plumber2</em>"| Body("R List:<br>list(bill_length_mm=45,...)")
 
-    Body -->|"<em>as.data.frame()</em>"| DF("Data Frame:<br/>1 row × 3 columns")
+    Body -->|"<em>as.data.frame()</em>"| DF("Data Frame:<br>1 row × 3 columns")
 
-    DF -->|"<em>prep_pred_data()</em>"| Factors("Proper Types:<br/>numeric + factors")
+    DF -->|"<em>prep_pred_data()</em>"| Factors("Proper Types:<br>numeric + factors")
 
-    Factors -->|"<em>predict()</em>"| Result("Number:<br/>4180.797")
+    Factors -->|"<em>predict()</em>"| Result("Number:<br>4180.797")
 
-    Result -->|"<em>list()</em>"| Response(["{'.pred':[4180.797]}"])
+    Result -->|"<em>list()</em>"| Response("{'.pred':[4180.797]}")
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 ```{verbatim}
@@ -686,25 +696,26 @@ handle_predict_validated <- function(body, response) {
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    Start(["Request<br>Received"])
+    Start("Request<br>Received")
 
-    Start --> Check1{All fields<br/>present?}
+    Start --> Check1{All fields<br>present?}
     Check1 -->|No| Error1("400: Missing fields")
-    Check1 -->|Yes| Check2{Species<br/>valid?}
+    Check1 -->|Yes| Check2{Species<br>valid?}
 
     Check2 -->|No| Error2("400: Invalid species")
-    Check2 -->|Yes| Check3{Sex<br/>valid?}
+    Check2 -->|Yes| Check3{Sex<br>valid?}
 
     Check3 -->|No| Error3("400: Invalid sex")
-    Check3 -->|Yes| Check4{Bill length<br/>30-60mm?}
+    Check3 -->|Yes| Check4{Bill length<br>30-60mm?}
 
     Check4 -->|No| Error4("400: Out of range")
     Check4 -->|Yes| Predict("Make Prediction")
 
-    Predict --> Success(["Return prediction<br/>with metadata"])
+    Predict --> Success("Return prediction<br>with metadata")
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 An invalid `species` value returns a 400 error with the valid options:
@@ -1021,14 +1032,15 @@ The five `httr2` functions work as a pipeline, each building on the previous ste
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    ReqObj(["request(url)"]) -->|"sets URL"| MethObj
-    MethObj(["req_method('POST')"]) -->|"sets verb"| BodyObj
-    BodyObj(["req_body_json(data)"]) -->|"attaches body"| PerfObj
-    PerfObj(["req_perform()"]) -->|"sends request"| RespObj
-    RespObj(["resp_body_json()"]) -->|"parses response"| Result(["R list"])
+    ReqObj("request(url)") -->|"sets URL"| MethObj
+    MethObj("req_method('POST')") -->|"sets verb"| BodyObj
+    BodyObj("req_body_json(data)") -->|"attaches body"| PerfObj
+    PerfObj("req_perform()") -->|"sends request"| RespObj
+    RespObj("resp_body_json()") -->|"parses response"| Result("R list")
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 | Function | Role |
@@ -1117,7 +1129,7 @@ The full request/response flow from button click to displayed prediction:
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant Shiny as Shiny App
@@ -1125,7 +1137,7 @@ sequenceDiagram
     participant Helper as prep_pred_data()
     participant Model as Linear Model
 
-    Shiny->>Handler: POST /predict<br/>{"bill_length_mm": 45,<br/>"species": "Adelie",<br/>"sex": "male"}
+    Shiny->>Handler: POST /predict<br>{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}
 
     Note over Handler: 1) body parsed<br>by plumber2
     Note over Handler: 2) Convert to<br>data.frame
@@ -1139,6 +1151,10 @@ sequenceDiagram
 
     Note over Handler: 4) Format<br>response
     Handler-->>Shiny: {".pred": [4180.797]}
+    style Shiny fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Handler fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Helper fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Model fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 ```
 
 To keep environments self-contained and reproducible, initialize `renv` in each directory:

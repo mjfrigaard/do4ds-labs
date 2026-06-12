@@ -45,7 +45,7 @@ For a refresher, I've included a diagram of the Shiny App and API (using the [`p
 ```{mermaid}
 %%| fig-cap: 'Shiny R App and plumber API'
 %%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant User as User's<br>Browser
@@ -55,24 +55,28 @@ sequenceDiagram
     
     User->>Shiny: Clicks "Predict" button
     
-    Note over Shiny: Collect inputs:<br/>bill_length=45<br/>species=Adelie<br/>sex=Male
+    Note over Shiny: Collect inputs:<br>bill_length=45<br>species=Adelie<br>sex=Male
     
     Shiny->>Shiny: Create data.frame
     
-    Shiny->>API: HTTP POST /predict<br/>{"bill_length_mm":45,...}
+    Shiny->>API: HTTP POST /predict<br>{"bill_length_mm":45,...}
     
     Note over API: Parse JSON
     API->>API: prep_pred_data()
     
     API->>Model: predict(v, data)
-    Note over Model: Linear regression:<br/>4180.797 grams
+    Note over Model: Linear regression:<br>4180.797 grams
     Model-->>API: 4180.797
     
-    API-->>Shiny: HTTP 200 OK<br/>{".pred":[4180.797]}
+    API-->>Shiny: HTTP 200 OK<br>{".pred":[4180.797]}
     
-    Note over Shiny: Extract value<br/>Format as text
+    Note over Shiny: Extract value<br>Format as text
     
-    Shiny-->>User: Display:<br/>"4180.8 grams"
+    Shiny-->>User: Display:<br>"4180.8 grams"
+    style User fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Shiny fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Model fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 
     
@@ -552,15 +556,15 @@ All the events captured with  `logger::log_*()` functions are written to the log
 %%| fig-cap: 'Logging in Server'
 %%| fig-align: center
 %%| fig-width: 7.0
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart TD
 	 subgraph User["Log Generation"]
-		Q(["User<br>inputs"])
-		R(["API<br>calls"])
-		S(["System<br>events"])
+		Q("User<br>inputs")
+		R("API<br>calls")
+		S("System<br>events")
 		%% T@{ shape: rect, label: "<strong>logger::log_</strong>*<br>functions" }
-		T["<strong>logger::log_</strong>*<br>functions"]
+		T("<strong>logger::log_</strong>*<br>functions")
 	  end
 
     Q --> T
@@ -569,7 +573,7 @@ flowchart TD
     T -- "<em>Written to</em>"--> A
 
 	 subgraph FileSys["File System"]
-		A[\"File: <strong>shiny_app.log</strong>"\]
+		A("File: <strong>shiny_app.log</strong>")
 		A1("Modification<br>Time")
 		A2("Log<br>Contents")
 	 end
@@ -595,6 +599,10 @@ flowchart TD
     
     classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
     class D,E,A1,A2 outcome
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style User fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style FileSys fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style ReactFile fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
     
 ```
 
@@ -642,10 +650,10 @@ To make this display more manageable, we'll limit the number of extracted logs t
 %%| fig-cap: 'Displaying logs'
 %%| fig-align: center
 %%| fig-width: 7.0
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#F2E6C2', 'primaryBorderColor': '#2A6F77', 'primaryTextColor': '#1B2A41', 'secondaryColor': '#d4e7e4', 'tertiaryColor': '#f5f0e4', 'lineColor': '#1B2A41', 'edgeLabelBackground': '#F2E6C2'}}}%%
+%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart TD
-  A(["<strong>reactiveFileReader()</strong> "])
+  A("<strong>reactiveFileReader()</strong> ")
 
  subgraph LogProc["Log Processing"]
         H("Reads <strong>shiny_app.log</strong>")
@@ -665,9 +673,9 @@ flowchart TD
     H -- "<em>No lines</em>"--> M
 
  subgraph UI["UI Rendering"]
-     N[/"<strong>log_file_content()</strong>"/]
+     N("<strong>log_file_content()</strong>")
      subgraph P["Display in <strong>div</strong>"]
-         O(["<strong>verbatimTextOutput(recent_logs)</strong>"])
+         O("<strong>verbatimTextOutput(recent_logs)</strong>")
      end
   end
   
@@ -681,6 +689,10 @@ flowchart TD
     
     classDef outcome fill:#31e981,stroke:#000,stroke-width:1px
     class O outcome
+    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style LogProc fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style UI fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style P fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
 
 ```
 

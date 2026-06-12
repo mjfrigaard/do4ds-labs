@@ -6,7 +6,7 @@ library(httr2)
 api_url <- "http://127.0.0.1:8080/predict"
 
 ui <- page_sidebar(
-  title = "Penguin Mass Predictor",
+  title = h4(strong("Penguin Mass Predictor "),code("plumber2")),
   theme = bs_theme(bootswatch = "sketchy"),
   sidebar = sidebar(
     sliderInput(
