@@ -50,8 +50,8 @@ APIs (Application Programming Interfaces) are covered in [lab 3](lab03.qmd). The
 ```{mermaid}
 %%| fig-cap: 'Refresher on APIs'
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant Customer as Shiny App
@@ -62,9 +62,7 @@ sequenceDiagram
     Waiter->>Kitchen: Prepare data &<br>make prediction
     Kitchen->>Waiter: Prediction: 4180.8 grams
     Waiter->>Customer: Returns prediction
-    style Customer fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Waiter fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Kitchen fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+
 ```
 
 The process involves three steps:
@@ -172,8 +170,8 @@ vetiver::vetiver_pin_write(model_board, v) #<10>
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Training["<strong>Model Training</strong>"]
@@ -186,8 +184,12 @@ graph LR
         LM -->|"<em>wrapped by</em>"| Vetiver("Vetiver Model")
         Vetiver -->|"<em>saved to</em>"| PinBoard
     end
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Training fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style Training fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
+    style ModelR fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style DuckDB fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style LM fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Vetiver fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PinBoard fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 Running `model.R` creates the `models/` directory and `duckdb` database file:
@@ -279,8 +281,8 @@ prep_pred_data <- function(input_data) {
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph JSON["JSON from Shiny"]
@@ -299,10 +301,14 @@ graph TB
 
     J1 & J2 --> Helper
     Helper --> M1 & M2
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style JSON fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style Model fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style Helper fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style JSON fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
+    style Model fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Helper fill:#fbf7ec,stroke:#D2562B,color:#1B2A41
+    style J1 fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style J2 fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style H fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style M1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style M2 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 ### Handler functions
@@ -575,8 +581,8 @@ handle_predict <- function(body, response) { #<1>
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     JSON("JSON Body: <br>'{'bill_length_mm':45,...}'")
@@ -590,7 +596,12 @@ graph TB
     Factors -->|"<em>predict()</em>"| Result("Number:<br>4180.797")
 
     Result -->|"<em>list()</em>"| Response("{'.pred':[4180.797]}")
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style JSON fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Body fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style DF fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Factors fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Result fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Response fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 ```{verbatim}
@@ -695,8 +706,8 @@ handle_predict_validated <- function(body, response) {
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Start("Request<br>Received")
@@ -715,7 +726,17 @@ graph TD
     Check4 -->|Yes| Predict("Make Prediction")
 
     Predict --> Success("Return prediction<br>with metadata")
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style Start fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check2 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check3 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check4 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Error1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Error2 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Error3 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Error4 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Predict fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Success fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 An invalid `species` value returns a 400 error with the valid options:
@@ -1031,8 +1052,8 @@ The five `httr2` functions work as a pipeline, each building on the previous ste
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     ReqObj("request(url)") -->|"sets URL"| MethObj
@@ -1040,7 +1061,12 @@ graph TD
     BodyObj("req_body_json(data)") -->|"attaches body"| PerfObj
     PerfObj("req_perform()") -->|"sends request"| RespObj
     RespObj("resp_body_json()") -->|"parses response"| Result("R list")
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style ReqObj fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style MethObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style BodyObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PerfObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style RespObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Result fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 | Function | Role |
@@ -1128,8 +1154,8 @@ The full request/response flow from button click to displayed prediction:
 
 ```{mermaid}
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant Shiny as Shiny App
@@ -1146,15 +1172,12 @@ sequenceDiagram
 
     Note over Handler: 3) Predict
     Handler->>Model: predict(v, data)
-    Note over Model: y = β₀ + β₁×bill_length +<br>β₂×species + β₃×sex
+    Note over Model: y = β₀ +<br>β₁×bill_length +<br>β₂×species +<br>β₃×sex
     Model-->>Handler: 4180.797
 
     Note over Handler: 4) Format<br>response
     Handler-->>Shiny: {".pred": [4180.797]}
-    style Shiny fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Handler fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Helper fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Model fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+
 ```
 
 To keep environments self-contained and reproducible, initialize `renv` in each directory:

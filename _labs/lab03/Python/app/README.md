@@ -30,7 +30,7 @@ pip install --upgrade pip
 ```
 
 ```bash
-pip install shiny requests
+pip install -r requirements.txt   
 ```
 
 4. Verify
@@ -40,7 +40,7 @@ python -c "import shiny; print('✅ Shiny installed:', shiny.__version__)"
 ```
 
 ```bash
-python -c "import requests; print('✅ Requests installed:', requests.__version__)
+python -c "import requests; print('✅ Requests installed:', requests.__version__)"
 ```
 
 ## Launch
