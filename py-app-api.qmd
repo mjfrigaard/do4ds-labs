@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-In [lab 2](lab02.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`:[^lab02-model-py]
+In [lab 2](lab02.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`. The files we created in lab 2 are displayed in the folder tree below:[^lab02-model-py]
 
 [^lab02-model-py]: View the contents of this folder in the [GitHub repo](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02/model-vetiver). 
 
@@ -57,12 +57,12 @@ The Python script [`_labs/lab03/Python/api/mod-api.py`](https://github.com/mjfri
 
 ```{mermaid}
 %%| fig-cap: 'Vetiver API creation'
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph T1["<strong>API Server</strong>"]
-        RunApi("Run<br>mod-api.py") --"create"--> VetMod("<strong>VetiverModel</strong>")
+        RunApi("<strong>Run<br>mod-api.py</strong>") --"create"--> VetMod("<strong>VetiverModel</strong>")
         VetMod --"convert to"--> VetAPI("<strong>VetiverAPI</strong>")
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
@@ -70,22 +70,24 @@ graph TD
     style RunApi stroke-width:1px, rx:20, ry:20, font-size:16px
     
    subgraph Browse["<strong>Browser</strong>"]
-        Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<strong>/docs</strong>"--> Docs("API Docs")
-        Http --"<strong>/ping</strong>"--> Health("Health Check")
-        Http --"<strong>/metadata</strong>"--> Info("Model Info")
+        Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<code>/docs</code>"--> Docs("API Docs")
+        Http --"<code>/ping</code>"--> Health("<strong>Health Check</strong>")
+        Http --"<code>/metadata</code>"--> Info("<strong>Model Info</strong>")
         Docs & Health & Info --> FastAPI
     end
-
-    style Http stroke-width:1px, rx:20, ry:20, font-size:16px
     
-    style FastAPI stroke-width:1px, rx:20, ry:20, font-size:16px
-    style Docs stroke-width:1px, rx:20, ry:20, font-size:16px
-    style Health stroke-width:1px, rx:20, ry:20, font-size:16px
-    style Info stroke-width:1px, rx:20, ry:20, font-size:16px
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style T1 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style Browse fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style T1 fill:#fbf7ec,stroke:#5B8C5A,color:#000000
+    style RunApi fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetMod fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetAPI fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style FastAPI fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
+
+    style Browse fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Http fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Docs fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Health fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Info fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
 
 ```
 
@@ -287,7 +289,7 @@ The `prototype_data` can be used for API input validation and documentation.
 
 ### Create `VetiverModel`
 
-The code below will convert the `scikit-learn` model (`sklearn_model`) into a Vetiver Model again, using the `prototype_data`.
+The code below will convert the `scikit-learn` model (as `sklearn_model`) into a Vetiver Model again, using the `prototype_data`. This is stored as `v`:
 
 ```{python}
 #| eval: false 
@@ -307,7 +309,7 @@ If successful, we'll see the output below list `vetiver.vetiver_model.VetiverMod
 :-] Created VetiverModel: <class 'vetiver.vetiver_model.VetiverModel'>
 ```
 
-Recall that `vetiver.VetiverModel()` wraps the raw model with MLOps metadata and adds the input validation schema based on `prototype_data`. This enables automatic API generation and provides a standardized prediction interface.
+Recall that `vetiver.VetiverModel()` wraps the raw model with MLOps metadata and adds the input validation schema based on `prototype_data`. Now we have a standardized API and prediction interface.
 
 ### Create API
 
@@ -327,7 +329,6 @@ vetiver_api = vetiver.VetiverAPI(v, check_prototype=True) #<1>
 
 app = vetiver_api.app #<2>
 ```
-
 1.  `VetiverAPI` converts our Vetiver model (`v`) to an API\
 2.  `.app` is the actual web application object for serving the API
 
@@ -347,34 +348,41 @@ The diagram below gives an overview of how the `VetivierModel()` is converted in
 
 ```{mermaid}
 %%| fig-cap: 'mod-api.py'
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
-    Mod("<strong>VetiverModel</strong>") --> VApiCon("<strong>VetiverAPI</strong><br>Wrapper")
-    VApiCon --"generates"--> FastAPI("<strong>FastAPI</strong><br>Routes")
+    Mod("<strong>VetiverModel</strong>") --> VApiCon("<strong>VetiverAPI<br>Wrapper</strong>")
+    VApiCon --"generates"--> FastAPI("<strong>FastAPI<br>Routes</strong>")
     
-    FastAPI --> Post("POST /predict")
-    FastAPI --> GetPing("GET /ping") 
-    FastAPI --> GetMeta("GET /metadata")
-    FastAPI --> GetDocs("GET /docs")
+    FastAPI --> Post("<strong>POST /predict</strong>")
+    FastAPI --> GetPing("<strong>GET /ping</strong>") 
+    FastAPI --> GetMeta("<strong>GET /metadata</strong>")
+    FastAPI --> GetDocs("<strong>GET /docs</strong>")
     
-    CheckProt("<strong>check_prototype=True</strong>") --> Input("Enable Input<br>Validation")
+    CheckProt("<strong>check_prototype=True</strong>") --> Input("<strong>Enable Input<br>Validation</strong>")
     
-    VApiCon --"creates"--> VApiObj("<strong>VetiverAPI</strong><br>object")
-    VApiObj --"with"--> AppAttr("<strong>.app</strong> attribute")
+    VApiCon --"creates"--> VApiObj("<strong>VetiverAPI<br>object</strong>")
+    VApiObj --"with"--> AppAttr("<strong>.app attribute</strong>")
     
-    AppAttr --"contains"--> FastAPIApp("<strong>FastAPI</strong> application")
+    AppAttr --"contains"--> FastAPIApp("<strong>FastAPI<br>application</strong> ")
+    
+    style Mod fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style CheckProt fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff 
+    style Input fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff 
+    style VApiCon fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style FastAPI fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style CheckProt stroke-width:2px, rx:12, ry:12, font-size:16px
-    style Mod stroke-width:2px, rx:12, ry:12, font-size:16px
+    style Post fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GetPing fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GetMeta fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GetDocs fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style Post stroke-width:2px, rx:12, ry:12, font-size:16px
-    style GetPing stroke-width:2px, rx:12, ry:12, font-size:16px
-    style GetMeta stroke-width:2px, rx:12, ry:12, font-size:16px
-    style GetDocs stroke-width:2px, rx:12, ry:12, font-size:16px
-    style FastAPIApp stroke-width:2px, rx:12, ry:12, font-size:16px
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+    style VApiObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style AppAttr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+
+    style FastAPIApp fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff 
+   
 ```
 
 ### Print outputs
@@ -392,7 +400,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8080)
 ```
 
-### Launch the API
+## Launch the API
 
 In a new Terminal, run the following:
 
@@ -402,15 +410,33 @@ In a new Terminal, run the following:
 python3 mod-api.py
 ```
 
-Then click on the link for the API Documentation: <http://127.0.0.1:8080/docs>
+In the console, you'll see the following: 
 
-![VetiverModel & FastApi UI](img/lab3-python-vetiver-api-ui.png){fig-align="center" width="100%"}
+```{bash}
+#| eval: false 
+#| code-fold: false
+:-] Created VetiverModel: <class 'vetiver.vetiver_model.VetiverModel'>
+FastAPI app type: <class 'fastapi.applications.FastAPI'>
+:-] Starting Penguin Model API...
+:-] API Documentation: http://127.0.0.1:8080/docs
+:-] Health Check: http://127.0.0.1:8080/ping
+:-] Model Info: http://127.0.0.1:8080/metadata
+INFO:     Started server process [74880]
+INFO:     Waiting for application startup.
+INFO:     VetiverAPI starting...
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+```
 
-The `FastAPI` UI is automatically generated and provides interactive API documentation. It can also be useful for developing the Shiny for Python app.
+The `FastAPI` UI is automatically generated and provides interactive API documentation, and the `Vetiver` will be useful for developing our Shiny for Python app.
 
 ### FastAPI Interface
 
-The UI shows four automatically created endpoints:
+If you click on the link for the API Documentation (<http://127.0.0.1:8080/docs>), you'll see the following: 
+
+![FastApi Docs](img/lab3-python-fastapi-positron-docs.png){fig-align="center" width="100%"}
+
+The FastAPI UI shows four automatically created endpoints:
 
 +----------------------+------------------+-------------------------------------------+-------------------------------------------------+------------------------------------------+
 | Endpoint             | Description      | Purpose                                   | Return/Input                                    | Shiny Use                                |
@@ -432,7 +458,36 @@ The bottom three sections of the FastAPI UI shows the **Schema Information**:
 
 -   **HTTPValidationError**: What error responses look like   
 -   **ValidationError**: Specific field validation failures   
--   **Prototype**: Exact input schema expected    
+-   **Prototype**: Exact input schema expected 
+
+### Vetiver Interface
+
+The Vetiver UI (at `http://127.0.0.1:8080/`) is the model card landing page generated by `VetiverAPI`. 
+
+![VetiverModel Docs](img/lab3-python-fastapi-positron.png){fig-align="center" width="100%"}
+
+It shows the deployed model's identity and input contract rather than the raw HTTP endpoint list:
+
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| Section                      | Description        | Content                                           | Purpose                                   |
++==============================+====================+===================================================+===========================================+
+| **Model Name**               | Deployed model ID  | `penguin_model`                                   | Confirm the correct model is loaded       |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| **Model Type**               | ML framework class | `sklearn.linear_model.LinearRegression`           | Verify the model class matches training   |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| **Prototype**                | Input schema       | Column names and types: `bill_length_mm`,         | Validate the app sends the correct fields |
+|                              |                    | `species_Chinstrap`, `species_Gentoo`, `sex_male` | and data types                            |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| **API Documentation** link   | Route to Swagger   | Link to `/docs`                                   | Open the interactive FastAPI UI           |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| **Health check** link        | Route to ping      | Link to `/ping`                                   | Confirm API is live before making calls   |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+| **Model metadata** link      | Route to metadata  | Link to `/metadata`                               | Inspect version, packages, Python info    |
++------------------------------+--------------------+---------------------------------------------------+-------------------------------------------+
+
+: Vetiver Interface Sections
+
+The key difference between the two UIs: the `Vetiver` page documents *what the model is* (identity, prototype, links); the `FastAPI /docs` page documents *how to call it* (HTTP verbs, request bodies, response schemas).
 
 ## Test the API
 
@@ -440,8 +495,8 @@ To test, create multiple Terminal sessions: one to run the API and a second for 
 
 ```{mermaid}
 %%| fig-cap: 'Vetiver API creation & testing'
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph T1["<strong>API</strong>"]
@@ -450,8 +505,6 @@ graph TD
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
 
-    style T1 font-size:14px
-    
     subgraph T2["<strong>Test</strong>"]
         Curl("<strong>curl</strong><br>commands") --> ManPostReq("Manual<br>POST<br>request")
         ManPostReq --> FastAPI
@@ -459,28 +512,30 @@ graph TD
         JSONReq --> VerAPI("Verify<br>API Works")
     end
 
-    style T2 font-size:14px
-    
-   subgraph Browse["<strong>Browser</strong>"]
+    subgraph Browse["<strong>Browser</strong>"]
         Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<strong>/docs</strong>"--> Docs("API Docs")
         Http --"<strong>/ping</strong>"--> Health("Health Check")
         Http --"<strong>/metadata</strong>"--> Info("Model Info")
         Docs & Health & Info --> FastAPI
     end
 
-    style RunApi stroke-width:2px, rx:12, ry:12, font-size:14px
-    style Curl stroke-width:2px, rx:12, ry:12, font-size:14px
-    style Http stroke-width:2px, rx:12, ry:12, font-size:14px
+    style T1 fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
+    style RunApi fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetMod fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetAPI fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style FastAPI fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style VerAPI stroke-width:2px, rx:12, ry:12, font-size:14px
-    style Info stroke-width:2px, rx:12, ry:12, font-size:14px
-    style Health stroke-width:2px, rx:12, ry:12, font-size:14px
-    style Docs stroke-width:2px, rx:12, ry:12, font-size:14px
-    style FastAPI stroke-width:2px, rx:12, ry:12, font-size:14px
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style T1 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style T2 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style Browse fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style T2 fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Curl fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style ManPostReq fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style JSONReq fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VerAPI fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+
+    style Browse fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Http fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Docs fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Health fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Info fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
 
 ```
 
@@ -564,8 +619,8 @@ Now that we've confirmed our API is running, we can launch our Shiny (for Python
 
 ```{mermaid}
 %%| fig-cap: 'Shiny App, Vetiver API Server, & API testing'
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph T1["<strong>API Server</strong>"]
@@ -574,16 +629,12 @@ graph TD
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
 
-    style RunApi rx:20, ry:20, font-size:14px
-    
     subgraph T2["<strong>API Testing</strong>"]
         Curl("<strong>curl</strong><br>command") --> ManPostReq("Manual<br>POST<br>request")
         ManPostReq --> FastAPI
         FastAPI --> JSONReq("JSON<br>Response<br>Test")
         JSONReq --> VerAPI("Verify<br>API Works")
     end
-
-    style Curl rx:20, ry:20, font-size:14px
 
     subgraph T3["<strong>Shiny App</strong>"]
        RunApp("Run<br>app-api.py") --> UI("User<br>Interface")
@@ -593,28 +644,39 @@ graph TD
        JSONResp --> DispPred("Display<br>Prediction")
     end
 
-    style RunApp rx:20, ry:20, font-size:14px
-    
-   subgraph Browse["<strong>Browser</strong>"]
+    subgraph Browse["<strong>Browser</strong>"]
         Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<strong>/docs</strong>"--> Docs("API Docs")
         Http --"<strong>/ping</strong>"--> Health("Health Check")
         Http --"<strong>/metadata</strong>"--> Info("Model Info")
         Docs & Health & Info --> FastAPI
     end
 
-    style Http rx:20, ry:20, font-size:14px
+    style T1 fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
+    style RunApi fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetMod fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VetAPI fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style FastAPI fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style FastAPI font-size:14px
-    style VerAPI font-size:14px
-    style Docs font-size:14px
-    style Health font-size:14px
-    style Info font-size:14px
-    style DispPred font-size:14px
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style T1 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style T2 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style T3 fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    style Browse fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
+    style T2 fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Curl fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style ManPostReq fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style JSONReq fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VerAPI fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+
+    style T3 fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style RunApp fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style UI fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style HttpPostReq fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style JSONResp fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style DispPred fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+
+    style Browse fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Http fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Docs fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Health fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Info fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+
+
 ```
 
 I'm going to dive a little into the [syntax differences](https://shiny.posit.co/py/docs/comp-r-shiny.html#syntax-differences) between Shiny (R) and Shiny for Python. The application in this lab uses the Shiny for Python Core syntax mode[^core-vs-express], which looks more like Shiny for R. 
@@ -744,7 +806,7 @@ Expand the R code below to compare:
 ```
 
 ```{mermaid}
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     subgraph "Python Decorators"
@@ -752,9 +814,13 @@ graph TD
         C("<strong>@reactive.event</strong>") --> D("Event-driven<br>reactives")
         E("<strong>@render.text</strong>") --> F("Output<br>rendering")
     end
-    
-    %% style A fill:#e1f5fe
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
+
+    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style B fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style C fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style D fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style E fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style F fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
 ### Predictions
@@ -855,7 +921,7 @@ pred <- reactive({
 I've tried to summarize Python's general reactive philosophy in the diagram below:
 
 ```{mermaid}
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TB
     subgraph Py["Python Philosophy"]
@@ -863,11 +929,13 @@ graph TB
         A --> A2("Type conversion<br>and error handing<br>are explicit")
         A --> A4("Method calls<br>with parentheses")
     end
-    
-    style A font-size:16px
-    classDef default fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Py fill:#d4e7e4,stroke:#2A6F77,color:#1B2A41
-    
+
+    style Py fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style A1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style A2 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style A4 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+
 ```
 
 ## Verify
@@ -896,8 +964,8 @@ A diagram of the user inputs (i.e., the **Predict** button), reactives, and the 
 ```{mermaid}
 %%| fig-cap: 'Refresher on APIs'
 %%| fig-width: 7.0
-%%| fig-align: center
-%%{init: {'theme': 'base', 'look': 'handDrawn', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant Shiny as Shiny App
@@ -917,9 +985,6 @@ sequenceDiagram
     API-->>Shiny: {"pred": [4500.0]}
     
     Note over Shiny: Display:<br>"4500.0 grams"
-    style Shiny fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style API fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
-    style Vetiver fill:#F2E6C2,stroke:#2A6F77,color:#1B2A41
 
 ```
 

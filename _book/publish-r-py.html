@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-12">
+<meta name="dcterms.date" content="2026-06-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>GitHub Actions as CI/CD – DO4DS: Lab Solutions</title>
@@ -510,7 +510,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-12</p>
+      <p class="date">2026-06-15</p>
     </div>
   </div>
   
@@ -540,7 +540,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>In this lab, we’re going to cover using GitHub Actions (or just Actions) for deploying R or Python code (i.e., models, APIs, apps, etc) to a published website. View the original lab file <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab5">here</a>.</p>
+<p>In this lab, we’re going to cover using GitHub Actions (or just Actions) for deploying R or Python code (i.e., models, APIs, apps, etc) to a published website. View the original lab file <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab05">here</a>.</p>
 <p>To help explain/demonstrate GitHub Actions, I’ll cover a few examples I use often.</p>
 <section id="publishing-quartogithub-pages" class="level2">
 <h2 class="anchored" data-anchor-id="publishing-quartogithub-pages">Publishing Quarto/GitHub Pages</h2>
@@ -580,26 +580,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
-    Push(["Developer&lt;br&gt;pushes to &lt;code&gt;main&lt;/code&gt;"]) --&gt;|"triggers"| GHA["GitHub Actions&lt;br&gt;Runner (ubuntu-latest)"]
+    Push("Developer&lt;br&gt;pushes to &lt;code&gt;main&lt;/code&gt;") --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Runner (ubuntu-latest)")
 
     GHA --&gt; Step1("&lt;strong&gt;Step 1&lt;/strong&gt;&lt;br&gt;Checkout Repository&lt;br&gt;&lt;code&gt;actions/checkout@v4&lt;/code&gt;")
     Step1 --&gt; Step2("&lt;strong&gt;Step 2&lt;/strong&gt;&lt;br&gt;Set up Quarto&lt;br&gt;&lt;code&gt;quarto-actions/setup@v2&lt;/code&gt;")
     Step2 --&gt; Step3("&lt;strong&gt;Step 3&lt;/strong&gt;&lt;br&gt;Render &amp; Publish&lt;br&gt;&lt;code&gt;quarto-actions/publish@v2&lt;/code&gt;")
 
-    Step3 --&gt;|"authenticates with"| Token["&lt;cdde&gt;GITHUB_TOKEN&lt;/code&gt;&lt;br&gt;(auto-provided&lt;br&gt;by GitHub)"]
+    Step3 --&gt;|"authenticates with"| Token("&lt;cdde&gt;GITHUB_TOKEN&lt;/code&gt;&lt;br&gt;(auto-provided&lt;br&gt;by GitHub)")
     Token --&gt;|"writes rendered output"| GHPages("&lt;code&gt;gh-pages&lt;/code&gt;&lt;br&gt;branch")
-    GHPages --&gt;|"served as"| Site(["Live GitHub&lt;br&gt;Pages Site"])
+    GHPages --&gt;|"served as"| Site("Live GitHub&lt;br&gt;Pages Site")
+    style Push fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Step1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Step2 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Step3 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Token fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHPages fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Site fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style Push fill:#F9E79F,stroke:#D4AC0D,color:#000
-    style GHA fill:#D4E6F1,stroke:#2E86C1,color:#000
-    style Step1 fill:#EBF5FB,stroke:#2E86C1,color:#000
-    style Step2 fill:#EBF5FB,stroke:#2E86C1,color:#000
-    style Step3 fill:#EBF5FB,stroke:#2E86C1,color:#000
-    style Token fill:#FDEDEC,stroke:#C0392B,color:#000
-    style GHPages fill:#D5F5E3,stroke:#1E8449,color:#000
-    style Site fill:#D5F5E3,stroke:#1E8449,color:#000
 </pre>
 </div>
 <p></p><figcaption> Publishing to GitHub pages</figcaption> </figure><p></p>
@@ -663,18 +663,20 @@ flowchart TD
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'neutral', 'look': 'handDrawn', 'themeVariables': { 'fontFamily': 'monospace', "fontSize":"14px"}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
-    DevBr(["&lt;code&gt;dev&lt;/code&gt; branch"]) --&gt;|"push to test"| TestBr("&lt;code&gt;test&lt;/code&gt; branch")
-    TestBr --&gt;|"triggers"| GHA["GitHub Actions&lt;br&gt;Run &lt;code&gt;testthat&lt;/code&gt; suite"]
-    GHA --&gt;|"✅ tests pass"| PR["Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; → &lt;code&gt;prod&lt;/code&gt;"]
-    GHA --&gt;|"❌ tests fail"| Block["Promotion&lt;br&gt;Blocked"]
+    DevBr("&lt;code&gt;dev&lt;/code&gt; branch") --&gt;|"push to test"| TestBr("&lt;code&gt;test&lt;/code&gt; branch")
+    TestBr --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Run &lt;code&gt;testthat&lt;/code&gt; suite")
+    GHA --&gt;|"✅ tests pass"| PR("Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; → &lt;code&gt;prod&lt;/code&gt;")
+    GHA --&gt;|"❌ tests fail"| Block("Promotion&lt;br&gt;Blocked")
     PR --&gt;|"approved &amp; merged"| ProdBr("&lt;code&gt;prod&lt;/code&gt; branch")
+    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    style DevBr fill:#D4E6F1,stroke:#2E86C1,color:#000
-    style TestBr fill:#D5F5E3,stroke:#1E8449,color:#000
-    style ProdBr fill:#FADBD8,stroke:#C0392B,color:#000
-    style Block fill:#F9E79F,stroke:#D4AC0D,color:#000
 </pre>
 </div>
 <p></p><figcaption> Running tests</figcaption> </figure><p></p>
