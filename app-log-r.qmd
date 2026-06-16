@@ -26,7 +26,7 @@ This lab covers how to use logging and monitoring to track events inside data sc
 
 ## Overview
 
-For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber` version](plumber.qmd)) from the previous lab (i.e., the user inputs are sent to the API with the **Predict** button):
+For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber2` version](plumber2.qmd)) from the previous lab (i.e., the user inputs are sent to the API with the **Predict** button):
 
 ```{=html}
 <style>
@@ -50,7 +50,7 @@ For a refresher, I've included a diagram of the Shiny App and API (using the [`p
 sequenceDiagram
     participant User as User's<br>Browser
     participant Shiny as Shiny App<br>(app.R)
-    participant API as Plumber API<br>(plumber.R)
+    participant API as plumber2 API<br>(plumber.R)
     participant Model as Vetiver<br>Model
     
     User->>Shiny: Clicks "Predict" button
@@ -61,7 +61,7 @@ sequenceDiagram
     
     Shiny->>API: HTTP POST /predict<br>{"bill_length_mm":45,...}
     
-    Note over API: Parse JSON
+    Note over API: body parsed<br>by plumber2
     API->>API: prep_pred_data()
     
     API->>Model: predict(v, data)
@@ -103,11 +103,11 @@ The `model.R` file creates our `vetiver` model:
 
 This script only needs to be run once (or whenever the model changes). 
 
-### `plumber.R` 
+### `plumber.R`
 
-The `plumber.R` files contains the same API we created in [`plumber`](plumber.qmd). Launching the API in Positron displays the documentation and handlers: 
+The `plumber.R` file contains the same API we created in [`plumber2`](plumber2.qmd), updated to use `plumber2` syntax (`api()`, `api_get()`, `api_post()`, `api_run()`). Launching the API in Positron displays the documentation and handlers:
 
-![`plumber` API with `vetiver` model](img/lab4_plumber_api.png){width='100%' fig-align='center'}
+![`plumber2` API with `vetiver` model](img/lab4-plumber2-api.png){width='100%' fig-align='center'}
 
 ## The App 
 
@@ -354,7 +354,7 @@ I've added logs to the predictions reactive values below. As you can see, the ma
       
       response <- httr2::request(api_url) |> #<7>
         httr2::req_method("POST") |>
-        httr2::req_body_json(request_data, auto_unbox = FALSE) |>
+        httr2::req_body_json(request_data, auto_unbox = TRUE) |> #<2>
         httr2::req_timeout(30) |>
         httr2::req_perform() #<7>
       
@@ -426,7 +426,7 @@ I've added logs to the predictions reactive values below. As you can see, the ma
 4. Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.    
 5. Handles API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.    
 6. Notification for predicting penguin mass   
-7. `httr2` API request  
+7. `httr2` API request; `auto_unbox = TRUE` sends scalar values (e.g., `45` not `[45]`) matching the `plumber2` body parser
 8. Record API response time   
 9. API prediction response 
 10. Extracts prediction value 
@@ -495,7 +495,13 @@ We'll cover how to include each output in the **System Status** below.
 
 #### ***API Status***
 
-The status of the `ping` sent to the API can return one of three results: `✅ API Online` (response = 200), `⚠️ API Issues` (non-200 status), `❌ API Offline` (non-response). 
+The status of the `ping` sent to the API can return one of three results:
+
+- `✅ API Online` (response = 200)
+
+- `⚠️ API Issues` (non-200 status)
+
+- `❌ API Offline` (non-response)  
 
 ```{r}
 #| label: api_health
@@ -740,7 +746,7 @@ We can these logs show up in the UI:
 When a user clicks on **Predict**, the values are sent in a request to the API, a response is returned, and the log file is updated with: 
 
 ```{verbatim}
-INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: [{"bill_length_mm":45,"species_Chinstrap":0,"species_Gentoo":0,"sex_male":1}]
+INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: {"bill_length_mm":45,"species":"Adelie","sex":"male"}
 INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - response_time_sec: 0.619 - prediction: 4180.7965
 INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams
 ```

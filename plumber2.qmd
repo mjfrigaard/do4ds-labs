@@ -40,7 +40,7 @@ APIs (Application Programming Interfaces) are covered in [lab 3](lab03.qmd). The
   font-family: monospace;
   font-size: 1.5em;
   font-weight: bold;
-  color: #d80808 !important;
+  color: #d80818 !important;
   background-color: #ffffff;
   padding: 0.2em;
 }
@@ -81,7 +81,7 @@ The updated `plumber2` files are in the following folders:
 ```{bash}
 #| eval: false
 #| code-fold: false
-R/api/
+_labs/lab03/R/plumber2/api
 ├── api.Rproj
 ├── model.R     #<1>
 ├── models/
@@ -100,7 +100,7 @@ R/api/
 ```{bash}
 #| eval: false
 #| code-fold: false
-R/app/
+_labs/lab03/R/plumber2/app
 ├── app-api.R   #<1>
 ├── app.Rproj
 ├── renv/
@@ -110,13 +110,14 @@ R/app/
 
 ## The model (`model.R`)
 
-The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app.
+The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app. Extend the code chunk below to review this process (but this code is identical to the original plumber api `model.R` file).
 
 ```{r}
 #| eval: false
-#| code-fold: show
+#| code-fold: true
 #| code-summary: 'show/hide model.R'
-
+# pkgs
+# these don't change
 library(palmerpenguins) #<1>
 library(duckdb)
 library(DBI)
@@ -168,6 +169,8 @@ vetiver::vetiver_pin_write(model_board, v) #<10>
 9. Save the expected input format.
 10. Write model to board.
 
+As illustrated in the figure below, `model.R` loads the `duckdb` data, trains the linear model, and stores the model/metadata in the `models/penguin_model/` folder:
+
 ```{mermaid}
 %%| fig-width: 7.0
 %%| fig-align: 'center'
@@ -192,7 +195,7 @@ graph LR
     style PinBoard fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-Running `model.R` creates the `models/` directory and `duckdb` database file:
+Our `api/` folder contains the `models/` directory (the `duckdb` database file is stored *outside* this folder):
 
 ```{verbatim}
 ├── models
@@ -208,21 +211,38 @@ The `prototype` stored in the `vetiver` model contains the expected input format
 ```{r}
 #| eval: false
 #| code-fold: false
-v <- pins::board_folder("models/") |> vetiver::vetiver_pin_read("penguin_model")
+v <- pins::board_folder("models/") |> 
+  vetiver::vetiver_pin_read("penguin_model")
+```
+
+We can see this when we examine it's structure:
+
+```{r}
+#| eval: false
+#| code-fold: false
 str(v$prototype)
-# Classes 'tbl_df', 'tbl' and 'data.frame':	0 obs. of  3 variables:
-#  $ bill_length_mm: num
-#  $ species       : Factor w/ 3 levels "Adelie","Chinstrap",..:
-#  $ sex           : Factor w/ 2 levels "female","male":
+```
+
+```{verbatim}
+tibble [0 × 3] (S3: tbl_df/tbl/data.frame)
+ $ bill_length_mm: num(0) 
+ $ species       : Factor w/ 3 levels "Adelie","Chinstrap",..: 
+ $ sex           : Factor w/ 2 levels "female","male": 
 ```
 
 ## The API (`plumber.R`) {#sec-api}
 
-The `plumber.R` file defines handler functions and assembles a `plumber2` router.
+The `plumber.R` file defines handler functions and assembles a `plumber2` router, which is a complete rewrite and uses different function names and handler signatures. The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
+
+In `plumber2`, these are separated:
+
+- Path parameters are named arguments (e.g., `/users/<id>` → `function(id)`)    
+- Query parameters are accessed via the `query` argument    
+- The request body is accessed via the `body` argument (already parsed from JSON)   
 
 ### plumber vs plumber2
 
-`plumber2` is a complete rewrite and uses different function names and handler signatures:
+Below is a table comparing `plumber` to the new `plumber2` syntax.
 
 | Task | `plumber` | `plumber2` |
 |------|-----------|------------|
@@ -234,13 +254,6 @@ The `plumber.R` file defines handler functions and assembles a `plumber2` router
 | Request body | `jsonlite::fromJSON(req$postBody)` | `body` argument |
 | Set response status | `res$status <- 500` | `response$status <- 500L` |
 
-The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
-
-In `plumber2`, they are separated:
-
-- Path parameters: come as named arguments (e.g., `/users/<id>` → `function(id)`)
-- Query parameters: accessed via the `query` argument
-- Request body: accessed via the `body` argument (already parsed from JSON)
 
 ### Load model
 
@@ -261,7 +274,7 @@ v <- vetiver::vetiver_pin_read(model_board, "penguin_model") #<3>
 
 ### Prepare prediction data
 
-JSON doesn't have factors—only strings. The `prep_pred_data()` helper bridges the gap by converting `species` and `sex` strings to factors using the levels stored in the `vetiver` model prototype.
+We'll use the `prep_pred_data()` helper function again to bridge the gap by converting `species` and `sex` strings to factors (JSON doesn't have factors, only strings) using the levels stored in the `vetiver` model prototype.
 
 ```{r}
 #| eval: false
@@ -278,6 +291,8 @@ prep_pred_data <- function(input_data) {
   )
 }
 ```
+
+The figure below illustrates the JSON -> `data.frame()` data conversion:
 
 ```{mermaid}
 %%| fig-width: 7.0
@@ -301,6 +316,8 @@ graph TB
 
     J1 & J2 --> Helper
     Helper --> M1 & M2
+    
+    
     style JSON fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
     style Model fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
     style Helper fill:#fbf7ec,stroke:#D2562B,color:#1B2A41
@@ -309,13 +326,12 @@ graph TB
     style H fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style M1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style M2 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    
 ```
 
 ### Handler functions
 
-Each handler specializes in a different type of request. We'll organize these into four categories: health, model info, documentation, and predictions.
-
-The `#*` annotation comments define the HTTP method, path, and serializer for each handler when the file is loaded by `plumber2`.
+Each handler specializes in a different type of request. I've organized the handler functions into four categories: health, model info, documentation, and predictions. The same comment (`#*`) annotation comments define the HTTP method, path, and serializer for each handler when the file is loaded by `plumber2`.
 
 #### Health
 
@@ -339,10 +355,13 @@ handle_ping <- function() {
 }
 ```
 
-Test with `curl`:
+Test with `curl` in the Terminal:[^port]
+
+[^port]: We're using port `8081` for our `plumber2` API (`8080` is being used by the `plumber` API).
+
 
 ```{verbatim}
-curl http://127.0.0.1:8080/ping
+curl http://127.0.0.1:8081/ping
 ```
 
 ```json
@@ -376,7 +395,7 @@ handle_health <- function() {
 ```
 
 ```{verbatim}
-curl http://127.0.0.1:8080/health
+curl http://127.0.0.1:8081/health
 ```
 
 ```json
@@ -422,7 +441,7 @@ handle_model_prototype <- function() {
 ```
 
 ```{verbatim}
-curl http://127.0.0.1:8080/model-prototype
+curl http://127.0.0.1:8081/model-prototype
 ```
 
 <details>
@@ -605,7 +624,7 @@ graph TB
 ```
 
 ```{verbatim}
-curl -X POST http://127.0.0.1:8080/predict \
+curl -X POST http://127.0.0.1:8081/predict \
   -H "Content-Type: application/json" \
   -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
 ```
@@ -742,7 +761,7 @@ graph TD
 An invalid `species` value returns a 400 error with the valid options:
 
 ```{verbatim}
-curl -X POST http://127.0.0.1:8080/predict-validated \
+curl -X POST http://127.0.0.1:8081/predict-validated \
    -H "Content-Type: application/json" \
    -d '{"bill_length_mm": 45, "species": "Emperor", "sex": "male"}'
 ```
@@ -802,7 +821,7 @@ handle_predict_batch <- function(body, response) {
 4. Return predictions, count, and timestamp.
 
 ```{verbatim}
-curl -X POST http://127.0.0.1:8080/predict-batch \
+curl -X POST http://127.0.0.1:8081/predict-batch \
    -H "Content-Type: application/json" \
    -d '{
      "bill_length_mm": [45, 39, 50],
@@ -909,8 +928,14 @@ app <- plumber2::api() |>
 ```{r}
 #| eval: false
 #| code-fold: false
-app |> plumber2::api_run(port = 8080, host = "127.0.0.1")
+app |> plumber2::api_run(port = 8081, host = "127.0.0.1")
 ```
+
+![`plumber2` UI](img/lab3-plumber2-router-positron.png){width='100%' fig-align='center'}
+
+If we click on the **API Servers**, we will see the url our `plumber2` api is running on: 
+
+![`plumber2` API server](img/lab3-plumber2-api-server.png){width='100%' fig-align='center'}
 
 With the API running, we can connect to it from a Shiny application.
 
@@ -923,7 +948,7 @@ The API URL is defined at the top of the file:
 ```{r}
 #| eval: false
 #| code-fold: false
-api_url <- "http://127.0.0.1:8080/predict"
+api_url <- "http://127.0.0.1:8081/predict"
 ```
 
 ### UI
@@ -1027,7 +1052,7 @@ pred <- reactive({
     error_msg <- conditionMessage(e)
 
     if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
-      user_msg <- "API not available - is the server running on port 8080?"
+      user_msg <- "API not available - is the server running on port 8081?"
     } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
       user_msg <- "Request timed out - API may be overloaded"
     } else {
@@ -1125,7 +1150,7 @@ server <- function(input, output, session) {
       error_msg <- conditionMessage(e)
 
       if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
-        user_msg <- "API not available - is the server running on port 8080?"
+        user_msg <- "API not available - is the server running on port 8081?"
       } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
         user_msg <- "Request timed out - API may be overloaded"
       } else {
@@ -1149,6 +1174,10 @@ shinyApp(ui = ui, server = server)
 ```
 
 ## Verify
+
+When we click on the **Predict** button, we see our predicted value from the API: 
+
+![Shiny app predictions](img/lab3-plumber2-shiny-prediction.png){width='100%' fig-align='center'}
 
 The full request/response flow from button click to displayed prediction:
 
@@ -1186,3 +1215,5 @@ To keep environments self-contained and reproducible, initialize `renv` in each 
 #| eval: false
 renv::init()
 ```
+
+We'll cover how to keep detailed logs on APIs and Apps in [R App Logging](app-log-r.qmd).

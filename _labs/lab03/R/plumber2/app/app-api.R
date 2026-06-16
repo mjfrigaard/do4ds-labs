@@ -3,7 +3,7 @@ library(bslib)
 library(bsicons)
 library(httr2)
 
-api_url <- "http://127.0.0.1:8080/predict"
+api_url <- "http://127.0.0.1:8081/predict"
 
 ui <- page_sidebar(
   title = h4(strong("Penguin Mass Predictor "),code("plumber2")),
