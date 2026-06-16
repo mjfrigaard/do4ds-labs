@@ -1,17 +1,8 @@
-#  Penguin Mass Predictor API
+#  Penguin Mass Predictor API ----
 # 
 #  API for predicting penguin body mass from bill length, species, and sex
 #  using a linear regression model deployed with vetiver.
 # 
-#  @apiTitle Penguin Mass Predictor API
-#  
-#  @apiDescription Predict penguin body mass using bill measurements and characteristics
-#  
-#  @apiVersion 1.0.0
-#  
-#  @apiContact list(name = "API Support", email = "support@example.com")
-#  
-#  @apiLicense list(name = "MIT")
 
 # pkgs ----
 library(vetiver)

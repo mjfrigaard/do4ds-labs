@@ -228,7 +228,7 @@ server <- function(input, output, session) {
       
       response <- httr2::request(api_url) |>
         httr2::req_method("POST") |>
-        httr2::req_body_json(request_data, auto_unbox = FALSE) |>
+        httr2::req_body_json(request_data, auto_unbox = TRUE) |>
         httr2::req_timeout(30) |>
         httr2::req_perform()
       

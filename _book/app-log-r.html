@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-15">
+<meta name="dcterms.date" content="2026-06-16">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R App Logging – DO4DS: Lab Solutions</title>
@@ -534,7 +534,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-15</p>
+      <p class="date">2026-06-16</p>
     </div>
   </div>
   
@@ -567,7 +567,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This lab covers how to use logging and monitoring to track events inside data science projects (specifically inside a Shiny application), and what you can do with logs and metrics when they are created.</p>
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>For a refresher, I’ve included a diagram of the Shiny App and API (using the <a href="./plumber.html"><code>plumber</code> version</a>) from the previous lab (i.e., the user inputs are sent to the API with the <strong>Predict</strong> button):</p>
+<p>For a refresher, I’ve included a diagram of the Shiny App and API (using the <a href="./plumber2.html"><code>plumber2</code> version</a>) from the previous lab (i.e., the user inputs are sent to the API with the <strong>Predict</strong> button):</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -589,7 +589,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 sequenceDiagram
     participant User as User's&lt;br&gt;Browser
     participant Shiny as Shiny App&lt;br&gt;(app.R)
-    participant API as Plumber API&lt;br&gt;(plumber.R)
+    participant API as plumber2 API&lt;br&gt;(plumber.R)
     participant Model as Vetiver&lt;br&gt;Model
     
     User-&gt;&gt;Shiny: Clicks "Predict" button
@@ -600,7 +600,7 @@ sequenceDiagram
     
     Shiny-&gt;&gt;API: HTTP POST /predict&lt;br&gt;{"bill_length_mm":45,...}
     
-    Note over API: Parse JSON
+    Note over API: body parsed&lt;br&gt;by plumber2
     API-&gt;&gt;API: prep_pred_data()
     
     API-&gt;&gt;Model: predict(v, data)
@@ -645,15 +645,15 @@ sequenceDiagram
 </section>
 <section id="plumber.r" class="level3">
 <h3 class="anchored" data-anchor-id="plumber.r"><code>plumber.R</code></h3>
-<p>The <code>plumber.R</code> files contains the same API we created in <a href="./plumber.html"><code>plumber</code></a>. Launching the API in Positron displays the documentation and handlers:</p>
+<p>The <code>plumber.R</code> file contains the same API we created in <a href="./plumber2.html"><code>plumber2</code></a>, updated to use <code>plumber2</code> syntax (<code>api()</code>, <code>api_get()</code>, <code>api_post()</code>, <code>api_run()</code>). Launching the API in Positron displays the documentation and handlers:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab4_plumber_api.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="plumber API with vetiver model"><img src="img/lab4_plumber_api.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="plumber API with vetiver model"></a></p>
+<p><a href="img/lab4-plumber2-api.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="plumber2 API with vetiver model"><img src="img/lab4-plumber2-api.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="plumber2 API with vetiver model"></a></p>
 </figure>
 </div>
-<figcaption><code>plumber</code> API with <code>vetiver</code> model</figcaption>
+<figcaption><code>plumber2</code> API with <code>vetiver</code> model</figcaption>
 </figure>
 </div>
 </section>
@@ -887,7 +887,7 @@ sequenceDiagram
 <span id="annotated-cell-11-22"><a href="#annotated-cell-11-22" aria-hidden="true" tabindex="-1"></a>      </span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="7">7</button><span id="annotated-cell-11-23" class="code-annotation-target"><a href="#annotated-cell-11-23" aria-hidden="true" tabindex="-1"></a>      response <span class="ot">&lt;-</span> httr2<span class="sc">::</span><span class="fu">request</span>(api_url) <span class="sc">|&gt;</span></span>
 <span id="annotated-cell-11-24"><a href="#annotated-cell-11-24" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_method</span>(<span class="st">"POST"</span>) <span class="sc">|&gt;</span></span>
-<span id="annotated-cell-11-25"><a href="#annotated-cell-11-25" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="annotated-cell-11-25"><a href="#annotated-cell-11-25" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_body_json</span>(request_data, <span class="at">auto_unbox =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
 <span id="annotated-cell-11-26"><a href="#annotated-cell-11-26" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_timeout</span>(<span class="dv">30</span>) <span class="sc">|&gt;</span></span>
 <span id="annotated-cell-11-27"><a href="#annotated-cell-11-27" aria-hidden="true" tabindex="-1"></a>        httr2<span class="sc">::</span><span class="fu">req_perform</span>()</span>
 <span id="annotated-cell-11-28"><a href="#annotated-cell-11-28" aria-hidden="true" tabindex="-1"></a>      </span>
@@ -961,7 +961,7 @@ sequenceDiagram
 </dd>
 <dt data-target-cell="annotated-cell-11" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-11" data-code-lines="3" data-code-annotation="2">Reactive values from UI<br>
+<span data-code-cell="annotated-cell-11" data-code-lines="3,25" data-code-annotation="2">Reactive values from UI<br>
 </span>
 </dd>
 <dt data-target-cell="annotated-cell-11" data-target-annotation="3">3</dt>
@@ -986,8 +986,7 @@ sequenceDiagram
 </dd>
 <dt data-target-cell="annotated-cell-11" data-target-annotation="7">7</dt>
 <dd>
-<span data-code-cell="annotated-cell-11" data-code-lines="23,27" data-code-annotation="7"><code>httr2</code> API request<br>
-</span>
+<span data-code-cell="annotated-cell-11" data-code-lines="23,27" data-code-annotation="7"><code>httr2</code> API request; <code>auto_unbox = TRUE</code> sends scalar values (e.g., <code>45</code> not <code>[45]</code>) matching the <code>plumber2</code> body parser</span>
 </dd>
 <dt data-target-cell="annotated-cell-11" data-target-annotation="8">8</dt>
 <dd>
@@ -1134,7 +1133,12 @@ sequenceDiagram
 </section>
 <section id="api-status" class="level4">
 <h4 class="anchored" data-anchor-id="api-status"><strong><em>API Status</em></strong></h4>
-<p>The status of the <code>ping</code> sent to the API can return one of three results: <code>✅ API Online</code> (response = 200), <code>⚠️ API Issues</code> (non-200 status), <code>❌ API Offline</code> (non-response).</p>
+<p>The status of the <code>ping</code> sent to the API can return one of three results:</p>
+<ul>
+<li><p><code>✅ API Online</code> (response = 200)</p></li>
+<li><p><code>⚠️ API Issues</code> (non-200 status)</p></li>
+<li><p><code>❌ API Offline</code> (non-response)</p></li>
+</ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-13"><pre class="sourceCode r code-overflow-wrap code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-13-1"><a href="#annotated-cell-13-1" aria-hidden="true" tabindex="-1"></a>api_health <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
 <span id="annotated-cell-13-2"><a href="#annotated-cell-13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
@@ -1431,7 +1435,7 @@ flowchart TD
 </figure>
 </div>
 <p>When a user clicks on <strong>Predict</strong>, the values are sent in a request to the API, a response is returned, and the log file is updated with:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: [{"bill_length_mm":45,"species_Chinstrap":0,"species_Gentoo":0,"sex_male":1}]</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: {"bill_length_mm":45,"species":"Adelie","sex":"male"}</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - response_time_sec: 0.619 - prediction: 4180.7965</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>We can also see out UI updates with the recent logs:</p>

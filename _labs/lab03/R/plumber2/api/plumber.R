@@ -32,15 +32,17 @@ prep_pred_data <- function(input_data) {
 
 # HANDLERS ---------------------------------------------------------------
 
-# In plumber2, POST handler signatures use:
+# in plumber2, POST handler signatures use:
 #   body     - request body, already parsed from JSON (no jsonlite needed)
 #   response - response object for setting status codes
 # GET handlers need no special arguments unless using query params.
 
+## GET /ping -----
 handle_ping <- function() {
   list(status = "alive", timestamp = Sys.time())
 }
 
+## GET /health -----
 handle_health <- function() {
   list(
     status = "healthy",
@@ -51,6 +53,7 @@ handle_health <- function() {
   )
 }
 
+## GET /model/prototype -----
 handle_model_prototype <- function() {
   list(
     prototype = list(
@@ -68,6 +71,7 @@ handle_model_prototype <- function() {
   )
 }
 
+## GET /model-info -----
 handle_model_info <- function() {
   list(
     model_name = v$model_name,
@@ -77,6 +81,7 @@ handle_model_info <- function() {
   )
 }
 
+## GET /input-schema -----
 handle_input_schema <- function() {
   list(
     required_fields = list(
@@ -100,7 +105,9 @@ handle_input_schema <- function() {
   )
 }
 
-# body is parsed automatically by plumber2 — no jsonlite::fromJSON needed
+## GET /predict -----
+# body is parsed automatically by plumber2 
+# no jsonlite::fromJSON needed
 handle_predict <- function(body, response) {
   result <- tryCatch({
 
@@ -128,6 +135,7 @@ handle_predict <- function(body, response) {
   return(result)
 }
 
+## GET /predict-validated -----
 handle_predict_validated <- function(body, response) {
   result <- tryCatch({
 
@@ -195,6 +203,7 @@ handle_predict_validated <- function(body, response) {
   return(result)
 }
 
+## GET /predict-batch -----
 handle_predict_batch <- function(body, response) {
   result <- tryCatch({
 
@@ -227,17 +236,17 @@ handle_predict_batch <- function(body, response) {
 # JSON is the default serializer — no serializer argument needed.
 
 app <- plumber2::api() |>
-  plumber2::api_get(path = "/ping",            handler = handle_ping) |>
-  plumber2::api_get(path = "/health",          handler = handle_health) |>
+  plumber2::api_get(path = "/ping", handler = handle_ping) |>
+  plumber2::api_get(path = "/health", handler = handle_health) |>
   plumber2::api_get(path = "/model-prototype", handler = handle_model_prototype) |>
-  plumber2::api_get(path = "/model-info",      handler = handle_model_info) |>
-  plumber2::api_get(path = "/input-schema",    handler = handle_input_schema) |>
-  plumber2::api_post(path = "/predict",            handler = handle_predict) |>
-  plumber2::api_post(path = "/predict-validated",  handler = handle_predict_validated) |>
-  plumber2::api_post(path = "/predict-batch",      handler = handle_predict_batch)
+  plumber2::api_get(path = "/model-info", handler = handle_model_info) |>
+  plumber2::api_get(path = "/input-schema", handler = handle_input_schema) |>
+  plumber2::api_post(path = "/predict", handler = handle_predict) |>
+  plumber2::api_post(path = "/predict-validated", handler = handle_predict_validated) |>
+  plumber2::api_post(path = "/predict-batch", handler = handle_predict_batch)
 
 # START SERVER -----------------------------------------------------------
-cat("\nStarting plumber2 API on http://127.0.0.1:8080\n")
-cat("Docs: http://127.0.0.1:8080/__docs__/\n\n")
+cat("\nStarting plumber2 API on http://127.0.0.1:8081\n")
+cat("Docs: http://127.0.0.1:8081/__docs__/\n\n")
 
-app |> plumber2::api_run(host = "127.0.0.1", port = 8080)
+app |> plumber2::api_run(host = "127.0.0.1", port = 8081)
