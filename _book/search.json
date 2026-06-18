@@ -983,11 +983,44 @@
     ]
   },
   {
-    "objectID": "publish-r-py.html#running-tests",
-    "href": "publish-r-py.html#running-tests",
+    "objectID": "publish-r-py.html#running-tests-python",
+    "href": "publish-r-py.html#running-tests-python",
     "title": "GitHub Actions as CI/CD",
-    "section": "Running Tests",
-    "text": "Running Tests\nYou can also use GitHub Actions to run tests on your code. For example, if we had Shiny for Python package, we could set up a workflow to run unit tests when the code is pushed to the test branch, and only promote to the prod branch if the tests pass. We’ll use the application from Python App Logging.1\n\nWorkflow file\n# stored in _labs/lab05/cicd/Python/penguin_predictor/.github/workflows/python-tests.yml\n\nname: Python Tests\n\non:\n  push:\n    branches: [test]\n  pull_request:\n    branches: [prod]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n\n      - name: Install package and test dependencies\n        run: pip install -e \".[test]\"\n\n      - name: Run tests\n        run: pytest tests/ -v\n\n\nWhat it does\n\nThe workflow above triggers on pushes to test (from dev) and on pull requests targeting prod\npip install -e \".[test]\" installs the penguin_predictor package and its test dependencies (pytest) from pyproject.toml\nTo enforce that tests must pass before merging to prod, enable branch protection rules in GitHub (Settings &gt; Branches &gt; Add rule for prod) and require this workflow as a status check\n\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%\nflowchart TD\n    DevBr(\"&lt;code&gt;dev&lt;/code&gt; branch\") --&gt;|\"push to test\"| TestBr(\"&lt;code&gt;test&lt;/code&gt; branch\")\n    TestBr --&gt;|\"triggers\"| GHA(\"GitHub Actions&lt;br&gt;Run &lt;code&gt;pytest&lt;/code&gt; suite\")\n    GHA --&gt;|\"tests pass\"| PR(\"Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; to &lt;code&gt;prod&lt;/code&gt;\")\n    GHA --&gt;|\"tests fail\"| Block(\"Promotion&lt;br&gt;Blocked\")\n    PR --&gt;|\"approved & merged\"| ProdBr(\"&lt;code&gt;prod&lt;/code&gt; branch\")\n    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff\n    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff\n\n\n\n Running tests",
+    "section": "Running Tests (Python)",
+    "text": "Running Tests (Python)\nYou can also use GitHub Actions to run tests on your code. For example, if we had Shiny for Python package, we could set up a workflow to run unit tests when the code is pushed to the test branch, and only promote to the prod branch if the tests pass. We’ll use the application from Python App Logging.1\n\nWorkflow file\n# stored in _labs/lab05/cicd/Python/penguin_predictor/.github/workflows/python-tests.yml\n\nname: Python Tests\n\non:\n  push:\n    branches: [test]\n  pull_request:\n    branches: [prod]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n\n      - name: Install package and test dependencies\n        run: pip install -e \".[test]\"\n\n      - name: Run tests\n        run: pytest tests/ -v\n\n\nWhat it does\n\nThe workflow above triggers on pushes to test (from dev) and on pull requests targeting prod\npip install -e \".[test]\" installs the penguin_predictor package and its test dependencies (pytest) from pyproject.toml\nTo enforce that tests must pass before merging to prod, enable branch protection rules in GitHub (Settings &gt; Branches &gt; Add rule for prod) and require this workflow as a status check\n\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%\nflowchart TD\n    DevBr(\"&lt;code&gt;dev&lt;/code&gt; branch\") --&gt;|\"push to test\"| TestBr(\"&lt;code&gt;test&lt;/code&gt; branch\")\n    TestBr --&gt;|\"triggers\"| GHA(\"GitHub Actions&lt;br&gt;Run &lt;code&gt;pytest&lt;/code&gt; suite\")\n    GHA --&gt;|\"tests pass\"| PR(\"Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; to &lt;code&gt;prod&lt;/code&gt;\")\n    GHA --&gt;|\"tests fail\"| Block(\"Promotion&lt;br&gt;Blocked\")\n    PR --&gt;|\"approved & merged\"| ProdBr(\"&lt;code&gt;prod&lt;/code&gt; branch\")\n    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff\n    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff\n\n\n\n Running tests",
+    "crumbs": [
+      "Lab 5: Deployments and Code Promotion",
+      "<em>GitHub Actions as CI/CD</em>"
+    ]
+  },
+  {
+    "objectID": "publish-r-py.html#running-tests-r",
+    "href": "publish-r-py.html#running-tests-r",
+    "title": "GitHub Actions as CI/CD",
+    "section": "Running Tests (R)",
+    "text": "Running Tests (R)\nThe R equivalent lives in _labs/lab05/cicd/R/penguinpredictor/.2 It follows the same pattern as the Python package: pure functions are extracted from the Shiny app into a proper R package so they can be tested with testthat independently of the UI.\nThe package structure mirrors a standard R package:\npenguinpredictor/\n├── DESCRIPTION\n├── NAMESPACE\n├── R/\n1│   ├── data.R\n│   └── logging_setup.R\n├── tests/\n│   └── testthat/\n2│       └── test-data.R\n└── app.R\n\n1\n\nvalidate_inputs(), encode_inputs(), parse_prediction() — the same three functions extracted from the app\n\n2\n\n21 testthat tests covering valid inputs, boundary conditions, encoding, and response parsing\n\n\n\nWorkflow file\n# stored in _labs/lab05/cicd/R/penguinpredictor/.github/workflows/r-tests.yml\n\nname: R Tests\n\non:\n  push:\n    branches: [test]\n  pull_request:\n    branches: [prod]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up R\n        uses: r-lib/actions/setup-r@v2\n        with:\n          r-version: \"4.4\"\n\n      - name: Install system dependencies\n        run: sudo apt-get install -y libcurl4-openssl-dev libssl-dev\n\n      - name: Install package and test dependencies\n        uses: r-lib/actions/setup-r-dependencies@v2\n        with:\n          extra-packages: |\n            any::testthat\n            any::pkgload\n\n      - name: Run tests\n        run: Rscript -e \"testthat::test_dir('tests/testthat', package = 'penguinpredictor', load_package = 'installed')\"\n\n\nWhat it does\n\nThe workflow triggers on pushes to test and on pull requests targeting prod, identical to the Python version\nr-lib/actions/setup-r-dependencies@v2 reads DESCRIPTION and installs declared packages — the R equivalent of pip install -e \".[test]\"\nThe system dependency step (libcurl4-openssl-dev, libssl-dev) is needed because httr2 links against these libraries on Linux runners\nTests run via testthat::test_dir() with load_package = 'installed', which installs the package before running tests rather than sourcing the files directly\n\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%\nflowchart TD\n    DevBr(\"&lt;code&gt;dev&lt;/code&gt; branch\") --&gt;|\"push to test\"| TestBr(\"&lt;code&gt;test&lt;/code&gt; branch\")\n    TestBr --&gt;|\"triggers\"| GHA(\"GitHub Actions&lt;br&gt;Run &lt;code&gt;testthat&lt;/code&gt; suite\")\n    GHA --&gt;|\"tests pass\"| PR(\"Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; to &lt;code&gt;prod&lt;/code&gt;\")\n    GHA --&gt;|\"tests fail\"| Block(\"Promotion&lt;br&gt;Blocked\")\n    PR --&gt;|\"approved & merged\"| ProdBr(\"&lt;code&gt;prod&lt;/code&gt; branch\")\n    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff\n    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff\n\n\n Running R tests",
+    "crumbs": [
+      "Lab 5: Deployments and Code Promotion",
+      "<em>GitHub Actions as CI/CD</em>"
+    ]
+  },
+  {
+    "objectID": "publish-r-py.html#a-note-on-workflow-file-placement",
+    "href": "publish-r-py.html#a-note-on-workflow-file-placement",
+    "title": "GitHub Actions as CI/CD",
+    "section": "A note on workflow file placement",
+    "text": "A note on workflow file placement\nThe workflow files in .github/workflows/python-tests.yml and .github/workflows/r-tests.yml are included as references and won’t execute when this book is pushed to GitHub.\nGitHub Actions only picks up workflow files located in the repository root’s .github/workflows/ directory, so anything nested deeper is treated as an ordinary text file.\nIf these app-packages were their own projects, the same workflow file would go at the root of the repository:\n\npenguin_predictor/\n├── app.py\n├── .github/\n│   └── workflows/\n1│       └── python-tests.yml\n├── .gitignore\n├── penguin_predictor/\n│   ├── data.py\n│   └── logging_setup.py\n├── pyproject.toml\n├── requirements.txt\n└── tests/\n    └── test_data.py\n\n\n1\n\nGitHub Actions reads this\n\n\n\n\n\npenguinpredictor/\n├── app.R\n├── DESCRIPTION\n├── .github/\n│   └── workflows/\n1│       └── r-tests.yml\n├── .gitignore\n├── NAMESPACE\n├── R\n│   ├── data.R\n│   └── logging_setup.R\n├── .Rbuildignore\n├── README.md\n└── tests\n    └── testthat\n        └── test-data.R\n\n\n1\n\nGitHub Actions reads this\n\n\n\n\nWith that structure in place, every push to test and every pull request targeting prod will trigger the workflow automatically.",
+    "crumbs": [
+      "Lab 5: Deployments and Code Promotion",
+      "<em>GitHub Actions as CI/CD</em>"
+    ]
+  },
+  {
+    "objectID": "publish-r-py.html#footnotes",
+    "href": "publish-r-py.html#footnotes",
+    "title": "GitHub Actions as CI/CD",
+    "section": "",
+    "text": "The original app is in _labs/lab04/Python/app/. The refactored package used here is in _labs/lab05/cicd/Python/penguin_predictor/.↩︎\nThe package name penguinpredictor follows R conventions (no underscores in package names).↩︎",
     "crumbs": [
       "Lab 5: Deployments and Code Promotion",
       "<em>GitHub Actions as CI/CD</em>"
@@ -1234,28 +1267,6 @@
     "crumbs": [
       "Appendices",
       "<span class='chapter-number'>B</span>  <span class='chapter-title'>More `httr2` functions</span>"
-    ]
-  },
-  {
-    "objectID": "publish-r-py.html#footnotes",
-    "href": "publish-r-py.html#footnotes",
-    "title": "GitHub Actions as CI/CD",
-    "section": "",
-    "text": "The original app is in _labs/lab04/Python/app/. The refactored package used here is in _labs/lab05/cicd/Python/penguin_predictor/.↩︎",
-    "crumbs": [
-      "Lab 5: Deployments and Code Promotion",
-      "<em>GitHub Actions as CI/CD</em>"
-    ]
-  },
-  {
-    "objectID": "publish-r-py.html#a-note-on-workflow-file-placement",
-    "href": "publish-r-py.html#a-note-on-workflow-file-placement",
-    "title": "GitHub Actions as CI/CD",
-    "section": "A note on workflow file placement",
-    "text": "A note on workflow file placement\nThe workflow file in .github/workflows/python-tests.yml is included as a reference — it will not actually execute when this book is pushed to GitHub. GitHub Actions only picks up workflow files located in the repository root’s .github/workflows/ directory, so anything nested deeper is treated as an ordinary text file.\nIn your own project, the same workflow file would go at the root of the repository:\n\npenguin_predictor/\n├── app.py\n├── .github/\n│   └── workflows/\n1│       └── python-tests.yml\n├── .gitignore\n├── penguin_predictor/\n│   ├── data.py\n│   └── logging_setup.py\n├── pyproject.toml\n├── requirements.txt\n└── tests/\n    └── test_data.py\n\n\n1\n\nGitHub Actions reads this\n\n\n\n\nWith that structure in place, every push to test and every pull request targeting prod will trigger the workflow automatically.",
-    "crumbs": [
-      "Lab 5: Deployments and Code Promotion",
-      "<em>GitHub Actions as CI/CD</em>"
     ]
   }
 ]

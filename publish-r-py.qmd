@@ -150,7 +150,7 @@ flowchart TD
 ```
 
 
-## Running Tests 
+## Running Tests (Python)
 
 You can also use GitHub Actions to run tests on your code. For example, if we had Shiny for Python package, we could set up a workflow to run unit tests when the code is pushed to the `test` branch, and only promote to the `prod` branch if the tests pass. We'll use the application from [*Python App Logging*](app-log-py.qmd).[^py-app-log]
 
@@ -215,11 +215,102 @@ flowchart TD
 
 ```
 
+## Running Tests (R)
+
+The R equivalent lives in [`_labs/lab05/cicd/R/penguinpredictor/`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/R/penguinpredictor).[^r-pkg] It follows the same pattern as the Python package: pure functions are extracted from the Shiny app into a proper R package so they can be tested with `testthat` independently of the UI.
+
+[^r-pkg]: The package name `penguinpredictor` follows R conventions (no underscores in package names).
+
+The package structure mirrors a standard R package:
+
+```{verbatim}
+penguinpredictor/
+├── DESCRIPTION
+├── NAMESPACE
+├── R/
+│   ├── data.R          #<1>
+│   └── logging_setup.R
+├── tests/
+│   └── testthat/
+│       └── test-data.R #<2>
+└── app.R
+```
+1. `validate_inputs()`, `encode_inputs()`, `parse_prediction()` — the same three functions extracted from the app
+2. 21 `testthat` tests covering valid inputs, boundary conditions, encoding, and response parsing
+
+### Workflow file
+
+```yaml
+# stored in _labs/lab05/cicd/R/penguinpredictor/.github/workflows/r-tests.yml
+
+name: R Tests
+
+on:
+  push:
+    branches: [test]
+  pull_request:
+    branches: [prod]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.4"
+
+      - name: Install system dependencies
+        run: sudo apt-get install -y libcurl4-openssl-dev libssl-dev
+
+      - name: Install package and test dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::testthat
+            any::pkgload
+
+      - name: Run tests
+        run: Rscript -e "testthat::test_dir('tests/testthat', package = 'penguinpredictor', load_package = 'installed')"
+```
+
+### What it does
+
+- The workflow triggers on **pushes** to `test` and on **pull requests** targeting `prod`, identical to the Python version
+- `r-lib/actions/setup-r-dependencies@v2` reads `DESCRIPTION` and installs declared packages — the R equivalent of `pip install -e ".[test]"`
+- The system dependency step (`libcurl4-openssl-dev`, `libssl-dev`) is needed because `httr2` links against these libraries on Linux runners
+- Tests run via `testthat::test_dir()` with `load_package = 'installed'`, which installs the package before running tests rather than sourcing the files directly
+
+```{mermaid}
+%%| fig-cap: 'Running R tests'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+flowchart TD
+    DevBr("<code>dev</code> branch") -->|"push to test"| TestBr("<code>test</code> branch")
+    TestBr -->|"triggers"| GHA("GitHub Actions<br>Run <code>testthat</code> suite")
+    GHA -->|"tests pass"| PR("Pull Request<br><code>test</code> to <code>prod</code>")
+    GHA -->|"tests fail"| Block("Promotion<br>Blocked")
+    PR -->|"approved & merged"| ProdBr("<code>prod</code> branch")
+    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+```
+
 ## A note on workflow file placement
 
-The workflow file in [`.github/workflows/python-tests.yml`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/Python/penguin_predictor) is included as a reference — it will not actually execute when this book is pushed to GitHub. GitHub Actions only picks up workflow files located in the **repository root's** `.github/workflows/` directory, so anything nested deeper is treated as an ordinary text file.
+The workflow files in [`.github/workflows/python-tests.yml`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/Python/penguin_predictor) and [`.github/workflows/r-tests.yml`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/R/penguinpredictor) are included as references and won't execute when this book is pushed to GitHub. 
 
-In your own project, the same workflow file would go at the root of the repository:
+GitHub Actions only picks up workflow files located in the repository root's `.github/workflows/` directory, so anything nested deeper is treated as an ordinary text file.
+
+If these app-packages were their own projects, the same workflow file would go at the root of the repository:
 
 ```{bash}
 #| eval: false 
@@ -238,6 +329,28 @@ penguin_predictor/
 └── tests/
     └── test_data.py
 
+```
+1. GitHub Actions reads this  
+
+```{bash}
+#| eval: false 
+#| code-fold: false 
+penguinpredictor/
+├── app.R
+├── DESCRIPTION
+├── .github/
+│   └── workflows/
+│       └── r-tests.yml  #<1>
+├── .gitignore
+├── NAMESPACE
+├── R
+│   ├── data.R
+│   └── logging_setup.R
+├── .Rbuildignore
+├── README.md
+└── tests
+    └── testthat
+        └── test-data.R
 ```
 1. GitHub Actions reads this  
 
