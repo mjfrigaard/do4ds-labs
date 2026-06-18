@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-05-19">
+<meta name="dcterms.date" content="2026-06-18">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 6: Demystifying Docker – DO4DS: Lab Solutions</title>
@@ -74,6 +74,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -436,8 +440,19 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a>
+  <ul>
+  <li><a href="#docker-mental-map" id="toc-docker-mental-map" class="nav-link" data-scroll-target="#docker-mental-map">Docker mental map</a></li>
+  <li><a href="#docker-run-flags" id="toc-docker-run-flags" class="nav-link" data-scroll-target="#docker-run-flags">Docker run flags</a></li>
+  <li><a href="#dockerfile-commands" id="toc-dockerfile-commands" class="nav-link" data-scroll-target="#dockerfile-commands">Dockerfile commands</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -455,7 +470,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-05-19</p>
+      <p class="date">2026-06-18</p>
     </div>
   </div>
   
@@ -485,8 +500,164 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<p>The questions below come from the <a href="https://do4ds.com/chapters/sec1/1-6-docker.html">Demystifying Docker</a> chapter.</p>
+<section id="docker-mental-map" class="level3">
+<h3 class="anchored" data-anchor-id="docker-mental-map">Docker mental map</h3>
+<blockquote class="blockquote">
+<p>“<em>Draw a mental map of the relationship between the following: Dockerfile, Docker Image, Docker Registry, Docker Container.</em>”</p>
+</blockquote>
+<ol type="1">
+<li>A <strong>Dockerfile</strong> is a plain-text recipe that describes exactly what goes into an image.</li>
+<li>Running <code>docker build</code> executes the <strong>Dockerfile</strong> instructions and produces a <strong>Docker Image</strong> (an immutable, layered snapshot of the filesystem and configuration).</li>
+<li><strong>Docker Images</strong> can be pushed to a <strong>Docker Registry</strong> (such as Docker Hub or GitHub Container Registry) for storage and sharing.</li>
+<li>Running <code>docker run</code> on an image creates a <strong>Docker Container</strong>, a live, isolated process that uses the image as its read-only base.</li>
+</ol>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph LR
+    subgraph Build["&lt;strong&gt;Build&lt;/strong&gt;"]
+        DF("&lt;strong&gt;Dockerfile&lt;/strong&gt;")
+        Img("&lt;strong&gt;Docker Image&lt;/strong&gt;")
+        DF --&gt;|"&lt;code&gt;docker&lt;br&gt;build&lt;/code&gt;"| Img
+    end
+
+    subgraph Share["&lt;strong&gt;Share&lt;/strong&gt;"]
+        Reg("&lt;strong&gt;Docker&lt;br&gt;Registry&lt;strong&gt;&lt;br&gt;(Docker Hub, GHCR)")
+        Img --&gt;|"&lt;code&gt;docker&lt;br&gt;push&lt;/code&gt;"| Reg
+        Reg --&gt;|"&lt;code&gt;docker&lt;br&gt;pull&lt;/code&gt;"| Img
+    end
+
+    subgraph Run["&lt;strong&gt;Run&lt;/strong&gt;"]
+        Con("&lt;strong&gt;Docker&lt;br&gt;Container&lt;/strong&gt;")
+        Img --&gt;|"&lt;code&gt;docker&lt;br&gt;run&lt;/code&gt;"| Con
+    end
+
+    style Build fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
+    style Share fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style Run fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style DF fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Img fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Reg fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Con fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+</pre>
+</div>
+<p></p><figcaption> ‘Docker components’</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The key distinction is that an image is <strong>static</strong> (it never changes after it is built) while a container is <strong>ephemeral</strong> (it runs, does work, and can be stopped and removed). Multiple containers can be created from the same image simultaneously, each isolated from the others.</p>
+</section>
+<section id="docker-run-flags" class="level3">
+<h3 class="anchored" data-anchor-id="docker-run-flags">Docker run flags</h3>
+<blockquote class="blockquote">
+<p>“<em>When would you want to use each of the following flags for docker run? When wouldn’t you? <code>-p</code>, <code>--name</code>, <code>-d</code>, <code>--rm</code>, <code>-v</code></em>”</p>
+</blockquote>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 37%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Use</th>
+<th>Don’t Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-p &lt;host&gt;:&lt;container&gt;</code></td>
+<td>The container runs a service (API, Shiny app, database) that needs to be reachable from the host or network</td>
+<td>The container does not expose a network service and runs entirely internally</td>
+</tr>
+<tr class="even">
+<td><code>--name &lt;name&gt;</code></td>
+<td>You need to reference the container by name in other commands (<code>docker logs</code>, <code>docker stop</code>, <code>docker exec</code>), or when running multiple containers that need to find each other</td>
+<td>Running a quick one-off command where the auto-generated name is fine</td>
+</tr>
+<tr class="odd">
+<td><code>-d</code></td>
+<td>Running a long-lived background service (a web server, an API) where you want the terminal back immediately</td>
+<td>You need to watch live output, or the container runs a short job and you want to see when it finishes</td>
+</tr>
+<tr class="even">
+<td><code>--rm</code></td>
+<td>Short-lived, disposable jobs: running a script, rendering a document, or any task where you do not need to inspect the container afterward</td>
+<td>Long-lived services you want to restart later, or when you may need to examine the stopped container to debug a failure</td>
+</tr>
+<tr class="odd">
+<td><code>-v &lt;host_path&gt;:&lt;container_path&gt;</code></td>
+<td>Persisting data beyond the container’s lifetime, sharing config files or secrets, or mounting code during development so changes are reflected without rebuilding</td>
+<td>The container should be fully self-contained and stateless; mounting volumes couples the container to the host filesystem and can undermine reproducibility</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dockerfile-commands" class="level3">
+<h3 class="anchored" data-anchor-id="dockerfile-commands">Dockerfile commands</h3>
+<blockquote class="blockquote">
+<p>“<em>What are the most important Dockerfile commands?</em>”</p>
+</blockquote>
+<p>Every Dockerfile starts with <code>FROM</code>, which names the base image (e.g., <code>FROM rocker/r-ver:4.5</code>). All subsequent instructions build on top of it.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 78%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>FROM</code></td>
+<td>Set the base image — always the first instruction</td>
+</tr>
+<tr class="even">
+<td><code>RUN</code></td>
+<td>Execute shell commands during the build (install packages, create directories)</td>
+</tr>
+<tr class="odd">
+<td><code>COPY</code></td>
+<td>Copy files from the build context into the image</td>
+</tr>
+<tr class="even">
+<td><code>WORKDIR</code></td>
+<td>Set the working directory for all subsequent <code>RUN</code>, <code>COPY</code>, <code>CMD</code>, and <code>ENTRYPOINT</code> instructions</td>
+</tr>
+<tr class="odd">
+<td><code>ENV</code></td>
+<td>Set environment variables available at both build time and runtime</td>
+</tr>
+<tr class="even">
+<td><code>EXPOSE</code></td>
+<td>Document which port the container listens on (informational — does not publish the port)</td>
+</tr>
+<tr class="odd">
+<td><code>CMD</code></td>
+<td>Default command to run when the container starts; can be overridden at <code>docker run</code></td>
+</tr>
+<tr class="even">
+<td><code>ENTRYPOINT</code></td>
+<td>Main executable for the container; <code>CMD</code> provides its default arguments</td>
+</tr>
+</tbody>
+</table>
+<p>The most important distinction is between <code>CMD</code> and <code>ENTRYPOINT</code>. <code>CMD</code> is the default command and is easily replaced (<code>docker run my-image Rscript other.R</code>). <code>ENTRYPOINT</code> locks in the executable so the container always behaves like that program (<code>docker run my-api --port 8080</code> passes <code>--port 8080</code> as arguments to the entrypoint). For data science services, <code>ENTRYPOINT</code> is the right choice when the container should always start the API or app.</p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
