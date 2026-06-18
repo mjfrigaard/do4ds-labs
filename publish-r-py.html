@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-16">
+<meta name="dcterms.date" content="2026-06-18">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>GitHub Actions as CI/CD – DO4DS: Lab Solutions</title>
@@ -486,11 +486,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#publish.yml" id="toc-publish.yml" class="nav-link" data-scroll-target="#publish.yml"><code>_publish.yml</code></a></li>
   <li><a href="#what-they-do" id="toc-what-they-do" class="nav-link" data-scroll-target="#what-they-do">What they do</a></li>
   </ul></li>
-  <li><a href="#running-tests" id="toc-running-tests" class="nav-link" data-scroll-target="#running-tests">Running Tests</a>
+  <li><a href="#running-tests-python" id="toc-running-tests-python" class="nav-link" data-scroll-target="#running-tests-python">Running Tests (Python)</a>
   <ul>
   <li><a href="#workflow-file-1" id="toc-workflow-file-1" class="nav-link" data-scroll-target="#workflow-file-1">Workflow file</a></li>
   <li><a href="#what-it-does" id="toc-what-it-does" class="nav-link" data-scroll-target="#what-it-does">What it does</a></li>
   </ul></li>
+  <li><a href="#running-tests-r" id="toc-running-tests-r" class="nav-link" data-scroll-target="#running-tests-r">Running Tests (R)</a>
+  <ul>
+  <li><a href="#workflow-file-2" id="toc-workflow-file-2" class="nav-link" data-scroll-target="#workflow-file-2">Workflow file</a></li>
+  <li><a href="#what-it-does-1" id="toc-what-it-does-1" class="nav-link" data-scroll-target="#what-it-does-1">What it does</a></li>
+  </ul></li>
+  <li><a href="#a-note-on-workflow-file-placement" id="toc-a-note-on-workflow-file-placement" class="nav-link" data-scroll-target="#a-note-on-workflow-file-placement">A note on workflow file placement</a></li>
   </ul>
 </nav>
     </div>
@@ -510,7 +516,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-16</p>
+      <p class="date">2026-06-18</p>
     </div>
   </div>
   
@@ -546,24 +552,66 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="publishing-quartogithub-pages">Publishing Quarto/GitHub Pages</h2>
 <p>This book is published using GitHub Pages, which is a free hosting service provided by GitHub. Quarto provides an easy Terminal command for publishing using GitHub Pages:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> publish gh-pages </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The lab for this section will accomplish the same thing, but does so using a GitHub Action workflow file. However, if you run the commands above – as I did – the workflow files don’t exist because the site isn’t published via GitHub Actions. Instead, this repo uses local publishing.</p>
-<p>There are two valid ways to publish a Quarto book to GitHub Pages, and running <code>quarto publish gh-pages</code> creates a <em>local setup</em>. This means Quarto renders the files locally, then pushes the rendered HTML directly to the <code>gh-pages</code> branch. The commit log for this branch confirms it:</p>
+<p>The lab for this section will accomplish the same thing, but does so using a GitHub Action workflow file. However, if you run the commands above (like I did) the workflow files won’t be generated because the site isn’t published via GitHub Actions. Instead, running <code>quarto publish gh-pages</code> creates a <em>local setup</em>. This means Quarto renders the files locally, then pushes the rendered HTML directly to the <code>gh-pages</code> branch. The commit log for this branch confirms it:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> log gh-pages <span class="at">--oneline</span> <span class="at">-5</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 76175e88 Built site for gh-pages</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 559df417 Built site for gh-pages</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The <code>Built site for gh-pages</code> messages are Quarto’s signature commit message when it pushes to the branch itself. <strong>No workflow file is involved.</strong></p>
-<p>To convert this to CI publishing, we’ll have to create and commit <code>.github/workflows/publish.yml</code> and <code>_publish.yml</code> files, so GitHub Actions can render and deploy on every push to <code>main</code>.</p>
+<p>To convert this to CI publishing, we need to create and commit two files so GitHub Actions can render and deploy on every push to <code>main</code>:</p>
+<ol type="1">
+<li><code>.github/workflows/publish.yml</code>: the Actions workflow that triggers the build</li>
+<li><code>_publish.yml</code>: the Quarto publish configuration that tells Quarto where to deploy</li>
+</ol>
 <section id="workflow-file" class="level3">
 <h3 class="anchored" data-anchor-id="workflow-file">Workflow file</h3>
-<p>In the <code>.github/workflows/publish.yml</code> directory, create …</p>
+<p>Create <code>.github/workflows/publish.yml</code> with the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .github/workflows/publish.yml</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Publish to GitHub Pages</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">main</span><span class="kw">]</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">workflow_dispatch</span><span class="kw">:</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">publish</span><span class="kw">:</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">permissions</span><span class="kw">:</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">contents</span><span class="kw">:</span><span class="at"> write</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up Quarto</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> quarto-dev/quarto-actions/setup@v2</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Render and publish</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> quarto-dev/quarto-actions/publish@v2</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">target</span><span class="kw">:</span><span class="at"> gh-pages</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">GITHUB_TOKEN</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>workflow_dispatch</code> trigger lets you kick off a manual build from the GitHub Actions UI without needing to push a commit.</p>
 </section>
 <section id="publish.yml" class="level3">
 <h3 class="anchored" data-anchor-id="publish.yml"><code>_publish.yml</code></h3>
-<p>Create <code>_publish.yml</code> and include the following …</p>
+<p>Create <code>_publish.yml</code> at the project root and include the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">source</span><span class="kw">:</span><span class="at"> project</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">gh-pages</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branch</span><span class="kw">:</span><span class="at"> gh-pages</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This tells Quarto to publish the rendered output to the <code>gh-pages</code> branch. Quarto reads this file during the publish step so it knows where to send the output without requiring any flags on the command line.</p>
 </section>
 <section id="what-they-do" class="level3">
 <h3 class="anchored" data-anchor-id="what-they-do">What they do</h3>
+<p>The two files divide the work cleanly between Quarto and GitHub Actions:</p>
+<ul>
+<li><p><code>_publish.yml</code> records the publish target so the project is reproducibly configured regardless of who (or what) runs the <code>publish</code> command.</p></li>
+<li><p><code>.github/workflows/publish.yml</code> listens for a push to <code>main</code>, spins up a runner, installs Quarto, and then calls <code>quarto publish</code> using the settings in <code>_publish.yml</code>.</p></li>
+</ul>
+<p>The <code>GITHUB_TOKEN</code> is provided automatically by GitHub for every workflow run, so no manual secret setup is needed. Once both files are committed and pushed, every subsequent push to <code>main</code> will trigger a fresh render and deploy.</p>
 <style>
 
 .codeStyle span:not(.nodeLabel) {
@@ -582,7 +630,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
-    Push("Developer&lt;br&gt;pushes to &lt;code&gt;main&lt;/code&gt;") --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Runner (ubuntu-latest)")
+    Push("Developer&lt;br&gt;pushes to &lt;code&gt;main&lt;/code&gt;") --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Runner&lt;br&gt;(ubuntu-latest)")
 
     GHA --&gt; Step1("&lt;strong&gt;Step 1&lt;/strong&gt;&lt;br&gt;Checkout Repository&lt;br&gt;&lt;code&gt;actions/checkout@v4&lt;/code&gt;")
     Step1 --&gt; Step2("&lt;strong&gt;Step 2&lt;/strong&gt;&lt;br&gt;Set up Quarto&lt;br&gt;&lt;code&gt;quarto-actions/setup@v2&lt;/code&gt;")
@@ -608,55 +656,46 @@ flowchart TD
 </div>
 </section>
 </section>
-<section id="running-tests" class="level2">
-<h2 class="anchored" data-anchor-id="running-tests">Running Tests</h2>
-<p>You can also use GitHub Actions to run tests on your code. For example, if you have an R package, you can set up a workflow to run <code>testthat</code> tests when code is pushed to the <code>test</code> branch, and only promote to the <code>prod</code> branch if the tests pass.</p>
+<section id="running-tests-python" class="level2">
+<h2 class="anchored" data-anchor-id="running-tests-python">Running Tests (Python)</h2>
+<p>You can also use GitHub Actions to run tests on your code. For example, if we had Shiny for Python package, we could set up a workflow to run unit tests when the code is pushed to the <code>test</code> branch, and only promote to the <code>prod</code> branch if the tests pass. We’ll use the application from <a href="./app-log-py.html"><em>Python App Logging</em></a>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <section id="workflow-file-1" class="level3">
 <h3 class="anchored" data-anchor-id="workflow-file-1">Workflow file</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stored in .github/workflows/r-package-tests.yml</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> R Package Tests</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">test</span><span class="kw">]</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull_request</span><span class="kw">:</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">prod</span><span class="kw">]</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">test</span><span class="kw">:</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up R</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/setup-r@v2</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">use-public-rspm</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install system dependencies</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/setup-r-dependencies@v2</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="fu">          extra-packages</span><span class="kw">: </span><span class="ch">|</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>            any::rcmdcheck</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            any::testthat</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>            any::devtools</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run tests</span></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/check-r-package@v2</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">error-on</span><span class="kw">:</span><span class="at"> </span><span class="st">'"error"'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stored in _labs/lab05/cicd/Python/penguin_predictor/.github/workflows/python-tests.yml</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Python Tests</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">test</span><span class="kw">]</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull_request</span><span class="kw">:</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">prod</span><span class="kw">]</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">test</span><span class="kw">:</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up Python</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/setup-python@v5</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">python-version</span><span class="kw">:</span><span class="at"> </span><span class="st">"3.12"</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install package and test dependencies</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> pip install -e ".[test]"</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run tests</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> pytest tests/ -v</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="what-it-does" class="level3">
 <h3 class="anchored" data-anchor-id="what-it-does">What it does</h3>
 <ul>
-<li>The workflow above triggers on <strong>pushes</strong> to <code>test</code> (from <code>dev</code>) and on <strong>pull requests</strong> targeting <code>prod</code><br>
-</li>
-<li><code>error-on: '"error"'</code> means the workflow only fails on hard errors — warnings won’t block promotion<br>
-</li>
-<li>To enforce that tests must pass before merging to <code>prod</code>, enable branch protection rules in GitHub (Settings → Branches → Add rule for <code>prod</code>) and require this workflow as a status check</li>
+<li>The workflow above triggers on <strong>pushes</strong> to <code>test</code> (from <code>dev</code>) and on <strong>pull requests</strong> targeting <code>prod</code></li>
+<li><code>pip install -e ".[test]"</code> installs the <code>penguin_predictor</code> package and its test dependencies (<code>pytest</code>) from <code>pyproject.toml</code></li>
+<li>To enforce that tests must pass before merging to <code>prod</code>, enable branch protection rules in GitHub (Settings &gt; Branches &gt; Add rule for <code>prod</code>) and require this workflow as a status check</li>
 </ul>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -666,9 +705,9 @@ flowchart TD
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
     DevBr("&lt;code&gt;dev&lt;/code&gt; branch") --&gt;|"push to test"| TestBr("&lt;code&gt;test&lt;/code&gt; branch")
-    TestBr --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Run &lt;code&gt;testthat&lt;/code&gt; suite")
-    GHA --&gt;|"✅ tests pass"| PR("Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; → &lt;code&gt;prod&lt;/code&gt;")
-    GHA --&gt;|"❌ tests fail"| Block("Promotion&lt;br&gt;Blocked")
+    TestBr --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Run &lt;code&gt;pytest&lt;/code&gt; suite")
+    GHA --&gt;|"tests pass"| PR("Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; to &lt;code&gt;prod&lt;/code&gt;")
+    GHA --&gt;|"tests fail"| Block("Promotion&lt;br&gt;Blocked")
     PR --&gt;|"approved &amp; merged"| ProdBr("&lt;code&gt;prod&lt;/code&gt; branch")
     style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
     style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -683,9 +722,168 @@ flowchart TD
 </div>
 </div>
 </div>
+</section>
+</section>
+<section id="running-tests-r" class="level2">
+<h2 class="anchored" data-anchor-id="running-tests-r">Running Tests (R)</h2>
+<p>The R equivalent lives in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/R/penguinpredictor"><code>_labs/lab05/cicd/R/penguinpredictor/</code></a>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> It follows the same pattern as the Python package: pure functions are extracted from the Shiny app into a proper R package so they can be tested with <code>testthat</code> independently of the UI.</p>
+<p>The package structure mirrors a standard R package:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-6"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-6-1"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a>penguinpredictor/</span>
+<span id="annotated-cell-6-2"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a>├── DESCRIPTION</span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a>├── NAMESPACE</span>
+<span id="annotated-cell-6-4"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a>├── R/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="1">1</button><span id="annotated-cell-6-5" class="code-annotation-target"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a>│   ├── data.R</span>
+<span id="annotated-cell-6-6"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a>│   └── logging_setup.R</span>
+<span id="annotated-cell-6-7"><a href="#annotated-cell-6-7" aria-hidden="true" tabindex="-1"></a>├── tests/</span>
+<span id="annotated-cell-6-8"><a href="#annotated-cell-6-8" aria-hidden="true" tabindex="-1"></a>│   └── testthat/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="2">2</button><span id="annotated-cell-6-9" class="code-annotation-target"><a href="#annotated-cell-6-9" aria-hidden="true" tabindex="-1"></a>│       └── test-data.R</span>
+<span id="annotated-cell-6-10"><a href="#annotated-cell-6-10" aria-hidden="true" tabindex="-1"></a>└── app.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="5" data-code-annotation="1"><code>validate_inputs()</code>, <code>encode_inputs()</code>, <code>parse_prediction()</code> — the same three functions extracted from the app</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="9" data-code-annotation="2">21 <code>testthat</code> tests covering valid inputs, boundary conditions, encoding, and response parsing</span>
+</dd>
+</dl>
+<section id="workflow-file-2" class="level3">
+<h3 class="anchored" data-anchor-id="workflow-file-2">Workflow file</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stored in _labs/lab05/cicd/R/penguinpredictor/.github/workflows/r-tests.yml</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> R Tests</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">test</span><span class="kw">]</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull_request</span><span class="kw">:</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">prod</span><span class="kw">]</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">test</span><span class="kw">:</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up R</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/setup-r@v2</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">r-version</span><span class="kw">:</span><span class="at"> </span><span class="st">"4.4"</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install system dependencies</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> sudo apt-get install -y libcurl4-openssl-dev libssl-dev</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install package and test dependencies</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/setup-r-dependencies@v2</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="fu">          extra-packages</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>            any::testthat</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>            any::pkgload</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run tests</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> Rscript -e "testthat::test_dir('tests/testthat', package = 'penguinpredictor', load_package = 'installed')"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="what-it-does-1" class="level3">
+<h3 class="anchored" data-anchor-id="what-it-does-1">What it does</h3>
+<ul>
+<li>The workflow triggers on <strong>pushes</strong> to <code>test</code> and on <strong>pull requests</strong> targeting <code>prod</code>, identical to the Python version</li>
+<li><code>r-lib/actions/setup-r-dependencies@v2</code> reads <code>DESCRIPTION</code> and installs declared packages — the R equivalent of <code>pip install -e ".[test]"</code></li>
+<li>The system dependency step (<code>libcurl4-openssl-dev</code>, <code>libssl-dev</code>) is needed because <code>httr2</code> links against these libraries on Linux runners</li>
+<li>Tests run via <code>testthat::test_dir()</code> with <code>load_package = 'installed'</code>, which installs the package before running tests rather than sourcing the files directly</li>
+</ul>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+flowchart TD
+    DevBr("&lt;code&gt;dev&lt;/code&gt; branch") --&gt;|"push to test"| TestBr("&lt;code&gt;test&lt;/code&gt; branch")
+    TestBr --&gt;|"triggers"| GHA("GitHub Actions&lt;br&gt;Run &lt;code&gt;testthat&lt;/code&gt; suite")
+    GHA --&gt;|"tests pass"| PR("Pull Request&lt;br&gt;&lt;code&gt;test&lt;/code&gt; to &lt;code&gt;prod&lt;/code&gt;")
+    GHA --&gt;|"tests fail"| Block("Promotion&lt;br&gt;Blocked")
+    PR --&gt;|"approved &amp; merged"| ProdBr("&lt;code&gt;prod&lt;/code&gt; branch")
+    style DevBr fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style TestBr fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHA fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PR fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Block fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style ProdBr fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+</pre>
+</div>
+<p></p><figcaption> Running R tests</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="a-note-on-workflow-file-placement" class="level2">
+<h2 class="anchored" data-anchor-id="a-note-on-workflow-file-placement">A note on workflow file placement</h2>
+<p>The workflow files in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/Python/penguin_predictor"><code>.github/workflows/python-tests.yml</code></a> and <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/R/penguinpredictor"><code>.github/workflows/r-tests.yml</code></a> are included as references and won’t execute when this book is pushed to GitHub.</p>
+<p>GitHub Actions only picks up workflow files located in the repository root’s <code>.github/workflows/</code> directory, so anything nested deeper is treated as an ordinary text file.</p>
+<p>If these app-packages were their own projects, the same workflow file would go at the root of the repository:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-8"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">penguin_predictor/</span></span>
+<span id="annotated-cell-8-2"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app.py</span>
+<span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .github/</span>
+<span id="annotated-cell-8-4"><a href="#annotated-cell-8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   └── workflows/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="1">1</button><span id="annotated-cell-8-5" class="code-annotation-target"><a href="#annotated-cell-8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>       └── python-tests.yml</span>
+<span id="annotated-cell-8-6"><a href="#annotated-cell-8-6" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .gitignore</span>
+<span id="annotated-cell-8-7"><a href="#annotated-cell-8-7" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> penguin_predictor/</span>
+<span id="annotated-cell-8-8"><a href="#annotated-cell-8-8" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   ├── data.py</span>
+<span id="annotated-cell-8-9"><a href="#annotated-cell-8-9" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   └── logging_setup.py</span>
+<span id="annotated-cell-8-10"><a href="#annotated-cell-8-10" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> pyproject.toml</span>
+<span id="annotated-cell-8-11"><a href="#annotated-cell-8-11" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> requirements.txt</span>
+<span id="annotated-cell-8-12"><a href="#annotated-cell-8-12" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> tests/</span>
+<span id="annotated-cell-8-13"><a href="#annotated-cell-8-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">└──</span> test_data.py</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-8" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="5" data-code-annotation="1">GitHub Actions reads this</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">penguinpredictor/</span></span>
+<span id="annotated-cell-9-2"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app.R</span>
+<span id="annotated-cell-9-3"><a href="#annotated-cell-9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> DESCRIPTION</span>
+<span id="annotated-cell-9-4"><a href="#annotated-cell-9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .github/</span>
+<span id="annotated-cell-9-5"><a href="#annotated-cell-9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   └── workflows/</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-6" class="code-annotation-target"><a href="#annotated-cell-9-6" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>       └── r-tests.yml</span>
+<span id="annotated-cell-9-7"><a href="#annotated-cell-9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .gitignore</span>
+<span id="annotated-cell-9-8"><a href="#annotated-cell-9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> NAMESPACE</span>
+<span id="annotated-cell-9-9"><a href="#annotated-cell-9-9" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> R</span>
+<span id="annotated-cell-9-10"><a href="#annotated-cell-9-10" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   ├── data.R</span>
+<span id="annotated-cell-9-11"><a href="#annotated-cell-9-11" aria-hidden="true" tabindex="-1"></a><span class="ex">│</span>   └── logging_setup.R</span>
+<span id="annotated-cell-9-12"><a href="#annotated-cell-9-12" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .Rbuildignore</span>
+<span id="annotated-cell-9-13"><a href="#annotated-cell-9-13" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> README.md</span>
+<span id="annotated-cell-9-14"><a href="#annotated-cell-9-14" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> tests</span>
+<span id="annotated-cell-9-15"><a href="#annotated-cell-9-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">└──</span> testthat</span>
+<span id="annotated-cell-9-16"><a href="#annotated-cell-9-16" aria-hidden="true" tabindex="-1"></a>        <span class="ex">└──</span> test-data.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-9" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="6" data-code-annotation="1">GitHub Actions reads this</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>With that structure in place, every push to <code>test</code> and every pull request targeting <code>prod</code> will trigger the workflow automatically.</p>
 
 
 </section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>The original app is in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab04/Python/app"><code>_labs/lab04/Python/app/</code></a>. The refactored package used here is in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab05/cicd/Python/penguin_predictor"><code>_labs/lab05/cicd/Python/penguin_predictor/</code></a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>The package name <code>penguinpredictor</code> follows R conventions (no underscores in package names).<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->
