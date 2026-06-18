@@ -1037,6 +1037,16 @@
     ]
   },
   {
+    "objectID": "lab06.html#comprehension-questions",
+    "href": "lab06.html#comprehension-questions",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "",
+    "text": "Docker mental map\n\n“Draw a mental map of the relationship between the following: Dockerfile, Docker Image, Docker Registry, Docker Container.”\n\n\nA Dockerfile is a plain-text recipe that describes exactly what goes into an image.\nRunning docker build executes the Dockerfile instructions and produces a Docker Image (an immutable, layered snapshot of the filesystem and configuration).\nDocker Images can be pushed to a Docker Registry (such as Docker Hub or GitHub Container Registry) for storage and sharing.\nRunning docker run on an image creates a Docker Container, a live, isolated process that uses the image as its read-only base.\n\n\n\n\n\n\n%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%\n\ngraph LR\n    subgraph Build[\"&lt;strong&gt;Build&lt;/strong&gt;\"]\n        DF(\"&lt;strong&gt;Dockerfile&lt;/strong&gt;\")\n        Img(\"&lt;strong&gt;Docker Image&lt;/strong&gt;\")\n        DF --&gt;|\"&lt;code&gt;docker&lt;br&gt;build&lt;/code&gt;\"| Img\n    end\n\n    subgraph Share[\"&lt;strong&gt;Share&lt;/strong&gt;\"]\n        Reg(\"&lt;strong&gt;Docker&lt;br&gt;Registry&lt;strong&gt;&lt;br&gt;(Docker Hub, GHCR)\")\n        Img --&gt;|\"&lt;code&gt;docker&lt;br&gt;push&lt;/code&gt;\"| Reg\n        Reg --&gt;|\"&lt;code&gt;docker&lt;br&gt;pull&lt;/code&gt;\"| Img\n    end\n\n    subgraph Run[\"&lt;strong&gt;Run&lt;/strong&gt;\"]\n        Con(\"&lt;strong&gt;Docker&lt;br&gt;Container&lt;/strong&gt;\")\n        Img --&gt;|\"&lt;code&gt;docker&lt;br&gt;run&lt;/code&gt;\"| Con\n    end\n\n    style Build fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41\n    style Share fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41\n    style Run fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41\n    style DF fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Img fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Reg fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Con fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff\n\n\n ‘Docker components’ \n\n\n\nThe key distinction is that an image is static (it never changes after it is built) while a container is ephemeral (it runs, does work, and can be stopped and removed). Multiple containers can be created from the same image simultaneously, each isolated from the others.\n\n\nDocker run flags\n\n“When would you want to use each of the following flags for docker run? When wouldn’t you? -p, --name, -d, --rm, -v”\n\n\n\n\n\n\n\n\n\nFlag\nUse\nDon’t Use\n\n\n\n\n-p &lt;host&gt;:&lt;container&gt;\nThe container runs a service (API, Shiny app, database) that needs to be reachable from the host or network\nThe container does not expose a network service and runs entirely internally\n\n\n--name &lt;name&gt;\nYou need to reference the container by name in other commands (docker logs, docker stop, docker exec), or when running multiple containers that need to find each other\nRunning a quick one-off command where the auto-generated name is fine\n\n\n-d\nRunning a long-lived background service (a web server, an API) where you want the terminal back immediately\nYou need to watch live output, or the container runs a short job and you want to see when it finishes\n\n\n--rm\nShort-lived, disposable jobs: running a script, rendering a document, or any task where you do not need to inspect the container afterward\nLong-lived services you want to restart later, or when you may need to examine the stopped container to debug a failure\n\n\n-v &lt;host_path&gt;:&lt;container_path&gt;\nPersisting data beyond the container’s lifetime, sharing config files or secrets, or mounting code during development so changes are reflected without rebuilding\nThe container should be fully self-contained and stateless; mounting volumes couples the container to the host filesystem and can undermine reproducibility\n\n\n\n\n\nDockerfile commands\n\n“What are the most important Dockerfile commands?”\n\nEvery Dockerfile starts with FROM, which names the base image (e.g., FROM rocker/r-ver:4.5). All subsequent instructions build on top of it.\n\n\n\n\n\n\n\nCommand\nPurpose\n\n\n\n\nFROM\nSet the base image — always the first instruction\n\n\nRUN\nExecute shell commands during the build (install packages, create directories)\n\n\nCOPY\nCopy files from the build context into the image\n\n\nWORKDIR\nSet the working directory for all subsequent RUN, COPY, CMD, and ENTRYPOINT instructions\n\n\nENV\nSet environment variables available at both build time and runtime\n\n\nEXPOSE\nDocument which port the container listens on (informational — does not publish the port)\n\n\nCMD\nDefault command to run when the container starts; can be overridden at docker run\n\n\nENTRYPOINT\nMain executable for the container; CMD provides its default arguments\n\n\n\nThe most important distinction is between CMD and ENTRYPOINT. CMD is the default command and is easily replaced (docker run my-image Rscript other.R). ENTRYPOINT locks in the executable so the container always behaves like that program (docker run my-api --port 8080 passes --port 8080 as arguments to the entrypoint). For data science services, ENTRYPOINT is the right choice when the container should always start the API or app.",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
     "objectID": "py-api-docker.html",
     "href": "py-api-docker.html",
     "title": "Python API in a container",
@@ -1270,11 +1280,61 @@
     ]
   },
   {
-    "objectID": "lab06.html#comprehension-questions",
-    "href": "lab06.html#comprehension-questions",
+    "objectID": "lab06.html#python-penguin-model-prediction-api",
+    "href": "lab06.html#python-penguin-model-prediction-api",
     "title": "Lab 6: Demystifying Docker",
-    "section": "",
-    "text": "Docker mental map\n\n“Draw a mental map of the relationship between the following: Dockerfile, Docker Image, Docker Registry, Docker Container.”\n\n\nA Dockerfile is a plain-text recipe that describes exactly what goes into an image.\nRunning docker build executes the Dockerfile instructions and produces a Docker Image (an immutable, layered snapshot of the filesystem and configuration).\nDocker Images can be pushed to a Docker Registry (such as Docker Hub or GitHub Container Registry) for storage and sharing.\nRunning docker run on an image creates a Docker Container, a live, isolated process that uses the image as its read-only base.\n\n\n\n\n\n\n%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%\n\ngraph LR\n    subgraph Build[\"&lt;strong&gt;Build&lt;/strong&gt;\"]\n        DF(\"&lt;strong&gt;Dockerfile&lt;/strong&gt;\")\n        Img(\"&lt;strong&gt;Docker Image&lt;/strong&gt;\")\n        DF --&gt;|\"&lt;code&gt;docker&lt;br&gt;build&lt;/code&gt;\"| Img\n    end\n\n    subgraph Share[\"&lt;strong&gt;Share&lt;/strong&gt;\"]\n        Reg(\"&lt;strong&gt;Docker&lt;br&gt;Registry&lt;strong&gt;&lt;br&gt;(Docker Hub, GHCR)\")\n        Img --&gt;|\"&lt;code&gt;docker&lt;br&gt;push&lt;/code&gt;\"| Reg\n        Reg --&gt;|\"&lt;code&gt;docker&lt;br&gt;pull&lt;/code&gt;\"| Img\n    end\n\n    subgraph Run[\"&lt;strong&gt;Run&lt;/strong&gt;\"]\n        Con(\"&lt;strong&gt;Docker&lt;br&gt;Container&lt;/strong&gt;\")\n        Img --&gt;|\"&lt;code&gt;docker&lt;br&gt;run&lt;/code&gt;\"| Con\n    end\n\n    style Build fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41\n    style Share fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41\n    style Run fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41\n    style DF fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Img fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Reg fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff\n    style Con fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff\n\n\n ‘Docker components’ \n\n\n\nThe key distinction is that an image is static (it never changes after it is built) while a container is ephemeral (it runs, does work, and can be stopped and removed). Multiple containers can be created from the same image simultaneously, each isolated from the others.\n\n\nDocker run flags\n\n“When would you want to use each of the following flags for docker run? When wouldn’t you? -p, --name, -d, --rm, -v”\n\n\n\n\n\n\n\n\n\nFlag\nUse\nDon’t Use\n\n\n\n\n-p &lt;host&gt;:&lt;container&gt;\nThe container runs a service (API, Shiny app, database) that needs to be reachable from the host or network\nThe container does not expose a network service and runs entirely internally\n\n\n--name &lt;name&gt;\nYou need to reference the container by name in other commands (docker logs, docker stop, docker exec), or when running multiple containers that need to find each other\nRunning a quick one-off command where the auto-generated name is fine\n\n\n-d\nRunning a long-lived background service (a web server, an API) where you want the terminal back immediately\nYou need to watch live output, or the container runs a short job and you want to see when it finishes\n\n\n--rm\nShort-lived, disposable jobs: running a script, rendering a document, or any task where you do not need to inspect the container afterward\nLong-lived services you want to restart later, or when you may need to examine the stopped container to debug a failure\n\n\n-v &lt;host_path&gt;:&lt;container_path&gt;\nPersisting data beyond the container’s lifetime, sharing config files or secrets, or mounting code during development so changes are reflected without rebuilding\nThe container should be fully self-contained and stateless; mounting volumes couples the container to the host filesystem and can undermine reproducibility\n\n\n\n\n\nDockerfile commands\n\n“What are the most important Dockerfile commands?”\n\nEvery Dockerfile starts with FROM, which names the base image (e.g., FROM rocker/r-ver:4.5). All subsequent instructions build on top of it.\n\n\n\n\n\n\n\nCommand\nPurpose\n\n\n\n\nFROM\nSet the base image — always the first instruction\n\n\nRUN\nExecute shell commands during the build (install packages, create directories)\n\n\nCOPY\nCopy files from the build context into the image\n\n\nWORKDIR\nSet the working directory for all subsequent RUN, COPY, CMD, and ENTRYPOINT instructions\n\n\nENV\nSet environment variables available at both build time and runtime\n\n\nEXPOSE\nDocument which port the container listens on (informational — does not publish the port)\n\n\nCMD\nDefault command to run when the container starts; can be overridden at docker run\n\n\nENTRYPOINT\nMain executable for the container; CMD provides its default arguments\n\n\n\nThe most important distinction is between CMD and ENTRYPOINT. CMD is the default command and is easily replaced (docker run my-image Rscript other.R). ENTRYPOINT locks in the executable so the container always behaves like that program (docker run my-api --port 8080 passes --port 8080 as arguments to the entrypoint). For data science services, ENTRYPOINT is the right choice when the container should always start the API or app.",
+    "section": "Python Penguin Model Prediction API",
+    "text": "Python Penguin Model Prediction API",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
+    "objectID": "lab06.html#r-penguin-model-prediction-api",
+    "href": "lab06.html#r-penguin-model-prediction-api",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "R Penguin Model Prediction API",
+    "text": "R Penguin Model Prediction API",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
+    "objectID": "lab06.html#lab-docker-container-for-penguin-model-prediction-api",
+    "href": "lab06.html#lab-docker-container-for-penguin-model-prediction-api",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "Lab: Docker Container for Penguin Model Prediction API",
+    "text": "Lab: Docker Container for Penguin Model Prediction API",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
+    "objectID": "lab06.html#python",
+    "href": "lab06.html#python",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "Python",
+    "text": "Python",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
+    "objectID": "lab06.html#r",
+    "href": "lab06.html#r",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "R",
+    "text": "R",
+    "crumbs": [
+      "Lab 6: Demystifying Docker"
+    ]
+  },
+  {
+    "objectID": "lab06.html#docker-containers-for-model-prediction-api",
+    "href": "lab06.html#docker-containers-for-model-prediction-api",
+    "title": "Lab 6: Demystifying Docker",
+    "section": "Docker Containers for Model Prediction API",
+    "text": "Docker Containers for Model Prediction API\nThis lab involves creating Docker containers for the APIs we created in R and Python in lab 2 (see my solutions here).",
     "crumbs": [
       "Lab 6: Demystifying Docker"
     ]
