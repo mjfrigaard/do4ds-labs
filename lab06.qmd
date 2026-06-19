@@ -107,13 +107,112 @@ The most important commands are `CMD` and `ENTRYPOINT`:
 
 For data science services, `ENTRYPOINT` is the right choice when the container should always start the API or app.
 
-## Docker Containers for Model Prediction API
+## Docker Containers & Model APIs
 
 This lab involves creating Docker containers for the APIs we created in R and Python in [lab 2](https://do4ds.com/chapters/sec1/1-2-proj-arch.html#lab2) (see my solutions [here](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02)).
 
-### Python 
+### Docker setup 
 
-The Python API has been moved into `_labs/lab06/Python/api`:
+I'll cover how to install/setup Docker desktop on the `Pop!_OS 24.04` operating system because it wasn't very clear from the online documentation. 
+
+1. Download the Docker Desktop `.deb` from [docs.docker.com/get-docker](https://docs.docker.com/get-docker/). 
+    * Docker Desktop depends on `docker-ce-cli`, which is not in the default Pop!_OS repos. Add Docker's official APT repository before installing the `.deb`.
+
+2. Install the following prerequisites    
+    
+    ```bash
+    sudo apt install ca-certificates curl gnupg lsb-release
+    ```
+
+3. Add Docker's GPG key:
+
+    ```bash
+    sudo install -m 0755 -d /etc/apt/keyrings
+    ```
+
+    ```bash
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    ```
+
+    ```bash
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    ```
+
+4. Add the Docker APT repository (use `ubuntu noble` for Pop!_OS 24.04):
+
+    ```bash
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu noble stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    ```
+
+    ```bash
+    sudo apt update
+    ```
+
+5. Install Docker Desktop. This install may print a permission warning about `_apt` — this is harmless and the install completes normally.
+
+    ```bash
+    sudo apt install ./Downloads/docker-desktop-amd64.deb
+    ```
+
+
+6. Verify the install and start Docker Desktop:
+
+    ```bash
+    docker --version
+    # Docker version 29.6.0, build fb59821
+    ```
+    
+    ```bash
+    systemctl --user start docker-desktop
+    ```
+
+![Docker desktop](img/lab6-docker-start.png){width='100%' fig-align='center'}
+
+#### Signing in
+
+On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-based password store) as its credentials backend, storing your Docker ID token in GPG-encrypted files.[^docker-pass] Docker Desktop will show a warning and refuse to sign in if `pass` is not initialized first — so this setup must happen before clicking **Sign In** in the UI.
+
+[^docker-pass]: gnome-keyring is not a supported alternative for Docker Desktop on Linux. It is available for Docker Engine via the `secretservice` D-Bus helper, but that is a separate tool from Docker Desktop. See the [credentials management documentation](https://docs.docker.com/desktop/setup/sign-in/#credentials-management-for-linux-users).
+
+1. Install `pass` and `gpg` if they are not already present:
+
+    ```bash
+    sudo apt install pass gpg
+    ```
+
+2. Generate a GPG key. Accept the defaults (RSA, 3072-bit) and enter a name and email when prompted:
+
+    ```bash
+    gpg --generate-key
+    ```
+
+    The output includes a `pub` block — copy the long hex string on that line (the GPG key ID):
+
+    ```bash
+    pub   rsa3072 2025-10-01 [SC] [expires: 2027-10-01]
+          A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2
+    ```
+
+3. Initialize `pass` with the key ID:
+
+    ```bash
+    pass init A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2
+    ```
+
+4. Sign in from the Docker Desktop UI (**Sign In** button in the top-right) or from the Terminal:
+
+    ```bash
+    docker login
+    ```
+
+    Docker will prompt for your Docker ID username and password/token and store the credentials via `pass`.
+
+### Python
+
+The Python API has been moved into [`_labs/lab06/Python/api`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/Python/api):
 
 ```{bash}
 #| eval: false 
@@ -136,7 +235,7 @@ lab06/Python/
 
 ### R 
 
-The R API has been moved into `_labs/lab06/R/api`:
+The R API has been moved into [`_labs/lab06/R/api`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api):
 
 
 ```{bash}
