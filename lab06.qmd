@@ -173,9 +173,9 @@ I'll cover how to install/setup Docker desktop on the `Pop!_OS 24.04` operating 
 
 #### Signing in
 
-On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-based password store) as its credentials backend, storing your Docker ID token in GPG-encrypted files.[^docker-pass] Docker Desktop will show a warning and refuse to sign in if `pass` is not initialized first — so this setup must happen before clicking **Sign In** in the UI.
+On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-based password store) as its credentials backend, storing your Docker ID token in GPG-encrypted files.[^docker-pass] Docker Desktop will show a warning and refuse to sign in if `pass` is not initialized first. This setup must happen before clicking **Sign In** in the UI.
 
-[^docker-pass]: gnome-keyring is not a supported alternative for Docker Desktop on Linux. It is available for Docker Engine via the `secretservice` D-Bus helper, but that is a separate tool from Docker Desktop. See the [credentials management documentation](https://docs.docker.com/desktop/setup/sign-in/#credentials-management-for-linux-users).
+[^docker-pass]: gnome-keyring is not a supported alternative for Docker Desktop on Linux. It is available for Docker Engine via the `secretservice` D-Bus helper. That is a separate tool from Docker Desktop. See the [credentials management documentation](https://docs.docker.com/desktop/setup/sign-in/#credentials-management-for-linux-users).
 
 1. Install `pass` and `gpg` if they are not already present:
 
@@ -189,17 +189,19 @@ On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-
     gpg --generate-key
     ```
 
-    The output includes a `pub` block — copy the long hex string on that line (the GPG key ID):
+    The output includes a `pub` block; copy the long hex string on that line (the GPG key ID):
 
     ```bash
     pub   rsa3072 2025-10-01 [SC] [expires: 2027-10-01]
-          A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2
+          <pub-id>
+    uid                      martin frigaard <mjfrigaard@pm.me>
+    sub   cv25519 2026-06-28 [E] [expires: 2029-06-27]
     ```
 
 3. Initialize `pass` with the key ID:
 
     ```bash
-    pass init A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2
+    pass init <pub-id>
     ```
 
 4. Sign in from the Docker Desktop UI (**Sign In** button in the top-right) or from the Terminal:
@@ -208,7 +210,27 @@ On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-
     docker login
     ```
 
-    Docker will prompt for your Docker ID username and password/token and store the credentials via `pass`.
+    Docker will prompt for your Docker ID username and password or token and store the credentials via `pass`.
+    
+    ```bash
+    USING WEB-BASED LOGIN
+
+    i Info → To sign in with credentials on the command line, use 'docker login -u <username>'
+    
+    
+    Your one-time device confirmation code is: ABCD-EFGH
+    Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
+
+    Waiting for authentication in the browser…
+    ```
+    
+5. After authentication is complete in the browser, you'll see the following: 
+
+![](img/lab6-docker-login.png){width='80%' fig-align='center'}
+
+And docker desktop will indicate you've signed in: 
+
+![](img/lab6-docker-logged-in.png){width='100%' fig-align='center'}
 
 ### Python
 

@@ -23,25 +23,25 @@ if hasattr(sklearn_model, 'feature_names_in_'):
     feature_names = sklearn_model.feature_names_in_
     print(f"Model expects features: {list(feature_names)}")
     
-    # Define prototype value logic
+    # define prototype value logic
     def get_prototype_value(column_name):
         """Get appropriate default value for each column type"""
         if 'bill_length' in column_name:
-            return 45.0  # Realistic penguin bill length
+            return 45.0  # realistic penguin bill length
         elif 'species_Gentoo' in column_name:
-            return 1     # Default to Gentoo species
+            return 1     # default to Gentoo species
         elif 'sex_male' in column_name:
-            return 1     # Default to male
+            return 1     # default to male
         else:
-            return 0     # Default for other dummy variables
+            return 0     # default for other dummy variables
     
-    # Create prototype data directly
+    # create prototype data directly
     prototype_data = pd.DataFrame({
         name: [get_prototype_value(name)] for name in feature_names
     })
     
 else:
-    # Fallback when model doesn't have feature names
+    # fallback when model doesn't have feature names
     print("Model doesn't have feature_names_in_, using estimated prototype")
     prototype_data = pd.DataFrame({
         "bill_length_mm": [45.0],

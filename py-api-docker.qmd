@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -25,7 +25,9 @@ co_box(
 
 ## Set up
 
-To run the API, navigate to the `Python/api/` folder and check the Python version:
+Review the original lab 6 files [here](https://github.com/alexkgold/do4ds/tree/main/_labs/lab6). I've created both Python and R versions, and you can access and run the API from the [`Python/api/` folder.](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/Python/api)
+
+First, check the Python version:
 
 ```{bash}
 #| eval: false 
@@ -33,10 +35,19 @@ To run the API, navigate to the `Python/api/` folder and check the Python versio
 which python3
 ```
 
+```{verbatim}
+/usr/bin/python3
+```
+
+
 ```{bash}
 #| eval: false 
 #| code-fold: false
 python3 --version
+```
+
+```{verbatim}
+Python 3.12.3
 ```
 
 Create virtual environment using `venv`:
@@ -135,15 +146,13 @@ View the API using the following URLS:
 
 <http://127.0.0.1:8080/docs>
 
+![](img/lab6-python-api.png){width='100%'}
+
 ## Testing API
 
-Open these URLs in your browser:
 
-- **Interactive docs**: http://127.0.0.1:8080/docs
-- **Health check**: http://127.0.0.1:8080/ping  
-- **Model metadata**: http://127.0.0.1:8080/metadata
 
-Or perform terminal testing (in a new terminal)
+We can perform  some terminal testing, too (in a new terminal).
 
 Test health check:
 
@@ -154,20 +163,20 @@ curl http://127.0.0.1:8080/ping
 ```
 
 
-Test prediction:
+Test prediction using the following:
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
-curl -X POST "http://127.0.0.1:8080/predict" \
+curl -X POST "http://localhost:8080/predict" \
   -H "Content-Type: application/json" \
-  -d '{
-    "bill_length_mm": 45.0,
-    "species_Chinstrap": 0,
-    "species_Gentoo": 1,
-    "sex_male": 1
-  }'
+  -d '[{"bill_length_mm": 45.0, "species_Chinstrap": 0, "species_Gentoo": 1, "sex_male": 1}]'
 ```
+
+`vetiver` typically expects data as a list of observation records. The `[0]` index wraps a single prediction so it becomes one row in the `DataFrame`.
+
+
+Make sure to quit (<kbd>Ctrl</kbd> + <kbd>c</kbd>) the API before building the Docker image and running the model in the container. 
 
 ## Docker
 
@@ -178,6 +187,10 @@ Build the image (run from `Python/api/`):
 #| code-fold: false
 docker build -t penguin-model-py .
 ```
+
+In the Terminal, you should see something like: 
+
+![](img/lab6-python-docker-build-terminal.png){width='100%'}
 
 Run the container, mounting the model directory from the host:
 
@@ -191,7 +204,16 @@ docker run --rm -d \
   penguin-model-py
 ```
 
+
 The `-v` flag mounts the local `models/` folder into the container at `/data/model`, which is where `MODEL_PATH` points by default. This keeps the model outside the image so it can be updated without a rebuild.
+
+In the Desktop, you'll see the following:
+
+![](img/lab6-python-docker-build-desktop.png){width='100%'}
+
+You can view the details of the build by clicking on it: 
+
+![](img/lab6-docker-desktop-build-info.png){width='100%'}
 
 Test the running container:
 
@@ -200,4 +222,30 @@ Test the running container:
 #| code-fold: false
 curl http://localhost:8080/ping
 ```
+
+The response should be: 
+
+```{verbatim}
+{"ping":"pong"}
+```
+
+To stop the container, run the following: 
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+docker stop penguin-model-py
+```
+
+Since we used `--rm` in the `run` command, the container will be automatically removed when it stops.
+
+If the graceful stop doesn't work, you can force kill it:
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+docker kill penguin-model-py
+```
+
+In the next lab, we'll run the R api in a Docker container. 
 
