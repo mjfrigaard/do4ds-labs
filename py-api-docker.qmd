@@ -25,7 +25,7 @@ co_box(
 
 ## Set up
 
-Review the original lab 6 files [here](https://github.com/alexkgold/do4ds/tree/main/_labs/lab6). I've created both Python and R versions, and you can access and run the API from the [`Python/api/` folder.](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/Python/api)
+Review the original lab 6 files [here](https://github.com/alexkgold/do4ds/tree/main/_labs/lab6). I've created both Python and R versions, and you can access and run the API from the [`Python/api/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/Python/api).
 
 First, check the Python version:
 
@@ -132,6 +132,104 @@ Name: 'penguin_model'
 Version: 20260618T104900Z-91fdd
 ```
 
+## Run the API
+
+We're going to make a small change to `mod-api.py` in this lab, and its because we need the  `os.environ['PINS_ALLOW_PICKLE_READ']` at the top (before any imports). 
+
+
+```{python}
+#| eval: false 
+#| code-fold: false
+# UPDATED mod-api.py
+
+import os #<1>
+os.environ['PINS_ALLOW_PICKLE_READ'] = '1' #<1>
+
+import warnings #<2>
+warnings.filterwarnings("ignore", message=".*urllib3 v2 only supports OpenSSL.*")
+
+import vetiver
+import pins
+import uvicorn
+import pandas as pd #<2>
+
+
+model_path = os.environ.get("MODEL_PATH", "models/") #<3>
+model_board = pins.board_folder(model_path) #<3>
+
+sklearn_model = model_board.pin_read("penguin_model") #<4>
+print(f":-] Successfully loaded model: {type(sklearn_model)}") #<4>
+
+if hasattr(sklearn_model, 'feature_names_in_'): #<5>
+    feature_names = sklearn_model.feature_names_in_
+    print(f"Model expects features: {list(feature_names)}") #<5>
+    
+    def get_prototype_value(column_name): #<6>
+        """Get appropriate default value for each column type"""
+        if 'bill_length' in column_name:
+            return 45.0  
+        elif 'species_Gentoo' in column_name:
+            return 1     
+        elif 'sex_male' in column_name:
+            return 1     
+        else:
+            return 0  #<6>
+    
+    prototype_data = pd.DataFrame({ #<7>
+        name: [get_prototype_value(name)] for name in feature_names
+    }) #<7>
+    
+else:
+    
+    print("Model doesn't have feature_names_in_, using estimated prototype") #<8>
+    prototype_data = pd.DataFrame({
+        "bill_length_mm": [45.0],
+        "species_Chinstrap": [0],
+        "species_Gentoo": [1], 
+        "sex_male": [1]
+    }) #<8>
+
+print("Prototype data shape:", prototype_data.shape)
+print("Prototype columns:", list(prototype_data.columns))
+print("Sample data:")
+print(prototype_data)
+
+v = vetiver.VetiverModel( #<9>
+    model=sklearn_model, 
+    model_name="penguin_model",
+    prototype_data=prototype_data
+) #<9>
+print(f":-] Created VetiverModel: {type(v)}")
+
+vetiver_api = vetiver.VetiverAPI(v, check_prototype=True) #<10>
+# can run with:
+# vetiver_api.run(port = 8080)
+
+# actual FastAPI application
+app = vetiver_api.app  #<10>
+
+print(f"FastAPI app type: {type(app)}") #<11>
+
+if __name__ == "__main__":
+    print(":-] Starting Penguin Model API...")
+    print(":-] API Documentation: http://127.0.0.1:8080/docs")
+    print(":-] Health Check: http://127.0.0.1:8080/ping")
+    print(":-] Model Info: http://127.0.0.1:8080/metadata")
+    uvicorn.run(app, host="0.0.0.0", port=8080) #<11>
+
+```
+1. Set environment variable **BEFORE** importing pins  
+2. Install packages     
+3. load model from `MODEL_PATH` environment variable (default: local `models/` for dev)    
+4. Read pinned model      
+5. Check model for the features it expects 
+6. Define prototype value logic (realistic penguin bill length, default to Gentoo species, default to male, default for other dummy variables) 
+7. Create prototype data directly   
+8. Fallback when model doesn't have feature names   
+9. Wrap as `VetiverModel`    
+10. Create `VetiverAPI` and extract `FastAPI` app
+11. Print API info
+
 Finally, run the API using:
 
 ```{bash}
@@ -148,9 +246,7 @@ View the API using the following URLS:
 
 ![](img/lab6-python-api.png){width='100%'}
 
-## Testing API
-
-
+### Testing API (optional)
 
 We can perform  some terminal testing, too (in a new terminal).
 
@@ -180,6 +276,49 @@ Make sure to quit (<kbd>Ctrl</kbd> + <kbd>c</kbd>) the API before building the D
 
 ## Docker
 
+Start docker: 
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+systemctl --user start docker-desktop
+```
+
+Create a `Dockerfile` and enter the following: 
+
+```Dockerfile
+
+FROM python:3.11-slim #<1>
+
+WORKDIR /app #<2>
+
+COPY requirements-api.txt . #<3>
+RUN pip install --no-cache-dir -r requirements-api.txt #<4>
+
+COPY mod-api.py . #<5>
+
+ENV MODEL_PATH=/data/model #<6>
+ENV PINS_ALLOW_PICKLE_READ=1 #<7>
+
+EXPOSE 8080 #<8>
+
+CMD ["python3", "mod-api.py"] #<9>
+```
+1. official Python 3.11 slim image as the base   
+2. working directory inside the container to /app  
+3. copies the API requirements file from the host into the container  
+4. installs Python dependencies
+5. copies the `FastAPI` application script into the container  
+6. sets an environment variable pointing to where the model will be mounted  
+7. enables Vetiver to read pickle model files  
+8. exposes port 8080 so the API can be accessed externally  
+9. runs the FastAPI application when the container starts  
+
+
+The `python:3.11-slim` minimizes container size. The `--no-cache-dir -r` will perform a `pip` install without caching to reduce image size. The `ENV` lines are environment variables (path to data and pickle files), and `EXPOSE` will allow us to use a port (similar to `mod-api.py`).
+
+### Build the image
+
 Build the image (run from `Python/api/`):
 
 ```{bash}
@@ -191,6 +330,12 @@ docker build -t penguin-model-py .
 In the Terminal, you should see something like: 
 
 ![](img/lab6-python-docker-build-terminal.png){width='100%'}
+
+When the image is built, we can see it under **Builds** in Docker Desktop: 
+
+![](img/lab6-python-docker-build-desktop.png){width='100%'}
+
+### Run the container 
 
 Run the container, mounting the model directory from the host:
 
@@ -207,13 +352,10 @@ docker run --rm -d \
 
 The `-v` flag mounts the local `models/` folder into the container at `/data/model`, which is where `MODEL_PATH` points by default. This keeps the model outside the image so it can be updated without a rebuild.
 
-In the Desktop, you'll see the following:
+In Docker Desktop, click on the **Containers** tab and you'll see the container running:
 
-![](img/lab6-python-docker-build-desktop.png){width='100%'}
+![](img/lab6-python-docker-container-desktop.png){width='100%'}
 
-You can view the details of the build by clicking on it: 
-
-![](img/lab6-docker-desktop-build-info.png){width='100%'}
 
 Test the running container:
 
@@ -246,6 +388,33 @@ If the graceful stop doesn't work, you can force kill it:
 #| code-fold: false
 docker kill penguin-model-py
 ```
+
+## Final project files 
+
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+├── api.Rproj
+├── Dockerfile #<1> 
+├── mod-api.py #<2>
+├── model.py #<3>
+├── models/ #<4>
+├── my-db.duckdb #<5>
+├── README.md #<6>
+├── requirements-api.txt #<7>
+└── requirements.txt #<8>
+
+5 directories, 12 files
+```
+1. Container definition to build and run the API in Docker.
+2. `FastAPI` application that loads the ML model and exposes `REST` endpoints (`ping`, `metadata`, `predict`).
+3. Script that trains a linear regression model on Palmer penguin data and saves it using `Vetiver` pins.  
+4. Directory containing timestamped model versions with `.joblib` model files and `data.txt` metadata.  
+5. DuckDB database file storing the Palmer penguins dataset.  
+6. Setup and usage instructions for running the API locally and in Docker.
+7. Python dependencies for the `FastAPI` application.  
+8. Python dependencies for both model training and the API.  
 
 In the next lab, we'll run the R api in a Docker container. 
 

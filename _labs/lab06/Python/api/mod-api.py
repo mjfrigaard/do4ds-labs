@@ -1,9 +1,10 @@
+# set env var BEFORE importing pins
+import os
+os.environ['PINS_ALLOW_PICKLE_READ'] = '1'
+
 # pkgs
 import warnings
 warnings.filterwarnings("ignore", message=".*urllib3 v2 only supports OpenSSL.*")
-
-import os
-os.environ['PINS_ALLOW_PICKLE_READ'] = '1'
 
 import vetiver
 import pins

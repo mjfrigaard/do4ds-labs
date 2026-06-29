@@ -1,0 +1,15 @@
+{
+  "hash": "569539687b2c310ad4da27d9722db312",
+  "result": {
+    "engine": "knitr",
+    "markdown": "# Plumber vs. Plumber2 Syntax\n\n\n\n\n\n## Overview\n\n`plumber` is the classic way to turn R functions into web APIs using decorators (`#*`). `plumber2` represents a more modern, type-safe approach that leverages R function signatures and schema-driven design to improve robustness and documentation.\n\n## Syntax Comparison\n\n### 1. Basic Routing\n\n**Plumber (Decorator style)**\n\nIn `plumber`, you use special comment decorators to define the HTTP method, path, and parameters.\n\n```r\n#* @get /hello\n#* @param name The name to greet\nfunction(name = \"World\") {\n  list(message = paste(\"Hello\", name))\n}\n```\n\n**Plumber2 (Signature style)**\n\n`plumber2` focuses on the function definition itself, moving away from heavy reliance on comments and toward more explicit type-driven signatures.\n\n```r\n# Using plumber2, the function signature and \n# type hints (if available) guide the API structure.\nhello <- function(name: character = \"World\") {\n  list(message = paste(\"Hello\", name))\n}\n\n# The routing is often handled by passing these \n# functions to a plumber2 router object.\n```\n\n\n### 2. Data Validation\n\n**Plumber**\n\nValidation in standard `plumber` is typically handled imperatively inside the function body using conditional logic.\n\n```r\n#* @post /predict\nfunction(data) {\n  if (!is.data.frame(data)) {\n    stop(\"Input must be a data frame\")\n  }\n  # ... prediction logic\n}\n```\n\n**Plumber2**\n\n`plumber2` encourages declarative validation, where the expected structure and types are defined upfront, often allowing the framework to reject invalid requests before the function is even called.\n\n```r\n# plumber2 leverages type annotations or \n# schema definitions to validate input automatically.\npredict <- function(data: data.frame) {\n  # The framework ensures 'data' is a data.frame\n  # before this code even executes.\n  model_predict(data)\n}\n```\n\n\n### 3. Summary Table\n\n| Feature | `plumber` | `plumber2` |\n| :--- | :--- | :--- |\n| **Primary Mechanism** | Decorators (`#*` comments) | Function Signatures & Schemas |\n| **Type Safety** | Loose; relies on manual checks | Strong; leverages R type hints |\n| **Input Validation** | Imperative (inside the function) | Declarative (via schema/signature) |\n| **API Documentation**| Swagger/OpenAPI via comments | OpenAPI via type/schema inspection |\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
