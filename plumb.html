@@ -6,11 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Martin Frigaard">
-<meta name="dcterms.date" content="2026-05-22">
+<meta name="dcterms.date" content="2026-06-28">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
-<title>DO4DS: Lab Solutions</title>
+<title>Appendix C — Plumber vs.&nbsp;Plumber2 Syntax – DO4DS: Lab Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -26,6 +25,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -36,7 +70,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./preface.html" rel="next">
+<link href="./httr2.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -87,7 +121,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Welcome!</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./glossary.html">Appendices</a></li><li class="breadcrumb-item"><a href="./plumb.html"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -117,7 +151,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Welcome!</span></a>
   </div>
 </li>
@@ -431,7 +465,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./plumb.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a>
+  <a href="./plumb.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a>
   </div>
 </li>
       </ul>
@@ -446,10 +480,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#welcome" id="toc-welcome" class="nav-link active" data-scroll-target="#welcome">Welcome!</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#syntax-comparison" id="toc-syntax-comparison" class="nav-link" data-scroll-target="#syntax-comparison">Syntax Comparison</a>
   <ul>
-  <li><a href="#praise-for-do4ds" id="toc-praise-for-do4ds" class="nav-link" data-scroll-target="#praise-for-do4ds">Praise for do4ds</a></li>
-  <li><a href="#other-great-resources" id="toc-other-great-resources" class="nav-link" data-scroll-target="#other-great-resources">Other great resources</a></li>
+  <li><a href="#basic-routing" id="toc-basic-routing" class="nav-link" data-scroll-target="#basic-routing">1. Basic Routing</a></li>
+  <li><a href="#data-validation" id="toc-data-validation" class="nav-link" data-scroll-target="#data-validation">2. Data Validation</a></li>
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">3. Summary Table</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -457,31 +493,20 @@ ul.task-list li input[type="checkbox"] {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./glossary.html">Appendices</a></li><li class="breadcrumb-item"><a href="./plumb.html"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">DO4DS: Lab Solutions</h1>
+<h1 class="title">Appendix C — Plumber vs.&nbsp;Plumber2 Syntax</h1>
 </div>
 
-<div>
-  <div class="description">
-    <p>DevOps for Data Science: Lab Solutions</p>
-  </div>
-</div>
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Martin Frigaard </p>
-          </div>
-  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-05-22</p>
+      <p class="date">2026-06-28</p>
     </div>
   </div>
   
@@ -493,37 +518,94 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="welcome" class="level1 unnumbered">
-<h1 class="unnumbered">Welcome!</h1>
-<p>Welcome to my lab solutions for Alex K Gold’s <a href="https://do4ds.com/">DevOps for Data Science</a>.</p>
-<p>If you’d like a print version of Alex’s book, it’s available as part of <a href="https://www.routledge.com/Chapman--HallCRC-The-R-Series/book-series/CRCTHERSER">Chapman &amp; Hall’s R Series</a>.</p>
-<section id="praise-for-do4ds" class="level2">
-<h2 class="anchored" data-anchor-id="praise-for-do4ds">Praise for do4ds</h2>
-<p>I discovered <a href="https://do4ds.com/">DevOps for Data Science (do4ds)</a> by <a href="https://alexkgold.space/">Alex K Gold</a> at the end of 2022, just as I was starting a new position as a Posit System Administrator with CDC’s <a href="https://www.cdc.gov/data-modernization/php/technologies/edav.html">Enterprise Data, Analytics, and Visualization (EDAV)</a> platform.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> I’d been an R programmer/Shiny developer for 10+ years, but as a System Admin, my responsibilities now included (and were not limited to) maintaining, monitoring, updating and improving the Posit services for CDC users.</p>
-<blockquote class="blockquote">
-<p>“<em>If there’s a book that you want to read, but it hasn’t been written yet, then you must write it.</em>” - <a href="https://www.goodreads.com/quotes/321-if-there-s-a-book-that-you-want-to-read-but">Toni Morrison</a></p>
-</blockquote>
-<p><a href="https://do4ds.com/">do4ds</a> was ~90% of the book I wanted to read, and completing the lab solutions allowed me to address the remaining 10%.</p>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p><code>plumber</code> is the classic way to turn R functions into web APIs using decorators (<code>#*</code>). <code>plumber2</code> represents a more modern, type-safe approach that leverages R function signatures and schema-driven design to improve robustness and documentation.</p>
 </section>
-<section id="other-great-resources" class="level2">
-<h2 class="anchored" data-anchor-id="other-great-resources">Other great resources</h2>
-<p>I also regularly checked and referenced additional topics from the following resources:</p>
-<ol type="1">
-<li><a href="https://linuxcommand.org/tlcl.php">The Linux Command Line</a> by William Shotts<br>
-</li>
-<li><a href="https://a.co/d/4YVb01t">How Linux Works: what every superuser show know</a> by Brian Ward<br>
-</li>
-<li><a href="https://a.co/d/dhKUgR4">The Linux programming interface: a Linux and UNIX system programming handbook</a> by Michael Kerrisk.</li>
-</ol>
+<section id="syntax-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="syntax-comparison">Syntax Comparison</h2>
+<section id="basic-routing" class="level3">
+<h3 class="anchored" data-anchor-id="basic-routing">1. Basic Routing</h3>
+<p><strong>Plumber (Decorator style)</strong></p>
+<p>In <code>plumber</code>, you use special comment decorators to define the HTTP method, path, and parameters.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /hello</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#* @param name The name to greet</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(<span class="at">name =</span> <span class="st">"World"</span>) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">message =</span> <span class="fu">paste</span>(<span class="st">"Hello"</span>, name))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Plumber2 (Signature style)</strong></p>
+<p><code>plumber2</code> focuses on the function definition itself, moving away from heavy reliance on comments and toward more explicit type-driven signatures.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using plumber2, the function signature and </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># type hints (if available) guide the API structure.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>hello <span class="ot">&lt;-</span> <span class="cf">function</span>(name<span class="sc">:</span> <span class="at">character =</span> <span class="st">"World"</span>) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">message =</span> <span class="fu">paste</span>(<span class="st">"Hello"</span>, name))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># The routing is often handled by passing these </span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># functions to a plumber2 router object.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="data-validation" class="level3">
+<h3 class="anchored" data-anchor-id="data-validation">2. Data Validation</h3>
+<p><strong>Plumber</strong></p>
+<p>Validation in standard <code>plumber</code> is typically handled imperatively inside the function body using conditional logic.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(data) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.data.frame</span>(data)) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"Input must be a data frame"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... prediction logic</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Plumber2</strong></p>
+<p><code>plumber2</code> encourages declarative validation, where the expected structure and types are defined upfront, often allowing the framework to reject invalid requests before the function is even called.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plumber2 leverages type annotations or </span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># schema definitions to validate input automatically.</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>predict <span class="ot">&lt;-</span> <span class="cf">function</span>(data<span class="sc">:</span> data.frame) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The framework ensures 'data' is a data.frame</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># before this code even executes.</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">model_predict</span>(data)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="summary-table" class="level3">
+<h3 class="anchored" data-anchor-id="summary-table">3. Summary Table</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>plumber</code></th>
+<th style="text-align: left;"><code>plumber2</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Primary Mechanism</strong></td>
+<td style="text-align: left;">Decorators (<code>#*</code> comments)</td>
+<td style="text-align: left;">Function Signatures &amp; Schemas</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Type Safety</strong></td>
+<td style="text-align: left;">Loose; relies on manual checks</td>
+<td style="text-align: left;">Strong; leverages R type hints</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Input Validation</strong></td>
+<td style="text-align: left;">Imperative (inside the function)</td>
+<td style="text-align: left;">Declarative (via schema/signature)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>API Documentation</strong></td>
+<td style="text-align: left;">Swagger/OpenAPI via comments</td>
+<td style="text-align: left;">OpenAPI via type/schema inspection</td>
+</tr>
+</tbody>
+</table>
 
 
 </section>
-</section>
-<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
-<hr>
-<ol>
-<li id="fn1"><p>EDAV houses multiple enterprise data science products (Databricks, Power BI, Tableau, SAS Viya, etc.), including Posit Workbench, Connect, and Package Manager. Read more about EDAV and the <a href="https://www.cdc.gov/data-modernization/php/about/dmi.html">Data Modernization Initiative</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
 </section>
 
 </main> <!-- /main -->
@@ -968,11 +1050,11 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./httr2.html" class="pagination-link" aria-label="More `httr2` functions">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">More <code>httr2</code> functions</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./preface.html" class="pagination-link" aria-label="Preface">
-        <span class="nav-page-text">Preface</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->
