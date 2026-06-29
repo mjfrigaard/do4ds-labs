@@ -11,18 +11,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
+    cmake \
+    libsodium-dev \
+    libx11-dev \
+    pandoc \
+    xz-utils \
+    libuv1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy renv bootstrap files first so package install layer is cached
-# separately from the API code.
 COPY .Rprofile .
 COPY renv/activate.R renv/activate.R
 COPY renv.lock .
 
-# .Rprofile sources renv/activate.R, which bootstraps renv and sets
-# .libPaths() to the project library before restore() runs.
 RUN Rscript -e "renv::restore(prompt = FALSE)"
 
 COPY plumber.R .

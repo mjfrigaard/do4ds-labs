@@ -1,0 +1,97 @@
+# Plumber vs. Plumber2 Syntax
+
+```{r}
+#| eval: true 
+#| echo: false 
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_dev
+#| echo: false
+#| results: asis
+#| eval: false
+co_box(
+  color = "r", 
+  look = "minimal",
+  header = "Alert",
+  contents = "The contents for section are being revised. Thank you for your patience."
+)
+```
+
+## Overview
+
+`plumber` is the classic way to turn R functions into web APIs using decorators (`#*`). `plumber2` represents a more modern, type-safe approach that leverages R function signatures and schema-driven design to improve robustness and documentation.
+
+## Syntax Comparison
+
+### 1. Basic Routing
+
+**Plumber (Decorator style)**
+
+In `plumber`, you use special comment decorators to define the HTTP method, path, and parameters.
+
+```r
+#* @get /hello
+#* @param name The name to greet
+function(name = "World") {
+  list(message = paste("Hello", name))
+}
+```
+
+**Plumber2 (Signature style)**
+
+`plumber2` focuses on the function definition itself, moving away from heavy reliance on comments and toward more explicit type-driven signatures.
+
+```r
+# Using plumber2, the function signature and 
+# type hints (if available) guide the API structure.
+hello <- function(name: character = "World") {
+  list(message = paste("Hello", name))
+}
+
+# The routing is often handled by passing these 
+# functions to a plumber2 router object.
+```
+
+
+### 2. Data Validation
+
+**Plumber**
+
+Validation in standard `plumber` is typically handled imperatively inside the function body using conditional logic.
+
+```r
+#* @post /predict
+function(data) {
+  if (!is.data.frame(data)) {
+    stop("Input must be a data frame")
+  }
+  # ... prediction logic
+}
+```
+
+**Plumber2**
+
+`plumber2` encourages declarative validation, where the expected structure and types are defined upfront, often allowing the framework to reject invalid requests before the function is even called.
+
+```r
+# plumber2 leverages type annotations or 
+# schema definitions to validate input automatically.
+predict <- function(data: data.frame) {
+  # The framework ensures 'data' is a data.frame
+  # before this code even executes.
+  model_predict(data)
+}
+```
+
+
+### 3. Summary Table
+
+| Feature | `plumber` | `plumber2` |
+| :--- | :--- | :--- |
+| **Primary Mechanism** | Decorators (`#*` comments) | Function Signatures & Schemas |
+| **Type Safety** | Loose; relies on manual checks | Strong; leverages R type hints |
+| **Input Validation** | Imperative (inside the function) | Declarative (via schema/signature) |
+| **API Documentation**| Swagger/OpenAPI via comments | OpenAPI via type/schema inspection |
