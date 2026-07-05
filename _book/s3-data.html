@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-01">
+<meta name="dcterms.date" content="2026-07-05">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Put the penguins data and model in S3 – DO4DS: Lab Solutions</title>
@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -47,6 +82,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -87,7 +125,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: Getting started with AWS</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Put the penguins data and model in S3</em></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Put the penguins data and model in S3</em></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -271,7 +309,7 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab07.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 7: Getting started with AWS</strong></span></a>
+ <span class="menu-text"><strong>Lab 7: The Cloud</strong></span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -458,14 +496,28 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a></li>
+  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a></li>
+  <li><a href="#create-s3-bucket" id="toc-create-s3-bucket" class="nav-link" data-scroll-target="#create-s3-bucket">Create S3 bucket</a></li>
+  <li><a href="#pushing-the-models-to-s3" id="toc-pushing-the-models-to-s3" class="nav-link" data-scroll-target="#pushing-the-models-to-s3">Pushing the models to S3</a>
+  <ul>
+  <li><a href="#r-model" id="toc-r-model" class="nav-link" data-scroll-target="#r-model">R model</a></li>
+  <li><a href="#python-model" id="toc-python-model" class="nav-link" data-scroll-target="#python-model">Python model</a>
+  <ul class="collapse">
+  <li><a href="#note-on-vetiver-convention" id="toc-note-on-vetiver-convention" class="nav-link" data-scroll-target="#note-on-vetiver-convention">Note on <code>vetiver</code> convention</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#launch-ec2-instance" id="toc-launch-ec2-instance" class="nav-link" data-scroll-target="#launch-ec2-instance">Launch EC2 instance</a></li>
+  <li><a href="#startstop-instance" id="toc-startstop-instance" class="nav-link" data-scroll-target="#startstop-instance">Start/stop instance</a></li>
+  <li><a href="#create-a-separate-iam-user-for-github-actions" id="toc-create-a-separate-iam-user-for-github-actions" class="nav-link" data-scroll-target="#create-a-separate-iam-user-for-github-actions">Create a separate IAM user for GitHub Actions</a></li>
+  <li><a href="#add-credentials-to-github" id="toc-add-credentials-to-github" class="nav-link" data-scroll-target="#add-credentials-to-github">Add credentials to GitHub</a></li>
+  <li><a href="#example-github-actions-step-using-these-secrets" id="toc-example-github-actions-step-using-these-secrets" class="nav-link" data-scroll-target="#example-github-actions-step-using-these-secrets">Example GitHub Actions step using these secrets</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: Getting started with AWS</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Put the penguins data and model in S3</em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Put the penguins data and model in S3</em></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><em>Put the penguins data and model in S3</em></h1>
 </div>
@@ -478,7 +530,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-01</p>
+      <p class="date">2026-07-05</p>
     </div>
   </div>
   
@@ -490,8 +542,133 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="set-up" class="level2">
-<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
+<section id="preface" class="level2">
+<h2 class="anchored" data-anchor-id="preface">Preface</h2>
+<p>This is the second part of lab 7. It assumes you’ve set up your AWS user, group, and configured your CLI.</p>
+</section>
+<section id="create-s3-bucket" class="level2">
+<h2 class="anchored" data-anchor-id="create-s3-bucket">Create S3 bucket</h2>
+<p>We can use the <code>s3api</code> command to create the S3 bucket for the <code>penguin-vetiver-model-data</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3api create-bucket <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bucket</span> penguin-vetiver-model-data <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--region</span> us-east-1 <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>These commands are pretty straightforward, but you can also read more in the documentation. Note that bucket names must be globally unique. The response from the API should be something like the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Location"</span><span class="fu">:</span> <span class="st">"/penguin-vetiver-model-data"</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"BucketArn"</span><span class="fu">:</span> <span class="st">"arn:aws:s3:::penguin-vetiver-model-data"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We can also see this in the dashboard by looking up <strong>S3</strong> resources:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab7-s3-bucket-dashboard.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab7-s3-bucket-dashboard.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="pushing-the-models-to-s3" class="level2">
+<h2 class="anchored" data-anchor-id="pushing-the-models-to-s3">Pushing the models to S3</h2>
+<p>Now that we’ve created an S3 bucket, we can push the respective Python/R model data into their locations.</p>
+<section id="r-model" class="level3">
+<h3 class="anchored" data-anchor-id="r-model">R model</h3>
+<p>From the <code>do4ds-labs/_labs/lab07</code> folder:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp R/api/models/ s3://penguin-vetiver-model-data/R/models/ <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="python-model" class="level3">
+<h3 class="anchored" data-anchor-id="python-model">Python model</h3>
+<p>From the <code>do4ds-labs/_labs/lab07</code> folder:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp Python/api/models/ s3://penguin-vetiver-model-data/Python/models/ <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We can see this in the dashboard under <strong>Amazon S3</strong> &gt; <strong>Buckets</strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab7-s3-bucket-upload.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="img/lab7-s3-bucket-upload.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<section id="note-on-vetiver-convention" class="level4">
+<h4 class="anchored" data-anchor-id="note-on-vetiver-convention">Note on <code>vetiver</code> convention</h4>
+<p>If using <code>pins</code> with an S3 board, <code>vetiver</code>/<code>pins</code> manages the folder structure automatically (versioned by timestamp/hash, like we already have locally). In that case we’d use:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_s3</span>(<span class="at">bucket =</span> <span class="st">"penguin-vetiver-model-data"</span>, <span class="at">prefix =</span> <span class="st">"R/"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>vetiver<span class="sc">::</span><span class="fu">vetiver_pin_write</span>(board, model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>This is preferred over manual <code>cp</code>/<code>sync</code> if we want <code>vetiver</code>’s versioning and metadata to work correctly when later reading the model back with <code>vetiver_pin_read()</code>.</p>
+</section>
+</section>
+</section>
+<section id="launch-ec2-instance" class="level2">
+<h2 class="anchored" data-anchor-id="launch-ec2-instance">Launch EC2 instance</h2>
+<p>Console is easiest for first setup: EC2 &gt; Launch instance &gt; choose AMI, instance type, key pair, security group (allow SSH port 22, and any app ports you need).</p>
+<p>CLI equivalent:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 run-instances <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--image-id</span> ami-xxxxxxxx <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> t3.medium <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> your-key-pair <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--security-group-ids</span> sg-xxxxxxxx <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--subnet-id</span> subnet-xxxxxxxx <span class="dt">\</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="startstop-instance" class="level2">
+<h2 class="anchored" data-anchor-id="startstop-instance">Start/stop instance</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="at">--instance-ids</span> i-xxxxxxxxxxxx <span class="at">--profile</span> dev-deploy</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 stop-instances <span class="at">--instance-ids</span> i-xxxxxxxxxxxx <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="create-a-separate-iam-user-for-github-actions" class="level2">
+<h2 class="anchored" data-anchor-id="create-a-separate-iam-user-for-github-actions">Create a separate IAM user for GitHub Actions</h2>
+<p>Do not reuse your personal credentials. Create a dedicated user with only S3 access.</p>
+<p>IAM &gt; User groups &gt; Create group: <code>github-actions-s3</code></p>
+<p>Attach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Version"</span><span class="fu">:</span> <span class="st">"2012-10-17"</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Statement"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Effect"</span><span class="fu">:</span> <span class="st">"Allow"</span><span class="fu">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Action"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:GetObject"</span><span class="ot">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:PutObject"</span><span class="ot">,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:ListBucket"</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Resource"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"arn:aws:s3:::your-vetiver-bucket-name"</span><span class="ot">,</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"arn:aws:s3:::your-vetiver-bucket-name/*"</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>IAM &gt; Policies &gt; Create policy &gt; JSON tab &gt; paste above &gt; name it <code>github-actions-s3-policy</code>.</p>
+<p>Attach this policy to the <code>github-actions-s3</code> group.</p>
+<p>Create user: <code>github-actions-bot</code> &gt; add to <code>github-actions-s3</code> group &gt; no console access needed.</p>
+<p>Create access key for this user (CLI use case), same as before.</p>
+</section>
+<section id="add-credentials-to-github" class="level2">
+<h2 class="anchored" data-anchor-id="add-credentials-to-github">Add credentials to GitHub</h2>
+<p>Repo &gt; Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.</p>
+<p>Add:</p>
+<ul>
+<li><code>AWS_ACCESS_KEY_ID</code></li>
+<li><code>AWS_SECRET_ACCESS_KEY</code></li>
+<li><code>AWS_REGION</code></li>
+</ul>
+</section>
+<section id="example-github-actions-step-using-these-secrets" class="level2">
+<h2 class="anchored" data-anchor-id="example-github-actions-step-using-these-secrets">Example GitHub Actions step using these secrets</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure AWS credentials</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> aws-actions/configure-aws-credentials@v4</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-access-key-id</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_ACCESS_KEY_ID }}</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-secret-access-key</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_SECRET_ACCESS_KEY }}</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-region</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_REGION }}</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Push to S3</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">run</span><span class="kw">:</span><span class="at"> aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
@@ -949,6 +1126,38 @@ ul.task-list li input[type="checkbox"] {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
