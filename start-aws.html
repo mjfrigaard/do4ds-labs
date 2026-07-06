@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-05">
+<meta name="dcterms.date" content="2026-07-06">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Getting started with AWS – DO4DS: Lab Solutions</title>
@@ -70,7 +70,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./s3-data.html" rel="next">
+<link href="./aws-ec2.html" rel="next">
 <link href="./lab07.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -327,14 +327,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./s3-data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Put the penguins data and model in S3</em></span></a>
+  <a href="./aws-ec2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>EC2 Instances</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./model-vetiver-s3.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>S3 Python Vetiver Model</em></span></a>
+  <a href="./s3-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>S3 Buckets</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -500,15 +500,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a>
+  <li><a href="#aws-set-up" id="toc-aws-set-up" class="nav-link active" data-scroll-target="#aws-set-up">AWS set up</a></li>
+  <li><a href="#identity-and-access-management-iam" id="toc-identity-and-access-management-iam" class="nav-link" data-scroll-target="#identity-and-access-management-iam">Identity and Access Management (IAM)</a>
   <ul>
-  <li><a href="#install-aws-cli" id="toc-install-aws-cli" class="nav-link" data-scroll-target="#install-aws-cli">Install AWS CLI</a></li>
-  <li><a href="#verify-install" id="toc-verify-install" class="nav-link" data-scroll-target="#verify-install">Verify install</a></li>
-  </ul></li>
-  <li><a href="#aws-identity-and-access-management-iam" id="toc-aws-identity-and-access-management-iam" class="nav-link" data-scroll-target="#aws-identity-and-access-management-iam">AWS Identity and Access Management (IAM)</a>
-  <ul>
-  <li><a href="#create-iam-group" id="toc-create-iam-group" class="nav-link" data-scroll-target="#create-iam-group">Create IAM Group</a></li>
-  <li><a href="#create-iam-user" id="toc-create-iam-user" class="nav-link" data-scroll-target="#create-iam-user">Create IAM User</a></li>
+  <li><a href="#creating-groups" id="toc-creating-groups" class="nav-link" data-scroll-target="#creating-groups">Creating Groups</a></li>
+  <li><a href="#creating-users" id="toc-creating-users" class="nav-link" data-scroll-target="#creating-users">Creating Users</a></li>
   <li><a href="#iam-core-concepts" id="toc-iam-core-concepts" class="nav-link" data-scroll-target="#iam-core-concepts">IAM: Core concepts</a>
   <ul class="collapse">
   <li><a href="#policies-determine-permissions" id="toc-policies-determine-permissions" class="nav-link" data-scroll-target="#policies-determine-permissions">Policies determine permissions</a></li>
@@ -517,7 +513,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#iam-recap" id="toc-iam-recap" class="nav-link" data-scroll-target="#iam-recap">IAM: Recap</a></li>
   </ul></li>
-  <li><a href="#creating-access-keys" id="toc-creating-access-keys" class="nav-link" data-scroll-target="#creating-access-keys">Creating Access Keys</a>
+  <li><a href="#creating-access-keys" id="toc-creating-access-keys" class="nav-link" data-scroll-target="#creating-access-keys">Creating Access Keys</a></li>
+  <li><a href="#install-aws-cli" id="toc-install-aws-cli" class="nav-link" data-scroll-target="#install-aws-cli">Install AWS CLI</a>
+  <ul>
+  <li><a href="#verify-install" id="toc-verify-install" class="nav-link" data-scroll-target="#verify-install">Verify install</a></li>
+  </ul></li>
+  <li><a href="#logging-in" id="toc-logging-in" class="nav-link" data-scroll-target="#logging-in">Logging in</a>
   <ul>
   <li><a href="#terminology-review" id="toc-terminology-review" class="nav-link" data-scroll-target="#terminology-review">Terminology Review</a>
   <ul class="collapse">
@@ -545,7 +546,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-05</p>
+      <p class="date">2026-07-06</p>
     </div>
   </div>
   
@@ -557,8 +558,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="set-up" class="level2">
-<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
+<p>This lab will cover creating AWS users, groups, attaching policies, creating access keys, and configuring the AWS command line interface (CLI).</p>
+<section id="aws-set-up" class="level2">
+<h2 class="anchored" data-anchor-id="aws-set-up">AWS set up</h2>
 <p>First, you’ll need to log into AWS. This is separate from your regular Amazon account, and comes with different tiers. I highly recommend turning on the MFA and using something like the <a href="https://www.microsoft.com/en-us/security/mobile-authenticator-app">Microsoft Authenticator app</a> to login.</p>
 <p>When you first access AWS, your landing page will look something like this:</p>
 <div class="quarto-figure quarto-figure-center">
@@ -571,68 +573,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <figcaption>AWS Console</figcaption>
 </figure>
 </div>
-<p>This is your <strong>AWS Console</strong>–where you’ll launch new instances, select storage devices, containers, etc. In the first part of this lab I’ll cover configuring the AWS Command Line Interface (CLI) on your machine so we can control AWS from the command line.</p>
-<section id="install-aws-cli" class="level3">
-<h3 class="anchored" data-anchor-id="install-aws-cli">Install AWS CLI</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Download the latest version via the official installer:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"</span> <span class="at">-o</span> <span class="st">"awscliv2.zip"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Install the <code>unzip</code> utility</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install unzip <span class="at">-y</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Unzip the downloaded <code>awscliv2.zip</code> file</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> awscliv2.zip</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Install:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ./aws/install</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>You should see:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># You can now run: /usr/local/bin/aws --version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<p>This is your <strong>AWS Console</strong>–where you’ll launch new instances, select storage devices, containers, etc. In the first part of this lab I’ll cover</p>
 </section>
-<section id="verify-install" class="level3">
-<h3 class="anchored" data-anchor-id="verify-install">Verify install</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># aws-cli/2.35.15 Python/3.14.5 Linux/7.0.11-76070011-generic exe/x86_64.pop.24</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
-</section>
-<section id="aws-identity-and-access-management-iam" class="level2">
-<h2 class="anchored" data-anchor-id="aws-identity-and-access-management-iam">AWS Identity and Access Management (IAM)</h2>
-<p>Back in the AWS <strong>Console</strong>, we need to navigate to the Identity and Access Management (IAM) to create a new group and user.</p>
-<section id="create-iam-group" class="level3">
-<h3 class="anchored" data-anchor-id="create-iam-group">Create IAM Group</h3>
+<section id="identity-and-access-management-iam" class="level2">
+<h2 class="anchored" data-anchor-id="identity-and-access-management-iam">Identity and Access Management (IAM)</h2>
+<p>Back in the <strong>AWS Console</strong>, we need to create a group, attach policies to this group, then create user.</p>
+<section id="creating-groups" class="level3">
+<h3 class="anchored" data-anchor-id="creating-groups">Creating Groups</h3>
 <p>In the <strong>AWS Console</strong>, we’ll navigate to:</p>
 <p><strong>IAM</strong> &gt; <strong>IAM User groups</strong> &gt; <strong>Create group</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab7-aws-console-iam.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="IAM"><img src="img/lab7-aws-console-iam.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="IAM"></a></p>
+<p><a href="img/lab7-aws-console-iam.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Look for IAMin ‘Recently visited’"><img src="img/lab7-aws-console-iam.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="Look for IAMin ‘Recently visited’"></a></p>
 </figure>
 </div>
-<figcaption>IAM</figcaption>
+<figcaption>Look for IAMin ‘Recently visited’</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab7-aws-create-group.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="IAM"><img src="img/lab7-aws-create-group.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="IAM"></a></p>
+<p><a href="img/lab7-aws-create-group.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Select ‘IAM user groups’"><img src="img/lab7-aws-create-group.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Select ‘IAM user groups’"></a></p>
 </figure>
 </div>
-<figcaption>IAM</figcaption>
+<figcaption>Select ‘IAM user groups’</figcaption>
 </figure>
 </div>
 <p>Give the group a meaningful name: <code>dev-deploy-group</code></p>
@@ -641,7 +608,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>AmazonEC2FullAccess</code></li>
 <li><code>AmazonS3FullAccess</code></li>
 </ul>
-<p>We should replace these with scoped custom policies later, but for now it will get us up and running.</p>
+<p>Down the road, we should replace these with scoped custom policies later, but for now it will get us up and running.</p>
 <p>Click <strong>Create Group</strong> and you should see something like:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -650,16 +617,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>As we can see, this group doesn’t have any users, so we’ll create and add them next.</p>
 </section>
-<section id="create-iam-user" class="level3">
-<h3 class="anchored" data-anchor-id="create-iam-user">Create IAM User</h3>
-<p>Back in Identity and Access Management, we’ll to navigate to:</p>
+<section id="creating-users" class="level3">
+<h3 class="anchored" data-anchor-id="creating-users">Creating Users</h3>
+<p>Back in <strong>AWS Console</strong>, we’ll to navigate to:</p>
 <p><strong>IAM Users</strong> &gt; <strong>Create User</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="img/lab7-aws-iam-create-user.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="img/lab7-aws-iam-create-user.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
 </figure>
 </div>
-<p>We’ll give ourselves a meaningful username: <code>mjfrigaard-cli</code></p>
+<p>We’ll give the user a meaningful username: <code>mjfrigaard-cli</code></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
@@ -698,11 +665,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="iam-core-concepts">IAM: Core concepts</h3>
 <p>AWS IAM is somewhat like like Linux users and groups, but instead of file permissions, IAM uses <em>policies</em> to control who can do what, and where. Three core concepts to know about AWS IAM:</p>
 <ol type="1">
-<li>A <strong><code>user</code></strong> is an identity (a person or a service).<br>
+<li>A <strong><code>user</code></strong> is an identity (a person or a service).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a><br>
 </li>
-<li>A <strong><code>group</code></strong> is a collection of <code>users</code> that share permissions.<br>
+<li>A <strong><code>group</code></strong> is a collection of <code>users</code> that share permissions.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><br>
 </li>
-<li>A <strong><code>policy</code></strong> is a JSON document that says what actions are allowed on what resources.</li>
+<li>A <strong><code>policy</code></strong> is a JSON document that says what actions are allowed on what resources<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
 </ol>
 <p>Users don’t get permissions directly, they inherit permissions from the groups they belong to. If you’ve worked with Linux groups and file permissions before, the table below might be helpful for mapping the AWS IAM concepts.</p>
 <table class="caption-top table">
@@ -743,7 +710,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<p>So far, we’ve created/logged into our AWS account, then from the <strong>Console</strong>, we 1) created an IAM group, 2) attached IAM policies to the IAM group, 3) created an IAM user, and 4) assigned that user to the IAM group.</p>
+<p>So far, we’ve created/logged into our AWS account, then from the <strong>AWS Console</strong>, we 1) created an IAM group, 2) attached IAM policies to the IAM group, 3) created an IAM user, and 4) assigned that user to the IAM group.</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -800,7 +767,7 @@ graph LR
 </div>
 </div>
 </div>
-<p>A policy is like a permissions file that specifies and <strong>effect</strong> (allow or deny), an <strong>action</strong> (what operation, like <code>s3:PutObject</code>), and the <strong>resource</strong> (what it applies to, i.e., a specific bucket).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>A policy is like a permissions file that specifies and <strong>effect</strong> (allow or deny), an <strong>action</strong> (what operation, like <code>s3:PutObject</code>), and the <strong>resource</strong> (what it applies to, i.e., a specific bucket).<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -841,8 +808,8 @@ graph TD
     Users(["&lt;strong&gt;alice&lt;/strong&gt;"]) --"In Group"--&gt; DevGroup("&lt;strong&gt;devs&lt;/strong&gt;")
     Users --"In Group"--&gt; OpsGroup("&lt;strong&gt;ops&lt;/strong&gt;")
 
-    DevGroup --&gt; S3Policy[/"Policy:&lt;br&gt;S3 Access"/]
-    OpsGroup --&gt; EC2Policy[/"Policy:&lt;br&gt;EC2 Access"/]
+    DevGroup --&gt; S3Policy[/"&lt;strong&gt;Policy&lt;/strong&gt;:&lt;br&gt;&lt;em&gt;S3 Access&lt;/em&gt;"/]
+    OpsGroup --&gt; EC2Policy[/"&lt;strong&gt;Policy&lt;/strong&gt;:&lt;br&gt;&lt;em&gt;EC2 Access&lt;/em&gt;"/]
 
     S3Policy --&gt; S3[("S3&lt;br&gt;Buckets")]
     EC2Policy --&gt; EC2{{"EC2&lt;br&gt;Instances"}}
@@ -865,7 +832,7 @@ graph TD
 </div>
 </div>
 </div>
-<p>Alice ends up with the <em>combined</em> permissions of both groups (just like a Linux user inheriting from multiple group memberships).</p>
+<p>Alice ends up with the <em>combined</em> permissions of both <code>devs</code> and <code>ops</code> groups (just like a Linux user inheriting from multiple group memberships).</p>
 </section>
 <section id="identities" class="level4">
 <h4 class="anchored" data-anchor-id="identities">Identities</h4>
@@ -944,7 +911,14 @@ graph TD
 </section>
 <section id="creating-access-keys" class="level2">
 <h2 class="anchored" data-anchor-id="creating-access-keys">Creating Access Keys</h2>
-<p>In the <strong>IAM users</strong> dashboard, we can see 1) the <code>dev-deploy-group</code>, 2) the policies we attached to this group, and 3) the new user we just created.</p>
+<p>In the <strong>IAM users</strong> dashboard, we can see:</p>
+<ol type="1">
+<li>the <code>dev-deploy-group</code>,<br>
+</li>
+<li>the policies we attached to this group (<code>AmazonEC2FullAccess</code> and <code>AmazonS3FullAccess</code>), and<br>
+</li>
+<li>the new user we just created (<code>mjfrigaard-cli</code>)</li>
+</ol>
 <p>In the <strong>Summary</strong> section, there is an option to <strong>Create access key</strong>:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -956,13 +930,54 @@ graph TD
 <figcaption>IAM users dashboard</figcaption>
 </figure>
 </div>
-<p>We want to click on <strong>Create access key</strong> under the <strong>Security credentials tab</strong>. The use case we want is the <strong>Command Line Interface (CLI)</strong>:</p>
+<p>We want to click on <strong>Create access key</strong> under the <strong>Security credentials tab</strong>. The <strong>Use case</strong> we want is the <strong>Command Line Interface (CLI)</strong>:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="img/lab7-aws-cli-access-key.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="img/lab7-aws-cli-access-key.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
 </figure>
 </div>
-<p>Follow the steps in the documentation (be sure to store the Access Key ID and Secret Access Key pair somewhere safe!). Use the <code>aws login</code> command to log in with the Terminal:</p>
+<p>Follow the steps in the documentation (be sure to store the Access Key ID and Secret Access Key pair somewhere safe!).</p>
+<p>Next we’ll cover installing the AWS Command Line Interface (CLI) on our local machine. This will allow us to control AWS from the command line.</p>
+</section>
+<section id="install-aws-cli" class="level2">
+<h2 class="anchored" data-anchor-id="install-aws-cli">Install AWS CLI</h2>
+<p>First we run the standard <code>apt update</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Next we download the latest version via the official installer:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"</span> <span class="at">-o</span> <span class="st">"awscliv2.zip"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Install an <code>unzip</code> utility:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install unzip <span class="at">-y</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Use <code>unzip</code> on the downloaded <code>awscliv2.zip</code> file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> awscliv2.zip</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Finally, we install <code>aws</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ./aws/install</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>You should see:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># You can now run: /usr/local/bin/aws --version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="verify-install" class="level3">
+<h3 class="anchored" data-anchor-id="verify-install">Verify install</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># aws-cli/2.35.15 Python/3.14.5 Linux/7.0.11-76070011-generic exe/x86_64.pop.24</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="logging-in" class="level2">
+<h2 class="anchored" data-anchor-id="logging-in">Logging in</h2>
+<p>Use the <code>aws login</code> command to log in with the Terminal:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> login</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -979,12 +994,6 @@ graph TD
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>configure set region NEW_REGION".</span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>AWS Region [us-east-1]:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then the browser opened and I was able to log in as the <code>root</code> user:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Attempting to open your default browser. If the browser does not open, open the</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>following URL.</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>If you are unable to open the URL on this device, run this command again with </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>the '--remote' option.</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>https://us-east-1.signin.aws.amazon.com/v1/authorize?...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
@@ -1021,7 +1030,7 @@ graph TD
 </div>
 <section id="terminology-review" class="level3">
 <h3 class="anchored" data-anchor-id="terminology-review">Terminology Review</h3>
-<p>We’ve just creates a new user, group, access key ID, <em>and</em> secret access key. Lets review these before going forward, because it got confusing for me the first time I completed this lab.</p>
+<p>We’ve just created a new group, user, access key ID, <em>and</em> secret access key. Lets review these before going forward, because it got confusing for me the first time I completed this lab.</p>
 <section id="what-is-an-arn" class="level4">
 <h4 class="anchored" data-anchor-id="what-is-an-arn">1. What is an ARN?</h4>
 <p><strong>ARN</strong> = Amazon Resource Name. You may have noticed this under the <strong>Summary</strong> section for the <code>mjfrigaard-cli</code> user:</p>
@@ -1030,14 +1039,14 @@ graph TD
 <p><a href="img/lab7-aws-user-arn.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="img/lab7-aws-user-arn.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
 </figure>
 </div>
-<p>The ARN a unique identifier for a specific AWS resource (a user, bucket, instance, policy, etc).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> ARNs are similar to fully qualified file paths, but for AWS resources.</p>
+<p>The ARN a unique identifier for a specific AWS resource (a user, bucket, instance, policy, etc).<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> ARNs are similar to fully qualified file paths, but for AWS resources.</p>
 <p>This is how it works:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>arn:aws:iam::386252595109:user/mjfrigaard-cli</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>arn:aws:iam::386252595109:user/mjfrigaard-cli</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 29%">
-<col style="width: 35%">
-<col style="width: 35%">
+<col style="width: 19%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1107,21 +1116,21 @@ graph LR
 </div>
 </div>
 <p>In plain English: <em>“IAM user named <code>mjfrigaard-cli</code> in AWS account <code>386252595109</code>.”</em></p>
-<p><strong>Should it be secret?</strong></p>
+<p><strong>Should I keep my ARN a secret?</strong></p>
 <p>No–ARNs are not credentials. They are identifiers, similar to a username or a URL. It’s safe to share, log, or put in documentation. It does not grant access by itself (they just identify a resource).</p>
 <p>However, you should keep the Access Key ID + Secret Access Key secret, because these are used to authenticate.</p>
 </section>
 <section id="iam-account-idsaliases" class="level4">
 <h4 class="anchored" data-anchor-id="iam-account-idsaliases">2. IAM Account IDs/Aliases</h4>
-<p>An <em>account alias</em> is a human-readable name you can set that will work like an Account ID. You may have seen the ability to log in with an IAM account alias. By default, our AWS account is identified with a 12-digit number (called an Account ID). An Account ID is not secret like access keys (alone it can’t grant access to anything), but don’t share it unnecessarily.</p>
+<p>An account alias is a human-readable name you can set that will work like an Account ID. You may have seen the option to log in with an IAM account alias. By default, our AWS account is identified with a 12-digit number (called an Account ID). An Account ID is not secret like access keys (alone it can’t grant access to anything), but don’t share it unnecessarily.</p>
 <p>To create an account alias, use the following command:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-account-alias <span class="at">--account-alias</span> my-company-name</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-account-alias <span class="at">--account-alias</span> my-company-name</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>This changes your console login URL from:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>https://386252595109.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This changes your console log in URL from:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>https://386252595109.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>to:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>https://my-company-name.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>https://my-company-name.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is a purely cosmetic change; it doesn’t affect permissions or ARNs.</p>
 </section>
 </section>
@@ -1130,36 +1139,34 @@ graph LR
 <h2 class="anchored" data-anchor-id="cli-configuration">CLI Configuration</h2>
 <p>Back in the Terminal, we’re going to configure the <code>dev-deploy</code> group using:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This will prompt you for:</p>
 <ol type="1">
-<li>Access Key ID<br>
-</li>
+<li>Access Key ID</li>
 <li>Secret Access Key</li>
-<li>Region (<code>us-east-1</code>)<br>
-</li>
+<li>Region (<code>us-east-1</code>)</li>
 <li>Output format (<code>json</code>)</li>
 </ol>
-<p>These commands only created a named credential profile stored locally at:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>~/.aws/credentials   (keys)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>~/.aws/config        (region/output format)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Nothing was sent to AWS yet. We can test this with:</p>
+<p>The commands above only create a named credential profile stored locally at the following location (nothing was sent to AWS yet):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>~/.aws/credentials   (keys)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>~/.aws/config        (region/output format)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We can test our configuration with:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This asks AWS: <em>“Using these credentials, who am I?”</em></p>
 <p>It returns the following:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"UserId"</span><span class="fu">:</span> <span class="st">"AWS_ACCESS_KEY_ID"</span><span class="fu">,</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Account"</span><span class="fu">:</span> <span class="st">"NUMBER_SET"</span><span class="fu">,</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::386252595109:user/mjfrigaard-cli"</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>AWS’s <strong>STS</strong> (Security Token Service) validated our keys and returned:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"UserId"</span><span class="fu">:</span> <span class="st">"AWS_ACCESS_KEY_ID"</span><span class="fu">,</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Account"</span><span class="fu">:</span> <span class="st">"NUMBER_SET"</span><span class="fu">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::386252595109:user/mjfrigaard-cli"</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>sts</code> command uses AWS’s security token service (STS) validated our keys and returned:</p>
 <ul>
 <li><code>UserId</code>: unique internal ID for this IAM user</li>
-<li><code>Account</code>: your AWS account number</li>
-<li><code>Arn</code>: confirms you authenticated as <code>mjfrigaard-cli</code></li>
+<li><code>Account</code>: AWS account number</li>
+<li><code>Arn</code>: confirms we are authenticated as <code>mjfrigaard-cli</code></li>
 </ul>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -1185,15 +1192,18 @@ graph LR
 </div>
 </div>
 </div>
-<p>This is the standard way to confirm your CLI credentials are valid and check which identity they belong to.</p>
+<p>This is the standard way to confirm we can CLI credentials are valid and check which identity they belong to. In the next lab, we’ll cover uploading the <code>vetiver</code> model data in an S3 bucket.</p>
 
 
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
 <ol>
-<li id="fn1"><p>This is conceptually similar to a Linux ACL entry, but scoped to AWS API actions instead of filesystem operations.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>Read more about AWS ARN’s in the <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html">official documentation</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>Read more about <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html">AWS IAM users</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Read more about <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups.html">AWS IAM user groups</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Read more about <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html">AWS IAM policies</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>This is conceptually similar to a Linux ACL entry, but scoped to AWS API actions instead of filesystem operations.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Read more about AWS ARN’s in the <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html">official documentation</a>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 
@@ -1644,8 +1654,8 @@ graph LR
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./s3-data.html" class="pagination-link" aria-label="<em>Put the penguins data and model in S3</em>">
-        <span class="nav-page-text"><em>Put the penguins data and model in S3</em></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./aws-ec2.html" class="pagination-link" aria-label="<em>EC2 Instances</em>">
+        <span class="nav-page-text"><em>EC2 Instances</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
