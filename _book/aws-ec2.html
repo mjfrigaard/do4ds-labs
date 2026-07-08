@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-06">
+<meta name="dcterms.date" content="2026-07-08">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>EC2 Instances – DO4DS: Lab Solutions</title>
@@ -508,18 +508,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#response-explanation" id="toc-response-explanation" class="nav-link" data-scroll-target="#response-explanation">Response Explanation</a></li>
   </ul></li>
-  <li><a href="#authorizing-security-group" id="toc-authorizing-security-group" class="nav-link" data-scroll-target="#authorizing-security-group">Authorizing Security Group</a>
+  <li><a href="#authorizing-the-security-group" id="toc-authorizing-the-security-group" class="nav-link" data-scroll-target="#authorizing-the-security-group">Authorizing the Security Group</a>
   <ul class="collapse">
   <li><a href="#response-explanation-1" id="toc-response-explanation-1" class="nav-link" data-scroll-target="#response-explanation-1">Response Explanation</a></li>
   </ul></li>
-  <li><a href="#creating-an-iam-role-for-s3-access" id="toc-creating-an-iam-role-for-s3-access" class="nav-link" data-scroll-target="#creating-an-iam-role-for-s3-access">Creating an IAM Role for S3 Access</a></li>
   </ul></li>
-  <li><a href="#launch-the-instance" id="toc-launch-the-instance" class="nav-link" data-scroll-target="#launch-the-instance">Launch the Instance</a>
+  <li><a href="#creating-an-iam-role-for-s3-access" id="toc-creating-an-iam-role-for-s3-access" class="nav-link" data-scroll-target="#creating-an-iam-role-for-s3-access">Creating an IAM Role for S3 Access</a>
   <ul>
-  <li><a href="#ssh-in" id="toc-ssh-in" class="nav-link" data-scroll-target="#ssh-in">SSH In</a></li>
+  <li><a href="#attach-permissions-to-group" id="toc-attach-permissions-to-group" class="nav-link" data-scroll-target="#attach-permissions-to-group">Attach Permissions to Group</a></li>
+  <li><a href="#create-trust-policy" id="toc-create-trust-policy" class="nav-link" data-scroll-target="#create-trust-policy">Create Trust Policy</a></li>
+  <li><a href="#create-role" id="toc-create-role" class="nav-link" data-scroll-target="#create-role">Create Role</a></li>
+  <li><a href="#attach-permission-policy" id="toc-attach-permission-policy" class="nav-link" data-scroll-target="#attach-permission-policy">Attach Permission Policy</a></li>
+  <li><a href="#create-an-instance-profile" id="toc-create-an-instance-profile" class="nav-link" data-scroll-target="#create-an-instance-profile">Create an Instance Profile</a></li>
+  <li><a href="#add-the-role-to-the-instance-profile" id="toc-add-the-role-to-the-instance-profile" class="nav-link" data-scroll-target="#add-the-role-to-the-instance-profile">Add the Role to the Instance Profile</a></li>
+  <li><a href="#launch-ec2" id="toc-launch-ec2" class="nav-link" data-scroll-target="#launch-ec2">Launch EC2</a></li>
   </ul></li>
-  <li><a href="#full-deployment" id="toc-full-deployment" class="nav-link" data-scroll-target="#full-deployment">Full Deployment</a></li>
-  <li><a href="#summary-of-why-this-matters" id="toc-summary-of-why-this-matters" class="nav-link" data-scroll-target="#summary-of-why-this-matters">Summary of Why This Matters</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
   </ul>
 </nav>
     </div>
@@ -539,7 +543,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-06</p>
+      <p class="date">2026-07-08</p>
     </div>
   </div>
   
@@ -706,7 +710,7 @@ graph TD
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;"><code>ec2 create-key-pair</code> commands</span>
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.10em;"><code>ec2 create-key-pair</code> commands breakdown</span>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -773,7 +777,7 @@ graph TD
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;"><code>ec2 create-security-group</code> commands</span>
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.10em;"><code>ec2 create-security-group</code> commands breakdown</span>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -800,9 +804,10 @@ graph TD
 <p>The security group was created successfully! AWS handed back its ID and ARN so we can reference it in future commands.</p>
 <section id="response-explanation" class="level4">
 <h4 class="anchored" data-anchor-id="response-explanation">Response Explanation</h4>
+<p>The JSON response has two parts:</p>
 <ul>
 <li><p><code>GroupId</code> is the unique ID AWS assigned to our new security group. We’ll use this ID (not the name <code>vetiver-sg</code>) in later commands, like attaching it to an EC2 instance or adding firewall rules.</p></li>
-<li><p><code>SecurityGroupArn</code> is the full AWS resource identifier (ARN) for the security group. It encodes the region (<code>us-east-1</code>), account number (<code>386252595109</code>), and the resource type/ID (<code>security-group/sg-0884d49f913b38416</code>), which is not something we need to memorize or protect as secret.</p></li>
+<li><p><code>SecurityGroupArn</code> is the full AWS resource identifier (ARN) for the new security group. It encodes the region (<code>us-east-1</code>), account number (<code>386252595109</code>), and the resource type/ID (<code>security-group/sg-0884d49f913b38416</code>), which is not something we need to memorize or protect as secret.</p></li>
 </ul>
 <p>We can view the new security group in the <strong>AWS Console</strong> by searching for <strong>Security Groups</strong>:</p>
 <div class="quarto-figure quarto-figure-center">
@@ -812,15 +817,15 @@ graph TD
 </div>
 </section>
 </section>
-<section id="authorizing-security-group" class="level3">
-<h3 class="anchored" data-anchor-id="authorizing-security-group">Authorizing Security Group</h3>
-<p>Now that we’ve created the security group, we’re going to grant access to our local IP. We need to obtain this using:</p>
+<section id="authorizing-the-security-group" class="level3">
+<h3 class="anchored" data-anchor-id="authorizing-the-security-group">Authorizing the Security Group</h3>
+<p>Now that we’ve created the security group, we’re going to grant access to our local IP. We can obtain our IP using:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://checkip.amazonaws.com</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This returns something like:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>203.0.113.42</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Replace <code>OUR_IP</code> with the IP address above and run the command:</p>
+<p>Replace <code>OUR_IP</code> with the IP address returned above and run the command:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># auth EC2 security group</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-2" class="code-annotation-target"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 authorize-security-group-ingress <span class="dt">\</span></span>
@@ -863,7 +868,7 @@ graph TD
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;"><code>ec2 authorize-security-group-ingress</code> commands</span>
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.10em;"><code>ec2 authorize-security-group-ingress</code> commands breakdown</span>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -905,24 +910,53 @@ graph TD
 <p>We successfully opened port 22 (SSH) so only our current IP can attempt to connect.</p>
 <section id="response-explanation-1" class="level4">
 <h4 class="anchored" data-anchor-id="response-explanation-1">Response Explanation</h4>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="st">"Return"</span><span class="er">:</span> <span class="kw">true</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Confirms the rule was added successfully.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="st">"SecurityGroupRuleId"</span><span class="er">:</span> <span class="st">"sgr-016b1800a27252666"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The unique ID AWS assigned to this specific rule. Useful if we ever want to modify or delete just this rule later.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="st">"GroupId"</span><span class="er">:</span> <span class="st">"sg-0884d49f913b38416"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Confirms which security group this rule belongs to, in this case, <code>vetiver-sg</code>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="st">"GroupOwnerId"</span><span class="er">:</span> <span class="st">"386252595109"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Our AWS account number. Confirms the rule lives in our account.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="st">"IsEgress"</span><span class="er">:</span> <span class="kw">false</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Confirms this is an <strong>ingress</strong> rule (incoming traffic), not egress (outgoing).</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="st">"IpProtocol"</span><span class="er">:</span> <span class="st">"tcp"</span><span class="er">,</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="st">"FromPort"</span><span class="er">:</span> <span class="dv">22</span><span class="er">,</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="st">"ToPort"</span><span class="er">:</span> <span class="dv">22</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Confirms the rule allows TCP traffic specifically on port 22 (SSH). <code>FromPort</code> and <code>ToPort</code> being the same means it’s a single port, not a range.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="st">"CidrIpv4"</span><span class="er">:</span> <span class="st">"203.0.113.42/32"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Confirms only our specific IP address can use this rule (this should match what you replaced <code>OUR_IP</code> with above). The <code>/32</code> restricts it to exactly one IP.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="st">"SecurityGroupRuleArn"</span><span class="er">:</span> <span class="st">"..."</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The full AWS resource identifier for this rule. Not sensitive, just a reference string.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 74%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>JSON</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>"Return": true</code></td>
+<td>Confirms the rule was added successfully.</td>
+</tr>
+<tr class="even">
+<td><code>"SecurityGroupRuleId": "sgr-016b1800a27252666"</code></td>
+<td>The unique ID AWS assigned to this specific rule. Useful if we ever want to modify or delete just this rule later.</td>
+</tr>
+<tr class="odd">
+<td><code>"GroupId": "sg-0884d49f913b38416"</code></td>
+<td>Confirms which security group this rule belongs to, in this case, <code>vetiver-sg</code>.</td>
+</tr>
+<tr class="even">
+<td><code>"GroupOwnerId": "386252595109"</code></td>
+<td>Our AWS account number. Confirms the rule lives in our account.</td>
+</tr>
+<tr class="odd">
+<td><code>"IsEgress": false</code></td>
+<td>Confirms this is an <strong><em>ingress</em></strong> rule (incoming traffic), not <strong><em>egress</em></strong> (outgoing).</td>
+</tr>
+<tr class="even">
+<td><code>"IpProtocol": "tcp", "FromPort": 22, "ToPort": 22</code></td>
+<td>Confirms the rule allows TCP traffic specifically on port 22 (SSH). <code>FromPort</code> and <code>ToPort</code> being the same means it’s a single port, not a range.</td>
+</tr>
+<tr class="odd">
+<td><code>"CidrIpv4": "203.0.113.42/32"</code></td>
+<td>Confirms only our specific IP address can use this rule (this should match what you replaced <code>OUR_IP</code> with above). The <code>/32</code> restricts it to exactly one IP.</td>
+</tr>
+<tr class="even">
+<td><code>"SecurityGroupRuleArn": "..."</code></td>
+<td>The full AWS resource identifier for this rule (not sensitive, just a reference string).</td>
+</tr>
+</tbody>
+</table>
+<p>The security group is like a bouncer who decides who’s allowed to knock on which doors (ports).</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -947,40 +981,13 @@ graph TD
 </div>
 </div>
 </div>
-<p>The security group is like a bouncer who decides who’s allowed to knock on which doors (ports).</p>
+<p>Since our end goal is pulling <code>vetiver</code> models from an S3 bucket onto the instance, we need to create the IAM role <em>before</em> launching (it’s easier to attach the instance profile at launch time than to attach it after the fact).</p>
 </section>
 </section>
-<section id="creating-an-iam-role-for-s3-access" class="level3">
-<h3 class="anchored" data-anchor-id="creating-an-iam-role-for-s3-access">Creating an IAM Role for S3 Access</h3>
-<p>Instead of putting AWS access keys inside the EC2 instance, we attach a role so the instance can <em>ask</em> AWS for temporary credentials automatically.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-role <span class="dt">\</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role <span class="dt">\</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--assume-role-policy-document</span> file://trust-policy.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><code>trust-policy.json</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Version"</span><span class="fu">:</span> <span class="st">"2012-10-17"</span><span class="fu">,</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Statement"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Effect"</span><span class="fu">:</span> <span class="st">"Allow"</span><span class="fu">,</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Principal"</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">"Service"</span><span class="fu">:</span> <span class="st">"ec2.amazonaws.com"</span><span class="fu">},</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Action"</span><span class="fu">:</span> <span class="st">"sts:AssumeRole"</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span><span class="ot">]</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Attach S3 read permissions:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam attach-role-policy <span class="dt">\</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role <span class="dt">\</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--policy-arn</span> arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-instance-profile <span class="at">--instance-profile-name</span> ec2-s3-instance-profile</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam add-role-to-instance-profile <span class="dt">\</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-profile-name</span> ec2-s3-instance-profile <span class="dt">\</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+</section>
+<section id="creating-an-iam-role-for-s3-access" class="level2">
+<h2 class="anchored" data-anchor-id="creating-an-iam-role-for-s3-access">Creating an IAM Role for S3 Access</h2>
+<p>An IAM role lets the EC2 instance itself authenticate to AWS (no stored credentials, no hardcoded keys). AWS issues temporary credentials automatically behind the scenes.</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -988,49 +995,125 @@ graph TD
 <div>
 <pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
 
-sequenceDiagram
-    participant EC2
-    participant IAM Role
-    participant S3
-
-    EC2-&gt;&gt;IAM Role: "Who am I? What can I access?"
-    IAM Role--&gt;&gt;EC2: Temporary credentials
-    EC2-&gt;&gt;S3: Fetch vetiver model files
-    S3--&gt;&gt;EC2: Model artifacts
+graph LR
+    EC2(["EC2 Instance"]) --&gt;|"Assumes Role"| Role("IAM Role")
+    Role --&gt;|"Temporary Credentials"| EC2
+    EC2 --&gt;|"Authenticated Request"| S3[("S3 Bucket")]
+    
+    style EC2 fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Role fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style D fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style EC2 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     
 </pre>
 </div>
-<p></p><figcaption> ‘EC2 Instances’</figcaption> </figure><p></p>
+<p></p><figcaption> ‘EC2 Instances &amp; IAM Roles’</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
-<p>The instance profile is like giving the EC2 box its own ID badge, instead of you handing it your personal keys.</p>
+<p>Three pieces are required:</p>
+<ol type="1">
+<li><p><strong>Role</strong>: the identity itself</p></li>
+<li><p><strong>Policy</strong>: what that identity is allowed to do</p></li>
+<li><p><strong>Instance profile</strong>: the container that lets EC2 actually use the role</p></li>
+</ol>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph LR
+    Role(["&lt;strong&gt;IAM Role&lt;/strong&gt;"]) --&gt; Trust[/"&lt;strong&gt;Trust Policy&lt;/strong&gt;:&lt;br&gt;who can assume this role"/]
+    Role --&gt; Perms[/"&lt;strong&gt;Permission Policy&lt;/strong&gt;:&lt;br&gt;what this role can do"/]
+    Role --&gt; Prof("&lt;strong&gt;Instance Profile&lt;/strong&gt;:&lt;br&gt;attaches role to EC2")
+    
+    style Role fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style Trust fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Prof fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Trust fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Perms fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+</pre>
+</div>
+<p></p><figcaption> ‘IAM Roles, Trust Policies, Permission Policies, and Instance Profiles’</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<section id="attach-permissions-to-group" class="level4">
+<h4 class="anchored" data-anchor-id="attach-permissions-to-group">Attach Permissions to Group</h4>
+<p>Recall the users inherit permissions from groups, so we’ll need to grant our group (<code>dev-deploy-group</code>) permissions for our user (<code>mjfrigaard-cli</code>) to use.</p>
+<ol type="1">
+<li>In the <strong>AWS Console</strong>, we want to attach <code>IAMFullAccess</code> to <code>dev-deploy-group</code>:</li>
+</ol>
+<ul>
+<li><p>Log in via browser (as <code>root</code> or any admin-capable login)</p>
+<ul>
+<li><p><strong>IAM</strong> &gt; <strong>IAM user groups</strong> &gt; <strong><code>dev-deploy-group</code></strong> &gt; <strong>Add permissions</strong></p>
+<ul>
+<li><strong>Search <code>IAMFullAccess</code></strong> &gt; <strong>Attach policies</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab7-aws-aim-attach-policy-group.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="img/lab7-aws-aim-attach-policy-group.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<p>After we’ve attached this policy, the <code>mjfrigaard-cli</code> user can complete the steps below. <code>IAMFullAccess</code> is broad, and it lets us create/modify any user, role, or policy. Fine for our personal AWS account, but this might be riskier in a team/production account.</p>
 </section>
-</section>
-<section id="launch-the-instance" class="level2">
-<h2 class="anchored" data-anchor-id="launch-the-instance">Launch the Instance</h2>
+<section id="create-trust-policy" class="level4">
+<h4 class="anchored" data-anchor-id="create-trust-policy">Create Trust Policy</h4>
+<p>From the lab07 root folder, use the Terminal to create the <code>trust-policy.json</code> file:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 run-instances <span class="dt">\</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--image-id</span> ami-0c02fb55956c7d316 <span class="dt">\</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> t3.micro <span class="dt">\</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> vetiver-deploy-key <span class="dt">\</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--security-groups</span> vetiver-sg <span class="dt">\</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--iam-instance-profile</span> Name=ec2-s3-instance-profile <span class="dt">\</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&gt;</span> trust-policy.json <span class="op">&lt;&lt; 'EOF'</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "Version": "2012-10-17",</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">  "Statement": [{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">    "Effect": "Allow",</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">    "Principal": {"Service": "ec2.amazonaws.com"},</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="st">    "Action": "sts:AssumeRole"</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="st">  }]</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="ssh-in" class="level3">
-<h3 class="anchored" data-anchor-id="ssh-in">SSH In</h3>
+<p>This file defines <em>who</em> is allowed to assume the role. Here, it says “<em>only EC2 instances can use this role</em>,” not users, not other services.</p>
+</section>
+<section id="create-role" class="level4">
+<h4 class="anchored" data-anchor-id="create-role">Create Role</h4>
+<p>Now we create the role itself, using the trust policy from above. At this point, the role exists but has no permissions, it’s an empty identity.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="at">--profile</span> dev-deploy <span class="dt">\</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/vetiver-deploy-key.pem ubuntu@<span class="op">&lt;</span>PUBLIC_IP<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-role <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--assume-role-policy-document</span> file://trust-policy.json <span class="dt">\</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>The JSON returned tells us this role has been created:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Role"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"RoleName"</span><span class="fu">:</span> <span class="st">"ec2-s3-read-role"</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"RoleId"</span><span class="fu">:</span> <span class="st">"AROAVT3TS36SSEK7FFJ4E"</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::386252595109:role/ec2-s3-read-role"</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"CreateDate"</span><span class="fu">:</span> <span class="st">"2026-07-08T13:25:03+00:00"</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"AssumeRolePolicyDocument"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>          <span class="er">&lt;</span> <span class="er">omitted</span> <span class="er">&gt;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The role now exists as an <em>identity</em>, with the trust policy saying “<em>only EC2 can assume this.</em>” Not secret, ARNs and role IDs are just identifiers.</p>
 </section>
-</section>
-<section id="full-deployment" class="level2">
-<h2 class="anchored" data-anchor-id="full-deployment">Full Deployment</h2>
+<section id="attach-permission-policy" class="level4">
+<h4 class="anchored" data-anchor-id="attach-permission-policy">Attach Permission Policy</h4>
+<p>Next we need to grant the role read-only access to all S3 buckets, using an AWS-managed policy (predefined by AWS, not custom-written). This is what actually lets it fetch our <code>vetiver</code> model files.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam attach-role-policy <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--policy-arn</span> arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>attach-role-policy</code> returns nothing on success (this is normal AWS CLI behavior, no news is good news).</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1039,29 +1122,174 @@ sequenceDiagram
 <pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
 
 graph TD
-    A[Local Dev: Train + Pin Model] --&gt; B[S3 Bucket]
-    B --&gt; C[EC2 Instance IAM Role]
-    C --&gt; D[Pull Model via pins::board_s3]
-    D --&gt; E[Run plumber/FastAPI app]
-    E --&gt; F[Expose API on port 8000]
-    F --&gt; G[Client Requests / Predictions]
+    Role(["&lt;strong&gt;ec2-s3-read-role&lt;/strong&gt;"]) --&gt;|attached policy| Policy[/"&lt;strong&gt;AmazonS3ReadOnlyAccess&lt;/strong&gt;"/]
+    Policy --&gt; GET("Can GET/List&lt;br&gt;S3 objects")
+    Policy --&gt; PUT("Cannot&lt;br&gt;PUT/DELETE")
+    
+    style Role fill:#5B8C5A,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Policy fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style PUT fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GET fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     
 </pre>
 </div>
-<p></p><figcaption> ‘EC2 Instances’</figcaption> </figure><p></p>
+<p></p><figcaption> Create Role &amp; Attach Policy</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The instance profile is like giving the EC2 box its own ID badge, instead of us handing it our personal keys.</p>
+</section>
+<section id="create-an-instance-profile" class="level4">
+<h4 class="anchored" data-anchor-id="create-an-instance-profile">Create an Instance Profile</h4>
+<p>EC2 doesn’t attach roles directly, it attaches instance profiles, which act as a wrapper around a role. This creates that empty wrapper.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-instance-profile <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-profile-name</span> ec2-s3-instance-profile <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The JSON tells us the instance profile was created (see the <code>InstanceProfileName</code>, <code>InstanceProfileId</code>, <code>Arn</code>, and <code>CreateDate</code>), and we can see the <code>Roles</code> are empty.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"InstanceProfile"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"Path"</span><span class="fu">:</span> <span class="st">"/"</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="er">&lt;</span> <span class="er">omitted</span> <span class="er">&gt;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"Roles"</span><span class="fu">:</span> <span class="ot">[]</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="add-the-role-to-the-instance-profile" class="level4">
+<h4 class="anchored" data-anchor-id="add-the-role-to-the-instance-profile">Add the Role to the Instance Profile</h4>
+<p>Finally, we link the role (permissions) to the instance profile (the thing EC2 actually uses). After this, the profile is ready to attach at launch time.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam add-role-to-instance-profile <span class="dt">\</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-profile-name</span> ec2-s3-instance-profile <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role-name</span> ec2-s3-read-role <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>add-role-to-instance-profile</code> returns nothing on success (this is normal AWS CLI behavior, no news is good news).</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph TD
+    A("ec2-s3-instance-profile") --&gt; B("ec2-s3-read-role")
+    B --&gt; C[/"AmazonS3ReadOnlyAccess&lt;br&gt;Policy"/]
+    D(["EC2 Instance"]) --&gt;|attached at launch| A
+    
+    style D fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style B fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style A fill:#2A6F77,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    
+</pre>
+</div>
+<p></p><figcaption> Create Role &amp; Attach Policy</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
 </section>
-<section id="summary-of-why-this-matters" class="level2">
-<h2 class="anchored" data-anchor-id="summary-of-why-this-matters">Summary of Why This Matters</h2>
+<section id="launch-ec2" class="level4">
+<h4 class="anchored" data-anchor-id="launch-ec2">Launch EC2</h4>
+<p>The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 run-instances <span class="dt">\</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--image-id</span> ami-0c02fb55956c7d316 <span class="dt">\</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> t3.micro <span class="dt">\</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> vetiver-deploy-key <span class="dt">\</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--security-groups</span> vetiver-sg <span class="dt">\</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--iam-instance-profile</span> Name=ec2-s3-instance-profile <span class="dt">\</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The JSON output from <code>aws ec2 run-instances</code> is long, but I’ll break down some of it’s contents:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 22%">
+<col style="width: 55%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>InstanceId</code></td>
+<td><code>i-0069201f3688cec43</code></td>
+<td>Unique ID for this instance, used in future CLI commands</td>
+</tr>
+<tr class="even">
+<td><code>PrivateIpAddress</code></td>
+<td><code>172.31.0.231</code></td>
+<td>Internal IP, only reachable inside AWS’s VPC</td>
+</tr>
+<tr class="odd">
+<td><code>PublicDnsName</code></td>
+<td><code>""</code> (empty)</td>
+<td>No public DNS yet, still <code>pending</code> (see below)</td>
+</tr>
+<tr class="even">
+<td><code>State.Name</code></td>
+<td><code>"pending"</code></td>
+<td>Instance is booting, not ready yet (see below)</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>PublicIpAddress</code> wasn’t in the initial output, because the instance was still <code>pending</code> at launch time.</p>
+<p>We can check again in ~30 seconds with the following:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0069201f3688cec43 <span class="dt">\</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>This will return the <code>PublicIpAddress.</code></p>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph TD
+    Trust[/"trust-policy.json"/] --&gt; Role("ec2-s3-read-role")
+    Role --"attached policy"--&gt; C[/"AmazonS3ReadOnlyAccess"/]
+    Role --&gt; Prof("ec2-s3-instance-profile")
+    Prof --&gt; E["EC2 Instance:&lt;br&gt;&lt;strong&gt;i-0069201f3688cec43&lt;/strong&gt;"]
+    E --&gt; F{{"Security Group:&lt;br&gt;&lt;strong&gt;vetiver-sg&lt;/strong&gt;"}}
+    E --&gt; G("SSH Key:&lt;br&gt;&lt;strong&gt;vetiver-deploy-key&lt;/strong&gt;")
+    
+
+    style Role fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Prof fill:#2A6F77,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Trust fill:#5B8C5A,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style E fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style C fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style F fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+</pre>
+</div>
+<p></p><figcaption> Create Role &amp; Attach Policy</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 <ul>
 <li><strong>Security groups</strong> = firewall rules</li>
 <li><strong>IAM roles on EC2</strong> = no hardcoded secrets, safer than access keys</li>
 <li><strong>Key pairs</strong> = SSH login control</li>
 <li><strong>Instance profile</strong> = attaches IAM identity directly to the machine</li>
 </ul>
-<p>This mirrors your GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.</p>
+<p>This mirrors a GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.</p>
+<p>In the next lab, we’ll cover uploading the <code>vetiver</code> model data in an S3 bucket.</p>
 
 
 </section>

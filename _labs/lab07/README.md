@@ -4,7 +4,7 @@ These are my lab files for lab 7. The original files are in the `original/` fold
 
 ## Python files 
 
-The Python/ folder contains: 
+The `Python/` folder contains: 
 
 ```bash
 Python/
@@ -28,7 +28,7 @@ Python/
 
 ## R files 
 
-The R/ folder contains:
+The `R/` folder contains:
 
 ```bash
 R/
@@ -56,3 +56,6 @@ R/
 
 11 directories, 11 files
 ```
+
+## EC2 
+
