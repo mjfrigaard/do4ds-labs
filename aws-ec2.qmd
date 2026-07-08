@@ -127,9 +127,9 @@ aws ec2 create-key-pair \ #<1>
 co_box(
   color = "b",
   look = "default", 
-  hsize = "1.15", 
+  hsize = "1.10", 
   size = "1.00", 
-  header = "`ec2 create-key-pair` commands", 
+  header = "`ec2 create-key-pair` commands breakdown", 
   fold = TRUE,
   contents = "
 
@@ -179,9 +179,9 @@ aws ec2 create-security-group \#<1>
 co_box(
   color = "b",
   look = "default", 
-  hsize = "1.15", 
+  hsize = "1.10", 
   size = "1.00", 
-  header = "`ec2 create-security-group` commands", 
+  header = "`ec2 create-security-group` commands breakdown", 
   fold = TRUE,
   contents = "
 
@@ -206,17 +206,19 @@ The security group was created successfully! AWS handed back its ID and ARN so w
 
 #### Response Explanation
 
+The JSON response has two parts:
+
 - `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `vetiver-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
 
-- `SecurityGroupArn` is the full AWS resource identifier (ARN) for the security group. It encodes the region (`us-east-1`), account number (`386252595109`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
+- `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`386252595109`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
 
 We can view the new security group in the **AWS Console** by searching for **Security Groups**:
 
 ![](img/lab7-aws-ec2-security-group.png){width="100%" fig-align="center"}
 
-### Authorizing Security Group
+### Authorizing the Security Group
 
-Now that we've created the security group, we're going to grant access to our local IP. We need to obtain this using: 
+Now that we've created the security group, we're going to grant access to our local IP. We can obtain our IP using:
 
 ```{bash}
 #| eval: false 
@@ -230,7 +232,7 @@ This returns something like:
 203.0.113.42
 ```
 
-Replace `OUR_IP` with the IP address above and run the command:
+Replace `OUR_IP` with the IP address returned above and run the command:
 
 ```{bash}
 #| eval: false 
@@ -242,6 +244,7 @@ aws ec2 authorize-security-group-ingress \ #<1>
   --cidr OUR_IP/32 \ #<4>
   --profile dev-deploy #<5>
 ```
+
 1.  Adds an inbound (incoming traffic) rule to an existing security group\
 2.  Specifies which security group the new rule applies to, in this case `vetiver-sg`\
 3.  Allows TCP traffic specifically on port 22\
@@ -256,9 +259,9 @@ aws ec2 authorize-security-group-ingress \ #<1>
 co_box(
   color = "b",
   look = "default", 
-  hsize = "1.15", 
+  hsize = "1.10", 
   size = "1.00", 
-  header = "`ec2 authorize-security-group-ingress` commands", 
+  header = "`ec2 authorize-security-group-ingress` commands breakdown", 
   fold = TRUE,
   contents = "
   
@@ -273,7 +276,7 @@ co_box(
 
 These commands should return something like the following:
 
-```json
+``` json
 {
     "Return": true,
     "SecurityGroupRules": [
@@ -296,55 +299,27 @@ We successfully opened port 22 (SSH) so only our current IP can attempt to conne
 
 #### Response Explanation
 
-```json
-"Return": true
-```
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| JSON                                                | Explanation                                                                                                                                                  |
++=====================================================+==============================================================================================================================================================+
+| `"Return": true`                                    | Confirms the rule was added successfully.                                                                                                                    |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"SecurityGroupRuleId": "sgr-016b1800a27252666"`    | The unique ID AWS assigned to this specific rule. Useful if we ever want to modify or delete just this rule later.                                           |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"GroupId": "sg-0884d49f913b38416"`                 | Confirms which security group this rule belongs to, in this case, `vetiver-sg`.                                                                              |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"GroupOwnerId": "386252595109"`                    | Our AWS account number. Confirms the rule lives in our account.                                                                                              |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"IsEgress": false`                                 | Confirms this is an ***ingress*** rule (incoming traffic), not ***egress*** (outgoing).                                                                      |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"IpProtocol": "tcp", "FromPort": 22, "ToPort": 22` | Confirms the rule allows TCP traffic specifically on port 22 (SSH). `FromPort` and `ToPort` being the same means it's a single port, not a range.            |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"CidrIpv4": "203.0.113.42/32"`                     | Confirms only our specific IP address can use this rule (this should match what you replaced `OUR_IP` with above). The `/32` restricts it to exactly one IP. |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `"SecurityGroupRuleArn": "..."`                     | The full AWS resource identifier for this rule (not sensitive, just a reference string).                                                                     |
++-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-Confirms the rule was added successfully.
-
-```json
-"SecurityGroupRuleId": "sgr-016b1800a27252666"
-```
-
-The unique ID AWS assigned to this specific rule. Useful if we ever want to modify or delete just this rule later.
-
-```json
-"GroupId": "sg-0884d49f913b38416"
-```
-
-Confirms which security group this rule belongs to, in this case, `vetiver-sg`.
-
-```json
-"GroupOwnerId": "386252595109"
-```
-
-Our AWS account number. Confirms the rule lives in our account.
-
-```json
-"IsEgress": false
-```
-
-Confirms this is an **ingress** rule (incoming traffic), not egress (outgoing).
-
-```json
-"IpProtocol": "tcp",
-"FromPort": 22,
-"ToPort": 22
-```
-
-Confirms the rule allows TCP traffic specifically on port 22 (SSH). `FromPort` and `ToPort` being the same means it's a single port, not a range.
-
-```json
-"CidrIpv4": "203.0.113.42/32"
-```
-
-Confirms only our specific IP address can use this rule (this should match what you replaced `OUR_IP` with above). The `/32` restricts it to exactly one IP.
-
-```json
-"SecurityGroupRuleArn": "..."
-```
-
-The full AWS resource identifier for this rule. Not sensitive, just a reference string.
+The security group is like a bouncer who decides who's allowed to knock on which doors (ports).
 
 ```{mermaid}
 %%| fig-cap: ‘EC2 Instances’
@@ -365,23 +340,82 @@ graph TD
     
 ```
 
-The security group is like a bouncer who decides who's allowed to knock on which doors (ports).
+Since our end goal is pulling `vetiver` models from an S3 bucket onto the instance, we need to create the IAM role *before* launching (it's easier to attach the instance profile at launch time than to attach it after the fact).
 
-### Creating an IAM Role for S3 Access 
+## Creating an IAM Role for S3 Access
 
-Instead of putting AWS access keys inside the EC2 instance, we attach a role so the instance can *ask* AWS for temporary credentials automatically.
+An IAM role lets the EC2 instance itself authenticate to AWS (no stored credentials, no hardcoded keys). AWS issues temporary credentials automatically behind the scenes.
+
+```{mermaid}
+%%| fig-cap: ‘EC2 Instances & IAM Roles’
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph LR
+    EC2(["EC2 Instance"]) -->|"Assumes Role"| Role("IAM Role")
+    Role -->|"Temporary Credentials"| EC2
+    EC2 -->|"Authenticated Request"| S3[("S3 Bucket")]
+    
+    style EC2 fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Role fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style D fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style EC2 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+```
+
+Three pieces are required:
+
+1.  **Role**: the identity itself
+
+2.  **Policy**: what that identity is allowed to do
+
+3.  **Instance profile**: the container that lets EC2 actually use the role
+
+```{mermaid}
+%%| fig-cap: ‘IAM Roles, Trust Policies, Permission Policies, and Instance Profiles’
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph LR
+    Role(["<strong>IAM Role</strong>"]) --> Trust[/"<strong>Trust Policy</strong>:<br>who can assume this role"/]
+    Role --> Perms[/"<strong>Permission Policy</strong>:<br>what this role can do"/]
+    Role --> Prof("<strong>Instance Profile</strong>:<br>attaches role to EC2")
+    
+    style Role fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    %% style Trust fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Prof fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Trust fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Perms fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+```
+
+#### Attach Permissions to Group
+
+Recall the users inherit permissions from groups, so we'll need to grant our group (`dev-deploy-group`) permissions for our user (`mjfrigaard-cli`) to use.
+
+1.  In the **AWS Console**, we want to attach `IAMFullAccess` to `dev-deploy-group`:
+
+- Log in via browser (as `root` or any admin-capable login)
+
+  - **IAM** \> **IAM user groups** \> **`dev-deploy-group`** \> **Add permissions**
+
+    - **Search `IAMFullAccess`** \> **Attach policies**
+
+![](img/lab7-aws-aim-attach-policy-group.png){width="100%" fig-align="center"}
+
+After we've attached this policy, the `mjfrigaard-cli` user can complete the steps below. `IAMFullAccess` is broad, and it lets us create/modify any user, role, or policy. Fine for our personal AWS account, but this might be riskier in a team/production account.
+
+#### Create Trust Policy
+
+From the lab07 root folder, use the Terminal to create the `trust-policy.json` file:
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
-aws iam create-role \
-  --role-name ec2-s3-read-role \
-  --assume-role-policy-document file://trust-policy.json
-```
-
-`trust-policy.json`:
-
-``` json
+cat > trust-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -390,53 +424,137 @@ aws iam create-role \
     "Action": "sts:AssumeRole"
   }]
 }
+EOF
 ```
 
-Attach S3 read permissions:
+This file defines *who* is allowed to assume the role. Here, it says "*only EC2 instances can use this role*," not users, not other services.
+
+#### Create Role
+
+Now we create the role itself, using the trust policy from above. At this point, the role exists but has no permissions, it's an empty identity.
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+aws iam create-role \
+  --role-name ec2-s3-read-role \
+  --assume-role-policy-document file://trust-policy.json \
+  --profile dev-deploy
+```
+
+The JSON returned tells us this role has been created:
+
+``` json
+{
+    "Role": {
+        "RoleName": "ec2-s3-read-role",
+        "RoleId": "AROAVT3TS36SSEK7FFJ4E",
+        "Arn": "arn:aws:iam::386252595109:role/ec2-s3-read-role",
+        "CreateDate": "2026-07-08T13:25:03+00:00",
+        "AssumeRolePolicyDocument": {
+          < omitted >
+        }
+    }
+}
+```
+
+The role now exists as an *identity*, with the trust policy saying "*only EC2 can assume this.*" Not secret, ARNs and role IDs are just identifiers.
+
+#### Attach Permission Policy
+
+Next we need to grant the role read-only access to all S3 buckets, using an AWS-managed policy (predefined by AWS, not custom-written). This is what actually lets it fetch our `vetiver` model files.
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
 aws iam attach-role-policy \
   --role-name ec2-s3-read-role \
-  --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess \
+  --profile dev-deploy
 ```
+
+`attach-role-policy` returns nothing on success (this is normal AWS CLI behavior, no news is good news).
+
+```{mermaid}
+%%| fig-cap: 'Create Role & Attach Policy'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+
+graph TD
+    Role(["<strong>ec2-s3-read-role</strong>"]) -->|attached policy| Policy[/"<strong>AmazonS3ReadOnlyAccess</strong>"/]
+    Policy --> GET("Can GET/List<br>S3 objects")
+    Policy --> PUT("Cannot<br>PUT/DELETE")
+    
+    style Role fill:#5B8C5A,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Policy fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style PUT fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GET fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+```
+
+The instance profile is like giving the EC2 box its own ID badge, instead of us handing it our personal keys.
+
+#### Create an Instance Profile
+
+EC2 doesn't attach roles directly, it attaches instance profiles, which act as a wrapper around a role. This creates that empty wrapper.
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
-aws iam create-instance-profile --instance-profile-name ec2-s3-instance-profile
+aws iam create-instance-profile \
+  --instance-profile-name ec2-s3-instance-profile \
+  --profile dev-deploy
 ```
+
+The JSON tells us the instance profile was created (see the `InstanceProfileName`, `InstanceProfileId`, `Arn`, and `CreateDate`), and we can see the `Roles` are empty.
+
+``` json
+{
+    "InstanceProfile": {
+        "Path": "/",
+        < omitted >
+        "Roles": []
+    }
+}
+```
+
+#### Add the Role to the Instance Profile
+
+Finally, we link the role (permissions) to the instance profile (the thing EC2 actually uses). After this, the profile is ready to attach at launch time.
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
 aws iam add-role-to-instance-profile \
   --instance-profile-name ec2-s3-instance-profile \
-  --role-name ec2-s3-read-role
+  --role-name ec2-s3-read-role \
+  --profile dev-deploy
 ```
 
+`add-role-to-instance-profile` returns nothing on success (this is normal AWS CLI behavior, no news is good news).
+
 ```{mermaid}
-%%| fig-cap: ‘EC2 Instances’
+%%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
 %%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
 
-sequenceDiagram
-    participant EC2
-    participant IAM Role
-    participant S3
-
-    EC2->>IAM Role: "Who am I? What can I access?"
-    IAM Role-->>EC2: Temporary credentials
-    EC2->>S3: Fetch vetiver model files
-    S3-->>EC2: Model artifacts
+graph TD
+    A("ec2-s3-instance-profile") --> B("ec2-s3-read-role")
+    B --> C[/"AmazonS3ReadOnlyAccess<br>Policy"/]
+    D(["EC2 Instance"]) -->|attached at launch| A
+    
+    style D fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style B fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style A fill:#2A6F77,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
     
 ```
 
-The instance profile is like giving the EC2 box its own ID badge, instead of you handing it your personal keys.
+#### Launch EC2
 
-## Launch the Instance
+The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup:
 
 ```{bash}
 #| eval: false 
@@ -450,41 +568,67 @@ aws ec2 run-instances \
   --profile dev-deploy
 ```
 
-### SSH In
+The JSON output from `aws ec2 run-instances` is long, but I'll break down some of it's contents:
+
++----------------------+-----------------------+----------------------------------------------------------+
+| Field                | Value                 | Meaning                                                  |
++======================+=======================+==========================================================+
+| `InstanceId`         | `i-0069201f3688cec43` | Unique ID for this instance, used in future CLI commands |
++----------------------+-----------------------+----------------------------------------------------------+
+| `PrivateIpAddress`   | `172.31.0.231`        | Internal IP, only reachable inside AWS's VPC             |
++----------------------+-----------------------+----------------------------------------------------------+
+| `PublicDnsName`      | `""` (empty)          | No public DNS yet, still `pending` (see below)           |
++----------------------+-----------------------+----------------------------------------------------------+
+| `State.Name`         | `"pending"`           | Instance is booting, not ready yet (see below)           |
++----------------------+-----------------------+----------------------------------------------------------+
+
+The `PublicIpAddress` wasn't in the initial output, because the instance was still `pending` at launch time.
+
+We can check again in \~30 seconds with the following:
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
-aws ec2 describe-instances --profile dev-deploy \
+aws ec2 describe-instances \
+  --instance-ids i-0069201f3688cec43 \
   --query "Reservations[*].Instances[*].PublicIpAddress" \
-  --output text
-
-ssh -i ~/.ssh/vetiver-deploy-key.pem ubuntu@<PUBLIC_IP>
+  --output text \
+  --profile dev-deploy
 ```
 
-## Full Deployment 
+This will return the `PublicIpAddress.`
+
+## Summary
 
 ```{mermaid}
-%%| fig-cap: ‘EC2 Instances’
+%%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
 %%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
 
 graph TD
-    A[Local Dev: Train + Pin Model] --> B[S3 Bucket]
-    B --> C[EC2 Instance IAM Role]
-    C --> D[Pull Model via pins::board_s3]
-    D --> E[Run plumber/FastAPI app]
-    E --> F[Expose API on port 8000]
-    F --> G[Client Requests / Predictions]
+    Trust[/"trust-policy.json"/] --> Role("ec2-s3-read-role")
+    Role --"attached policy"--> C[/"AmazonS3ReadOnlyAccess"/]
+    Role --> Prof("ec2-s3-instance-profile")
+    Prof --> E["EC2 Instance:<br><strong>i-0069201f3688cec43</strong>"]
+    E --> F{{"Security Group:<br><strong>vetiver-sg</strong>"}}
+    E --> G("SSH Key:<br><strong>vetiver-deploy-key</strong>")
+    
+
+    style Role fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Prof fill:#2A6F77,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Trust fill:#5B8C5A,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style E fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style C fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style F fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     
 ```
-
-## Summary of Why This Matters
 
 - **Security groups** = firewall rules
 - **IAM roles on EC2** = no hardcoded secrets, safer than access keys
 - **Key pairs** = SSH login control
 - **Instance profile** = attaches IAM identity directly to the machine
 
-This mirrors your GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised. 
+This mirrors a GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.
+
+In the next lab, we'll cover uploading the `vetiver` model data in an S3 bucket.
