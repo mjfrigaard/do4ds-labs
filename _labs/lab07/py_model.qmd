@@ -1,0 +1,96 @@
+---
+title: "Python Vetiver Model"
+format:
+  html:
+    code-fold: false
+    embed-resources: true
+---
+
+This document demonstrates how to create a simple linear regression model using the `palmerpenguins` dataset, and then turn it into a `Vetiver` model for deployment using Python.
+
+## Setup
+
+In the **Terminal**, navigate to the `lab07` directory and run the following commands to create a virtual environment and install dependencies:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Then render this file:
+
+```bash
+quarto render py_model.qmd
+```
+
+---
+
+```{python}
+#| message: false
+from palmerpenguins import load_penguins
+from pandas import get_dummies
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+import duckdb
+```
+
+## Get Data
+
+Load the data from the `palmerpenguins` package, and then create a persistent table in `duckdb`.
+
+```{python}
+penguins_data = load_penguins()
+con = duckdb.connect('Python/my-db.duckdb')
+con.execute("CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
+df = con.execute("SELECT * FROM penguins").fetchdf().dropna()
+con.close()
+```
+
+Preview the data frame and check how many rows were loaded from the SQL query.
+
+```{python}
+df.head(3)
+```
+
+## Define Model and Fit
+
+Use `get_dummies` to convert categorical variables into dummy/indicator variables, and then fit a linear regression model.
+
+```{python}
+X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
+y = df['body_mass_g']
+
+model = LinearRegression().fit(X, y)
+```
+
+## Get some information
+
+Print some of the model information, including the R^2 score, intercept, columns, and coefficients.
+
+```{python}
+print(f"R^2 {model.score(X,y)}")
+print(f"Intercept {model.intercept_}")
+print(f"Columns {X.columns}")
+print(f"Coefficients {model.coef_}")
+```
+
+## Turn into Vetiver Model
+
+```{python}
+from vetiver import VetiverModel, VetiverAPI
+from pins import board_temp
+
+v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
+```
+
+## Write to Local Board
+
+```{python}
+from pins import board_folder
+from vetiver import vetiver_pin_write
+
+board = board_folder("Python/models", allow_pickle_read=True)
+vetiver_pin_write(board, v)
+```
