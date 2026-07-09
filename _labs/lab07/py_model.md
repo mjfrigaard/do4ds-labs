@@ -137,9 +137,7 @@ code.
 
 1.  Create a `.env` file in the project root with the following content:
 
-``` {bash}
-#| eval: false
-#| code-fold: false 
+``` bash
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
@@ -147,9 +145,7 @@ AWS_REGION=us-east-1
 
 2.  Install `python-dotenv`:
 
-``` {bash}
-#| eval: false
-#| code-fold: false 
+``` bash
 pip install python-dotenv
 ```
 
