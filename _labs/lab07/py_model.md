@@ -127,3 +127,42 @@ vetiver_pin_write(board, v)
      Use the vetiver `.qmd` Quarto template as a place to start, 
      with vetiver.model_card()
     ('The hash of pin "penguin_model" has not changed. Your pin will not be stored.',)
+
+## Write to S3 Board
+
+Use the commands below to write the model to an S3 board. You will need
+to set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment
+variables in your terminal before running this code.
+
+1.  Create a `.env` file in your project root:
+
+``` {bash}
+#| eval: false
+#| code-fold: false 
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+```
+
+2.  Install `python-dotenv`:
+
+``` {bash}
+#| eval: false
+#| code-fold: false 
+pip install python-dotenv
+```
+
+3.  Load it in your script:
+
+``` python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+access_key = os.getenv("AWS_ACCESS_KEY_ID")
+secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+region = os.getenv("AWS_REGION")
+```
+
+4.  Add `.env` to `.gitignore`.
