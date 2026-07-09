@@ -114,10 +114,11 @@ The model will be saved in the `R/models` directory.
 ``` r
 model_board <- pins::board_folder("R/models")
 vetiver::vetiver_pin_write(model_board, v)
-#> Replacing version '20260709T053628Z-09946' with '20260709T120501Z-09946'
-#> Writing to pin 'penguin_model'
-#> 
-#> Create a Model Card for your published model
-#> • Model Cards provide a framework for transparent, responsible reporting
-#> • Use the vetiver `.Rmd` template as a place to start
 ```
+
+    #> Replacing version '20260709T135747Z-09946' with '20260709T135838Z-09946'
+    #> Writing to pin 'penguin_model'
+    #> 
+    #> Create a Model Card for your published model
+    #> • Model Cards provide a framework for transparent, responsible reporting
+    #> • Use the vetiver `.Rmd` template as a place to start
