@@ -131,7 +131,7 @@ model_board <- pins::board_folder("R/models")
 vetiver::vetiver_pin_write(model_board, v)
 ```
 
-    #> Replacing version '20260709T135838Z-09946' with '20260709T140004Z-09946'
+    #> Replacing version '20260709T140004Z-09946' with '20260709T140946Z-09946'
     #> Writing to pin 'penguin_model'
     #> 
     #> Create a Model Card for your published model
