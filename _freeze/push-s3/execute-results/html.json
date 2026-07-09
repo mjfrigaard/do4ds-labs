@@ -1,0 +1,15 @@
+{
+  "hash": "bd002a11bdbd2c9998d649177fe11ae6",
+  "result": {
+    "engine": "knitr",
+    "markdown": "# <em>Pull API model from S3</em> {.unnumbered}\n\n\n\n\n:::: {.callout-warning collapse='false' appearance='default' icon='false'}\n\n## [Caution]{style='font-weight: bold; font-size: 1.25em;'}\n\n::: {style='font-size: 1.00em; color: #282b2d;'}\n\n\nThis section is being revised. Thank you for your patience.\n\n::: \n\n::::\n\n## Create a separate IAM user for GitHub Actions\n\nDo not reuse your personal credentials. Create a dedicated user with only S3 access.\n\nIAM \\> User groups \\> Create group: `github-actions-s3`\n\nAttach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:\n\n``` json\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\",\n        \"s3:ListBucket\"\n      ],\n      \"Resource\": [\n        \"arn:aws:s3:::your-vetiver-bucket-name\",\n        \"arn:aws:s3:::your-vetiver-bucket-name/*\"\n      ]\n    }\n  ]\n}\n```\n\nIAM \\> Policies \\> Create policy \\> JSON tab \\> paste above \\> name it `github-actions-s3-policy`.\n\nAttach this policy to the `github-actions-s3` group.\n\nCreate user: `github-actions-bot` \\> add to `github-actions-s3` group \\> no console access needed.\n\nCreate access key for this user (CLI use case), same as before.\n\n## Add credentials to GitHub\n\nRepo \\> Settings \\> Secrets and variables \\> Actions \\> New repository secret.\n\nAdd:\n\n- `AWS_ACCESS_KEY_ID`\n- `AWS_SECRET_ACCESS_KEY`\n- `AWS_REGION`\n\n## Example GitHub Actions step using these secrets\n\n``` yaml\n- name: Configure AWS credentials\n  uses: aws-actions/configure-aws-credentials@v4\n  with:\n    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}\n    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}\n    aws-region: ${{ secrets.AWS_REGION }}\n\n- name: Push to S3\n  run: aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds\n```\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

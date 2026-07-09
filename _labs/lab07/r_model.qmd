@@ -1,0 +1,100 @@
+---
+title: "R Vetiver Model"
+format:
+  html:
+    code-fold: false 
+    embed-resources: true
+knitr:
+  opts_chunk: 
+    collapse: true
+    comment: "#>"
+---
+
+This document demonstrates how to create a simple linear regression model using the `palmerpenguins` dataset, and then turn it into a `Vetiver` model for deployment using R. 
+
+## Load Libraries
+
+```{r}
+#| message: false
+#| warning: false
+library(palmerpenguins)
+library(duckdb)
+library(DBI)
+library(dplyr)
+library(vetiver)
+library(pins)
+```
+
+## Connect to DuckDB
+
+```{r}
+con <- DBI::dbConnect(duckdb::duckdb(), "R/my-db.duckdb")
+
+duckdb::duckdb_register(con, "penguins_raw", palmerpenguins::penguins) #<1>
+
+
+DBI::dbExecute( #<2>
+  con,
+  "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_raw"
+)#<2>
+```
+1. Register the `penguins` `data.frame` directly with `duckdb`
+2. Create persistent table in `duckdb`
+
+## Get Data
+
+```{r}
+df <- DBI::dbGetQuery(
+  con,
+  "SELECT bill_length_mm, species, sex, body_mass_g 
+   FROM penguins 
+   WHERE body_mass_g IS NOT NULL 
+   AND bill_length_mm BETWEEN 30 AND 60
+   AND sex IS NOT NULL
+   AND species IS NOT NULL"
+)
+
+DBI::dbDisconnect(con)
+```
+
+Below we can see how many rows were loaded from the SQL query, and a preview of the first three rows of the data frame.
+```{r}
+nrow(df)
+head(df, 3)
+```
+
+## Define Model and Fit
+
+```{r}
+model <- lm(body_mass_g ~ bill_length_mm + species + sex, data = df)
+```
+
+```{r}
+print(formula(model))
+print(coef(model))
+```
+
+## Turn into Vetiver Model
+
+```{r}
+v <- vetiver::vetiver_model(
+  model,
+  model_name = "penguin_model",
+  description = "Linear model predicting penguin body mass from bill length, species, and sex",
+  save_prototype = TRUE  
+)
+```
+
+Check the prototype data that was saved with the model. This is the data that will be used to validate new data when making predictions with the model.
+
+```{r}
+print(v$prototype)
+```
+
+## Write to Local Board
+
+Write the model to a local board so that it can be used for deployment. The model will be saved in the `R/models` directory.
+```{r}
+model_board <- pins::board_folder("R/models")
+vetiver::vetiver_pin_write(model_board, v)
+```

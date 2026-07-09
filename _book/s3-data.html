@@ -6,10 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-07">
+<meta name="dcterms.date" content="2026-07-09">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
-<title>S3 Buckets – DO4DS: Lab Solutions</title>
+<title>Create S3 &amp; Push Data – DO4DS: Lab Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -70,7 +70,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./publish-s3.html" rel="next">
+<link href="./pull-s3.html" rel="next">
 <link href="./aws-ec2.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>S3 Buckets</em></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Create S3 &amp; Push Data</em></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -324,19 +324,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./aws-ec2.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>EC2 Instances</em></span></a>
+ <span class="menu-text"><em>Stand up an EC2 instance</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./s3-data.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><em>S3 Buckets</em></span></a>
+ <span class="menu-text"><em>Create S3 &amp; Push Data</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./publish-s3.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Docker and Publishing</em></span></a>
+  <a href="./pull-s3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Pull API model from S3</em></span></a>
   </div>
 </li>
       </ul>
@@ -499,23 +499,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#creating-s3-buckets" id="toc-creating-s3-buckets" class="nav-link active" data-scroll-target="#creating-s3-buckets">Creating S3 buckets</a></li>
   <li><a href="#pushing-the-models-to-s3" id="toc-pushing-the-models-to-s3" class="nav-link" data-scroll-target="#pushing-the-models-to-s3">Pushing the models to S3</a>
   <ul>
-  <li><a href="#r-model" id="toc-r-model" class="nav-link" data-scroll-target="#r-model">R model</a></li>
   <li><a href="#python-model" id="toc-python-model" class="nav-link" data-scroll-target="#python-model">Python model</a></li>
+  <li><a href="#r-model" id="toc-r-model" class="nav-link" data-scroll-target="#r-model">R model</a></li>
   <li><a href="#copy-vs.-sync" id="toc-copy-vs.-sync" class="nav-link" data-scroll-target="#copy-vs.-sync">Copy vs.&nbsp;sync</a></li>
-  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a>
-  <ul class="collapse">
-  <li><a href="#note-on-vetiver-convention" id="toc-note-on-vetiver-convention" class="nav-link" data-scroll-target="#note-on-vetiver-convention">Note on <code>vetiver</code> convention</a></li>
+  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a></li>
   </ul></li>
-  </ul></li>
+  <li><a href="#models" id="toc-models" class="nav-link" data-scroll-target="#models">Models</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>S3 Buckets</em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./s3-data.html"><em>Create S3 &amp; Push Data</em></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><em>S3 Buckets</em></h1>
+<h1 class="title"><em>Create S3 &amp; Push Data</em></h1>
 </div>
 
 
@@ -526,7 +524,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-07</p>
+      <p class="date">2026-07-09</p>
     </div>
   </div>
   
@@ -538,7 +536,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This is the third part of lab 7. It assumes you’ve set up your AWS group, user, configured the CLI, created an S3 bucket, and pushed the penguin <code>vetiver</code> model data.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>This is the third part of lab 7. It assumes you’ve set up your AWS group, user, configured the CLI, set up and launched an EC2 instance.</p>
+<p>In this lab, we’ll create an S3 bucket and pushed the penguin <code>vetiver</code> model data.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <section id="creating-s3-buckets" class="level2">
 <h2 class="anchored" data-anchor-id="creating-s3-buckets">Creating S3 buckets</h2>
 <p>We can use the <code>s3api</code> command to create the S3 bucket for the <code>penguin-vetiver-model-data</code>.</p>
@@ -548,7 +547,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--region</span> us-east-1 <span class="dt">\</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>These commands are pretty straightforward, but you can also read more in the documentation. Note that bucket names must be globally unique. The response from the API should be something like the following:</p>
+<p>These commands are pretty straightforward, but you can also read more in the documentation.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Note that bucket names must be globally unique. The response from the API should be something like the following:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Location"</span><span class="fu">:</span> <span class="st">"/penguin-vetiver-model-data"</span><span class="fu">,</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"BucketArn"</span><span class="fu">:</span> <span class="st">"arn:aws:s3:::penguin-vetiver-model-data"</span></span>
@@ -567,71 +566,98 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="pushing-the-models-to-s3" class="level2">
 <h2 class="anchored" data-anchor-id="pushing-the-models-to-s3">Pushing the models to S3</h2>
-<p>Now that we’ve created an S3 bucket, we can push the respective Python/R model data into their locations. I’d like to keep the same <code>Python/</code> and <code>R/</code> respective folders, which I can do with the commands below.</p>
-<section id="r-model" class="level3">
-<h3 class="anchored" data-anchor-id="r-model">R model</h3>
-<p>From the <code>do4ds-labs/_labs/lab07</code> folder:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp R/api/models/ s3://penguin-vetiver-model-data/R/models/ <span class="dt">\</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
+<p>Now that we’ve created an S3 bucket, we can push the respective Python/R model data into their locations. I’d like to keep the same <code>Python/</code> and <code>R/</code> respective folders, which I’ve displayed below:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Python/</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>├── Dockerfile</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>├── mod-api.py</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>├── model.py</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>├── models/</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>│   └── penguin_model/</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>│       └── 20260618T104900Z-91fdd/</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>│           ├── data.txt</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>│           └── penguin_model.joblib</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>├── my-db.duckdb</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>├── requirements-api.txt</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>└── requirements.txt</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>4 directories, 9 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>R/</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>├── Dockerfile</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>├── model.R</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>├── models/</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>│   └── penguin_model/</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>│       └── 20260709T053628Z-09946/</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>│           ├── data.txt</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>│           └── penguin_model.rds</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>├── my-db.duckdb</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>├── plumber.R</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>├── renv/</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>└── renv.lock</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>10 directories, 10 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="python-model" class="level3">
 <h3 class="anchored" data-anchor-id="python-model">Python model</h3>
 <p>From the <code>do4ds-labs/_labs/lab07</code> folder:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp Python/api/models/ s3://penguin-vetiver-model-data/Python/models/ <span class="dt">\</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp Python/models/ s3://penguin-vetiver-model-data/Python/models/ <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="r-model" class="level3">
+<h3 class="anchored" data-anchor-id="r-model">R model</h3>
+<p>From the <code>do4ds-labs/_labs/lab07</code> folder:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 cp R/models/ s3://penguin-vetiver-model-data/R/models/ <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recursive</span> <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="copy-vs.-sync" class="level3">
 <h3 class="anchored" data-anchor-id="copy-vs.-sync">Copy vs.&nbsp;sync</h3>
 <p>It might make more sense to use <code>sync</code> instead of copy. <code>sync</code> only uploads new/changed files, which might be better for repeated deploys:</p>
-<p><strong><code>R/</code></strong>:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 sync R/api/models/ s3://penguin-vetiver-model-data/R/models/ <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <p><strong><code>Python/</code></strong>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 sync Python/api/models/ s3://penguin-vetiver-model-data/Python/models/ <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 sync Python/models/ s3://penguin-vetiver-model-data/Python/models/ <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><strong><code>R/</code></strong>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 sync R/models/ s3://penguin-vetiver-model-data/R/models/ <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="verify" class="level3">
 <h3 class="anchored" data-anchor-id="verify">Verify</h3>
 <p>We can verify the model data has been put in the S3 bucket at the command line:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 ls s3://penguin-vetiver-model-data/ <span class="at">--recursive</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 ls s3://penguin-vetiver-model-data/ <span class="at">--recursive</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can also see this in the dashboard under <strong>Amazon S3</strong> &gt; <strong>Buckets</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab7-s3-bucket-upload.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="S3 bucket with penguin model data"><img src="img/lab7-s3-bucket-upload.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="S3 bucket with penguin model data"></a></p>
+<p><a href="img/lab7-s3-bucket-upload.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Click to enlarge S3 bucket with penguin model data"><img src="img/lab7-s3-bucket-upload.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Click to enlarge S3 bucket with penguin model data"></a></p>
 </figure>
 </div>
-<figcaption>S3 bucket with penguin model data</figcaption>
+<figcaption>Click to enlarge S3 bucket with penguin model data</figcaption>
 </figure>
 </div>
-<section id="note-on-vetiver-convention" class="level4">
-<h4 class="anchored" data-anchor-id="note-on-vetiver-convention">Note on <code>vetiver</code> convention</h4>
-<p>If using <code>pins</code> with an S3 board, <code>vetiver</code>/<code>pins</code> manages the folder structure automatically (versioned by timestamp/hash, like we already have locally). In that case we’d use:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>board <span class="ot">&lt;-</span> pins<span class="sc">::</span><span class="fu">board_s3</span>(<span class="at">bucket =</span> <span class="st">"penguin-vetiver-model-data"</span>, <span class="at">prefix =</span> <span class="st">"R/"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>vetiver<span class="sc">::</span><span class="fu">vetiver_pin_write</span>(board, model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>This is preferred over manual <code>cp</code>/<code>sync</code> if we want <code>vetiver</code>’s versioning and metadata to work correctly when later reading the model back with <code>vetiver_pin_read()</code>.</p>
-
-
 </section>
 </section>
+<section id="models" class="level2">
+<h2 class="anchored" data-anchor-id="models">Models</h2>
+<p>I’ve stored the model for each respective <code>R/</code> and <code>Python/</code></p>
+
+
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
 <ol>
 <li id="fn1"><p>If you haven’t completed these steps, please see <a href="./start-aws.html">Getting started with AWS</a> and <a href="./aws-ec2.html">EC2 Buckets</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Read more about creating S3 buckets in <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html">Creating a general purpose bucket</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>These <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab07">code files</a> have been copied over from our <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06">previous lab</a>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 
@@ -1077,13 +1103,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./aws-ec2.html" class="pagination-link" aria-label="<em>EC2 Instances</em>">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>EC2 Instances</em></span>
+      <a href="./aws-ec2.html" class="pagination-link" aria-label="<em>Stand up an EC2 instance</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Stand up an EC2 instance</em></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./publish-s3.html" class="pagination-link" aria-label="<em>Docker and Publishing</em>">
-        <span class="nav-page-text"><em>Docker and Publishing</em></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./pull-s3.html" class="pagination-link" aria-label="<em>Pull API model from S3</em>">
+        <span class="nav-page-text"><em>Pull API model from S3</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -1,4 +1,4 @@
-# <em>EC2 Instances</em> {.unnumbered}
+# <em>Stand up an EC2 instance</em> {.unnumbered}
 
 ```{r}
 #| label: common
@@ -214,7 +214,7 @@ The JSON response has two parts:
 
 We can view the new security group in the **AWS Console** by searching for **Security Groups**:
 
-![](img/lab7-aws-ec2-security-group.png){width="100%" fig-align="center"}
+![Click to enlarge Security Groups in AWS Console](img/lab7-aws-ec2-security-group.png){width="100%" fig-align="center"}
 
 ### Authorizing the Security Group
 
@@ -404,7 +404,7 @@ Recall the users inherit permissions from groups, so we'll need to grant our gro
 
     - **Search `IAMFullAccess`** \> **Attach policies**
 
-![](img/lab7-aws-aim-attach-policy-group.png){width="100%" fig-align="center"}
+![Click to enlarge attaching permissions to IAM user groups](img/lab7-aws-aim-attach-policy-group.png){width="100%" fig-align="center"}
 
 After we've attached this policy, the `mjfrigaard-cli` user can complete the steps below. `IAMFullAccess` is broad, and it lets us create/modify any user, role, or policy. Fine for our personal AWS account, but this might be riskier in a team/production account.
 
@@ -600,6 +600,10 @@ This will return the `PublicIpAddress.`
 
 ## Summary
 
+In the **AWS Console**, we can see the EC2 instance is running: 
+
+![Click to enlarge the running EC2 instance on AWS Console](img/lab7-aws-ec2-instance-console.png)
+
 ```{mermaid}
 %%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
@@ -624,10 +628,15 @@ graph TD
     
 ```
 
-- **Security groups** = firewall rules
-- **IAM roles on EC2** = no hardcoded secrets, safer than access keys
-- **Key pairs** = SSH login control
-- **Instance profile** = attaches IAM identity directly to the machine
+In this portion of the lab we've covered creating the following:
+
+1. **Key Pairs**: A key pair is a set of public and private keys used to securely connect to an EC2 instance via SSH or RDP. AWS stores the public key on the instance, while we keep the private key to authenticate access. 
+
+2. **Security groups**: A security group acts as a virtual firewall controlling inbound and outbound traffic for EC2 instances. Rules define allowed protocols, ports, and source or destination IPs.  
+
+3. **IAM roles on EC2**: An IAM role grants an EC2 instance temporary permissions to access other AWS services without storing credentials on the instance. This improves security by using AWS-managed, rotating credentials.
+
+4. **Instance profile**: An instance profile is a container that passes an IAM role to an EC2 instance at launch. It links the role's permissions to the instance so applications running on it can assume that role automatically.
 
 This mirrors a GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.
 

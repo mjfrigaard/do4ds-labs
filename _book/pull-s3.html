@@ -6,11 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Martin Frigaard">
-<meta name="dcterms.date" content="2026-07-07">
+<meta name="dcterms.date" content="2026-07-09">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
-<title>DO4DS: Lab Solutions</title>
+<title>Pull API model from S3 – DO4DS: Lab Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -26,6 +25,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -36,7 +70,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./preface.html" rel="next">
+<link href="./lab08.html" rel="next">
+<link href="./s3-data.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -87,7 +122,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Welcome!</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./pull-s3.html"><em>Pull API model from S3</em></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -117,7 +152,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Welcome!</span></a>
   </div>
 </li>
@@ -292,13 +327,13 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./s3-data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>S3 Buckets</em></span></a>
+ <span class="menu-text"><em>Create S3 &amp; Push Data</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./publish-s3.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Docker and Publishing</em></span></a>
+  <a href="./pull-s3.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><em>Pull API model from S3</em></span></a>
   </div>
 </li>
       </ul>
@@ -458,42 +493,29 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#welcome" id="toc-welcome" class="nav-link active" data-scroll-target="#welcome">Welcome!</a>
-  <ul>
-  <li><a href="#praise-for-do4ds" id="toc-praise-for-do4ds" class="nav-link" data-scroll-target="#praise-for-do4ds">Praise for do4ds</a></li>
-  <li><a href="#other-great-resources" id="toc-other-great-resources" class="nav-link" data-scroll-target="#other-great-resources">Other great resources</a></li>
-  </ul></li>
+  <li><a href="#create-a-separate-iam-user-for-github-actions" id="toc-create-a-separate-iam-user-for-github-actions" class="nav-link active" data-scroll-target="#create-a-separate-iam-user-for-github-actions">Create a separate IAM user for GitHub Actions</a></li>
+  <li><a href="#add-credentials-to-github" id="toc-add-credentials-to-github" class="nav-link" data-scroll-target="#add-credentials-to-github">Add credentials to GitHub</a></li>
+  <li><a href="#example-github-actions-step-using-these-secrets" id="toc-example-github-actions-step-using-these-secrets" class="nav-link" data-scroll-target="#example-github-actions-step-using-these-secrets">Example GitHub Actions step using these secrets</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./pull-s3.html"><em>Pull API model from S3</em></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">DO4DS: Lab Solutions</h1>
+<h1 class="title"><em>Pull API model from S3</em></h1>
 </div>
 
-<div>
-  <div class="description">
-    <p>DevOps for Data Science: Lab Solutions</p>
-  </div>
-</div>
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Martin Frigaard </p>
-          </div>
-  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-07</p>
+      <p class="date">2026-07-09</p>
     </div>
   </div>
   
@@ -505,37 +527,74 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="welcome" class="level1 unnumbered">
-<h1 class="unnumbered">Welcome!</h1>
-<p>Welcome to my lab solutions for Alex K Gold’s <a href="https://do4ds.com/">DevOps for Data Science</a>.</p>
-<p>If you’d like a print version of Alex’s book, it’s available as part of <a href="https://www.routledge.com/Chapman--HallCRC-The-R-Series/book-series/CRCTHERSER">Chapman &amp; Hall’s R Series</a>.</p>
-<section id="praise-for-do4ds" class="level2">
-<h2 class="anchored" data-anchor-id="praise-for-do4ds">Praise for do4ds</h2>
-<p>I discovered <a href="https://do4ds.com/">DevOps for Data Science (do4ds)</a> by <a href="https://alexkgold.space/">Alex K Gold</a> at the end of 2022, just as I was starting a new position as a Posit System Administrator with CDC’s <a href="https://www.cdc.gov/data-modernization/php/technologies/edav.html">Enterprise Data, Analytics, and Visualization (EDAV)</a> platform.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> I’d been an R programmer/Shiny developer for 10+ years, but as a System Admin, my responsibilities now included (and were not limited to) maintaining, monitoring, updating and improving the Posit services for CDC users.</p>
-<blockquote class="blockquote">
-<p>“<em>If there’s a book that you want to read, but it hasn’t been written yet, then you must write it.</em>” - <a href="https://www.goodreads.com/quotes/321-if-there-s-a-book-that-you-want-to-read-but">Toni Morrison</a></p>
-</blockquote>
-<p><a href="https://do4ds.com/">do4ds</a> was ~90% of the book I wanted to read, and completing the lab solutions allowed me to address the remaining 10%.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
+<section id="create-a-separate-iam-user-for-github-actions" class="level2">
+<h2 class="anchored" data-anchor-id="create-a-separate-iam-user-for-github-actions">Create a separate IAM user for GitHub Actions</h2>
+<p>Do not reuse your personal credentials. Create a dedicated user with only S3 access.</p>
+<p>IAM &gt; User groups &gt; Create group: <code>github-actions-s3</code></p>
+<p>Attach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Version"</span><span class="fu">:</span> <span class="st">"2012-10-17"</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"Statement"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Effect"</span><span class="fu">:</span> <span class="st">"Allow"</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Action"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:GetObject"</span><span class="ot">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:PutObject"</span><span class="ot">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"s3:ListBucket"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"Resource"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"arn:aws:s3:::your-vetiver-bucket-name"</span><span class="ot">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"arn:aws:s3:::your-vetiver-bucket-name/*"</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>IAM &gt; Policies &gt; Create policy &gt; JSON tab &gt; paste above &gt; name it <code>github-actions-s3-policy</code>.</p>
+<p>Attach this policy to the <code>github-actions-s3</code> group.</p>
+<p>Create user: <code>github-actions-bot</code> &gt; add to <code>github-actions-s3</code> group &gt; no console access needed.</p>
+<p>Create access key for this user (CLI use case), same as before.</p>
 </section>
-<section id="other-great-resources" class="level2">
-<h2 class="anchored" data-anchor-id="other-great-resources">Other great resources</h2>
-<p>I also regularly checked and referenced additional topics from the following resources:</p>
-<ol type="1">
-<li><a href="https://linuxcommand.org/tlcl.php">The Linux Command Line</a> by William Shotts<br>
-</li>
-<li><a href="https://a.co/d/4YVb01t">How Linux Works: what every superuser show know</a> by Brian Ward<br>
-</li>
-<li><a href="https://a.co/d/dhKUgR4">The Linux programming interface: a Linux and UNIX system programming handbook</a> by Michael Kerrisk.</li>
-</ol>
+<section id="add-credentials-to-github" class="level2">
+<h2 class="anchored" data-anchor-id="add-credentials-to-github">Add credentials to GitHub</h2>
+<p>Repo &gt; Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.</p>
+<p>Add:</p>
+<ul>
+<li><code>AWS_ACCESS_KEY_ID</code></li>
+<li><code>AWS_SECRET_ACCESS_KEY</code></li>
+<li><code>AWS_REGION</code></li>
+</ul>
+</section>
+<section id="example-github-actions-step-using-these-secrets" class="level2">
+<h2 class="anchored" data-anchor-id="example-github-actions-step-using-these-secrets">Example GitHub Actions step using these secrets</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure AWS credentials</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> aws-actions/configure-aws-credentials@v4</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-access-key-id</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_ACCESS_KEY_ID }}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-secret-access-key</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_SECRET_ACCESS_KEY }}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">aws-region</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_REGION }}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Push to S3</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">run</span><span class="kw">:</span><span class="at"> aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
-</section>
-</section>
-<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
-<hr>
-<ol>
-<li id="fn1"><p>EDAV houses multiple enterprise data science products (Databricks, Power BI, Tableau, SAS Viya, etc.), including Posit Workbench, Connect, and Package Manager. Read more about EDAV and the <a href="https://www.cdc.gov/data-modernization/php/about/dmi.html">Data Modernization Initiative</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
 </section>
 
 </main> <!-- /main -->
@@ -980,10 +1039,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./s3-data.html" class="pagination-link" aria-label="<em>Create S3 &amp; Push Data</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Create S3 &amp; Push Data</em></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./preface.html" class="pagination-link" aria-label="Preface">
-        <span class="nav-page-text">Preface</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./lab08.html" class="pagination-link" aria-label="<strong>Lab 8: The Command Line</strong>">
+        <span class="nav-page-text"><strong>Lab 8: The Command Line</strong></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
