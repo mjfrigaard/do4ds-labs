@@ -97,10 +97,13 @@ print(coef(model))
 
 ## Turn into Vetiver Model
 
+We’re going to differentiate the model name here so we can easily
+identify it later.
+
 ``` r
 v <- vetiver::vetiver_model(
   model,
-  model_name = "penguin_model",
+  model_name = "penguin_lab07_model",
   description = "Linear model predicting penguin body mass from bill length, species, and sex",
   save_prototype = TRUE  
 )
@@ -131,8 +134,8 @@ model_board <- pins::board_folder("R/models")
 vetiver::vetiver_pin_write(model_board, v)
 ```
 
-    #> Replacing version '20260710T050819Z-09946' with '20260710T052330Z-09946'
-    #> Writing to pin 'penguin_model'
+    #> Creating new version '20260710T152331Z-09946'
+    #> Writing to pin 'penguin_lab07_model'
     #> 
     #> Create a Model Card for your published model
     #> • Model Cards provide a framework for transparent, responsible reporting
@@ -192,8 +195,8 @@ s3_board <- pins::board_s3(
 vetiver::vetiver_pin_write(s3_board, v)
 ```
 
-    #> Creating new version '20260710T052331Z-09946'
-    #> Writing to pin 'penguin_model'
+    #> Creating new version '20260710T152331Z-09946'
+    #> Writing to pin 'penguin_lab07_model'
 
 We can confirm this with the following commands:
 
@@ -201,4 +204,4 @@ We can confirm this with the following commands:
 pins::pin_list(s3_board)
 ```
 
-    #> [1] "penguin_model"
+    #> [1] "penguin_lab07_model" "penguin_model"

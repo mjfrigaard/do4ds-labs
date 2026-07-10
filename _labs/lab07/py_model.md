@@ -106,11 +106,14 @@ print(f"Coefficients {model.coef_}")
 
 ## Turn into Vetiver Model
 
+We’re going to differentiate the model name here so we can easily
+identify it later.
+
 ``` python
 from vetiver import VetiverModel, VetiverAPI
 from pins import board_temp
 
-v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
+v = VetiverModel(model, model_name='penguin_lab07_model', prototype_data=X)
 ```
 
 ## Write to Local Board
@@ -126,7 +129,9 @@ vetiver_pin_write(board, v)
     Model Cards provide a framework for transparent, responsible reporting. 
      Use the vetiver `.qmd` Quarto template as a place to start, 
      with vetiver.model_card()
-    ('The hash of pin "penguin_model" has not changed. Your pin will not be stored.',)
+    Writing pin:
+    Name: 'penguin_lab07_model'
+    Version: 20260710T065219Z-91fdd
 
 ## Write to S3 Board
 
@@ -167,7 +172,9 @@ vetiver_pin_write(board, v)
     Model Cards provide a framework for transparent, responsible reporting. 
      Use the vetiver `.qmd` Quarto template as a place to start, 
      with vetiver.model_card()
-    ('The hash of pin "penguin_model" has not changed. Your pin will not be stored.',)
+    Writing pin:
+    Name: 'penguin_lab07_model'
+    Version: 20260710T065220Z-91fdd
 
 Confirm the model was written to the S3 board:
 
@@ -175,4 +182,4 @@ Confirm the model was written to the S3 board:
 print(board.pin_list())
 ```
 
-    ['penguin_model']
+    ['penguin_lab07_model', 'penguin_model']
