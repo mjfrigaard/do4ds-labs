@@ -131,9 +131,74 @@ model_board <- pins::board_folder("R/models")
 vetiver::vetiver_pin_write(model_board, v)
 ```
 
-    #> Replacing version '20260709T140004Z-09946' with '20260709T140946Z-09946'
+    #> Replacing version '20260710T050819Z-09946' with '20260710T052330Z-09946'
     #> Writing to pin 'penguin_model'
     #> 
     #> Create a Model Card for your published model
     #> • Model Cards provide a framework for transparent, responsible reporting
     #> • Use the vetiver `.Rmd` template as a place to start
+
+## Write to S3 Bucket
+
+We’ll start by storing the necessary environment variables:
+
+1.  Create a `.Renviron` file in your project root:
+
+``` bash
+touch .Renviron
+```
+
+2.  Place the environment variables in the `.Renviron` file.
+
+``` bash
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+```
+
+3.  Restart R session to load `.Renviron`.
+
+4.  We can access variables using `Sys.getenv()` to confirm they are
+    loaded correctly.
+
+``` r
+Sys.getenv("AWS_ACCESS_KEY_ID")
+Sys.getenv("AWS_SECRET_ACCESS_KEY")
+Sys.getenv("AWS_REGION")
+```
+
+5.  Add `.Renviron` to `.gitignore`
+
+Now we’re ready to write the model data to the S3 bucket. You might need
+the `paws.storage` package installed to write to the S3 board. Install
+it with the following command:
+
+``` r
+# install.packages("paws.storage")
+```
+
+`pins::board_s3()` will create a connection to the S3 bucket using the
+environment variables we set earlier.
+
+``` r
+s3_board <- pins::board_s3(
+  bucket = "penguin-vetiver-model-data",
+  prefix = "R/models/",
+  region = Sys.getenv("AWS_REGION"),
+  access_key = Sys.getenv("AWS_ACCESS_KEY_ID"),
+  secret_access_key = Sys.getenv("AWS_SECRET_ACCESS_KEY")
+)
+
+vetiver::vetiver_pin_write(s3_board, v)
+```
+
+    #> Creating new version '20260710T052331Z-09946'
+    #> Writing to pin 'penguin_model'
+
+We can confirm this with the following commands:
+
+``` r
+pins::pin_list(s3_board)
+```
+
+    #> [1] "penguin_model"

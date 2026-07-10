@@ -59,7 +59,7 @@ We can also see this in the dashboard by looking up **S3** resources:
 
 ## Pushing the models to S3
 
-Now that we've created an S3 bucket, we can push the respective Python/R model data into their locations. I'd like to keep the same `Python/` and `R/` respective folders, which I've displayed below:[^lab7-code-files]
+Now that we've created an S3 bucket, we can push the respective Python/R model data into their S3 locations. I'm going to keep the same `Python/` and `R/` folder structure, which I've displayed below:[^lab7-code-files]
 
 ```{verbatim}
 Python/
@@ -98,11 +98,11 @@ R/
 10 directories, 10 files
 ```
 
-[^lab7-code-files]: These [code files](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab07) have been copied over from our [previous lab](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06). 
+[^lab7-code-files]: These are the [code files](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab07) from [lab 4](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06). 
 
 ### Python model
 
-From the `do4ds-labs/_labs/lab07` folder: 
+From a Terminal in the `do4ds-labs/_labs/lab07` folder: 
 
 ```{bash}
 #| eval: false 
@@ -114,7 +114,7 @@ aws s3 cp Python/models/ s3://penguin-vetiver-model-data/Python/models/ \
 
 ### R model 
 
-From the `do4ds-labs/_labs/lab07` folder: 
+From a Terminal in the `do4ds-labs/_labs/lab07` folder: 
 
 ```{bash}
 #| eval: false 
@@ -146,7 +146,7 @@ aws s3 sync R/models/ s3://penguin-vetiver-model-data/R/models/ --profile dev-de
 
 ### Verify
 
-We can verify the model data has been put in the S3 bucket at the command line:
+The commands below will verify the model data has been put in the S3 bucket:
 
 ```{bash}
 #| eval: false 
@@ -154,10 +154,236 @@ We can verify the model data has been put in the S3 bucket at the command line:
 aws s3 ls s3://penguin-vetiver-model-data/ --recursive --profile dev-deploy
 ```
 
-We can also see this in the dashboard under **Amazon S3** > **Buckets**
+We can also see the `Python/` and `R/` in the dashboard under **Amazon S3** > **Buckets**
 
 ![Click to enlarge S3 bucket with penguin model data](img/lab7-s3-bucket-upload.png){width='100%' fig-align='center'}
 
-## Models
 
-I've stored the model for each respective `R/` and `Python/` 
+## Pushing model data 
+
+I've create a Quarto documents for each respective R and Python `vetiver` model: 
+
+* [py_model.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/py_model.md) 
+
+* [r_model.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/r_model.md)
+
+To push the `vetiver` model data when it rebuilds, we will have to adapt the 'Write to Local Board` sections: 
+
+### Write to Local Board (`Python`)
+
+The original code for writing the model out to a local directory in Python is below:[^py-orig] 
+
+[^py-orig]: View original ['Write to Local Board' Python  section.](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/py_model.md#write-to-local-board)
+
+```{python}
+#| eval: false 
+#| code-fold: false
+from pins import board_folder
+from vetiver import vetiver_pin_write
+
+board = board_folder("Python/models", allow_pickle_read=True)
+vetiver_pin_write(board, v)
+```
+
+We can see the confirmation that the model was written to the local board:
+
+```{verbatim}
+Model Cards provide a framework for transparent, responsible reporting. 
+ Use the vetiver `.qmd` Quarto template as a place to start, 
+ with vetiver.model_card()
+('The hash of pin "penguin_model" has not changed. Your pin will not be stored.',)
+```
+
+### Write to S3 Bucket (`Python`)
+
+To write this model data to the S3 bucket, we'll need to make the following changes: 
+
+```{r}
+#| label: co_box_py_env_vars
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default", 
+  hsize = "1.10", 
+  size = "1.00", 
+  header = "Python Environment Variables", 
+  fold = TRUE,
+  contents = "
+  
+Python environment variables are set at the OS/shell level or loaded via `.env` files with libraries like `python-dotenv`. Python reads them using `os.environ` or `os.getenv()`.
+
+
+1. Create a `.env` file in your project root:
+
+\`\`\`bash
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+\`\`\`
+
+2. Install `python-dotenv`:
+
+\`\`\`bash
+pip install python-dotenv
+\`\`\`
+
+3. Load it in your script:
+
+\`\`\`python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+access_key = os.getenv(\"AWS_ACCESS_KEY_ID\")
+secret_key = os.getenv(\"AWS_SECRET_ACCESS_KEY\")
+region = os.getenv(\"AWS_REGION\")
+\`\`\`
+
+4. Add `.env` to `.gitignore`.")
+```
+
+```{python}
+#| eval: false 
+#| code-fold: false
+from dotenv import load_dotenv
+import os
+from pins import board_s3
+from vetiver import vetiver_pin_write
+
+load_dotenv()
+
+board = board_s3(path="penguin-vetiver-model-data/Python/models", allow_pickle_read=True)
+vetiver_pin_write(board, v)
+```
+
+```{verbatim}
+Model Cards provide a framework for transparent, responsible reporting. 
+ Use the vetiver `.qmd` Quarto template as a place to start, 
+ with vetiver.model_card()
+('The hash of pin "penguin_model" has not changed. Your pin will not be stored.',)
+```
+
+We can confirm it was uploaded with: 
+
+```{python}
+#| eval: false 
+#| code-fold: false
+print(board.pin_list())
+```
+
+```{verbatim}
+['penguin_model']
+```
+
+### Write to Local Board (`R`)
+
+
+In `r_model.qmd`, we use the following to write the model data to a local board:[^r-orig] 
+
+
+[^r-orig]: View original ['Write to Local Board' R section.](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/r_model.md#write-to-local-board)
+
+
+```{r}
+#| eval: false 
+#| code-fold: false
+model_board <- pins::board_folder("R/models")
+vetiver::vetiver_pin_write(model_board, v)
+```
+
+We can see the confirmation that the model was written to the local board:
+
+```{verbatim}
+#> Replacing version '20260709T135838Z-09946' with '20260709T140004Z-09946'
+#> Writing to pin 'penguin_model'
+#> 
+#> Create a Model Card for your published model
+#> • Model Cards provide a framework for transparent, responsible reporting
+#> • Use the vetiver `.Rmd` template as a place to start
+```
+
+### Write to S3 Bucket (`R`)
+
+To write the `vetiver` model data to the S3 bucket using R, use the following:
+
+```{r}
+#| label: co_box_r_env_vars
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default", 
+  hsize = "1.10", 
+  size = "1.00", 
+  header = "R Environment Variables", 
+  fold = TRUE,
+  contents = "
+  
+R environment variables can be set in `.Renviron` files (user or project level) or via `Sys.setenv()` in a script. R reads them using `Sys.getenv()`.
+
+1. Create a `.Renviron` file in your project root:
+
+\`\`\`bash
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+\`\`\`
+
+2. Restart R session to load `.Renviron`.
+
+3. Access variables in your script:
+
+\`\`\`r
+access_key <- Sys.getenv(\"AWS_ACCESS_KEY_ID\")
+secret_key <- Sys.getenv(\"AWS_SECRET_ACCESS_KEY\")
+region <- Sys.getenv(\"AWS_REGION\")
+\`\`\`
+
+4. Add `.Renviron` to `.gitignore`.
+
+")
+```
+
+You might need the `paws.storage` package installed to write to the S3 board. Install it with the following command:
+
+```{r}
+# install.packages("paws.storage")
+```
+
+`pins::board_s3()` will create a connection to the S3 bucket using the environment variables.
+
+```{r}
+#| eval: false 
+#| code-fold: false 
+s3_board <- pins::board_s3(
+  bucket = "penguin-vetiver-model-data",
+  prefix = "R/models/",
+  region = Sys.getenv("AWS_REGION"),
+  access_key = Sys.getenv("AWS_ACCESS_KEY_ID"),
+  secret_access_key = Sys.getenv("AWS_SECRET_ACCESS_KEY")
+)
+
+vetiver::vetiver_pin_write(s3_board, v)
+```
+
+```{verbatim}
+#> Creating new version '20260710T052331Z-09946'
+#> Writing to pin 'penguin_model'
+```
+
+We can confirm this with `pins::pin_list()`:
+
+```{r}
+#| eval: false 
+#| code-fold: false 
+pins::pin_list(s3_board)
+```
+
+```{verbatim}
+#> [1] "penguin_model"
+```
+
