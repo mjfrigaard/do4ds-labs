@@ -99,44 +99,41 @@ vetiver_pin_write(board, v)
 
 ## Write to S3 Board
 
-Use the commands below to write the model to an S3 board. We will need to set the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` environment variables in our terminal before running this code.
+To write the model to an S3 board, follow these steps:
 
-1. Create a `.env` file in the project root with the following content: 
-```bash 
+1. Create a `.env` file in the project root:
+
+```bash
+touch .env
+```
+
+2. Add AWS credentials:
+
+```bash
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
 ```
 
-2. Install `python-dotenv`:  
+3. Add `.env` to your `.gitignore` file to avoid committing sensitive information.
 
-```bash
-pip install python-dotenv
-```
-
-3. Import the `load_dotenv` function from the `dotenv` package and load the environment variables from the `.env` file.   
+4. Load environment variables and write to the S3 board. The model will be written to the `Python/models` sub-folder in our S3 bucket:
 
 ```{python}
-#| eval: false
-#| code-fold: false 
 from dotenv import load_dotenv
 import os
+from pins import board_s3
+from vetiver import vetiver_pin_write
 
 load_dotenv()
 
-access_key = os.getenv("AWS_ACCESS_KEY_ID")
-secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-region = os.getenv("AWS_REGION")
-```
-
-4. Add `.env` to `.gitignore`.
-
-5. Change the `board_folder` to `board_s3` and pass in the `bucket`, `key`, and `secret` arguments.
-
-```{python}
-#| eval: false
-#| code-fold: false
-from pins import board_s3
-board = board_s3(bucket='your_bucket_name', key=access_key, secret=secret_key, region=region)
+board = board_s3(path="penguin-vetiver-model-data/Python/models", allow_pickle_read=True)
 vetiver_pin_write(board, v)
 ```
+
+Confirm the model was written to the S3 board:
+
+```{python}
+print(board.pin_list())
+```
+

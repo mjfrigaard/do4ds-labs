@@ -1398,7 +1398,18 @@
     "href": "s3-data.html#pushing-the-models-to-s3",
     "title": "Create S3 & Push Data",
     "section": "Pushing the models to S3",
-    "text": "Pushing the models to S3\nNow that we’ve created an S3 bucket, we can push the respective Python/R model data into their locations. I’d like to keep the same Python/ and R/ respective folders, which I’ve displayed below:3\nPython/\n├── Dockerfile\n├── mod-api.py\n├── model.py\n├── models/\n│   └── penguin_model/\n│       └── 20260618T104900Z-91fdd/\n│           ├── data.txt\n│           └── penguin_model.joblib\n├── my-db.duckdb\n├── README.md\n├── requirements-api.txt\n└── requirements.txt\n\n4 directories, 9 files\nR/\n├── Dockerfile\n├── model.R\n├── models/\n│   └── penguin_model/\n│       └── 20260709T053628Z-09946/\n│           ├── data.txt\n│           └── penguin_model.rds\n├── my-db.duckdb\n├── plumber.R\n├── README.md\n├── renv/\n└── renv.lock\n\n10 directories, 10 files\n\nPython model\nFrom the do4ds-labs/_labs/lab07 folder:\n\naws s3 cp Python/models/ s3://penguin-vetiver-model-data/Python/models/ \\\n  --recursive \\\n  --profile dev-deploy\n\n\n\nR model\nFrom the do4ds-labs/_labs/lab07 folder:\n\naws s3 cp R/models/ s3://penguin-vetiver-model-data/R/models/ \\\n  --recursive \\\n  --profile dev-deploy\n\n\n\nCopy vs. sync\nIt might make more sense to use sync instead of copy. sync only uploads new/changed files, which might be better for repeated deploys:\nPython/:\n\naws s3 sync Python/models/ s3://penguin-vetiver-model-data/Python/models/ --profile dev-deploy\n\nR/:\n\naws s3 sync R/models/ s3://penguin-vetiver-model-data/R/models/ --profile dev-deploy\n\n\n\nVerify\nWe can verify the model data has been put in the S3 bucket at the command line:\n\naws s3 ls s3://penguin-vetiver-model-data/ --recursive --profile dev-deploy\n\nWe can also see this in the dashboard under Amazon S3 &gt; Buckets\n\n\n\n\n\n\n\nClick to enlarge S3 bucket with penguin model data",
+    "text": "Pushing the models to S3\nNow that we’ve created an S3 bucket, we can push the respective Python/R model data into their S3 locations. I’m going to keep the same Python/ and R/ folder structure, which I’ve displayed below:3\nPython/\n├── Dockerfile\n├── mod-api.py\n├── model.py\n├── models/\n│   └── penguin_model/\n│       └── 20260618T104900Z-91fdd/\n│           ├── data.txt\n│           └── penguin_model.joblib\n├── my-db.duckdb\n├── README.md\n├── requirements-api.txt\n└── requirements.txt\n\n4 directories, 9 files\nR/\n├── Dockerfile\n├── model.R\n├── models/\n│   └── penguin_model/\n│       └── 20260709T053628Z-09946/\n│           ├── data.txt\n│           └── penguin_model.rds\n├── my-db.duckdb\n├── plumber.R\n├── README.md\n├── renv/\n└── renv.lock\n\n10 directories, 10 files\n\nPython model\nFrom a Terminal in the do4ds-labs/_labs/lab07 folder:\n\naws s3 cp Python/models/ s3://penguin-vetiver-model-data/Python/models/ \\\n  --recursive \\\n  --profile dev-deploy\n\n\n\nR model\nFrom a Terminal in the do4ds-labs/_labs/lab07 folder:\n\naws s3 cp R/models/ s3://penguin-vetiver-model-data/R/models/ \\\n  --recursive \\\n  --profile dev-deploy\n\n\n\nCopy vs. sync\nIt might make more sense to use sync instead of copy. sync only uploads new/changed files, which might be better for repeated deploys:\nPython/:\n\naws s3 sync Python/models/ s3://penguin-vetiver-model-data/Python/models/ --profile dev-deploy\n\nR/:\n\naws s3 sync R/models/ s3://penguin-vetiver-model-data/R/models/ --profile dev-deploy\n\n\n\nVerify\nThe commands below will verify the model data has been put in the S3 bucket:\n\naws s3 ls s3://penguin-vetiver-model-data/ --recursive --profile dev-deploy\n\nWe can also see the Python/ and R/ in the dashboard under Amazon S3 &gt; Buckets\n\n\n\n\n\n\n\nClick to enlarge S3 bucket with penguin model data",
+    "crumbs": [
+      "<strong>Lab 7: The Cloud</strong>",
+      "<em>Create S3 & Push Data</em>"
+    ]
+  },
+  {
+    "objectID": "s3-data.html#pushing-model-data",
+    "href": "s3-data.html#pushing-model-data",
+    "title": "Create S3 & Push Data",
+    "section": "Pushing model data",
+    "text": "Pushing model data\nI’ve create a Quarto documents for each respective R and Python vetiver model:\n\npy_model.qmd\nr_model.qmd\n\nTo push the vetiver model data when it rebuilds, we will have to adapt the ’Write to Local Board` sections:\n\nWrite to Local Board (Python)\nThe original code for writing the model out to a local directory in Python is below:4\n\nfrom pins import board_folder\nfrom vetiver import vetiver_pin_write\n\nboard = board_folder(\"Python/models\", allow_pickle_read=True)\nvetiver_pin_write(board, v)\n\nWe can see the confirmation that the model was written to the local board:\nModel Cards provide a framework for transparent, responsible reporting. \n Use the vetiver `.qmd` Quarto template as a place to start, \n with vetiver.model_card()\n('The hash of pin \"penguin_model\" has not changed. Your pin will not be stored.',)\n\n\nWrite to S3 Bucket (Python)\nTo write this model data to the S3 bucket, we’ll need to make the following changes:\n\n\n\n\n\n\nNotePython Environment Variables\n\n\n\n\n\n\nPython environment variables are set at the OS/shell level or loaded via .env files with libraries like python-dotenv. Python reads them using os.environ or os.getenv().\n\nCreate a .env file in your project root:\n\nAWS_ACCESS_KEY_ID=your_access_key\nAWS_SECRET_ACCESS_KEY=your_secret_key\nAWS_REGION=us-east-1\n\nInstall python-dotenv:\n\npip install python-dotenv\n\nLoad it in your script:\n\nfrom dotenv import load_dotenv\nimport os\n\nload_dotenv()\n\naccess_key = os.getenv(\"AWS_ACCESS_KEY_ID\")\nsecret_key = os.getenv(\"AWS_SECRET_ACCESS_KEY\")\nregion = os.getenv(\"AWS_REGION\")\n\nAdd .env to .gitignore.\n\n\n\n\n\n\nfrom dotenv import load_dotenv\nimport os\nfrom pins import board_s3\nfrom vetiver import vetiver_pin_write\n\nload_dotenv()\n\nboard = board_s3(path=\"penguin-vetiver-model-data/Python/models\", allow_pickle_read=True)\nvetiver_pin_write(board, v)\n\nModel Cards provide a framework for transparent, responsible reporting. \n Use the vetiver `.qmd` Quarto template as a place to start, \n with vetiver.model_card()\n('The hash of pin \"penguin_model\" has not changed. Your pin will not be stored.',)\nWe can confirm it was uploaded with:\n\nprint(board.pin_list())\n\n['penguin_model']\n\n\nWrite to Local Board (R)\nIn r_model.qmd, we use the following to write the model data to a local board:5\n\nmodel_board &lt;- pins::board_folder(\"R/models\")\nvetiver::vetiver_pin_write(model_board, v)\n\nWe can see the confirmation that the model was written to the local board:\n#&gt; Replacing version '20260709T135838Z-09946' with '20260709T140004Z-09946'\n#&gt; Writing to pin 'penguin_model'\n#&gt; \n#&gt; Create a Model Card for your published model\n#&gt; • Model Cards provide a framework for transparent, responsible reporting\n#&gt; • Use the vetiver `.Rmd` template as a place to start\n\n\nWrite to S3 Bucket (R)\nTo write the vetiver model data to the S3 bucket using R, use the following:\n\n\n\n\n\n\nNoteR Environment Variables\n\n\n\n\n\n\nR environment variables can be set in .Renviron files (user or project level) or via Sys.setenv() in a script. R reads them using Sys.getenv().\n\nCreate a .Renviron file in your project root:\n\nAWS_ACCESS_KEY_ID=your_access_key\nAWS_SECRET_ACCESS_KEY=your_secret_key\nAWS_REGION=us-east-1\n\nRestart R session to load .Renviron.\nAccess variables in your script:\n\naccess_key &lt;- Sys.getenv(\"AWS_ACCESS_KEY_ID\")\nsecret_key &lt;- Sys.getenv(\"AWS_SECRET_ACCESS_KEY\")\nregion &lt;- Sys.getenv(\"AWS_REGION\")\n\nAdd .Renviron to .gitignore.\n\n\n\n\n\nYou might need the paws.storage package installed to write to the S3 board. Install it with the following command:\n\n# install.packages(\"paws.storage\")\n\npins::board_s3() will create a connection to the S3 bucket using the environment variables.\n\ns3_board &lt;- pins::board_s3(\n  bucket = \"penguin-vetiver-model-data\",\n  prefix = \"R/models/\",\n  region = Sys.getenv(\"AWS_REGION\"),\n  access_key = Sys.getenv(\"AWS_ACCESS_KEY_ID\"),\n  secret_access_key = Sys.getenv(\"AWS_SECRET_ACCESS_KEY\")\n)\n\nvetiver::vetiver_pin_write(s3_board, v)\n\n#&gt; Creating new version '20260710T052331Z-09946'\n#&gt; Writing to pin 'penguin_model'\nWe can confirm this with pins::pin_list():\n\npins::pin_list(s3_board)\n\n#&gt; [1] \"penguin_model\"",
     "crumbs": [
       "<strong>Lab 7: The Cloud</strong>",
       "<em>Create S3 & Push Data</em>"
@@ -1409,21 +1420,54 @@
     "href": "s3-data.html#footnotes",
     "title": "Create S3 & Push Data",
     "section": "",
-    "text": "If you haven’t completed these steps, please see Getting started with AWS and EC2 Buckets↩︎\nRead more about creating S3 buckets in Creating a general purpose bucket↩︎\nThese code files have been copied over from our previous lab.↩︎",
+    "text": "If you haven’t completed these steps, please see Getting started with AWS and EC2 Buckets↩︎\nRead more about creating S3 buckets in Creating a general purpose bucket↩︎\nThese are the code files from lab 4.↩︎\nView original ‘Write to Local Board’ Python section.↩︎\nView original ‘Write to Local Board’ R section.↩︎",
     "crumbs": [
       "<strong>Lab 7: The Cloud</strong>",
       "<em>Create S3 & Push Data</em>"
     ]
   },
   {
-    "objectID": "publish-s3.html",
-    "href": "publish-s3.html",
-    "title": "Docker and Publishing",
+    "objectID": "pull-s3.html",
+    "href": "pull-s3.html",
+    "title": "Pull API model from S3",
     "section": "",
-    "text": "WarningCaution\n\n\n\n\n\n\nThis section is being revised. Thank you for your patience.",
+    "text": "Create a separate IAM user for GitHub Actions\nDo not reuse your personal credentials. Create a dedicated user with only S3 access.\nIAM &gt; User groups &gt; Create group: github-actions-s3\nAttach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:\nIAM &gt; Policies &gt; Create policy &gt; JSON tab &gt; paste above &gt; name it github-actions-s3-policy.\nAttach this policy to the github-actions-s3 group.\nCreate user: github-actions-bot &gt; add to github-actions-s3 group &gt; no console access needed.\nCreate access key for this user (CLI use case), same as before.",
     "crumbs": [
       "<strong>Lab 7: The Cloud</strong>",
-      "<em>Docker and Publishing</em>"
+      "<em>Pull API model from S3</em>"
+    ]
+  },
+  {
+    "objectID": "pull-s3.html#create-a-separate-iam-user-for-github-actions",
+    "href": "pull-s3.html#create-a-separate-iam-user-for-github-actions",
+    "title": "Pull API model from S3",
+    "section": "",
+    "text": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\",\n        \"s3:ListBucket\"\n      ],\n      \"Resource\": [\n        \"arn:aws:s3:::your-vetiver-bucket-name\",\n        \"arn:aws:s3:::your-vetiver-bucket-name/*\"\n      ]\n    }\n  ]\n}",
+    "crumbs": [
+      "<strong>Lab 7: The Cloud</strong>",
+      "<em>Pull API model from S3</em>"
+    ]
+  },
+  {
+    "objectID": "pull-s3.html#add-credentials-to-github",
+    "href": "pull-s3.html#add-credentials-to-github",
+    "title": "Pull API model from S3",
+    "section": "Add credentials to GitHub",
+    "text": "Add credentials to GitHub\nRepo &gt; Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.\nAdd:\n\nAWS_ACCESS_KEY_ID\nAWS_SECRET_ACCESS_KEY\nAWS_REGION",
+    "crumbs": [
+      "<strong>Lab 7: The Cloud</strong>",
+      "<em>Pull API model from S3</em>"
+    ]
+  },
+  {
+    "objectID": "pull-s3.html#example-github-actions-step-using-these-secrets",
+    "href": "pull-s3.html#example-github-actions-step-using-these-secrets",
+    "title": "Pull API model from S3",
+    "section": "Example GitHub Actions step using these secrets",
+    "text": "Example GitHub Actions step using these secrets\n- name: Configure AWS credentials\n  uses: aws-actions/configure-aws-credentials@v4\n  with:\n    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}\n    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}\n    aws-region: ${{ secrets.AWS_REGION }}\n\n- name: Push to S3\n  run: aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds",
+    "crumbs": [
+      "<strong>Lab 7: The Cloud</strong>",
+      "<em>Pull API model from S3</em>"
     ]
   },
   {
@@ -1615,127 +1659,6 @@
     "crumbs": [
       "Appendices",
       "<span class='chapter-number'>C</span>  <span class='chapter-title'>Plumber vs. Plumber2 Syntax</span>"
-    ]
-  },
-  {
-    "objectID": "s3-data.html#r-in-positron",
-    "href": "s3-data.html#r-in-positron",
-    "title": "S3 Buckets",
-    "section": "R (in Positron)",
-    "text": "R (in Positron)\n\nCreate a .Renviron file in your project root:\n\nAWS_ACCESS_KEY_ID=your_access_key\nAWS_SECRET_ACCESS_KEY=your_secret_key\nAWS_REGION=us-east-1\n\nRestart R session (Positron: Restart R) to load .Renviron.\nAccess variables in your script:\n\naccess_key &lt;- Sys.getenv(\"AWS_ACCESS_KEY_ID\")\nsecret_key &lt;- Sys.getenv(\"AWS_SECRET_ACCESS_KEY\")\nregion &lt;- Sys.getenv(\"AWS_REGION\")\n\nAdd .Renviron to .gitignore.",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>S3 Buckets</em>"
-    ]
-  },
-  {
-    "objectID": "s3-data.html#python-in-positron",
-    "href": "s3-data.html#python-in-positron",
-    "title": "S3 Buckets",
-    "section": "Python (in Positron)",
-    "text": "Python (in Positron)\n\nCreate a .env file in your project root:\n\nAWS_ACCESS_KEY_ID=your_access_key\nAWS_SECRET_ACCESS_KEY=your_secret_key\nAWS_REGION=us-east-1\n\nInstall python-dotenv:\n\npip install python-dotenv\n\nLoad it in your script:\n\nfrom dotenv import load_dotenv\nimport os\n\nload_dotenv()\n\naccess_key = os.getenv(\"AWS_ACCESS_KEY_ID\")\nsecret_key = os.getenv(\"AWS_SECRET_ACCESS_KEY\")\nregion = os.getenv(\"AWS_REGION\")\n\nAdd .env to .gitignore.",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>S3 Buckets</em>"
-    ]
-  },
-  {
-    "objectID": "push-s3.html",
-    "href": "push-s3.html",
-    "title": "Pull API model from S3",
-    "section": "",
-    "text": "Create a separate IAM user for GitHub Actions\nDo not reuse your personal credentials. Create a dedicated user with only S3 access.\nIAM &gt; User groups &gt; Create group: github-actions-s3\nAttach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:\nIAM &gt; Policies &gt; Create policy &gt; JSON tab &gt; paste above &gt; name it github-actions-s3-policy.\nAttach this policy to the github-actions-s3 group.\nCreate user: github-actions-bot &gt; add to github-actions-s3 group &gt; no console access needed.\nCreate access key for this user (CLI use case), same as before.",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "push-s3.html#create-a-separate-iam-user-for-github-actions",
-    "href": "push-s3.html#create-a-separate-iam-user-for-github-actions",
-    "title": "Pull API model from S3",
-    "section": "",
-    "text": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\",\n        \"s3:ListBucket\"\n      ],\n      \"Resource\": [\n        \"arn:aws:s3:::your-vetiver-bucket-name\",\n        \"arn:aws:s3:::your-vetiver-bucket-name/*\"\n      ]\n    }\n  ]\n}",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "push-s3.html#add-credentials-to-github",
-    "href": "push-s3.html#add-credentials-to-github",
-    "title": "Pull API model from S3",
-    "section": "Add credentials to GitHub",
-    "text": "Add credentials to GitHub\nRepo &gt; Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.\nAdd:\n\nAWS_ACCESS_KEY_ID\nAWS_SECRET_ACCESS_KEY\nAWS_REGION",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "push-s3.html#example-github-actions-step-using-these-secrets",
-    "href": "push-s3.html#example-github-actions-step-using-these-secrets",
-    "title": "Pull API model from S3",
-    "section": "Example GitHub Actions step using these secrets",
-    "text": "Example GitHub Actions step using these secrets\n- name: Configure AWS credentials\n  uses: aws-actions/configure-aws-credentials@v4\n  with:\n    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}\n    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}\n    aws-region: ${{ secrets.AWS_REGION }}\n\n- name: Push to S3\n  run: aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "pull-s3.html",
-    "href": "pull-s3.html",
-    "title": "Pull API model from S3",
-    "section": "",
-    "text": "Create a separate IAM user for GitHub Actions\nDo not reuse your personal credentials. Create a dedicated user with only S3 access.\nIAM &gt; User groups &gt; Create group: github-actions-s3\nAttach a scoped custom policy instead of full access. Example policy JSON, limited to one bucket:\nIAM &gt; Policies &gt; Create policy &gt; JSON tab &gt; paste above &gt; name it github-actions-s3-policy.\nAttach this policy to the github-actions-s3 group.\nCreate user: github-actions-bot &gt; add to github-actions-s3 group &gt; no console access needed.\nCreate access key for this user (CLI use case), same as before.",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "pull-s3.html#create-a-separate-iam-user-for-github-actions",
-    "href": "pull-s3.html#create-a-separate-iam-user-for-github-actions",
-    "title": "Pull API model from S3",
-    "section": "",
-    "text": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\",\n        \"s3:ListBucket\"\n      ],\n      \"Resource\": [\n        \"arn:aws:s3:::your-vetiver-bucket-name\",\n        \"arn:aws:s3:::your-vetiver-bucket-name/*\"\n      ]\n    }\n  ]\n}",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "pull-s3.html#add-credentials-to-github",
-    "href": "pull-s3.html#add-credentials-to-github",
-    "title": "Pull API model from S3",
-    "section": "Add credentials to GitHub",
-    "text": "Add credentials to GitHub\nRepo &gt; Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.\nAdd:\n\nAWS_ACCESS_KEY_ID\nAWS_SECRET_ACCESS_KEY\nAWS_REGION",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "pull-s3.html#example-github-actions-step-using-these-secrets",
-    "href": "pull-s3.html#example-github-actions-step-using-these-secrets",
-    "title": "Pull API model from S3",
-    "section": "Example GitHub Actions step using these secrets",
-    "text": "Example GitHub Actions step using these secrets\n- name: Configure AWS credentials\n  uses: aws-actions/configure-aws-credentials@v4\n  with:\n    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}\n    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}\n    aws-region: ${{ secrets.AWS_REGION }}\n\n- name: Push to S3\n  run: aws s3 cp ./model.rds s3://your-vetiver-bucket-name/model.rds",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Pull API model from S3</em>"
-    ]
-  },
-  {
-    "objectID": "s3-data.html#models",
-    "href": "s3-data.html#models",
-    "title": "Create S3 & Push Data",
-    "section": "Models",
-    "text": "Models\nI’ve stored the model for each respective R/ and Python/",
-    "crumbs": [
-      "<strong>Lab 7: The Cloud</strong>",
-      "<em>Create S3 & Push Data</em>"
     ]
   }
 ]
