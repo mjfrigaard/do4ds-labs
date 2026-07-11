@@ -10,10 +10,21 @@ import vetiver
 import pins
 import uvicorn
 import pandas as pd
+from dotenv import load_dotenv
 
-# load model from MODEL_PATH env var (default: local models/ for dev)
-model_path = os.environ.get("MODEL_PATH", "models/")
-model_board = pins.board_folder(model_path)
+load_dotenv()
+
+# Determine if using S3 or local board
+if os.environ.get("USE_S3") == "true":
+    model_board = pins.board_s3(
+        path="penguin-vetiver-model-data/Python/models",
+        allow_pickle_read=True
+    )
+    print(f":-] Loading from S3: penguin-vetiver-model-data/Python/models")
+else:
+    model_path = os.environ.get("MODEL_PATH", "models/")
+    model_board = pins.board_folder(model_path)
+    print(f":-] Loading from local path: {model_path}")
 
 # read pinned model
 sklearn_model = model_board.pin_read("penguin_model")

@@ -129,13 +129,12 @@ vetiver_pin_write(board, v)
     Model Cards provide a framework for transparent, responsible reporting. 
      Use the vetiver `.qmd` Quarto template as a place to start, 
      with vetiver.model_card()
-    Writing pin:
-    Name: 'penguin_lab07_model'
-    Version: 20260710T065219Z-91fdd
+    ('The hash of pin "penguin_lab07_model" has not changed. Your pin will not be stored.',)
 
-## Write to S3 Board
+## Write to S3
 
-To write the model to an S3 board, follow these steps:
+To write the model to an S3 board, set the `USE_S3` environment variable
+and provide AWS credentials:
 
 1.  Create a `.env` file in the project root:
 
@@ -143,9 +142,10 @@ To write the model to an S3 board, follow these steps:
 touch .env
 ```
 
-2.  Add AWS credentials:
+2.  Add environment variables:
 
 ``` bash
+USE_S3=true
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
@@ -154,32 +154,75 @@ AWS_REGION=us-east-1
 3.  Add `.env` to your `.gitignore` file to avoid committing sensitive
     information.
 
-4.  Load environment variables and write to the S3 board. The model will
-    be written to the `Python/models` sub-folder in our S3 bucket:
+4.  Load environment variables and write to the S3 board:
 
 ``` python
 from dotenv import load_dotenv
 import os
-from pins import board_s3
+from pins import board_s3, board_folder
 from vetiver import vetiver_pin_write
 
 load_dotenv()
 
-board = board_s3(path="penguin-vetiver-model-data/Python/models", allow_pickle_read=True)
+if os.getenv("USE_S3") == "true":
+    board = board_s3(
+        path="penguin-vetiver-model-data/Python/models",
+        allow_pickle_read=True
+    )
+else:
+    board = board_folder("Python/models", allow_pickle_read=True)
+
 vetiver_pin_write(board, v)
 ```
 
     Model Cards provide a framework for transparent, responsible reporting. 
      Use the vetiver `.qmd` Quarto template as a place to start, 
      with vetiver.model_card()
-    Writing pin:
-    Name: 'penguin_lab07_model'
-    Version: 20260710T065220Z-91fdd
+    ('The hash of pin "penguin_lab07_model" has not changed. Your pin will not be stored.',)
 
-Confirm the model was written to the S3 board:
+Confirm the model was written:
 
 ``` python
 print(board.pin_list())
 ```
 
     ['penguin_lab07_model', 'penguin_model']
+
+## Pull from S3
+
+To load a model from S3 in our API, we’ll use the same approach:
+
+1.  Create the board using the same `USE_S3` environment variable that
+    controls where it’s read from
+2.  `USE_S3=true` means the credentials are automatically provided by
+    the IAM role on EC2  
+3.  The `MODEL_PATH` variable allows us to customize the local folder
+    path for development/testing (optional here).
+
+``` python
+from dotenv import load_dotenv
+import os
+from pins import board_s3, board_folder
+
+load_dotenv()
+
+if os.getenv("USE_S3") == "true":
+    board = board_s3(
+        path="penguin-vetiver-model-data/Python/models",
+        allow_pickle_read=True
+    )
+else:
+    board = board_folder(os.getenv("MODEL_PATH", "Python/models"), allow_pickle_read=True)
+
+# read the pinned model (returns the underlying sklearn model)
+model = board.pin_read("penguin_lab07_model")
+
+print(f"Model type: {type(model)}")
+print(f"Model loaded successfully from {'S3' if os.getenv('USE_S3') == 'true' else 'local'}")
+```
+
+    Model type: <class 'sklearn.linear_model._base.LinearRegression'>
+    Model loaded successfully from S3
+
+`board.pin_read()` returns the underlying model object ready for
+predictions or API serving!

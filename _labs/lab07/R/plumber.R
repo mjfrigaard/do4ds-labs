@@ -3,9 +3,19 @@ library(vetiver)
 library(pins)
 library(plumber2)
 
-# load model from MODEL_PATH env var (default: local models/ for dev)
-model_path <- Sys.getenv("MODEL_PATH", unset = "models/")
-model_board <- pins::board_folder(model_path)
+# Determine if using S3 or local board
+if (Sys.getenv("USE_S3") == "true") {
+  model_board <- pins::board_s3(
+    bucket = "penguin-vetiver-model-data",
+    prefix = "R/models/",
+    region = Sys.getenv("AWS_REGION", "us-east-1")
+  )
+  cat("Loading from S3: penguin-vetiver-model-data/R/models/\n")
+} else {
+  model_path <- Sys.getenv("MODEL_PATH", unset = "models/")
+  model_board <- pins::board_folder(model_path)
+  cat("Loading from local path:", model_path, "\n")
+}
 
 # read pinned vetiver model ----
 v <- vetiver::vetiver_pin_read(model_board, "penguin_model")
