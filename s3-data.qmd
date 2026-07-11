@@ -1,4 +1,4 @@
-# <em>Create S3 & Push Data</em> {.unnumbered}
+# <em>Create S3 & Push/Pull Data</em> {.unnumbered}
 
 ```{r}
 #| label: common
@@ -159,13 +159,45 @@ We can also see the `Python/` and `R/` in the dashboard under **Amazon S3** > **
 ![Click to enlarge S3 bucket with penguin model data](img/lab7-s3-bucket-upload.png){width='100%' fig-align='center'}
 
 
-## Pushing model data 
+## Pushing model data
 
-I've create a Quarto documents for each respective R and Python `vetiver` model: 
+I've create a Quarto documents for each respective R and Python `vetiver` model:
 
-* [py_model.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/py_model.md) 
+* [py_model.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/py_model.md)
 
 * [r_model.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/r_model.md)
+
+The model data can be written to either a local folder (for development) or directly to S3 (for production/CI/CD). The code snippets below show how to implement both approaches.
+
+```{mermaid}
+%%| fig-cap: 'Model Push (Write) Flow'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph LR
+    Model["Trained Model<br/>(py_model.py, r_model.R)"]
+    Check["Check USE_S3<br/>Environment Variable"]
+    Model --> Check
+
+    Check -->|USE_S3=false| Local["Write to<br/>Local Folder"]
+    Check -->|USE_S3=true| S3["Write to<br/>S3 Bucket"]
+
+    Local --> LocalBoard["board_folder()"]
+    S3 --> S3Board["board_s3()"]
+
+    LocalBoard --> LocalPath["models/penguin_model/"]
+    S3Board --> S3Path["s3://penguin-vetiver-model-data/<br/>Python|R/models/"]
+
+    style Model fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Local fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style LocalBoard fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3Board fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style LocalPath fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3Path fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+```
 
 To push the `vetiver` model data when it rebuilds, we will have to adapt the 'Write to Local Board` sections: 
 
@@ -198,7 +230,7 @@ Version: 20260710T065219Z-91fdd
 
 ### Write to S3 Bucket (`Python`)
 
-To write this model data to the S3 bucket, we'll need to make the following changes: 
+To write this model data to the S3 bucket, we'll need to make the following changes:
 
 ```{r}
 #| label: co_box_py_env_vars
@@ -207,19 +239,20 @@ To write this model data to the S3 bucket, we'll need to make the following chan
 #| eval: true
 co_box(
   color = "b",
-  look = "default", 
-  hsize = "1.10", 
-  size = "1.00", 
-  header = "Python Environment Variables", 
+  look = "default",
+  hsize = "1.10",
+  size ="1.00",
+  header = "Python Environment Variables",
   fold = TRUE,
   contents = "
-  
+
 Python environment variables are set at the OS/shell level or loaded via `.env` files with libraries like `python-dotenv`. Python reads them using `os.environ` or `os.getenv()`.
 
 
 1. Create a `.env` file in your project root:
 
 \`\`\`bash
+USE_S3=true
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
@@ -231,33 +264,27 @@ AWS_REGION=us-east-1
 pip install python-dotenv
 \`\`\`
 
-3. Load it in your script:
-
-\`\`\`python
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-access_key = os.getenv(\"AWS_ACCESS_KEY_ID\")
-secret_key = os.getenv(\"AWS_SECRET_ACCESS_KEY\")
-region = os.getenv(\"AWS_REGION\")
-\`\`\`
-
-4. Add `.env` to `.gitignore`.")
+3. Add `.env` to `.gitignore`.")
 ```
 
 ```{python}
-#| eval: false 
+#| eval: false
 #| code-fold: false
 from dotenv import load_dotenv
 import os
-from pins import board_s3
+from pins import board_s3, board_folder
 from vetiver import vetiver_pin_write
 
 load_dotenv()
 
-board = board_s3(path="penguin-vetiver-model-data/Python/models", allow_pickle_read=True)
+if os.getenv("USE_S3") == "true":
+    board = board_s3(
+        path="penguin-vetiver-model-data/Python/models",
+        allow_pickle_read=True
+    )
+else:
+    board = board_folder("Python/models", allow_pickle_read=True)
+
 vetiver_pin_write(board, v)
 ```
 
@@ -324,18 +351,19 @@ To write the `vetiver` model data to the S3 bucket using R, use the following:
 #| eval: true
 co_box(
   color = "b",
-  look = "default", 
-  hsize = "1.10", 
-  size = "1.00", 
-  header = "R Environment Variables", 
+  look = "default",
+  hsize = "1.10",
+  size = "1.00",
+  header = "R Environment Variables",
   fold = TRUE,
   contents = "
-  
+
 R environment variables can be set in `.Renviron` files (user or project level) or via `Sys.setenv()` in a script. R reads them using `Sys.getenv()`.
 
 1. Create a `.Renviron` file in your project root:
 
 \`\`\`bash
+USE_S3=true
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
@@ -343,15 +371,7 @@ AWS_REGION=us-east-1
 
 2. Restart R session to load `.Renviron`.
 
-3. Access variables in your script:
-
-\`\`\`r
-access_key <- Sys.getenv(\"AWS_ACCESS_KEY_ID\")
-secret_key <- Sys.getenv(\"AWS_SECRET_ACCESS_KEY\")
-region <- Sys.getenv(\"AWS_REGION\")
-\`\`\`
-
-4. Add `.Renviron` to `.gitignore`.
+3. Add `.Renviron` to `.gitignore`.
 
 ")
 ```
@@ -362,20 +382,22 @@ You might need the `paws.storage` package installed to write to the S3 board. In
 # install.packages("paws.storage")
 ```
 
-`pins::board_s3()` will create a connection to the S3 bucket using the environment variables.
+Create a connection to the S3 bucket using the `USE_S3` environment variable:
 
 ```{r}
-#| eval: false 
-#| code-fold: false 
-s3_board <- pins::board_s3(
-  bucket = "penguin-vetiver-model-data",
-  prefix = "R/models/",
-  region = Sys.getenv("AWS_REGION"),
-  access_key = Sys.getenv("AWS_ACCESS_KEY_ID"),
-  secret_access_key = Sys.getenv("AWS_SECRET_ACCESS_KEY")
-)
+#| eval: false
+#| code-fold: false
+if (Sys.getenv("USE_S3") == "true") {
+  board <- pins::board_s3(
+    bucket = "penguin-vetiver-model-data",
+    prefix = "R/models/",
+    region = Sys.getenv("AWS_REGION", "us-east-1")
+  )
+} else {
+  board <- pins::board_folder("R/models")
+}
 
-vetiver::vetiver_pin_write(s3_board, v)
+vetiver::vetiver_pin_write(board, v)
 ```
 
 ```{verbatim}
@@ -398,3 +420,138 @@ pins::pin_list(s3_board)
 We can see this model data has been pushed in the **AWS Console**:
 
 ![Click to enlarge R vetiver model in S3 Bucket](img/lab7-aws-r-write-model-s3.png){width='100%' fig-align'center'}
+
+## Pulling model data from S3
+
+Once the models are in S3, our APIs can load them directly using `USE_S3` approach. This is especially useful when running on EC2 instances with IAM roles that have S3 read access.
+
+```{mermaid}
+%%| fig-cap: 'Model Pull (Read) Flow'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    API["API Startup<br/>(mod-api.py, plumber.R)"]
+    Check["Check USE_S3<br/>Environment Variable"]
+    API --> Check
+
+    Check -->|USE_S3=false| Local["Load from<br/>Local Folder"]
+    Check -->|USE_S3=true| S3["Load from<br/>S3 Bucket"]
+
+    Local --> LocalBoard["board_folder()"]
+    S3 --> S3Board["board_s3()"]
+
+    LocalBoard --> LocalPath["models/penguin_model/"]
+    S3Board --> S3Path["s3://penguin-vetiver-model-data/<br/>Python|R/models/"]
+
+    LocalPath --> Ready["Model Ready<br/>to Serve"]
+    S3Path --> Ready
+
+    style API fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Check fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Local fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style LocalBoard fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3Board fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style LocalPath fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3Path fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Ready fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+```
+
+Both the Python and R APIs support loading models from S3 by setting the `USE_S3` environment variable. When running on an EC2 instance with the `ec2-s3-instance-profile` IAM role attached, the instance automatically has temporary AWS credentials to access S3 without needing to store any keys.
+
+### Python Configuration
+
+The Python API (`mod-api.py`) checks for S3 configuration:
+
+```{python}
+#| eval: false 
+#| code-fold: false 
+from dotenv import load_dotenv
+import os
+from pins import board_s3, board_folder
+
+load_dotenv()
+
+if os.getenv("USE_S3") == "true":
+    board = board_s3(
+        path="penguin-vetiver-model-data/Python/models",
+        allow_pickle_read=True
+    )
+else:
+    board = board_folder(os.getenv("MODEL_PATH", "Python/models"), allow_pickle_read=True)
+
+model = board.pin_read("penguin_lab07_model")
+
+print(f"Model type: {type(model)}")
+print(f"Model loaded successfully from {'S3' if os.getenv('USE_S3') == 'true' else 'local'}")
+```
+
+```{verbatim}
+Model type: <class 'sklearn.linear_model._base.LinearRegression'>
+Model loaded successfully from S3
+```
+
+### R Configuration
+
+The R API (`plumber.R`) checks for S3 configuration:
+
+```{r}
+#| eval: false 
+#| code-fold: false 
+if (Sys.getenv("USE_S3") == "true") {
+  model_board <- pins::board_s3(
+    bucket = "penguin-vetiver-model-data",
+    prefix = "R/models/",
+    region = Sys.getenv("AWS_REGION", "us-east-1")
+  )
+} else {
+  model_path <- Sys.getenv("MODEL_PATH", unset = "R/models")
+  model_board <- pins::board_folder(model_path)
+}
+
+model <- vetiver::vetiver_pin_read(model_board, "penguin_lab07_model")
+
+cat("Model type:", class(model$model)[1], "\n")
+```
+
+```{verbatim}
+#> Model type: butchered_lm
+```
+
+```{r}
+#| eval: false 
+#| code-fold: false 
+cat("Model loaded successfully from",
+    if(Sys.getenv("USE_S3") == "true") "S3" else "local", "\n")
+```
+
+```{verbatim}
+#> Model loaded successfully from S3
+```
+
+
+#### Environment variables
+
+In both files, `USE_S3` is set to `"true"` to load from S3, and the `MODEL_PATH` variable can be a used for a custom local folder path for development or testing with different model locations (other than `"models/"`).
+
+### Running on EC2
+
+When the EC2 instance boots with the `ec2-s3-instance-profile` role attached, it automatically has temporary credentials to access S3. Simply set the `USE_S3` environment variable and the API will load from S3:
+
+**Python:**
+
+```bash
+export USE_S3=true
+python mod-api.py
+```
+
+**R:**
+
+```bash
+export USE_S3=true
+Rscript plumber.R
+```
+
+The instance's IAM role provides temporary AWS credentials automatically, so no static keys need to be stored on the server.

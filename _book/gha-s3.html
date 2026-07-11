@@ -6,10 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-10">
+<meta name="dcterms.date" content="2026-07-11">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
-<title>Pull API model from S3 – DO4DS: Lab Solutions</title>
+<title>GitHub Actions and S3 – DO4DS: Lab Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -109,6 +109,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -122,7 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./pull-s3.html"><em>Pull API model from S3</em></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./gha-s3.html"><em>GitHub Actions and S3</em></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -327,13 +331,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./s3-data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Create S3 &amp; Push Data</em></span></a>
+ <span class="menu-text"><em>Create S3 &amp; Push/Pull Data</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pull-s3.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><em>Pull API model from S3</em></span></a>
+  <a href="./gha-s3.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><em>GitHub Actions and S3</em></span></a>
   </div>
 </li>
       </ul>
@@ -493,17 +497,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#step-3-pull-the-api-model-from-s3" id="toc-step-3-pull-the-api-model-from-s3" class="nav-link active" data-scroll-target="#step-3-pull-the-api-model-from-s3">Step 3: Pull the API model from S3</a></li>
-  <li><a href="#step-4-give-github-actions-the-s3-credentials" id="toc-step-4-give-github-actions-the-s3-credentials" class="nav-link" data-scroll-target="#step-4-give-github-actions-the-s3-credentials">Step 4: Give GitHub Actions the S3 credentials</a></li>
+  <li><a href="#automating-model-deployment-with-github-actions" id="toc-automating-model-deployment-with-github-actions" class="nav-link active" data-scroll-target="#automating-model-deployment-with-github-actions">Automating Model Deployment with GitHub Actions</a></li>
+  <li><a href="#setting-up-github-secrets" id="toc-setting-up-github-secrets" class="nav-link" data-scroll-target="#setting-up-github-secrets">Setting up GitHub Secrets</a></li>
+  <li><a href="#github-actions-workflow-file" id="toc-github-actions-workflow-file" class="nav-link" data-scroll-target="#github-actions-workflow-file">GitHub Actions Workflow File</a></li>
+  <li><a href="#developing-on-the-lab07-s3-branch" id="toc-developing-on-the-lab07-s3-branch" class="nav-link" data-scroll-target="#developing-on-the-lab07-s3-branch">Developing on the <code>lab07-s3</code> Branch</a>
+  <ul>
+  <li><a href="#make-changes" id="toc-make-changes" class="nav-link" data-scroll-target="#make-changes">Make changes</a></li>
+  <li><a href="#test-changes-locally" id="toc-test-changes-locally" class="nav-link" data-scroll-target="#test-changes-locally">Test changes (locally)</a></li>
+  <li><a href="#commit-changes" id="toc-commit-changes" class="nav-link" data-scroll-target="#commit-changes">Commit changes</a></li>
+  <li><a href="#push-changes" id="toc-push-changes" class="nav-link" data-scroll-target="#push-changes">Push changes</a></li>
+  <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a></li>
+  <li><a href="#merge-to-main" id="toc-merge-to-main" class="nav-link" data-scroll-target="#merge-to-main">Merge to <code>main</code></a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./pull-s3.html"><em>Pull API model from S3</em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab07.html"><strong>Lab 7: The Cloud</strong></a></li><li class="breadcrumb-item"><a href="./gha-s3.html"><em>GitHub Actions and S3</em></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><em>Pull API model from S3</em></h1>
+<h1 class="title"><em>GitHub Actions and S3</em></h1>
 </div>
 
 
@@ -514,7 +528,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-10</p>
+      <p class="date">2026-07-11</p>
     </div>
   </div>
   
@@ -544,26 +558,240 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<section id="step-3-pull-the-api-model-from-s3" class="level2">
-<h2 class="anchored" data-anchor-id="step-3-pull-the-api-model-from-s3">Step 3: Pull the API model from S3</h2>
-<p>You’ll also have to configure the API to load the model from the S3 bucket. If you’re using {<code>vetiver</code>} that’s as easy as changing the board creation line to:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pins <span class="im">import</span> board_s3</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>board <span class="op">=</span> board_s3(<span class="st">"do4ds-lab"</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="automating-model-deployment-with-github-actions" class="level2">
+<h2 class="anchored" data-anchor-id="automating-model-deployment-with-github-actions">Automating Model Deployment with GitHub Actions</h2>
+<p>GitHub Actions can automatically build and publish our <code>vetiver</code> models to S3 whenever we push changes. In this section I’ll cover setting up AWS credentials as repository secrets and creating a workflow to automate the model publishing process.</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Push["Developer&lt;br/&gt;Pushes to main"] --&gt; GHA["GitHub&lt;br/&gt;Actions"]
+    GHA --&gt; Build["Build Models&lt;br/&gt;(py_model, r_model)"]
+    Build --&gt; Auth["Configure AWS&lt;br/&gt;Credentials"]
+    Auth --&gt; Upload["Upload to S3&lt;br/&gt;with pins"]
+    Upload --&gt; Success["Models&lt;br/&gt;Published"]
+
+    style Push fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GHA fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Build fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Auth fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Upload fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Success fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+</pre>
+</div>
+<p></p><figcaption> GitHub Actions Automated Deployment</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 </section>
-<section id="step-4-give-github-actions-the-s3-credentials" class="level2">
-<h2 class="anchored" data-anchor-id="step-4-give-github-actions-the-s3-credentials">Step 4: Give GitHub Actions the S3 credentials</h2>
-<p>We want our model building to correctly push to S3 even when it’s running in GitHub Actions, but since GitHub doesn’t have our S3 credentials by default, so we’ll need to provide them.</p>
-<p>We will declare the variables we need in the Render and Publish step of the Action.</p>
-<p>Once you’re done, that section of the publish.yml should look something like this:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="at">.github/workflows/publish.yml</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">env</span><span class="kw">:</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">GITHUB_TOKEN</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">AWS_ACCESS_KEY_ID</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_ACCESS_KEY_ID }}</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">AWS_SECRET_ACCESS_KEY</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_SECRET_ACCESS_KEY }}</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">AWS_REGION</span><span class="kw">:</span><span class="at"> us-east-1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Now, unlike the <code>GITHUB_TOKEN</code> secret, which GitHub Actions automatically provides to itself, we’ll have to give these secrets to the GitHub interface.</p>
+<section id="setting-up-github-secrets" class="level2">
+<h2 class="anchored" data-anchor-id="setting-up-github-secrets">Setting up GitHub Secrets</h2>
+<p>First, we need to add the following secrets to the GitHub repository (Settings &gt; Secrets and variables &gt; Actions):</p>
+<ol type="1">
+<li><code>AWS_ACCESS_KEY_ID</code>: Your AWS access key ID from the <code>mjfrigaard-cli</code> IAM user</li>
+<li><code>AWS_SECRET_ACCESS_KEY</code>: Your AWS secret access key</li>
+<li><code>AWS_REGION</code>: Your AWS region (e.g., <code>us-east-1</code>)</li>
+</ol>
+<p>These credentials belong to the <code>mjfrigaard-cli</code> IAM user with <code>AmazonS3FullAccess</code> permissions (i.e., the same user for local AWS CLI configuration).</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Secrets["GitHub Repository&lt;br/&gt;Secrets"]
+    Secrets --&gt; AccessKey["AWS_ACCESS_KEY_ID"]
+    Secrets --&gt; SecretKey["AWS_SECRET_ACCESS_KEY"]
+    Secrets --&gt; Region["AWS_REGION"]
+
+    AccessKey --&gt; Workflow["Workflow Job&lt;br/&gt;(aws-actions/&lt;br&gt;configure-aws-&lt;br&gt;credentials)"]
+    SecretKey --&gt; Workflow
+    Region --&gt; Workflow
+
+    Workflow --&gt; S3["Temporary AWS&lt;br/&gt;Credentials"]
+    S3 --&gt; Access["Access to S3"]
+
+    style Secrets fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style AccessKey fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style SecretKey fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Region fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Workflow fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Access fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+</pre>
+</div>
+<p></p><figcaption> GitHub Secrets Flow</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="github-actions-workflow-file" class="level2">
+<h2 class="anchored" data-anchor-id="github-actions-workflow-file">GitHub Actions Workflow File</h2>
+<p>Next, we create <code>.github/workflows/publish.yml</code> to build and publish the models to our S3 bucjet. The models are automatically versioned by <code>vetiver</code> (e.g., <code>20260710T065220Z-91fdd</code>), so we’re creating a new version in S3 with each workflow run.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Publish Models to S3</span></span>
+<span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-4"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1">1</button><span id="annotated-cell-1-5" class="code-annotation-target"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">branches</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">lab07-s3</span><span class="kw">]</span></span>
+<span id="annotated-cell-1-6"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">paths</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-7"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">'_labs/lab07/py_model.qmd'</span></span>
+<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">'_labs/lab07/r_model.qmd'</span></span>
+<span id="annotated-cell-1-9"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">'.github/workflows/publish.yml'</span></span>
+<span id="annotated-cell-1-10"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-11"><a href="#annotated-cell-1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-12"><a href="#annotated-cell-1-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">publish-models</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-13"><a href="#annotated-cell-1-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="annotated-cell-1-14"><a href="#annotated-cell-1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-15"><a href="#annotated-cell-1-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2">2</button><span id="annotated-cell-1-16" class="code-annotation-target"><a href="#annotated-cell-1-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Check out repository</span></span>
+<span id="annotated-cell-1-17"><a href="#annotated-cell-1-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="annotated-cell-1-18"><a href="#annotated-cell-1-18" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3">3</button><span id="annotated-cell-1-19" class="code-annotation-target"><a href="#annotated-cell-1-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure AWS credentials</span></span>
+<span id="annotated-cell-1-20"><a href="#annotated-cell-1-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> aws-actions/configure-aws-credentials@v4</span></span>
+<span id="annotated-cell-1-21"><a href="#annotated-cell-1-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-22"><a href="#annotated-cell-1-22" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">aws-access-key-id</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_ACCESS_KEY_ID }}</span></span>
+<span id="annotated-cell-1-23"><a href="#annotated-cell-1-23" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">aws-secret-access-key</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_SECRET_ACCESS_KEY }}</span></span>
+<span id="annotated-cell-1-24"><a href="#annotated-cell-1-24" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">aws-region</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_REGION || 'us-east-1' }}</span></span>
+<span id="annotated-cell-1-25"><a href="#annotated-cell-1-25" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4">4</button><span id="annotated-cell-1-26" class="code-annotation-target"><a href="#annotated-cell-1-26" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up Python</span></span>
+<span id="annotated-cell-1-27"><a href="#annotated-cell-1-27" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/setup-python@v5</span></span>
+<span id="annotated-cell-1-28"><a href="#annotated-cell-1-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-29"><a href="#annotated-cell-1-29" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">python-version</span><span class="kw">:</span><span class="at"> </span><span class="st">'3.12'</span></span>
+<span id="annotated-cell-1-30"><a href="#annotated-cell-1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-31"><a href="#annotated-cell-1-31" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Set up R</span></span>
+<span id="annotated-cell-1-32"><a href="#annotated-cell-1-32" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> r-lib/actions/setup-r@v2</span></span>
+<span id="annotated-cell-1-33"><a href="#annotated-cell-1-33" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-34"><a href="#annotated-cell-1-34" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">r-version</span><span class="kw">:</span><span class="at"> </span><span class="st">'4.4'</span><span class="at"> </span></span>
+<span id="annotated-cell-1-35"><a href="#annotated-cell-1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-36"><a href="#annotated-cell-1-36" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install Python dependencies</span></span>
+<span id="annotated-cell-1-37"><a href="#annotated-cell-1-37" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> ./_labs/lab07</span></span>
+<span id="annotated-cell-1-38"><a href="#annotated-cell-1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="annotated-cell-1-39"><a href="#annotated-cell-1-39" aria-hidden="true" tabindex="-1"></a>          python -m pip install --upgrade pip</span>
+<span id="annotated-cell-1-40"><a href="#annotated-cell-1-40" aria-hidden="true" tabindex="-1"></a>          pip install -r Python/requirements.txt pins vetiver python-dotenv</span>
+<span id="annotated-cell-1-41"><a href="#annotated-cell-1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-42"><a href="#annotated-cell-1-42" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install R dependencies</span></span>
+<span id="annotated-cell-1-43"><a href="#annotated-cell-1-43" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> ./_labs/lab07</span></span>
+<span id="annotated-cell-1-44"><a href="#annotated-cell-1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="annotated-cell-1-45"><a href="#annotated-cell-1-45" aria-hidden="true" tabindex="-1"></a>          R -e "install.packages(c('vetiver', 'pins', 'plumber2', 'paws.storage'))"</span>
+<span id="annotated-cell-1-46"><a href="#annotated-cell-1-46" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="5">5</button><span id="annotated-cell-1-47" class="code-annotation-target"><a href="#annotated-cell-1-47" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Build and publish Python model</span></span>
+<span id="annotated-cell-1-48"><a href="#annotated-cell-1-48" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> ./_labs/lab07</span></span>
+<span id="annotated-cell-1-49"><a href="#annotated-cell-1-49" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-50"><a href="#annotated-cell-1-50" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">USE_S3</span><span class="kw">:</span><span class="at"> </span><span class="st">'true'</span></span>
+<span id="annotated-cell-1-51"><a href="#annotated-cell-1-51" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">AWS_REGION</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_REGION || 'us-east-1' }}</span></span>
+<span id="annotated-cell-1-52"><a href="#annotated-cell-1-52" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">PINS_ALLOW_PICKLE_READ</span><span class="kw">:</span><span class="at"> </span><span class="st">'1'</span></span>
+<span id="annotated-cell-1-53"><a href="#annotated-cell-1-53" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="annotated-cell-1-54"><a href="#annotated-cell-1-54" aria-hidden="true" tabindex="-1"></a>          python py_model.py</span>
+<span id="annotated-cell-1-55"><a href="#annotated-cell-1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-1-56"><a href="#annotated-cell-1-56" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Build and publish R model</span></span>
+<span id="annotated-cell-1-57"><a href="#annotated-cell-1-57" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">working-directory</span><span class="kw">:</span><span class="at"> ./_labs/lab07</span></span>
+<span id="annotated-cell-1-58"><a href="#annotated-cell-1-58" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-59"><a href="#annotated-cell-1-59" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">USE_S3</span><span class="kw">:</span><span class="at"> </span><span class="st">'true'</span></span>
+<span id="annotated-cell-1-60"><a href="#annotated-cell-1-60" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">AWS_REGION</span><span class="kw">:</span><span class="at"> ${{ secrets.AWS_REGION || 'us-east-1' }}</span></span>
+<span id="annotated-cell-1-61"><a href="#annotated-cell-1-61" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="annotated-cell-1-62"><a href="#annotated-cell-1-62" aria-hidden="true" tabindex="-1"></a>          Rscript r_model.R</span>
+<span id="annotated-cell-1-63"><a href="#annotated-cell-1-63" aria-hidden="true" tabindex="-1"></a>          </span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="5" data-code-annotation="1"><strong>Trigger</strong>: Runs when <code>py_model.qmd</code>, <code>r_model.qmd</code>, or this workflow file changes on the <code>lab07-s3</code> branch</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="16,17" data-code-annotation="2"><strong>Checkout</strong>: Downloads the latest code from the repository<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="19,24" data-code-annotation="3"><strong>AWS Auth</strong>: Uses <code>aws-actions/configure-aws-credentials</code> to set up temporary AWS credentials from GitHub secrets (no long-lived keys stored in the runner)<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="26,45" data-code-annotation="4"><strong>Setup</strong>: Installs Python 3.12 and R 4.4 with required dependencies<br>
+</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="47,62" data-code-annotation="5"><strong>Build &amp; Publish</strong>: Runs <code>py_model.py</code> and <code>r_model.R</code> with <code>USE_S3=true</code> environment variable, which causes the model scripts to write directly to S3</span>
+</dd>
+</dl>
+<p>Publishing via GitHub Actions automate the model deployment without any permanent AWS credentials sitting in the repository.</p>
+</section>
+<section id="developing-on-the-lab07-s3-branch" class="level2">
+<h2 class="anchored" data-anchor-id="developing-on-the-lab07-s3-branch">Developing on the <code>lab07-s3</code> Branch</h2>
+<p>Now, I want to keep the <code>main</code> branch reserved for the Quarto book rendering, so any model changes will go in the <code>lab07-s3</code> branch (which triggers the model publishing workflow). Since I’ve already been developing on <code>main</code>, I’ll need to create and switch to the <code>lab07-s3</code> branch:</p>
+<p>First I’ll create/check out the <code>lab07-s3</code> branch from <code>main</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> lab07-s3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And push the new branch to GitHub:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin lab07-s3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Once on the <code>lab07-s3</code> branch, I’ll need to follow this process:</p>
+<section id="make-changes" class="level3">
+<h3 class="anchored" data-anchor-id="make-changes">Make changes</h3>
+<p>Make changes to the model files (i.e., <code>_labs/lab07/py_model.qmd</code> or <code>_labs/lab07/r_model.qmd</code>)</p>
+</section>
+<section id="test-changes-locally" class="level3">
+<h3 class="anchored" data-anchor-id="test-changes-locally">Test changes (locally)</h3>
+<p>To test changes locally, I’ll need to set the environment variables for S3 (or use local for testing):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">USE_S3</span><span class="op">=</span>false  <span class="co"># or true if testing S3 locally</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then render/run the files with the changes</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render py_model.qmd</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> r_model.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="commit-changes" class="level3">
+<h3 class="anchored" data-anchor-id="commit-changes">Commit changes</h3>
+<p>Commit the changes (be specific about the files):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add _labs/lab07/py_model.qmd _labs/lab07/r_model.qmd</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update model configuration or training logic"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="push-changes" class="level3">
+<h3 class="anchored" data-anchor-id="push-changes">Push changes</h3>
+<p>Push to the <code>lab07-s3</code> branch:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin lab07-s3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>GitHub Actions will automatically detects the <code>push</code> to <code>lab07-s3</code>, build the models using the latest code, and publish the versioned models to S3 with AWS credentials from secrets.</p>
+</section>
+<section id="verify" class="level3">
+<h3 class="anchored" data-anchor-id="verify">Verify</h3>
+<p>We can verify the models were published using:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List files in S3</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> s3 ls s3://penguin-vetiver-model-data/ <span class="at">--recursive</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="merge-to-main" class="level3">
+<h3 class="anchored" data-anchor-id="merge-to-main">Merge to <code>main</code></h3>
+<p>Don’t forget to merge to <code>main</code> if the changes also belong in the book.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout main</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge lab07-s3</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then publish the book:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> publish gh-pages</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -1008,8 +1236,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./s3-data.html" class="pagination-link" aria-label="<em>Create S3 &amp; Push Data</em>">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Create S3 &amp; Push Data</em></span>
+      <a href="./s3-data.html" class="pagination-link" aria-label="<em>Create S3 &amp; Push/Pull Data</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Create S3 &amp; Push/Pull Data</em></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
