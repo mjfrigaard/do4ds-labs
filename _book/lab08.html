@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-28">
+<meta name="dcterms.date" content="2026-07-11">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 8: The Command Line – DO4DS: Lab Solutions</title>
@@ -74,6 +74,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -315,7 +319,7 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./server-login.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Server Login </em></span></a>
+ <span class="menu-text"><em>AWS Server Login </em></span></a>
   </div>
 </li>
       </ul>
@@ -453,8 +457,15 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#ssh-key-authentication-flow" id="toc-ssh-key-authentication-flow" class="nav-link" data-scroll-target="#ssh-key-authentication-flow">SSH Key Authentication Flow</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -472,7 +483,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-28</p>
+      <p class="date">2026-07-11</p>
     </div>
   </div>
   
@@ -484,26 +495,94 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="callout callout-style-default callout-warning no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<blockquote class="blockquote">
+<p>“<em>Draw a mental map that includes the following: terminal, shell, theme manager, operating system, my laptop.</em>”</p>
+</blockquote>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Laptop(["&lt;strong&gt;Laptop&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;(Hardware)&lt;/em&gt;"])
+    OS("&lt;strong&gt;Operating System&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;(macOS, Linux,&lt;br&gt;Windows)&lt;/em&gt;")
+    Shell("&lt;strong&gt;Shell&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;(bash, zsh, fish)&lt;/em&gt;")
+    Terminal{{"&lt;strong&gt;Terminal&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;(Application)&lt;/em&gt;"}}
+    Theme("&lt;strong&gt;Theme Manager&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;(Appearance settings)&lt;/em&gt;")
+
+    Laptop --&gt; OS
+    OS --&gt; Shell
+    OS --&gt; Theme
+    Shell --&gt; Terminal
+    Theme --&gt; Terminal
+
+    style Laptop fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style OS fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Shell fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Terminal fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Theme fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+</pre>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+<p></p><figcaption> System Architecture: Layers and Components</figcaption> </figure><p></p>
 </div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
-<div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: #282b2d;">
-<p>This section is being revised. Thank you for your patience.</p>
 </div>
+<blockquote class="blockquote">
+<p>“<em>Under what circumstances should you move or share your SSH private key? (Hint: this is a trick question.)</em>”</p>
+</blockquote>
+<p><strong>Never.</strong> This is the trick–don’t ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.</p>
+<p>The only place a private key should exist is on machines we own and control. If we suspect a private key has been compromised, generate a new key pair immediately and update the corresponding public key on all remote systems.</p>
+<blockquote class="blockquote">
+<p>“<em>What is it about SSH public keys that makes them safe to share?</em>”</p>
+</blockquote>
+<p>SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they’re based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt—it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it’s computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.</p>
+</section>
+<section id="ssh-key-authentication-flow" class="level2">
+<h2 class="anchored" data-anchor-id="ssh-key-authentication-flow">SSH Key Authentication Flow</h2>
+<p>Here’s how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It only uses our public key to encrypt a challenge that only our private key can decrypt. This proves we own the private key without ever transmitting it:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+sequenceDiagram
+    actor User as Developer
+    participant Client as Client Machine
+    participant Server as Remote Server
+
+    User-&gt;&gt;Client: ssh user@server.com
+    Client-&gt;&gt;Server: Initiate connection
+    Server-&gt;&gt;Client: Send server public key
+    Client-&gt;&gt;Client: Verify server identity
+    Client-&gt;&gt;Server: Offer client public key
+    Server-&gt;&gt;Server: Look up authorized_keys
+    alt Public key found
+        Server-&gt;&gt;Client: Challenge (encrypt with public key)
+        Client-&gt;&gt;Client: Decrypt with private key
+        Client-&gt;&gt;Server: Send response
+        Server-&gt;&gt;Server: Verify response
+        Server-&gt;&gt;Client: ✓ Authentication successful
+        Client-&gt;&gt;User: Connected
+    else Public key not found
+        Server-&gt;&gt;Client: ✗ Authentication failed
+        Client-&gt;&gt;User: Permission denied
+    end
+</pre>
+</div>
+<p></p><figcaption> SSH Key Authentication Sequence</figcaption> </figure><p></p>
 </div>
 </div>
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -952,8 +1031,8 @@ ul.task-list li input[type="checkbox"] {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./server-login.html" class="pagination-link" aria-label="<em>Server Login </em>">
-        <span class="nav-page-text"><em>Server Login </em></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./server-login.html" class="pagination-link" aria-label="<em>AWS Server Login </em>">
+        <span class="nav-page-text"><em>AWS Server Login </em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default",
@@ -22,9 +22,9 @@ co_box(
 )
 ```
 
-## Automating Model Deployment with GitHub Actions
+GitHub Actions can automatically build and publish our `vetiver` models to our S3 whenever we push changes to a specific branch (we covered these in [Lab 5](lab05.qmd) and [GitHub Actions as CI/CD](publish-r-py.qmd)). I've stored the Quarto files for building, pushing, and pulling the model data in the [`_labs/lab07/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab07). 
 
-GitHub Actions can automatically build and publish our `vetiver` models to S3 whenever we push changes. In this  section I'll cover setting up AWS credentials as repository secrets and creating a workflow to automate the model publishing process.
+In this  section I'll cover setting up AWS credentials as repository secrets and creating a workflow to automate the model publishing process.
 
 ```{mermaid}
 %%| fig-cap: 'GitHub Actions Automated Deployment'
@@ -33,61 +33,76 @@ GitHub Actions can automatically build and publish our `vetiver` models to S3 wh
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    Push["Developer<br/>Pushes to main"] --> GHA["GitHub<br/>Actions"]
-    GHA --> Build["Build Models<br/>(py_model, r_model)"]
-    Build --> Auth["Configure AWS<br/>Credentials"]
-    Auth --> Upload["Upload to S3<br/>with pins"]
-    Upload --> Success["Models<br/>Published"]
+    Push(["<strong>Developer</strong><br/><em>Pushes to branch</em>"]) 
+    GHA{{"<strong>GitHub Actions</strong>"}}
+    Push --Triggers--> GHA
+    GHA --"Build Models"--> Build("<strong>Vetiver Models</strong><br/><em>(py_model.qmd, <br>r_model.qmd)</em>")
+    Build --> Auth("<strong>Configure</strong><br><em>AWS Credentials</em>")
+    Auth --"Upload to"--> S3("<strong>S3</strong><br/><em>(using pins)</em>")
+    S3 --> Success(["Models<br/>Published"])
 
     style Push fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
     style GHA fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
     style Build fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
     style Auth fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-    style Upload fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style S3 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style Success fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-## Setting up GitHub Secrets
+## Automating Model Deployment with GitHub Actions
 
-First, we need to add the following secrets to the GitHub repository (Settings > Secrets and variables > Actions):
+We need to add AWS configuration to the GitHub repository (**Settings** > **Secrets and variables** > **Actions**). Sensitive credentials go in **Secrets**, while non-sensitive configuration goes in **Variables**:
 
-1. `AWS_ACCESS_KEY_ID`: Your AWS access key ID from the `mjfrigaard-cli` IAM user
-2. `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
-3. `AWS_REGION`: Your AWS region (e.g., `us-east-1`)
+![Click to enlarge Repo Action secrets and variables](img/lab7-aws-gha-secrets-variables.png){width='100%' fig-align='center'}
 
-These credentials belong to the `mjfrigaard-cli` IAM user with `AmazonS3FullAccess` permissions (i.e., the same user for local AWS CLI configuration).
+**Secrets**:
+
+1. `AWS_ACCESS_KEY_ID`: AWS access key ID from the `mjfrigaard-cli` IAM user    
+2. `AWS_SECRET_ACCESS_KEY`: AWS secret access key     
+
+**Variables**:
+
+3. `AWS_REGION`: AWS region (e.g., `us-east-1`)   
+
+These credentials belong to the `mjfrigaard-cli` IAM user with `AmazonS3FullAccess` permissions (same user for local AWS CLI configuration).
+
+### Setting up GitHub Secrets and Variables
 
 ```{mermaid}
-%%| fig-cap: 'GitHub Secrets Flow'
+%%| fig-cap: 'GitHub Secrets and Variables Flow'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    Secrets["GitHub Repository<br/>Secrets"]
-    Secrets --> AccessKey["AWS_ACCESS_KEY_ID"]
-    Secrets --> SecretKey["AWS_SECRET_ACCESS_KEY"]
-    Secrets --> Region["AWS_REGION"]
+    Secrets(["GitHub Secrets<br/>(Sensitive)"])
+    Vars(["GitHub Variables<br/>(Config)"])
 
-    AccessKey --> Workflow["Workflow Job<br/>(aws-actions/<br>configure-aws-<br>credentials)"]
+    Secrets --> AccessKey["<strong>AWS_ACCESS_KEY_ID</strong>"]
+    Secrets --> SecretKey["<strong>AWS_SECRET_ACCESS_KEY</strong>"]
+    Vars --> Region["<strong>AWS_REGION</strong>"]
+
+    AccessKey --> Workflow{{"Workflow Job<br/>(aws-actions/<br>configure-aws-<br>credentials)"}}
     SecretKey --> Workflow
     Region --> Workflow
 
     Workflow --> S3["Temporary AWS<br/>Credentials"]
-    S3 --> Access["Access to S3"]
+    S3 --> Access[["Access to S3"]]
 
     style Secrets fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style AccessKey fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
-    style SecretKey fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
-    style Region fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Vars fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style AccessKey fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style SecretKey fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
+    style Region fill:#5B8C5A,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
     style Workflow fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
     style S3 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style Access fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+
 ```
 
-## GitHub Actions Workflow File
+### GitHub Actions Workflow File
 
-Next, we create `.github/workflows/publish.yml` to build and publish the models to our S3 bucjet. The models are automatically versioned by `vetiver` (e.g., `20260710T065220Z-91fdd`), so we're creating a new version in S3 with each workflow run.
+Next, we create `.github/workflows/publish.yml`[^gha-workflow] to build and publish the models to our S3 bucket. The models are automatically versioned by `vetiver` (e.g., `20260710T065220Z-91fdd`), so we're creating a new version in S3 with each workflow run.
 
 ```yaml
 name: Publish Models to S3
@@ -113,7 +128,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }} #<3>
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }} #<3>
 
       - name: Set up Python #<4>
         uses: actions/setup-python@v5
@@ -140,7 +155,7 @@ jobs:
         working-directory: ./_labs/lab07
         env:
           USE_S3: 'true'
-          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
           PINS_ALLOW_PICKLE_READ: '1'
         run: |
           python py_model.py
@@ -149,7 +164,7 @@ jobs:
         working-directory: ./_labs/lab07
         env:
           USE_S3: 'true'
-          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
         run: |
           Rscript r_model.R #<5>
           
@@ -160,8 +175,10 @@ jobs:
 4. **Setup**: Installs Python 3.12 and R 4.4 with required dependencies  
 5. **Build & Publish**: Runs `py_model.py` and `r_model.R` with `USE_S3=true` environment variable, which causes the model scripts to write directly to S3
 
-Publishing via GitHub Actions automate the model deployment without any permanent AWS credentials sitting in the repository.
+Publishing with GitHub Actions automates the model deployment without any permanent AWS credentials sitting in the repository.
 
+
+[^gha-workflow]: Note that file is stored in the [root directory (`.github/workflows/`)](https://github.com/mjfrigaard/do4ds-labs/tree/main/.github/workflows)--where all workflow files belong.
 
 ## Developing on the `lab07-s3` Branch
 
@@ -187,7 +204,7 @@ Once on the `lab07-s3` branch, I'll need to follow this process:
 
 ### Make changes 
 
-Make changes to the model files (i.e., `_labs/lab07/py_model.qmd` or `_labs/lab07/r_model.qmd`)
+Make changes to the model files (i.e., [`_labs/lab07/py_model.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/py_model.qmd) or [`_labs/lab07/r_model.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab07/r_model.qmd))
 
 ### Test changes (locally)
 
@@ -246,13 +263,27 @@ aws s3 ls s3://penguin-vetiver-model-data/ --recursive --profile dev-deploy
 
 ### Merge to `main`
 
-Don't forget to merge to `main` if the changes also belong in the book.
+Then switch back to the `main` branch:
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
 git checkout main
+```
+
+This will merge the changes in `lab07-s3` to `main` (if the changes also belong in the book).
+
+```{bash}
+#| eval: false 
+#| code-fold: false
 git merge lab07-s3
+```
+
+Push changes to `main`.
+
+```{bash}
+#| eval: false 
+#| code-fold: false
 git push origin main
 ```
 

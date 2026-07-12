@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -20,4 +20,79 @@ co_box(
   fold = FALSE,
   contents = "This section is being revised. Thank you for your patience."
 )
+```
+
+## Comprehension questions
+
+> "*Draw a mental map that includes the following: terminal, shell, theme manager, operating system, my laptop.*"
+
+```{mermaid}
+%%| fig-cap: 'System Architecture: Layers and Components'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Laptop(["<strong>Laptop</strong><br/><em>(Hardware)</em>"])
+    OS("<strong>Operating System</strong><br/><em>(macOS, Linux,<br>Windows)</em>")
+    Shell("<strong>Shell</strong><br/><em>(bash, zsh, fish)</em>")
+    Terminal{{"<strong>Terminal</strong><br/><em>(Application)</em>"}}
+    Theme("<strong>Theme Manager</strong><br/><em>(Appearance settings)</em>")
+
+    Laptop --> OS
+    OS --> Shell
+    OS --> Theme
+    Shell --> Terminal
+    Theme --> Terminal
+
+    style Laptop fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style OS fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Shell fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Terminal fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Theme fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    
+```
+
+> "*Under what circumstances should you move or share your SSH private key? (Hint: this is a trick question.)*"
+
+**Never.** This is the trick–don't ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.
+
+The only place a private key should exist is on machines we own and control. If we suspect a private key has been compromised, generate a new key pair immediately and update the corresponding public key on all remote systems.
+
+> "*What is it about SSH public keys that makes them safe to share?*"
+
+SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they're based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt—it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it's computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.
+
+## SSH Key Authentication Flow
+
+Here's how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It only uses our public key to encrypt a challenge that only our private key can decrypt. This proves we own the private key without ever transmitting it:
+
+```{mermaid}
+%%| fig-cap: 'SSH Key Authentication Sequence'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+sequenceDiagram
+    actor User as Developer
+    participant Client as Client Machine
+    participant Server as Remote Server
+
+    User->>Client: ssh user@server.com
+    Client->>Server: Initiate connection
+    Server->>Client: Send server public key
+    Client->>Client: Verify server identity
+    Client->>Server: Offer client public key
+    Server->>Server: Look up authorized_keys
+    alt Public key found
+        Server->>Client: Challenge (encrypt with public key)
+        Client->>Client: Decrypt with private key
+        Client->>Server: Send response
+        Server->>Server: Verify response
+        Server->>Client: ✓ Authentication successful
+        Client->>User: Connected
+    else Public key not found
+        Server->>Client: ✗ Authentication failed
+        Client->>User: Permission denied
+    end
 ```
