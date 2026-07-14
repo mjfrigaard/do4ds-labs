@@ -1512,14 +1512,146 @@
     ]
   },
   {
-    "objectID": "server-login.html",
-    "href": "server-login.html",
+    "objectID": "aws-ssh-ec2.html",
+    "href": "aws-ssh-ec2.html",
     "title": "AWS Server Login ",
     "section": "",
-    "text": "WarningCaution\n\n\n\n\n\n\nThis section is being revised. Thank you for your patience.\n\n\n\n\nThis lab covers logging into our AWS EC2 server via SSH. We covered setting up this server in Stand up an EC2 instance.",
+    "text": "EC2 server info\nThis lab covers logging into our AWS EC2 server via SSH. We covered getting set up with AWS in Stand up an EC2 instance, but we’ll start this lab from the AWS Console Home. We can see our previous labs have already added the S3, EC2, and IAM widgets to the Recently Visited section:\nIf we click on the EC2 widget, we’ll see we have 1 instance running, 1 key pair, 2 security groups, and 1 volume:\nWe want to click on the Instances (running) to get the server information. Rather than give you another screenshot, I’ve created a table below of the information.\nYou can research each of these topics on your own in the AWS documentation, but the do4ds chapter on the Computer Networks is also helpful.",
     "crumbs": [
       "<strong>Lab 8: The Command Line</strong>",
       "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#ec2-server-info",
+    "href": "aws-ssh-ec2.html#ec2-server-info",
+    "title": "AWS Server Login ",
+    "section": "",
+    "text": "Server Detail\nDescription\n\n\n\n\nInstance ID\nInternal identifier assigned by AWS (e.g., i-0a1b2c3d4e5f6g7h8). Used to reference the instance in APIs and CLI commands.\n\n\nPublic IPv4 address\nThe public-facing IP address assigned to the instance, accessible from the internet. Changes when the instance stops/starts unless an Elastic IP is assigned. Shown in the diagram as the connection point from our computer.\n\n\nPrivate IPv4 addresses\nThe private internal IP address(es) within the VPC (e.g., 10.0.1.42). Used for communication between instances and resources within the VPC. This is the address inside the Subnet where the instance actually lives.\n\n\nIPv6 address\nIPv6 address for the instance if IPv6 is enabled on the VPC and subnet. Can be public or private depending on configuration.\n\n\nPublic DNS\nPublic DNS hostname provided by AWS that resolves to the public IPv4 address (e.g., ec2-X-X-X-X.compute-1.amazonaws.com). Valid only while the instance is running.\n\n\nHostname type\nConfiguration setting for the type of hostname resolution used (IP-based or resource-based). Determines how the instance appears in DNS.\n\n\nPrivate IP DNS name (IPv4 only)\nPrivate DNS name that resolves to the private IPv4 address within the VPC. Used for internal communication between instances.\n\n\nAnswer private resource DNS name\nPrivate alias or CNAME record in Route 53 for private DNS resolution within the VPC.\n\n\nInstance type\nConfiguration: the size and capabilities of the EC2 Instance (e.g., t2.micro, t3.small, m5.large). Determines CPU, memory, network, and storage resources.\n\n\nElastic IP addresses\nPublic static IP address that persists through stop/start cycles. Can be associated or disassociated from instances.\n\n\nAuto-assigned IP address\nConfiguration: indicates whether a public IPv4 address is automatically assigned on instance launch (temporary if not Elastic IP).\n\n\nVPC ID\nInternal identifier of the Virtual Private Cloud where the instance is deployed. Defines the network boundary and routing.\n\n\nAWS Compute Optimizer finding\nConfiguration: AWS recommendations for optimizing instance type, size, or configuration based on usage metrics.\n\n\nIAM role\nConfiguration: the Identity and Access Management role attached to the instance. Grants permissions for AWS service access without storing long-lived credentials.\n\n\nSubnet ID\nInternal identifier of the subnet within the VPC where the instance is placed. Determines availability zone and IP range.\n\n\nAuto Scaling Group name\nConfiguration: if the instance is part of an Auto Scaling Group, this shows the group name. Otherwise empty.\n\n\nIMDSv2\nConfiguration: Instance Metadata Service version status. IMDSv2 is more secure and requires token-based access to metadata.\n\n\nInstance ARN\nInternal identifier: Amazon Resource Name following AWS naming convention (e.g., arn:aws:ec2:region:account:instance/instance-id).\n\n\nManaged\nConfiguration: indicates if the instance is managed by AWS Systems Manager, allowing remote management via the console.\n\n\nOperator\nConfiguration: the account or role that created and manages the instance. Useful in multi-account environments.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#network-architecture-overview",
+    "href": "aws-ssh-ec2.html#network-architecture-overview",
+    "title": "AWS Server Login ",
+    "section": "Network Architecture Overview",
+    "text": "Network Architecture Overview\nUnderstanding how these addresses and identifiers connect is key to accessing our EC2 instance. I’ve tried to illustrate how public and private addressing works in the figure below:\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%\n\ngraph TD\n    Client[\"Your Computer\"]\n    PubIP[\"Public IPv4: 203.0.113.42\"]\n    PubDNS[\"Public DNS: ec2-203-0-113-42...\"]\n    IGW[\"Internet Gateway\"]\n    VPC[\"VPC\"]\n    Subnet[\"Subnet 10.0.1.0/24\"]\n    Instance[\"EC2 Instance\"]\n    PrivIP[\"Private IPv4: 10.0.1.42\"]\n    PrivDNS[\"Private DNS: ip-10-0-1-42...\"]\n\n    Client --&gt;|SSH port 22| PubIP\n    PubIP -.-&gt;|resolves to| PubDNS\n    PubIP --&gt;|NAT| IGW\n    IGW --&gt;|route| VPC\n    VPC --&gt; Subnet\n    Subnet --&gt; Instance\n    Instance --&gt; PrivIP\n    PrivIP -.-&gt;|resolves to| PrivDNS\n\n    style Client fill:#E8E8E8,stroke:#333,stroke-width:1px,color:#000\n    style PubIP fill:#E8A33D,stroke:#000,stroke-width:2px,color:#000\n    style PubDNS fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000\n    style IGW fill:#E8A33D,stroke:#000,stroke-width:2px,color:#000\n    style VPC fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff\n    style Subnet fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff\n    style Instance fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff\n    style PrivIP fill:#5B8C5A,stroke:#fff,stroke-width:2px,color:#fff\n    style PrivDNS fill:#5B8C5A,stroke:#000,stroke-width:1px,color:#fff\n\n\n EC2 Instance Network Architecture \n\n\n\n\nUnderstanding NAT\nThe NAT (Network Address Translation) step in the diagram is where the Internet Gateway translates the public IPv4 address to the private IPv4 address of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the VPC. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#using-your-ssh-key",
+    "href": "aws-ssh-ec2.html#using-your-ssh-key",
+    "title": "AWS Server Login ",
+    "section": "Using Your SSH Key",
+    "text": "Using Your SSH Key\nWhen we created the key pair in AWS, a .pem file was downloaded to our computer. This file is our private key—keep it secure and never share it. We’ll use the .pem key to authenticate when connecting to our EC2 Instance.\n\nStep 1: Set up the key file\nFirst, we move the .pem file to our .ssh directory:\n\nmv ~/Downloads/&lt;your-key-file-name&gt;.pem ~/.ssh/\n\nThen set the correct permissions. SSH requires that private keys have restricted permissions (readable only by us):\n\nchmod 600 ~/.ssh/&lt;your-key-file-name&gt;.pem\n\nIf we skip this step, SSH will refuse to use the key with an error like Permissions 0644 for '.../&lt;your-key-file-name&gt;.pem' are too open.\n\n\nSSH directory and file permissions\nSSH is strict about permissions to prevent other users on the computer from reading our keys. Here’s what the .ssh directory structure should look like:\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%\n\ngraph LR\n    ssh[\"~/.ssh&lt;br/&gt;(700)\"]\n    config[\"config&lt;br/&gt;(600)\"]\n    pem[\"*.pem or key&lt;br/&gt;(600 or 400)\"]\n    pub[\"*.pub&lt;br/&gt;(644)\"]\n    known[\"known_hosts&lt;br/&gt;(644)\"]\n    auth[\"authorized_keys&lt;br/&gt;(600)\"]\n\n    ssh --&gt; config\n    ssh --&gt; pem\n    ssh --&gt; pub\n    ssh --&gt; known\n    ssh --&gt; auth\n\n    style ssh fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace,text-align:center\n    style config fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center\n    style pem fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center\n    style pub fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center\n    style known fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center\n    style auth fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center\n\n\n ~/.ssh Directory Permissions \n\n\n\nThe directory itself (700) and private keys (600) are the most critical. If these are too permissive, SSH silently refuses to use them.\n\n\nStep 2: Connect to the instance\nNow we can SSH into our instance using the Public IPv4 address from the EC2 console:\n\nssh -i ~/.ssh/&lt;your-key-file-name&gt;.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS\n\nReplace YOUR_PUBLIC_IP_ADDRESS with the actual public IP from the instance details (e.g., 203.0.113.42).\n\nHost key verification\nThe first time we connect, SSH will ask if we trust the host:\nThe authenticity of host 'YOUR_PUBLIC_IP_ADDRESS (YOUR_PUBLIC_IP_ADDRESS)' can't be established.\nED25519 key fingerprint is SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nThis key is not known by any other names.\nAre you sure you want to continue connecting (yes/no/[fingerprint])?\nThis is SSH verifying the server’s public key fingerprint to prevent man-in-the-middle attacks. When we type yes, SSH stores the host key in ~/.ssh/known_hosts so it won’t ask again on future connections.\nFor an EC2 instance we just created, it’s safe to accept this. The fingerprint comes from the server itself and doesn’t require external verification.\n\n\nSuccessful connection\nWhen the connection works, we see the Amazon Linux 2 welcome banner and land at a shell prompt on the remote instance:\n\n       __|  __|_  )\n       _|  (     /   Amazon Linux 2 AMI\n      ___|\\___|___|\n\nhttps://aws.amazon.com/amazon-linux-2/\n47 package(s) needed for security, out of 92 available\nRun \"sudo yum update\" to apply all updates.\nWe can now run commands on the server.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#troubleshooting-connection-closed",
+    "href": "aws-ssh-ec2.html#troubleshooting-connection-closed",
+    "title": "AWS Server Login ",
+    "section": "Troubleshooting: Connection closed",
+    "text": "Troubleshooting: Connection closed\nIf the connection closes immediately after accepting the host key, the issue is usually one of the following:\n\nSecurity Group doesn’t allow SSH (port 22)\nThe most common cause. To check the security group rules:\n\nGo to the EC2 console and click Instances\nSelect the running instance\nIn the details panel, find Security groups and click on the group name\nIn the security group details, look for the Inbound rules tab\nCheck if there’s a rule allowing SSH (port 22) from the IP address\n\nIf there’s no SSH rule, click Edit inbound rules and add:\n\nType: SSH\nProtocol: TCP\nPort: 22\nSource: Your IP address (or 0.0.0.0/0 to allow from anywhere—less secure but simpler for testing)\n\nClick Save rules and try connecting again.\n\n\nWrong username\nDifferent AMIs use different default usernames:\n\nAmazon Linux 2: ec2-user\nUbuntu: ubuntu\nCentOS: centos\nRHEL: ec2-user\n\nTry connecting with the correct username for the instance’s operating system.\n\n\nKey mismatch\nThe private key on our computer doesn’t match the public key on the instance. Verify that the key pair name in AWS matches the .pem file name.\n\n\nInstance not ready\nIf the instance was just launched, it may still be booting. Wait a minute and try again.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#creating-a-regular-ssh-key-for-routine-access",
+    "href": "aws-ssh-ec2.html#creating-a-regular-ssh-key-for-routine-access",
+    "title": "AWS Server Login ",
+    "section": "Creating a regular SSH key for routine access",
+    "text": "Creating a regular SSH key for routine access\nThe AWS .pem key is powerful—it’s our root access to the instance. For daily work, we want to create a separate SSH key pair with limited permissions. This follows the principle of least privilege: use the AWS key only for setup, then use a weaker key for routine access.\n\nStep 1. Generate a new key pair locally\nOn our computer, we’ll create a new SSH key using ssh-keygen:\n\nssh-keygen -t ed25519 -f ~/.ssh/&lt;your-key-name&gt; -C \"your-email@example.com\"\n\nPress Enter when prompted for a passphrase (or add one for extra security). This creates two files:\n\n~/.ssh/&lt;your-key-name&gt; (private key—keep this secret)\n~/.ssh/&lt;your-key-name&gt;.pub (public key—share this with the server)\n\n\n\nStep 2. Add the public key to the server\nConnect to the instance using the AWS .pem key:\n\nssh -i ~/.ssh/&lt;your-aws-key-file-name&gt;.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS\n\nOnce logged in, create the .ssh directory and add the public key:\n\nmkdir -p ~/.ssh\nchmod 700 ~/.ssh\n\nReplace YOUR_PUBLIC_KEY_CONTENT with the contents of ~/.ssh/&lt;your-key-name&gt;.pub on our local computer. We can view it with:\n\ncat ~/.ssh/&lt;your-key-name&gt;.pub\n\n\necho \"YOUR_PUBLIC_KEY_CONTENT\" &gt;&gt; ~/.ssh/authorized_keys\n\nChange the permissions on the authorized_keys:\n\nchmod 600 ~/.ssh/authorized_keys\n\n\n\nStep 3. Use new key for future connections\nNow you can log in using your new key without needing the AWS .pem file:\n\nssh -i ~/.ssh/&lt;your-key-name&gt; ec2-user@YOUR_PUBLIC_IP_ADDRESS\n\nKeep the AWS .pem file safe but don’t use it for routine work. If the regular key is compromised, delete it from the server and generate a new one. The AWS key remains your recovery method.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#using-the-public-dns-instead",
+    "href": "aws-ssh-ec2.html#using-the-public-dns-instead",
+    "title": "AWS Server Login ",
+    "section": "Using the Public DNS instead",
+    "text": "Using the Public DNS instead\nWe can also connect using the Public DNS name instead of the IP address:\n\nssh -i ~/.ssh/&lt;your-key-file-name&gt;.pem ec2-user@ec2-203-0-113-42.compute-1.amazonaws.com\n\nThe default public DNS is convenient for one-off connections, but note that it encodes the public IP and changes when the instance stops and restarts. For stable, persistent access, assign an Elastic IP address to the instance.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "aws-ssh-ec2.html#recap",
+    "href": "aws-ssh-ec2.html#recap",
+    "title": "AWS Server Login ",
+    "section": "Recap",
+    "text": "Recap\nIn this lab we logged into our EC2 instance over SSH and created a regular key for routine access. The key ideas to carry forward:\n\nThe server trusts keys, not machines. A new computer needs a private key whose public half is in the server’s authorized_keys.\nReserve the AWS .pem key for recovery, scope your security group to known IPs, and rotate any key you can’t fully account for.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>AWS Server Login </em>"
+    ]
+  },
+  {
+    "objectID": "manage-ssh-keys.html",
+    "href": "manage-ssh-keys.html",
+    "title": "Managing SSH Key Pairs",
+    "section": "",
+    "text": "Security considerations\nWorking across multiple machines makes it easy to get sloppy with keys, so a few rules are worth stating plainly.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>Managing SSH Key Pairs</em>"
+    ]
+  },
+  {
+    "objectID": "manage-ssh-keys.html#security-considerations",
+    "href": "manage-ssh-keys.html#security-considerations",
+    "title": "Managing SSH Key Pairs",
+    "section": "",
+    "text": "Keep the AWS .pem key on one machine only. It’s the recovery key for the instance. There’s no reason to copy it to a laptop we carry around.\nGive each machine its own key when you can. Per-machine keys mean a lost laptop is a one-line fix on the server, not a full key rotation.\nNever open port 22 to the world for convenience. In the security group, scope the SSH inbound rule to the IP addresses we actually connect from. Using 0.0.0.0/0 is fine for a quick test, but leaving it open is an invitation.\nRotate keys you can’t account for. If a private key might have leaked, or a machine is gone, remove its public key from ~/.ssh/authorized_keys on the server and generate a replacement.\n\n\n\n\n\n\n\nTipTip: one key per machine\n\n\n\n\n\n\nNaming keys after the machine that holds them (&lt;your-key-name&gt;-macbook, &lt;your-key-name&gt;-desktop) makes the entries in authorized_keys self-documenting. When you need to revoke access for a single device, you know exactly which line to remove.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>Managing SSH Key Pairs</em>"
+    ]
+  },
+  {
+    "objectID": "manage-ssh-keys.html#logging-in-from-another-machine",
+    "href": "manage-ssh-keys.html#logging-in-from-another-machine",
+    "title": "Managing SSH Key Pairs",
+    "section": "Logging in from another machine",
+    "text": "Logging in from another machine\nSo far we’ve connected from the same computer that created the key pair. But at some point we’ll want to reach the instance from a second machine, like a MacBook Pro we use when we’re away from our main desktop. The problem is that our keys live on the original computer, and the server only trusts the keys it already knows about. This section covers how to get set up on a new machine without weakening the security of the instance.\nSSH authentication is based on a key pair: the private key stays on our computer, and the matching public key lives on the server in ~/.ssh/authorized_keys. The server has no idea which machine we’re sitting at. It only checks whether the private key we present matches a public key it trusts. This means a new machine can’t connect until it holds a private key the server recognizes.\n\n\n\n\n\n%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%\n\ngraph LR\n    subgraph Client[\"Your Computer\"]\n        priv[\"Private Key&lt;br/&gt;~/.ssh/id_ed25519&lt;br/&gt;(secret)\"]\n    end\n    subgraph Server[\"EC2 Instance\"]\n        auth[\"authorized_keys&lt;br/&gt;(trusted public keys)\"]\n    end\n    priv --&gt;|\"presents key\"| auth\n    auth -.-|\"match?&lt;br/&gt;grant / deny\"| priv\n\n    style Client fill:#E8E8E8,stroke:#333,stroke-width:2px,color:#000\n    style Server fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff\n    style priv fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff\n    style auth fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff\n\n\n SSH Key Pair Authentication \n\n\n\nWe have two options:\n\nGenerate a fresh key pair on the new machine and add its public key to the server\nCopy an existing private key to the new machine.\n\nThe first option is safer, so we’ll cover it below. Copying private keys around is convenient, but every copy is another file that can leak.\n\nExample: generate a new key on the MacBook (recommended)\nThis is the same process we followed in Creating a regular SSH key for routine access, just run on the new machine. On the MacBook, create a key pair:\n\nStep 1: Create key pair\n\nssh-keygen -t ed25519 -f ~/.ssh/&lt;your-key-name&gt;-macbook -C \"your-email@example.com\"\n\n\n\nStep 2: Copy public key\nGiving the key a machine-specific name (like -macbook) makes it easy to tell later which key belongs to which computer. Next, display the new public key so we can copy it:\n\ncat ~/.ssh/&lt;your-key-name&gt;-macbook.pub\n\n\n\nStep 3: Append public key to authorized_keys\nFrom a machine that can already reach the instance, connect and append the MacBook’s public key to authorized_keys:\n\nssh -i ~/.ssh/&lt;your-key-name&gt; ec2-user@YOUR_PUBLIC_IP_ADDRESS\n\n\necho \"MACBOOK_PUBLIC_KEY_CONTENT\" &gt;&gt; ~/.ssh/authorized_keys\n\n\n\nStep 4: Test connection\nNow we test the connection from our MacBook with its own key:\n\nssh -i ~/.ssh/&lt;your-key-name&gt;-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS\n\n\n\nLogging in from another machine (notes)\nThe advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from authorized_keys and the other machines keep working.\n\n\n\nReplacing key pairs\nKey pair names are immutable in AWS, which means they can’t be renamed; we must create a new one and replace the old.\n\n\n\n\n\n\nNoteNote\n\n\n\n\n\n\nKey pairs are not tied to security groups. Security groups are attached to the instance separately and won’t change. We’re just swapping the SSH public key on the instance.\n\n\n\n\n\nStep 1. Create the new key pair\n\naws ec2 create-key-pair \\\n  --key-name &lt;my-better-name&gt; \\\n  --key-type rsa \\\n  --key-format pem \\\n  --query 'KeyMaterial' \\\n  --output text &gt; ~/.ssh/&lt;my-better-name&gt;.pem\n\n\nchmod 400 ~/.ssh/&lt;my-better-name&gt;.pem\n\nOr via Console: EC2 &gt; Key Pairs &gt; Create key pair\n\n\nStep 2. Get the public key\n\nssh-keygen -y -f ~/.ssh/&lt;my-better-name&gt;.pem &gt; ~/.ssh/&lt;my-better-name&gt;.pub\n\n\ncat ~/.ssh/&lt;my-better-name&gt;.pub\n\n\n\nStep 3. Add the new public key to the instance\nSSH in using the &lt;old-key&gt;.pem key:\n\nssh -i ~/.ssh/&lt;old-key&gt;.pem ec2-user@&lt;instance-ip&gt;\n\nThen append the new public key:\n\necho \"ssh-rsa AAAA...new-key-content...\" &gt;&gt; ~/.ssh/authorized_keys\n\n\n\nStep 4. Test the new key in a new terminal (keep the old session open)\n\nssh -i ~/.ssh/&lt;my-better-name&gt;.pem ec2-user@&lt;instance-ip&gt;\n\n\n\nStep 5: Remove the old public key from authorized_keys\nEdit ~/.ssh/authorized_keys and delete the old key line.\n\n\nStep 6: Delete the old key pair from AWS\n\naws ec2 delete-key-pair --key-name &lt;old-key&gt;\n\nThen delete the old .pem locally.\n\n\nReplacing key pairs (notes)\n\nThe “Key pair name” shown in the EC2 console for an instance reflects the key used at launch and won’t update, but access is controlled by ~/.ssh/authorized_keys on the instance itself.\nSecurity groups, IAM roles, EBS volumes, and Elastic IP all remain unchanged.\nIf you want the console to reflect the new key name too, you’d need to create an AMI and launch a new instance with the new key, which is usually overkill.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>Managing SSH Key Pairs</em>"
+    ]
+  },
+  {
+    "objectID": "manage-ssh-keys.html#setting-up-an-ssh-config",
+    "href": "manage-ssh-keys.html#setting-up-an-ssh-config",
+    "title": "Managing SSH Key Pairs",
+    "section": "Setting up an SSH config",
+    "text": "Setting up an SSH config\nTyping the full ssh -i ~/.ssh/&lt;your-key-name&gt; ec2-user@YOUR_PUBLIC_IP_ADDRESS command every time gets old quickly. SSH reads a config file at ~/.ssh/config that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:\n\ntouch ~/.ssh/config\nchmod 600 ~/.ssh/config\n\nThen add an entry describing the connection:\nHost my-ec2\n    HostName YOUR_PUBLIC_IP_ADDRESS\n    User ec2-user\n    IdentityFile ~/.ssh/&lt;your-key-name&gt;-macbook\nThe Host line is the alias we type, HostName is the public IP (or Public DNS name), User is the login user for the AMI, and IdentityFile points to the private key for this machine. With that saved, connecting is now a single short command:\n\nssh my-ec2\n\nWe can confirm the config is being used by adding -v to the command, which prints the identity file and hostname SSH resolved from the alias. If the public IP changes, we only have to update one line in the config rather than remember a new address.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>Managing SSH Key Pairs</em>"
+    ]
+  },
+  {
+    "objectID": "manage-ssh-keys.html#recap",
+    "href": "manage-ssh-keys.html#recap",
+    "title": "Managing SSH Key Pairs",
+    "section": "Recap",
+    "text": "Recap\n\nPrefer generating a fresh key per machine over copying private keys around. It keeps revocation simple.\nAn ~/.ssh/config entry turns a long connection command into a short alias and gives you one place to update when the instance’s IP changes.",
+    "crumbs": [
+      "<strong>Lab 8: The Command Line</strong>",
+      "<em>Managing SSH Key Pairs</em>"
     ]
   },
   {
