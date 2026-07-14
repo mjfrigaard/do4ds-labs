@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-11">
+<meta name="dcterms.date" content="2026-07-14">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>AWS Server Login  – DO4DS: Lab Solutions</title>
@@ -25,6 +25,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -35,7 +70,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./lab09.html" rel="next">
+<link href="./manage-ssh-keys.html" rel="next">
 <link href="./lab08.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -47,6 +82,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -74,6 +112,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -87,7 +129,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab08.html"><strong>Lab 8: The Command Line</strong></a></li><li class="breadcrumb-item"><a href="./server-login.html"><em>AWS Server Login </em></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab08.html"><strong>Lab 8: The Command Line</strong></a></li><li class="breadcrumb-item"><a href="./aws-ssh-ec2.html"><em>AWS Server Login </em></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -314,8 +356,14 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./server-login.html" class="sidebar-item-text sidebar-link active">
+  <a href="./aws-ssh-ec2.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><em>AWS Server Login </em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./manage-ssh-keys.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Managing SSH Key Pairs</em></span></a>
   </div>
 </li>
       </ul>
@@ -453,13 +501,48 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ec2-server-info" id="toc-ec2-server-info" class="nav-link active" data-scroll-target="#ec2-server-info">EC2 server info</a></li>
+  <li><a href="#network-architecture-overview" id="toc-network-architecture-overview" class="nav-link" data-scroll-target="#network-architecture-overview">Network Architecture Overview</a>
+  <ul>
+  <li><a href="#understanding-nat" id="toc-understanding-nat" class="nav-link" data-scroll-target="#understanding-nat">Understanding NAT</a></li>
+  </ul></li>
+  <li><a href="#using-your-ssh-key" id="toc-using-your-ssh-key" class="nav-link" data-scroll-target="#using-your-ssh-key">Using Your SSH Key</a>
+  <ul>
+  <li><a href="#step-1-set-up-the-key-file" id="toc-step-1-set-up-the-key-file" class="nav-link" data-scroll-target="#step-1-set-up-the-key-file">Step 1: Set up the key file</a></li>
+  <li><a href="#ssh-directory-and-file-permissions" id="toc-ssh-directory-and-file-permissions" class="nav-link" data-scroll-target="#ssh-directory-and-file-permissions">SSH directory and file permissions</a></li>
+  <li><a href="#step-2-connect-to-the-instance" id="toc-step-2-connect-to-the-instance" class="nav-link" data-scroll-target="#step-2-connect-to-the-instance">Step 2: Connect to the instance</a>
+  <ul class="collapse">
+  <li><a href="#host-key-verification" id="toc-host-key-verification" class="nav-link" data-scroll-target="#host-key-verification">Host key verification</a></li>
+  <li><a href="#successful-connection" id="toc-successful-connection" class="nav-link" data-scroll-target="#successful-connection">Successful connection</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#troubleshooting-connection-closed" id="toc-troubleshooting-connection-closed" class="nav-link" data-scroll-target="#troubleshooting-connection-closed">Troubleshooting: Connection closed</a>
+  <ul>
+  <li><a href="#security-group-doesnt-allow-ssh-port-22" id="toc-security-group-doesnt-allow-ssh-port-22" class="nav-link" data-scroll-target="#security-group-doesnt-allow-ssh-port-22">Security Group doesn’t allow SSH (port 22)</a></li>
+  <li><a href="#wrong-username" id="toc-wrong-username" class="nav-link" data-scroll-target="#wrong-username">Wrong username</a></li>
+  <li><a href="#key-mismatch" id="toc-key-mismatch" class="nav-link" data-scroll-target="#key-mismatch">Key mismatch</a></li>
+  <li><a href="#instance-not-ready" id="toc-instance-not-ready" class="nav-link" data-scroll-target="#instance-not-ready">Instance not ready</a></li>
+  </ul></li>
+  <li><a href="#creating-a-regular-ssh-key-for-routine-access" id="toc-creating-a-regular-ssh-key-for-routine-access" class="nav-link" data-scroll-target="#creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</a>
+  <ul>
+  <li><a href="#step-1.-generate-a-new-key-pair-locally" id="toc-step-1.-generate-a-new-key-pair-locally" class="nav-link" data-scroll-target="#step-1.-generate-a-new-key-pair-locally">Step 1. Generate a new key pair locally</a></li>
+  <li><a href="#step-2.-add-the-public-key-to-the-server" id="toc-step-2.-add-the-public-key-to-the-server" class="nav-link" data-scroll-target="#step-2.-add-the-public-key-to-the-server">Step 2. Add the public key to the server</a></li>
+  <li><a href="#step-3.-use-new-key-for-future-connections" id="toc-step-3.-use-new-key-for-future-connections" class="nav-link" data-scroll-target="#step-3.-use-new-key-for-future-connections">Step 3. Use new key for future connections</a></li>
+  </ul></li>
+  <li><a href="#using-the-public-dns-instead" id="toc-using-the-public-dns-instead" class="nav-link" data-scroll-target="#using-the-public-dns-instead">Using the Public DNS instead</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab08.html"><strong>Lab 8: The Command Line</strong></a></li><li class="breadcrumb-item"><a href="./server-login.html"><em>AWS Server Login </em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab08.html"><strong>Lab 8: The Command Line</strong></a></li><li class="breadcrumb-item"><a href="./aws-ssh-ec2.html"><em>AWS Server Login </em></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><em>AWS Server Login </em></h1>
 </div>
@@ -472,7 +555,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-11</p>
+      <p class="date">2026-07-14</p>
     </div>
   </div>
   
@@ -502,9 +585,361 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<p>This lab covers logging into our AWS EC2 server via SSH. We covered setting up this server in <a href="./aws-ec2.html">Stand up an EC2 instance</a>.</p>
+<p>This lab covers logging into our AWS EC2 server via SSH. We covered getting set up with AWS in <a href="./aws-ec2.html">Stand up an EC2 instance</a>, but we’ll start this lab from the AWS <strong>Console Home</strong>. We can see our previous labs have already added the S3, EC2, and IAM widgets to the <strong>Recently Visited</strong> section:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab8-aws-console-home.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="AWS Console Home"><img src="img/lab8-aws-console-home.png" class="img-fluid figure-img" style="width:100.0%" data-fig-width="center" alt="AWS Console Home"></a></p>
+<figcaption>AWS Console Home</figcaption>
+</figure>
+</div>
+<p>If we click on the EC2 widget, we’ll see we have 1 instance running, 1 key pair, 2 security groups, and 1 volume:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab8-aws-ec2-resources.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="AWS Console Home"><img src="img/lab8-aws-ec2-resources.png" class="img-fluid figure-img" style="width:100.0%" data-fig-width="center" alt="AWS Console Home"></a></p>
+<figcaption>AWS Console Home</figcaption>
+</figure>
+</div>
+<p>We want to click on the <strong>Instances (running)</strong> to get the server information. Rather than give you another screenshot, I’ve created a table below of the information.</p>
+<section id="ec2-server-info" class="level2">
+<h2 class="anchored" data-anchor-id="ec2-server-info">EC2 server info</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Server Detail</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Instance ID</strong></td>
+<td>Internal identifier assigned by AWS (e.g., <code>i-0a1b2c3d4e5f6g7h8</code>). Used to reference the instance in APIs and CLI commands.</td>
+</tr>
+<tr class="even">
+<td><strong>Public IPv4 address</strong></td>
+<td>The <strong>public-facing</strong> IP address assigned to the instance, accessible from the internet. Changes when the instance stops/starts unless an Elastic IP is assigned. Shown in the diagram as the connection point from our computer.</td>
+</tr>
+<tr class="odd">
+<td><strong>Private IPv4 addresses</strong></td>
+<td>The <strong>private</strong> internal IP address(es) within the <strong>VPC</strong> (e.g., <code>10.0.1.42</code>). Used for communication between instances and resources within the <strong>VPC</strong>. This is the address inside the <strong>Subnet</strong> where the instance actually lives.</td>
+</tr>
+<tr class="even">
+<td><strong>IPv6 address</strong></td>
+<td>IPv6 address for the instance if IPv6 is enabled on the <strong>VPC</strong> and <strong>subnet</strong>. Can be <strong>public or private</strong> depending on configuration.</td>
+</tr>
+<tr class="odd">
+<td><strong>Public DNS</strong></td>
+<td><strong>Public</strong> DNS hostname provided by AWS that resolves to the <strong>public IPv4 address</strong> (e.g., <code>ec2-X-X-X-X.compute-1.amazonaws.com</code>). Valid only while the instance is running.</td>
+</tr>
+<tr class="even">
+<td><strong>Hostname type</strong></td>
+<td>Configuration setting for the type of hostname resolution used (IP-based or resource-based). Determines how the instance appears in DNS.</td>
+</tr>
+<tr class="odd">
+<td><strong>Private IP DNS name (IPv4 only)</strong></td>
+<td><strong>Private</strong> DNS name that resolves to the <strong>private IPv4 address</strong> within the <strong>VPC</strong>. Used for internal communication between instances.</td>
+</tr>
+<tr class="even">
+<td><strong>Answer private resource DNS name</strong></td>
+<td><strong>Private</strong> alias or CNAME record in Route 53 for private DNS resolution within the <strong>VPC</strong>.</td>
+</tr>
+<tr class="odd">
+<td><strong>Instance type</strong></td>
+<td>Configuration: the size and capabilities of the <strong>EC2 Instance</strong> (e.g., <code>t2.micro</code>, <code>t3.small</code>, <code>m5.large</code>). Determines CPU, memory, network, and storage resources.</td>
+</tr>
+<tr class="even">
+<td><strong>Elastic IP addresses</strong></td>
+<td><strong>Public</strong> static IP address that persists through stop/start cycles. Can be associated or disassociated from instances.</td>
+</tr>
+<tr class="odd">
+<td><strong>Auto-assigned IP address</strong></td>
+<td>Configuration: indicates whether a <strong>public IPv4 address</strong> is automatically assigned on instance launch (temporary if not Elastic IP).</td>
+</tr>
+<tr class="even">
+<td><strong>VPC ID</strong></td>
+<td>Internal identifier of the <strong>Virtual Private Cloud</strong> where the instance is deployed. Defines the network boundary and routing.</td>
+</tr>
+<tr class="odd">
+<td><strong>AWS Compute Optimizer finding</strong></td>
+<td>Configuration: AWS recommendations for optimizing instance type, size, or configuration based on usage metrics.</td>
+</tr>
+<tr class="even">
+<td><strong>IAM role</strong></td>
+<td>Configuration: the Identity and Access Management role attached to the instance. Grants permissions for AWS service access without storing long-lived credentials.</td>
+</tr>
+<tr class="odd">
+<td><strong>Subnet ID</strong></td>
+<td>Internal identifier of the <strong>subnet</strong> within the <strong>VPC</strong> where the instance is placed. Determines availability zone and IP range.</td>
+</tr>
+<tr class="even">
+<td><strong>Auto Scaling Group name</strong></td>
+<td>Configuration: if the instance is part of an Auto Scaling Group, this shows the group name. Otherwise empty.</td>
+</tr>
+<tr class="odd">
+<td><strong>IMDSv2</strong></td>
+<td>Configuration: Instance Metadata Service version status. IMDSv2 is more secure and requires token-based access to metadata.</td>
+</tr>
+<tr class="even">
+<td><strong>Instance ARN</strong></td>
+<td>Internal identifier: Amazon Resource Name following AWS naming convention (e.g., <code>arn:aws:ec2:region:account:instance/instance-id</code>).</td>
+</tr>
+<tr class="odd">
+<td><strong>Managed</strong></td>
+<td>Configuration: indicates if the instance is managed by AWS Systems Manager, allowing remote management via the console.</td>
+</tr>
+<tr class="even">
+<td><strong>Operator</strong></td>
+<td>Configuration: the account or role that created and manages the instance. Useful in multi-account environments.</td>
+</tr>
+</tbody>
+</table>
+<p>You can research each of these topics on your own in the AWS documentation, but the <a href="https://do4ds.com/chapters/sec2/2-6-networking.html">do4ds chapter on the Computer Networks</a> is also helpful.</p>
+</section>
+<section id="network-architecture-overview" class="level2">
+<h2 class="anchored" data-anchor-id="network-architecture-overview">Network Architecture Overview</h2>
+<p>Understanding how these addresses and identifiers connect is key to accessing our EC2 instance. I’ve tried to illustrate how public and private addressing works in the figure below:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    Client["Your Computer"]
+    PubIP["Public IPv4: 203.0.113.42"]
+    PubDNS["Public DNS: ec2-203-0-113-42..."]
+    IGW["Internet Gateway"]
+    VPC["VPC"]
+    Subnet["Subnet 10.0.1.0/24"]
+    Instance["EC2 Instance"]
+    PrivIP["Private IPv4: 10.0.1.42"]
+    PrivDNS["Private DNS: ip-10-0-1-42..."]
+
+    Client --&gt;|SSH port 22| PubIP
+    PubIP -.-&gt;|resolves to| PubDNS
+    PubIP --&gt;|NAT| IGW
+    IGW --&gt;|route| VPC
+    VPC --&gt; Subnet
+    Subnet --&gt; Instance
+    Instance --&gt; PrivIP
+    PrivIP -.-&gt;|resolves to| PrivDNS
+
+    style Client fill:#E8E8E8,stroke:#333,stroke-width:1px,color:#000
+    style PubIP fill:#E8A33D,stroke:#000,stroke-width:2px,color:#000
+    style PubDNS fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style IGW fill:#E8A33D,stroke:#000,stroke-width:2px,color:#000
+    style VPC fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style Subnet fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Instance fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style PrivIP fill:#5B8C5A,stroke:#fff,stroke-width:2px,color:#fff
+    style PrivDNS fill:#5B8C5A,stroke:#000,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> EC2 Instance Network Architecture</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<section id="understanding-nat" class="level3">
+<h3 class="anchored" data-anchor-id="understanding-nat">Understanding NAT</h3>
+<p>The <strong>NAT</strong> (Network Address Translation) step in the diagram is where the <strong>Internet Gateway</strong> translates the <strong><em>public</em></strong> <strong>IPv4 address</strong> to the <strong><em>private</em></strong> <strong>IPv4 address</strong> of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the VPC. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.</p>
+</section>
+</section>
+<section id="using-your-ssh-key" class="level2">
+<h2 class="anchored" data-anchor-id="using-your-ssh-key">Using Your SSH Key</h2>
+<p>When we created the key pair in AWS, a <code>.pem</code> file was downloaded to our computer. This file is our private key—keep it secure and never share it. We’ll use the <code>.pem</code> key to authenticate when connecting to our <strong>EC2 Instance</strong>.</p>
+<section id="step-1-set-up-the-key-file" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-set-up-the-key-file">Step 1: Set up the key file</h3>
+<p>First, we move the <code>.pem</code> file to our <code>.ssh</code> directory:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mv</span> ~/Downloads/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ~/.ssh/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then set the correct permissions. SSH requires that private keys have restricted permissions (readable only by us):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If we skip this step, SSH will refuse to use the key with an error like <code>Permissions 0644 for '.../&lt;your-key-file-name&gt;.pem' are too open</code>.</p>
+</section>
+<section id="ssh-directory-and-file-permissions" class="level3">
+<h3 class="anchored" data-anchor-id="ssh-directory-and-file-permissions">SSH directory and file permissions</h3>
+<p>SSH is strict about permissions to prevent other users on the computer from reading our keys. Here’s what the <code>.ssh</code> directory structure should look like:</p>
+<div class="cell" data-fig-width="6" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    ssh["~/.ssh&lt;br/&gt;(700)"]
+    config["config&lt;br/&gt;(600)"]
+    pem["*.pem or key&lt;br/&gt;(600 or 400)"]
+    pub["*.pub&lt;br/&gt;(644)"]
+    known["known_hosts&lt;br/&gt;(644)"]
+    auth["authorized_keys&lt;br/&gt;(600)"]
+
+    ssh --&gt; config
+    ssh --&gt; pem
+    ssh --&gt; pub
+    ssh --&gt; known
+    ssh --&gt; auth
+
+    style ssh fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace,text-align:center
+    style config fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center
+    style pem fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center
+    style pub fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center
+    style known fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center
+    style auth fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center
+</pre>
+</div>
+<p></p><figcaption> ~/.ssh Directory Permissions</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The directory itself (700) and private keys (600) are the most critical. If these are too permissive, SSH silently refuses to use them.</p>
+</section>
+<section id="step-2-connect-to-the-instance" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-connect-to-the-instance">Step 2: Connect to the instance</h3>
+<p>Now we can SSH into our instance using the <strong><em>Public</em></strong> <strong>IPv4 address</strong> from the EC2 console:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Replace <code>YOUR_PUBLIC_IP_ADDRESS</code> with the actual public IP from the instance details (e.g., <code>203.0.113.42</code>).</p>
+<section id="host-key-verification" class="level4">
+<h4 class="anchored" data-anchor-id="host-key-verification">Host key verification</h4>
+<p>The first time we connect, SSH will ask if we trust the host:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>The authenticity of host 'YOUR_PUBLIC_IP_ADDRESS (YOUR_PUBLIC_IP_ADDRESS)' can't be established.</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ED25519 key fingerprint is SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>This key is not known by any other names.</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Are you sure you want to continue connecting (yes/no/[fingerprint])?</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This is SSH verifying the server’s public key fingerprint to prevent man-in-the-middle attacks. When we type <code>yes</code>, SSH stores the host key in <code>~/.ssh/known_hosts</code> so it won’t ask again on future connections.</p>
+<p>For an EC2 instance we just created, it’s safe to accept this. The fingerprint comes from the server itself and doesn’t require external verification.</p>
+</section>
+<section id="successful-connection" class="level4">
+<h4 class="anchored" data-anchor-id="successful-connection">Successful connection</h4>
+<p>When the connection works, we see the Amazon Linux 2 welcome banner and land at a shell prompt on the remote instance:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>       __|  __|_  )</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>       _|  (     /   Amazon Linux 2 AMI</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>      ___|\___|___|</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>https://aws.amazon.com/amazon-linux-2/</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>47 package(s) needed for security, out of 92 available</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>Run "sudo yum update" to apply all updates.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We can now run commands on the server.</p>
+</section>
+</section>
+</section>
+<section id="troubleshooting-connection-closed" class="level2">
+<h2 class="anchored" data-anchor-id="troubleshooting-connection-closed">Troubleshooting: Connection closed</h2>
+<p>If the connection closes immediately after accepting the host key, the issue is usually one of the following:</p>
+<section id="security-group-doesnt-allow-ssh-port-22" class="level3">
+<h3 class="anchored" data-anchor-id="security-group-doesnt-allow-ssh-port-22">Security Group doesn’t allow SSH (port 22)</h3>
+<p>The most common cause. To check the security group rules:</p>
+<ol type="1">
+<li>Go to the EC2 console and click <strong>Instances</strong></li>
+<li>Select the running instance</li>
+<li>In the details panel, find <strong>Security groups</strong> and click on the group name</li>
+<li>In the security group details, look for the <strong>Inbound rules</strong> tab</li>
+<li>Check if there’s a rule allowing <strong>SSH</strong> (port 22) from the IP address</li>
+</ol>
+<p>If there’s no SSH rule, click <strong>Edit inbound rules</strong> and add:</p>
+<ul>
+<li>Type: SSH</li>
+<li>Protocol: TCP</li>
+<li>Port: 22</li>
+<li>Source: Your IP address (or <code>0.0.0.0/0</code> to allow from anywhere—less secure but simpler for testing)</li>
+</ul>
+<p>Click <strong>Save rules</strong> and try connecting again.</p>
+</section>
+<section id="wrong-username" class="level3">
+<h3 class="anchored" data-anchor-id="wrong-username">Wrong username</h3>
+<p>Different AMIs use different default usernames:</p>
+<ul>
+<li>Amazon Linux 2: <code>ec2-user</code></li>
+<li>Ubuntu: <code>ubuntu</code></li>
+<li>CentOS: <code>centos</code></li>
+<li>RHEL: <code>ec2-user</code></li>
+</ul>
+<p>Try connecting with the correct username for the instance’s operating system.</p>
+</section>
+<section id="key-mismatch" class="level3">
+<h3 class="anchored" data-anchor-id="key-mismatch">Key mismatch</h3>
+<p>The private key on our computer doesn’t match the public key on the instance. Verify that the key pair name in AWS matches the <code>.pem</code> file name.</p>
+</section>
+<section id="instance-not-ready" class="level3">
+<h3 class="anchored" data-anchor-id="instance-not-ready">Instance not ready</h3>
+<p>If the instance was just launched, it may still be booting. Wait a minute and try again.</p>
+</section>
+</section>
+<section id="creating-a-regular-ssh-key-for-routine-access" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</h2>
+<p>The AWS <code>.pem</code> key is powerful—it’s our root access to the instance. For daily work, we want to create a separate SSH key pair with limited permissions. This follows the principle of least privilege: use the AWS key only for setup, then use a weaker key for routine access.</p>
+<section id="step-1.-generate-a-new-key-pair-locally" class="level3">
+<h3 class="anchored" data-anchor-id="step-1.-generate-a-new-key-pair-locally">Step 1. Generate a new key pair locally</h3>
+<p>On our computer, we’ll create a new SSH key using <code>ssh-keygen</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-f</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> -C <span class="st">"your-email@example.com"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Press Enter when prompted for a passphrase (or add one for extra security). This creates two files:</p>
+<ul>
+<li><p><code>~/.ssh/&lt;your-key-name&gt;</code> (private key—keep this secret)</p></li>
+<li><p><code>~/.ssh/&lt;your-key-name&gt;.pub</code> (public key—share this with the server)</p></li>
+</ul>
+</section>
+<section id="step-2.-add-the-public-key-to-the-server" class="level3">
+<h3 class="anchored" data-anchor-id="step-2.-add-the-public-key-to-the-server">Step 2. Add the public key to the server</h3>
+<p>Connect to the instance using the AWS <code>.pem</code> key:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-aws-key-file-name<span class="op">&gt;</span>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Once logged in, create the <code>.ssh</code> directory and add the public key:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.ssh</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 700 ~/.ssh</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Replace <code>YOUR_PUBLIC_KEY_CONTENT</code> with the contents of <code>~/.ssh/&lt;your-key-name&gt;.pub</code> on our local computer. We can view it with:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"YOUR_PUBLIC_KEY_CONTENT"</span> <span class="op">&gt;&gt;</span> ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Change the permissions on the <code>authorized_keys</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-3.-use-new-key-for-future-connections" class="level3">
+<h3 class="anchored" data-anchor-id="step-3.-use-new-key-for-future-connections">Step 3. Use new key for future connections</h3>
+<p>Now you can log in using your new key without needing the AWS <code>.pem</code> file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Keep the AWS <code>.pem</code> file safe but don’t use it for routine work. If the regular key is compromised, delete it from the server and generate a new one. The AWS key remains your recovery method.</p>
+</section>
+</section>
+<section id="using-the-public-dns-instead" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-public-dns-instead">Using the Public DNS instead</h2>
+<p>We can also connect using the <strong>Public DNS</strong> name instead of the IP address:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@ec2-203-0-113-42.compute-1.amazonaws.com</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The default public DNS is convenient for one-off connections, but note that it encodes the public IP and changes when the instance stops and restarts. For stable, persistent access, assign an Elastic IP address to the instance.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<p>In this lab we logged into our EC2 instance over SSH and created a regular key for routine access. The key ideas to carry forward:</p>
+<ol type="1">
+<li><p>The server trusts keys, not machines. A new computer needs a private key whose public half is in the server’s <code>authorized_keys</code>.</p></li>
+<li><p>Reserve the AWS <code>.pem</code> key for recovery, scope your security group to known IPs, and rotate any key you can’t fully account for.</p></li>
+</ol>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -953,12 +1388,44 @@ ul.task-list li input[type="checkbox"] {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./lab09.html" class="pagination-link" aria-label="<strong>Lab 9: Linux Admin</strong>">
-        <span class="nav-page-text"><strong>Lab 9: Linux Admin</strong></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./manage-ssh-keys.html" class="pagination-link" aria-label="<em>Managing SSH Key Pairs</em>">
+        <span class="nav-page-text"><em>Managing SSH Key Pairs</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
