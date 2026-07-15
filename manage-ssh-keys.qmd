@@ -86,11 +86,19 @@ We have two options:
 
 The first option is safer, so we'll cover it below. Copying private keys around is convenient, but every copy is another file that can leak.
 
-### Example: generate a new key on the MacBook (recommended)
+### Example: generate a new key on the MacBook
 
-This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine. On the MacBook, create a key pair:
+This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine. 
+
+On my MacBook, I completed the following steps:
 
 #### Step 1: Create key pair
+
+This requires creating/downloading a new key pair from the **AWS Console**: 
+
+![](img/lab8-macbook-create-key-aws-console.png){width='100%' fig-align='center'}
+
+After it's downloaded, move the `.pem` file into the `.ssh/` folder and run the following:
 
 ```{bash}
 #| eval: false
@@ -108,9 +116,11 @@ Giving the key a machine-specific name (like `-macbook`) makes it easy to tell l
 cat ~/.ssh/<your-key-name>-macbook.pub
 ```
 
+**Copy this somewhere safe (like a password manager).**
+
 #### Step 3: Append public key to `authorized_keys`
 
-From a machine that can already reach the instance, connect and append the MacBook's public key to `authorized_keys`:
+From a machine that can already reach the instance (i.e., my System76/Ubuntu laptop), connect and append the MacBook's public key to `authorized_keys`:
 
 ```{bash}
 #| eval: false
@@ -118,11 +128,15 @@ From a machine that can already reach the instance, connect and append the MacBo
 ssh -i ~/.ssh/<your-key-name> ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
+After SSH-ing into the EC2 server, we can copy the public key to `~/.ssh/authorized_keys/`:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 echo "MACBOOK_PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
 ```
+
+Replace `"MACBOOK_PUBLIC_KEY_CONTENT"` with the actual public key.
 
 #### Step 4: Test connection
 

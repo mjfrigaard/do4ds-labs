@@ -2,18 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.30">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-14">
+<meta name="dcterms.date" content="2026-07-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Managing SSH Key Pairs – DO4DS: Lab Solutions</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -74,14 +71,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./aws-ssh-ec2.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-f8d8d8633edabd683ea18ff7e0b6c6e2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -506,7 +507,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#security-considerations" id="toc-security-considerations" class="nav-link active" data-scroll-target="#security-considerations">Security considerations</a></li>
   <li><a href="#logging-in-from-another-machine" id="toc-logging-in-from-another-machine" class="nav-link" data-scroll-target="#logging-in-from-another-machine">Logging in from another machine</a>
   <ul>
-  <li><a href="#example-generate-a-new-key-on-the-macbook-recommended" id="toc-example-generate-a-new-key-on-the-macbook-recommended" class="nav-link" data-scroll-target="#example-generate-a-new-key-on-the-macbook-recommended">Example: generate a new key on the MacBook (recommended)</a>
+  <li><a href="#example-generate-a-new-key-on-the-macbook" id="toc-example-generate-a-new-key-on-the-macbook" class="nav-link" data-scroll-target="#example-generate-a-new-key-on-the-macbook">Example: generate a new key on the MacBook</a>
   <ul class="collapse">
   <li><a href="#step-1-create-key-pair" id="toc-step-1-create-key-pair" class="nav-link" data-scroll-target="#step-1-create-key-pair">Step 1: Create key pair</a></li>
   <li><a href="#step-2-copy-public-key" id="toc-step-2-copy-public-key" class="nav-link" data-scroll-target="#step-2-copy-public-key">Step 2: Copy public key</a></li>
@@ -546,7 +547,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-14</p>
+      <p class="date">2026-07-15</p>
     </div>
   </div>
   
@@ -641,11 +642,19 @@ graph LR
 <li><p>Copy an existing private key to the new machine.</p></li>
 </ol>
 <p>The first option is safer, so we’ll cover it below. Copying private keys around is convenient, but every copy is another file that can leak.</p>
-<section id="example-generate-a-new-key-on-the-macbook-recommended" class="level3">
-<h3 class="anchored" data-anchor-id="example-generate-a-new-key-on-the-macbook-recommended">Example: generate a new key on the MacBook (recommended)</h3>
-<p>This is the same process we followed in <a href="./aws-ssh-ec2.html#creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</a>, just run on the new machine. On the MacBook, create a key pair:</p>
+<section id="example-generate-a-new-key-on-the-macbook" class="level3">
+<h3 class="anchored" data-anchor-id="example-generate-a-new-key-on-the-macbook">Example: generate a new key on the MacBook</h3>
+<p>This is the same process we followed in <a href="./aws-ssh-ec2.html#creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</a>, just run on the new machine.</p>
+<p>On my MacBook, I completed the following steps:</p>
 <section id="step-1-create-key-pair" class="level4">
 <h4 class="anchored" data-anchor-id="step-1-create-key-pair">Step 1: Create key pair</h4>
+<p>This requires creating/downloading a new key pair from the <strong>AWS Console</strong>:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab8-macbook-create-key-aws-console.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab8-macbook-create-key-aws-console.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></a></p>
+</figure>
+</div>
+<p>After it’s downloaded, move the <code>.pem</code> file into the <code>.ssh/</code> folder and run the following:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-f</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>-macbook <span class="at">-C</span> <span class="st">"your-email@example.com"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -656,16 +665,19 @@ graph LR
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>-macbook.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p><strong>Copy this somewhere safe (like a password manager).</strong></p>
 </section>
 <section id="step-3-append-public-key-to-authorized_keys" class="level4">
 <h4 class="anchored" data-anchor-id="step-3-append-public-key-to-authorized_keys">Step 3: Append public key to <code>authorized_keys</code></h4>
-<p>From a machine that can already reach the instance, connect and append the MacBook’s public key to <code>authorized_keys</code>:</p>
+<p>From a machine that can already reach the instance (i.e., my System76/Ubuntu laptop), connect and append the MacBook’s public key to <code>authorized_keys</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>After SSH-ing into the EC2 server, we can copy the public key to <code>~/.ssh/authorized_keys/</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"MACBOOK_PUBLIC_KEY_CONTENT"</span> <span class="op">&gt;&gt;</span> ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>Replace <code>"MACBOOK_PUBLIC_KEY_CONTENT"</code> with the actual public key.</p>
 </section>
 <section id="step-4-test-connection" class="level4">
 <h4 class="anchored" data-anchor-id="step-4-test-connection">Step 4: Test connection</h4>
@@ -1243,6 +1255,38 @@ graph LR
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
