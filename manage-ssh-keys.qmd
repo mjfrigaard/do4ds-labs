@@ -88,7 +88,7 @@ The first option is safer, so we'll cover it below. Copying private keys around 
 
 ## Example: generate a new key on the MacBook
 
-This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine. 
+This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine.
 
 On my MacBook, I completed the following steps:
 
@@ -195,9 +195,56 @@ Now we test the connection from our MacBook with its own key:
 ssh -i ~/.ssh/<your-key-name>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
+```{mermaid}
+%%| fig-cap: 'MacBook SSH Key Setup Workflow'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    A(["Step 1: Generate key pair<br/>on MacBook<br/><code>ssh-keygen</code>"]) --> B["Step 2: Copy public key<br/>from MacBook<br/><code>cat ...pub</code>"]
+    B --> C["Step 3: Add to server<br/>from another machine<br/>SSH + append to <code>authorized_keys</code>"]
+    C --> D["Step 4: Test<br/>Connect from MacBook<br/>with new key"]
+    D --> E(["✓ Access granted"])
+
+    style A fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style B fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style C fill:#2A6F77,stroke:#fff,stroke-width:2px,color:#fff
+    style D fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style E fill:#4CAF50,stroke:#fff,stroke-width:2px,color:#fff
+```
+
 ### Logging in from other machines (notes)
 
 The advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from `authorized_keys` and the other machines keep working.
+
+```{mermaid}
+%%| fig-cap: 'Multi-Machine SSH Access After MacBook Setup'
+%%| fig-width: 9.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    subgraph Mac["MacBook"]
+        mackey["Private Key<br/><your-key-name>-macbook"]
+    end
+    subgraph Ubuntu["System76/Ubuntu"]
+        ubuntukey["Private Key<br/><your-key-name>"]
+    end
+    subgraph Server["EC2 Instance<br/>authorized_keys"]
+        auth["<your-key-name>.pub<br/><your-key-name>-macbook.pub"]
+    end
+
+    mackey -->|"presents"| auth
+    ubuntukey -->|"presents"| auth
+
+    style Mac fill:#A2AAAD,stroke:#333,stroke-width:2px,color:#000
+    style Ubuntu fill:#FF6B35,stroke:#333,stroke-width:2px,color:#fff
+    style Server fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style mackey fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style ubuntukey fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style auth fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+```
 
 ## Replacing key pairs 
 

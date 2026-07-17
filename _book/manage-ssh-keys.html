@@ -711,10 +711,67 @@ graph LR
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    A(["Step 1: Generate key pair&lt;br/&gt;on MacBook&lt;br/&gt;&lt;code&gt;ssh-keygen&lt;/code&gt;"]) --&gt; B["Step 2: Copy public key&lt;br/&gt;from MacBook&lt;br/&gt;&lt;code&gt;cat ...pub&lt;/code&gt;"]
+    B --&gt; C["Step 3: Add to server&lt;br/&gt;from another machine&lt;br/&gt;SSH + append to &lt;code&gt;authorized_keys&lt;/code&gt;"]
+    C --&gt; D["Step 4: Test&lt;br/&gt;Connect from MacBook&lt;br/&gt;with new key"]
+    D --&gt; E(["✓ Access granted"])
+
+    style A fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style B fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style C fill:#2A6F77,stroke:#fff,stroke-width:2px,color:#fff
+    style D fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style E fill:#4CAF50,stroke:#fff,stroke-width:2px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> MacBook SSH Key Setup Workflow</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 </section>
 <section id="logging-in-from-other-machines-notes" class="level3">
 <h3 class="anchored" data-anchor-id="logging-in-from-other-machines-notes">Logging in from other machines (notes)</h3>
 <p>The advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from <code>authorized_keys</code> and the other machines keep working.</p>
+<div class="cell" data-fig-width="9" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    subgraph Mac["MacBook"]
+        mackey["Private Key&lt;br/&gt;&lt;your-key-name&gt;-macbook"]
+    end
+    subgraph Ubuntu["System76/Ubuntu"]
+        ubuntukey["Private Key&lt;br/&gt;&lt;your-key-name&gt;"]
+    end
+    subgraph Server["EC2 Instance&lt;br/&gt;authorized_keys"]
+        auth["&lt;your-key-name&gt;.pub&lt;br/&gt;&lt;your-key-name&gt;-macbook.pub"]
+    end
+
+    mackey --&gt;|"presents"| auth
+    ubuntukey --&gt;|"presents"| auth
+
+    style Mac fill:#A2AAAD,stroke:#333,stroke-width:2px,color:#000
+    style Ubuntu fill:#FF6B35,stroke:#333,stroke-width:2px,color:#fff
+    style Server fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style mackey fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style ubuntukey fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style auth fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> Multi-Machine SSH Access After MacBook Setup</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 </section>
 </section>
 <section id="replacing-key-pairs" class="level2">
