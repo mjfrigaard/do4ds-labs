@@ -2,15 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.30">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-15">
+<meta name="dcterms.date" content="2026-07-16">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>AWS Server Login  – DO4DS: Lab Solutions</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -71,15 +74,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./lab08.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-f8d8d8633edabd683ea18ff7e0b6c6e2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -532,7 +534,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2.-add-the-public-key-to-the-server" id="toc-step-2.-add-the-public-key-to-the-server" class="nav-link" data-scroll-target="#step-2.-add-the-public-key-to-the-server">Step 2. Add the public key to the server</a></li>
   <li><a href="#step-3.-use-new-key-for-future-connections" id="toc-step-3.-use-new-key-for-future-connections" class="nav-link" data-scroll-target="#step-3.-use-new-key-for-future-connections">Step 3. Use new key for future connections</a></li>
   </ul></li>
-  <li><a href="#using-the-public-dns-instead" id="toc-using-the-public-dns-instead" class="nav-link" data-scroll-target="#using-the-public-dns-instead">Using the Public DNS instead</a></li>
+  <li><a href="#using-the-public-dns" id="toc-using-the-public-dns" class="nav-link" data-scroll-target="#using-the-public-dns">Using the Public DNS</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -553,7 +555,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-15</p>
+      <p class="date">2026-07-16</p>
     </div>
   </div>
   
@@ -707,17 +709,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
 
 graph TD
-    Client["Your Computer"]
-    PubIP["Public IPv4: 203.0.113.42"]
-    PubDNS["Public DNS: ec2-203-0-113-42..."]
-    IGW["Internet Gateway"]
-    VPC["VPC"]
-    Subnet["Subnet 10.0.1.0/24"]
-    Instance["EC2 Instance"]
-    PrivIP["Private IPv4: 10.0.1.42"]
-    PrivDNS["Private DNS: ip-10-0-1-42..."]
-
-    Client --&gt;|SSH port 22| PubIP
+    Client(["Our Computer"])
+    PubIP("&lt;strong&gt;Public IPv4&lt;/strong&gt;:&lt;br&gt;203.0.113.42")
+    PubDNS("&lt;strong&gt;Public DNS&lt;/strong&gt;:&lt;br&gt;ec2-203-0-113-42...")
+    IGW("Internet&lt;br&gt;Gateway")
+    VPC("&lt;strong&gt;VPC&lt;/strong&gt;")
+    Subnet["&lt;strong&gt;Subnet&lt;/strong&gt;&lt;br&gt;10.0.1.0/24"]
+    Instance{{"&lt;strong&gt;EC2 Instance&lt;/strong&gt;"}}
+    PrivIP["&lt;strong&gt;Private IPv4&lt;/strong&gt;:&lt;br&gt;10.0.1.42"]
+    PrivDNS["&lt;strong&gt;Private DNS&lt;/strong&gt;:&lt;br&gt;ip-10-0-1-42..."]
+    
+    Client --&gt;|"&lt;em&gt;SSH port 22&lt;/em&gt;"| PubIP
     PubIP -.-&gt;|resolves to| PubDNS
     PubIP --&gt;|NAT| IGW
     IGW --&gt;|route| VPC
@@ -882,51 +884,89 @@ graph LR
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-f</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> -C <span class="st">"your-email@example.com"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Press Enter when prompted for a passphrase (or add one for extra security). This creates two files:</p>
+<p>Press <kbd>Enter</kbd> when prompted for a passphrase (or add one for extra security). We see something like the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Your identification has been saved in /path/to/.ssh/&lt;your-key-name&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>Your public key has been saved in /path/to/.ssh/&lt;your-key-name&gt;.pub</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>The key fingerprint is:</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>&lt;!-- SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX your-email@example.com --&gt;</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>The key's randomart image is:</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>+--[ED25519 256]--+</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>|        ..+o+... |</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>|          o+.ooo.|</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>|         .+.+Eo+o|</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>|         .. .+ *.|</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>|      . S..+o+   |</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>|       o.+O ..  .|</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>|       + +..o +oo|</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>|        oo+ +  +.|</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>|         ..=+.. .|</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>+----[SHA256]-----+</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This creates two files in <code>~/.ssh.</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">~/.ssh/</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> known_hosts/</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> vetiver-deploy-key</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> vetiver-deploy-key.pem</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> vetiver-deploy-key.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <ul>
-<li><p><code>~/.ssh/&lt;your-key-name&gt;</code> (private key—keep this secret)</p></li>
-<li><p><code>~/.ssh/&lt;your-key-name&gt;.pub</code> (public key—share this with the server)</p></li>
+<li><p><code>~/.ssh/&lt;your-key-name&gt;</code> is the private key (<strong>keep this secret</strong>)</p></li>
+<li><p><code>~/.ssh/&lt;your-key-name&gt;.pub</code> is the public key we will share this with the server</p></li>
 </ul>
 </section>
 <section id="step-2.-add-the-public-key-to-the-server" class="level3">
 <h3 class="anchored" data-anchor-id="step-2.-add-the-public-key-to-the-server">Step 2. Add the public key to the server</h3>
-<p>Connect to the instance using the AWS <code>.pem</code> key:</p>
+<p>Now–we can connect to the instance using the AWS <code>.pem</code> key:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-aws-key-file-name<span class="op">&gt;</span>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-aws-key-file-name<span class="op">&gt;</span>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Once logged in, create the <code>.ssh</code> directory and add the public key:</p>
+<p>Once logged in, we can create the <code>.ssh</code> directory and add the public key:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.ssh</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 700 ~/.ssh</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.ssh</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 700 ~/.ssh</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Replace <code>YOUR_PUBLIC_KEY_CONTENT</code> with the contents of <code>~/.ssh/&lt;your-key-name&gt;.pub</code> on our local computer. We can view it with:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"YOUR_PUBLIC_KEY_CONTENT"</span> <span class="op">&gt;&gt;</span> ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"YOUR_PUBLIC_KEY_CONTENT"</span> <span class="op">&gt;&gt;</span> ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Change the permissions on the <code>authorized_keys</code>:</p>
+<p>And we need to change the permissions on <code>authorized_keys</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="step-3.-use-new-key-for-future-connections" class="level3">
 <h3 class="anchored" data-anchor-id="step-3.-use-new-key-for-future-connections">Step 3. Use new key for future connections</h3>
-<p>Now you can log in using your new key without needing the AWS <code>.pem</code> file:</p>
+<p>Now we can log in using our new key without needing the AWS <code>.pem</code> file:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Keep the AWS <code>.pem</code> file safe but don’t use it for routine work. If the regular key is compromised, delete it from the server and generate a new one. The AWS key remains your recovery method.</p>
+<p>We should keep the AWS <code>.pem</code> file safe and avoid using it for routine work. If the regular key is compromised, we should delete it from our server and generate a new one. The AWS key remains our recovery method.</p>
 </section>
 </section>
-<section id="using-the-public-dns-instead" class="level2">
-<h2 class="anchored" data-anchor-id="using-the-public-dns-instead">Using the Public DNS instead</h2>
-<p>We can also connect using the <strong>Public DNS</strong> name instead of the IP address:</p>
+<section id="using-the-public-dns" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-public-dns">Using the Public DNS</h2>
+<p>We can also connect using the <strong>Public DNS</strong> name instead of the IP address.</p>
+<p>In fact, if we log into the <strong>AWS Console</strong>, we can navigate to <strong>Instances</strong> &gt; <strong><code>&lt;instance-id&gt;</code></strong> &gt; <strong>Connect to instance</strong> &gt; <strong>SSH client</strong> and copy the following:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@ec2-203-0-113-42.compute-1.amazonaws.com</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@ec2-YOUR-PUBLIC-IP.compute-1.amazonaws.com </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The default public DNS is convenient for one-off connections, but note that it encodes the public IP and changes when the instance stops and restarts. For stable, persistent access, assign an Elastic IP address to the instance.</p>
+<p>The public DNS is convenient for one-off connections—we don’t need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).</p>
+<p>When we log in, we should see something like the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>Last login: Fri Jul 17 06:24:04 2026 from ip70-163-154-253.ph.ph.cox.net</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  ~~  \_#####\</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  ~~     \###|       AL2 End of Life is 2026-06-30.</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    ~~~         /    A newer version of Amazon Linux is available!</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      ~~._.   _/</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>[ec2-user@ip=203-0-113-421 ~]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
@@ -935,6 +975,7 @@ graph LR
 <li><p>The server trusts keys, not machines. A new computer needs a private key whose public half is in the server’s <code>authorized_keys</code>.</p></li>
 <li><p>Reserve the AWS <code>.pem</code> key for recovery, scope your security group to known IPs, and rotate any key you can’t fully account for.</p></li>
 </ol>
+<p>In the next chapter we’ll cover logging in from a different computer, and how to rename/replace keys.</p>
 
 
 </section>

@@ -70,17 +70,17 @@ Understanding how these addresses and identifiers connect is key to accessing ou
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
 
 graph TD
-    Client["Your Computer"]
-    PubIP["Public IPv4: 203.0.113.42"]
-    PubDNS["Public DNS: ec2-203-0-113-42..."]
-    IGW["Internet Gateway"]
-    VPC["VPC"]
-    Subnet["Subnet 10.0.1.0/24"]
-    Instance["EC2 Instance"]
-    PrivIP["Private IPv4: 10.0.1.42"]
-    PrivDNS["Private DNS: ip-10-0-1-42..."]
-
-    Client -->|SSH port 22| PubIP
+    Client(["Our Computer"])
+    PubIP("<strong>Public IPv4</strong>:<br>203.0.113.42")
+    PubDNS("<strong>Public DNS</strong>:<br>ec2-203-0-113-42...")
+    IGW("Internet<br>Gateway")
+    VPC("<strong>VPC</strong>")
+    Subnet["<strong>Subnet</strong><br>10.0.1.0/24"]
+    Instance{{"<strong>EC2 Instance</strong>"}}
+    PrivIP["<strong>Private IPv4</strong>:<br>10.0.1.42"]
+    PrivDNS["<strong>Private DNS</strong>:<br>ip-10-0-1-42..."]
+    
+    Client -->|"<em>SSH port 22</em>"| PubIP
     PubIP -.->|resolves to| PubDNS
     PubIP -->|NAT| IGW
     IGW -->|route| VPC
@@ -102,7 +102,7 @@ graph TD
 
 ### Understanding NAT
 
-The **NAT** (Network Address Translation) step in the diagram is where the **Internet Gateway** translates the ***public*** **IPv4 address** to the ***private*** **IPv4 address** of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the VPC. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.
+The **NAT** (Network Address Translation) step in the diagram is where the **Internet Gateway** translates the ***public*** **IPv4 address** to the ***private*** **IPv4 address** of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the **VPC** (Virtual Private Cloud)—your isolated network environment in AWS where the instance lives. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.
 
 ## Using Your SSH Key
 
@@ -262,15 +262,48 @@ On our computer, we'll create a new SSH key using `ssh-keygen`:
 ssh-keygen -t ed25519 -f ~/.ssh/<your-key-name> -C "your-email@example.com"
 ```
 
-Press Enter when prompted for a passphrase (or add one for extra security). This creates two files: 
+Press <kbd>Enter</kbd> when prompted for a passphrase (or add one for extra security). We see something like the following: 
 
-- `~/.ssh/<your-key-name>` (private key—keep this secret) 
+```{verbatim}
+Your identification has been saved in /path/to/.ssh/<your-key-name>
+Your public key has been saved in /path/to/.ssh/<your-key-name>.pub
+The key fingerprint is:
+<!-- SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX your-email@example.com -->
+The key's randomart image is:
++--[ED25519 256]--+
+|        ..+o+... |
+|          o+.ooo.|
+|         .+.+Eo+o|
+|         .. .+ *.|
+|      . S..+o+   |
+|       o.+O ..  .|
+|       + +..o +oo|
+|        oo+ +  +.|
+|         ..=+.. .|
++----[SHA256]-----+
+```
 
-- `~/.ssh/<your-key-name>.pub` (public key—share this with the server)
+
+This creates two files in `~/.ssh.`: 
+
+```{bash}
+#| eval: false 
+#| code-fold: false 
+~/.ssh/
+├── known_hosts/
+├── vetiver-deploy-key
+├── vetiver-deploy-key.pem
+└── vetiver-deploy-key.pub
+
+```
+
+- `~/.ssh/<your-key-name>` is the private key (**keep this secret**)
+
+- `~/.ssh/<your-key-name>.pub` is the public key we will share this with the server
 
 ### Step 2. Add the public key to the server
 
-Connect to the instance using the AWS `.pem` key:
+Now--we can connect to the instance using the AWS `.pem` key:
 
 ```{bash}
 #| eval: false
@@ -278,7 +311,7 @@ Connect to the instance using the AWS `.pem` key:
 ssh -i ~/.ssh/<your-aws-key-file-name>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
-Once logged in, create the `.ssh` directory and add the public key:
+Once logged in, we can create the `.ssh` directory and add the public key:
 
 ```{bash}
 #| eval: false
@@ -301,7 +334,7 @@ cat ~/.ssh/<your-key-name>.pub
 echo "YOUR_PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
 ```
 
-Change the permissions on the `authorized_keys`:
+And we need to change the permissions on `authorized_keys`:
 
 ```{bash}
 #| eval: false
@@ -311,7 +344,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 ### Step 3. Use new key for future connections
 
-Now you can log in using your new key without needing the AWS `.pem` file:
+Now we can log in using our new key without needing the AWS `.pem` file:
 
 ```{bash}
 #| eval: false
@@ -319,19 +352,38 @@ Now you can log in using your new key without needing the AWS `.pem` file:
 ssh -i ~/.ssh/<your-key-name> ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
-Keep the AWS `.pem` file safe but don't use it for routine work. If the regular key is compromised, delete it from the server and generate a new one. The AWS key remains your recovery method.
+We should keep the AWS `.pem` file safe and avoid using it for routine work. If the regular key is compromised, we should delete it from our server and generate a new one. The AWS key remains our recovery method.
 
-## Using the Public DNS instead
+## Using the Public DNS
 
-We can also connect using the **Public DNS** name instead of the IP address:
+We can also connect using the **Public DNS** name instead of the IP address.
+
+In fact, if we log into the **AWS Console**, we can navigate to **Instances** > **`<instance-id>`** > **Connect to instance** > **SSH client** and copy the following:
 
 ```{bash}
 #| eval: false 
 #| code-fold: false 
-ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@ec2-203-0-113-42.compute-1.amazonaws.com
+ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@ec2-YOUR-PUBLIC-IP.compute-1.amazonaws.com 
 ```
 
-The default public DNS is convenient for one-off connections, but note that it encodes the public IP and changes when the instance stops and restarts. For stable, persistent access, assign an Elastic IP address to the instance.
+The public DNS is convenient for one-off connections—we don't need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).
+
+When we log in, we should see something like the following:
+
+```{verbatim}
+Last login: Fri Jul 17 06:24:04 2026 from ip70-163-154-253.ph.ph.cox.net
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+[ec2-user@ip=203-0-113-421 ~]$
+```
 
 ## Recap
 
@@ -340,3 +392,5 @@ In this lab we logged into our EC2 instance over SSH and created a regular key f
 1. The server trusts keys, not machines. A new computer needs a private key whose public half is in the server's `authorized_keys`.  
 
 2. Reserve the AWS `.pem` key for recovery, scope your security group to known IPs, and rotate any key you can't fully account for.
+
+In the next chapter we'll cover logging in from a different computer, and how to rename/replace keys. 
