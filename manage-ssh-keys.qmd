@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -204,6 +204,72 @@ Now we test the connection from our MacBook with its own key:
 #| eval: false
 #| code-fold: false
 ssh -i ~/.ssh/<your-key-name>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+The first time we connect from a new machine, SSH has never seen this server before, so it asks us to verify the host key. The output looks something like the block below (the real addresses and fingerprint are shown here as placeholders):
+
+```{verbatim}
+The authenticity of host 'YOUR_PUBLIC_IP_ADDRESS (YOUR_PUBLIC_IP_ADDRESS)' can't be established.
+ED25519 key fingerprint is SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+```
+
+The `The authenticity of host ... can't be established.` is the **host key verification**. This means our client has no record of this server yet, so it can't confirm we're talking to the right machine. 
+
+We answer `yes` only after checking the fingerprint against the value AWS reported for the instance. After confirming, we see the key has been added to the list of known hosts.
+
+```{verbatim}
+Warning: Permanently added 'YOUR_PUBLIC_IP_ADDRESS' (ED25519) to the list of known hosts.
+```
+
+Once we accept it, SSH stores it in `~/.ssh/known_hosts` and won't prompt again unless the key changes.
+
+```{verbatim}
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+```
+
+Newer OpenSSH versions try a post-quantum key exchange by default. When the server doesn't support it, SSH prints a warning, then falls back to a classical algorithm (this is informational, not an error).
+
+#### Successful login
+
+In the Terminal, we'll see `Last login: ...` and the `[ec2-user@ip-... ~]$` prompt. The shell prompt changing to the instance's user and hostname confirms we're now on the EC2 server.
+
+```{verbatim}
+Last login: <day> <month> <dd> <hh:mm:ss> <yyyy> from YOUR_PUBLIC_IP_ADDRESS
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+
+[ec2-user@ip-YOUR_INSTANCE_HOSTNAME ~]$
+```
+
+We can confirm the new key works because the login completes without asking for a password or the old key.
+
+```{r}
+#| label: co_box_placeholders
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.10",
+  size = "1.00",
+  header = "Keep these private!",
+  fold = FALSE,
+  contents = "
+
+The public IP, internal hostname, host key fingerprint, and login timestamps above are placeholders. Never publish your instance's real address or host key fingerprint; the fingerprint is meant to be verified out of band, and a live IP invites scanning.")
 ```
 
 ```{mermaid}
