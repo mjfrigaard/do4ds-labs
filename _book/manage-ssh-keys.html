@@ -2,18 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.30">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-16">
+<meta name="dcterms.date" content="2026-07-17">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Managing SSH Key Pairs – DO4DS: Lab Solutions</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -74,14 +71,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./aws-ssh-ec2.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-f8d8d8633edabd683ea18ff7e0b6c6e2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -507,18 +505,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#security-considerations" id="toc-security-considerations" class="nav-link active" data-scroll-target="#security-considerations">Security considerations</a></li>
-  <li><a href="#logging-in-from-another-machine" id="toc-logging-in-from-another-machine" class="nav-link" data-scroll-target="#logging-in-from-another-machine">Logging in from another machine</a>
-  <ul>
+  <li><a href="#logging-from-other-machines" id="toc-logging-from-other-machines" class="nav-link" data-scroll-target="#logging-from-other-machines">Logging from other machines</a></li>
   <li><a href="#example-generate-a-new-key-on-the-macbook" id="toc-example-generate-a-new-key-on-the-macbook" class="nav-link" data-scroll-target="#example-generate-a-new-key-on-the-macbook">Example: generate a new key on the MacBook</a>
-  <ul class="collapse">
+  <ul>
   <li><a href="#step-1-create-key-pair" id="toc-step-1-create-key-pair" class="nav-link" data-scroll-target="#step-1-create-key-pair">Step 1: Create key pair</a></li>
   <li><a href="#step-2-copy-public-key" id="toc-step-2-copy-public-key" class="nav-link" data-scroll-target="#step-2-copy-public-key">Step 2: Copy public key</a></li>
   <li><a href="#step-3-append-public-key-to-authorized_keys" id="toc-step-3-append-public-key-to-authorized_keys" class="nav-link" data-scroll-target="#step-3-append-public-key-to-authorized_keys">Step 3: Append public key to <code>authorized_keys</code></a></li>
   <li><a href="#step-4-test-connection" id="toc-step-4-test-connection" class="nav-link" data-scroll-target="#step-4-test-connection">Step 4: Test connection</a></li>
-  <li><a href="#logging-in-from-another-machine-notes" id="toc-logging-in-from-another-machine-notes" class="nav-link" data-scroll-target="#logging-in-from-another-machine-notes">Logging in from another machine (notes)</a></li>
+  <li><a href="#logging-in-from-other-machines-notes" id="toc-logging-in-from-other-machines-notes" class="nav-link" data-scroll-target="#logging-in-from-other-machines-notes">Logging in from other machines (notes)</a></li>
   </ul></li>
   <li><a href="#replacing-key-pairs" id="toc-replacing-key-pairs" class="nav-link" data-scroll-target="#replacing-key-pairs">Replacing key pairs</a>
-  <ul class="collapse">
+  <ul>
   <li><a href="#step-1.-create-the-new-key-pair" id="toc-step-1.-create-the-new-key-pair" class="nav-link" data-scroll-target="#step-1.-create-the-new-key-pair">Step 1. Create the new key pair</a></li>
   <li><a href="#step-2.-get-the-public-key" id="toc-step-2.-get-the-public-key" class="nav-link" data-scroll-target="#step-2.-get-the-public-key">Step 2. Get the public key</a></li>
   <li><a href="#step-3.-add-the-new-public-key-to-the-instance" id="toc-step-3.-add-the-new-public-key-to-the-instance" class="nav-link" data-scroll-target="#step-3.-add-the-new-public-key-to-the-instance">Step 3. Add the new public key to the instance</a></li>
@@ -526,7 +523,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-5-remove-the-old-public-key-from-authorized_keys" id="toc-step-5-remove-the-old-public-key-from-authorized_keys" class="nav-link" data-scroll-target="#step-5-remove-the-old-public-key-from-authorized_keys">Step 5: Remove the old public key from <code>authorized_keys</code></a></li>
   <li><a href="#step-6-delete-the-old-key-pair-from-aws" id="toc-step-6-delete-the-old-key-pair-from-aws" class="nav-link" data-scroll-target="#step-6-delete-the-old-key-pair-from-aws">Step 6: Delete the old key pair from AWS</a></li>
   <li><a href="#replacing-key-pairs-notes" id="toc-replacing-key-pairs-notes" class="nav-link" data-scroll-target="#replacing-key-pairs-notes">Replacing key pairs (notes)</a></li>
-  </ul></li>
   </ul></li>
   <li><a href="#setting-up-an-ssh-config" id="toc-setting-up-an-ssh-config" class="nav-link" data-scroll-target="#setting-up-an-ssh-config">Setting up an SSH config</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
@@ -549,7 +545,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-16</p>
+      <p class="date">2026-07-17</p>
     </div>
   </div>
   
@@ -607,8 +603,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="logging-in-from-another-machine" class="level2">
-<h2 class="anchored" data-anchor-id="logging-in-from-another-machine">Logging in from another machine</h2>
+<section id="logging-from-other-machines" class="level2">
+<h2 class="anchored" data-anchor-id="logging-from-other-machines">Logging from other machines</h2>
 <p>So far we’ve connected from the same computer that created the key pair. But at some point we’ll want to reach the instance from a second machine, like a MacBook Pro we use when we’re away from our main desktop. The problem is that our keys live on the original computer, and the server only trusts the keys it already knows about. This section covers how to get set up on a new machine without weakening the security of the instance.</p>
 <p>SSH authentication is based on a key pair: the private key stays on our computer, and the matching public key lives on the server in <code>~/.ssh/authorized_keys</code>. The server has no idea <em>which</em> machine we’re sitting at. It only checks whether the private key we present matches a public key it trusts. This means a new machine can’t connect until it holds a private key the server recognizes.</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
@@ -644,12 +640,13 @@ graph LR
 <li><p>Copy an existing private key to the new machine.</p></li>
 </ol>
 <p>The first option is safer, so we’ll cover it below. Copying private keys around is convenient, but every copy is another file that can leak.</p>
-<section id="example-generate-a-new-key-on-the-macbook" class="level3">
-<h3 class="anchored" data-anchor-id="example-generate-a-new-key-on-the-macbook">Example: generate a new key on the MacBook</h3>
+</section>
+<section id="example-generate-a-new-key-on-the-macbook" class="level2">
+<h2 class="anchored" data-anchor-id="example-generate-a-new-key-on-the-macbook">Example: generate a new key on the MacBook</h2>
 <p>This is the same process we followed in <a href="./aws-ssh-ec2.html#creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</a>, just run on the new machine.</p>
 <p>On my MacBook, I completed the following steps:</p>
-<section id="step-1-create-key-pair" class="level4">
-<h4 class="anchored" data-anchor-id="step-1-create-key-pair">Step 1: Create key pair</h4>
+<section id="step-1-create-key-pair" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-create-key-pair">Step 1: Create key pair</h3>
 <p>This requires creating/downloading a new key pair from the <strong>AWS Console</strong>:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -687,8 +684,8 @@ graph LR
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>├── &lt;your-key-name&gt;-macbook.pem</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>└── &lt;your-key-name&gt;-macbook.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="step-2-copy-public-key" class="level4">
-<h4 class="anchored" data-anchor-id="step-2-copy-public-key">Step 2: Copy public key</h4>
+<section id="step-2-copy-public-key" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-copy-public-key">Step 2: Copy public key</h3>
 <p>Giving the key a machine-specific name (like <code>-macbook</code>) makes it easy to tell later which key belongs to which computer. Next, display the new public key so we can copy it:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>-macbook.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -696,8 +693,8 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX your-email@example.com</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Copy this somewhere safe (like a password manager).</strong></p>
 </section>
-<section id="step-3-append-public-key-to-authorized_keys" class="level4">
-<h4 class="anchored" data-anchor-id="step-3-append-public-key-to-authorized_keys">Step 3: Append public key to <code>authorized_keys</code></h4>
+<section id="step-3-append-public-key-to-authorized_keys" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-append-public-key-to-authorized_keys">Step 3: Append public key to <code>authorized_keys</code></h3>
 <p>From a machine that can already reach the instance (i.e., my System76/Ubuntu laptop), connect and append the MacBook’s public key to <code>authorized_keys</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -708,20 +705,20 @@ graph LR
 </div>
 <p>Replace <code>"MACBOOK_PUBLIC_KEY_CONTENT"</code> with the actual public key.</p>
 </section>
-<section id="step-4-test-connection" class="level4">
-<h4 class="anchored" data-anchor-id="step-4-test-connection">Step 4: Test connection</h4>
+<section id="step-4-test-connection" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-test-connection">Step 4: Test connection</h3>
 <p>Now we test the connection from our MacBook with its own key:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="logging-in-from-another-machine-notes" class="level4">
-<h4 class="anchored" data-anchor-id="logging-in-from-another-machine-notes">Logging in from another machine (notes)</h4>
+<section id="logging-in-from-other-machines-notes" class="level3">
+<h3 class="anchored" data-anchor-id="logging-in-from-other-machines-notes">Logging in from other machines (notes)</h3>
 <p>The advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from <code>authorized_keys</code> and the other machines keep working.</p>
 </section>
 </section>
-<section id="replacing-key-pairs" class="level3">
-<h3 class="anchored" data-anchor-id="replacing-key-pairs">Replacing key pairs</h3>
+<section id="replacing-key-pairs" class="level2">
+<h2 class="anchored" data-anchor-id="replacing-key-pairs">Replacing key pairs</h2>
 <p>Key pair names are immutable in AWS, which means they can’t be renamed; we must create a new one and replace the old.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="true" aria-label="Toggle callout">
@@ -741,8 +738,8 @@ graph LR
 </div>
 </div>
 </div>
-<section id="step-1.-create-the-new-key-pair" class="level4">
-<h4 class="anchored" data-anchor-id="step-1.-create-the-new-key-pair">Step 1. Create the new key pair</h4>
+<section id="step-1.-create-the-new-key-pair" class="level3">
+<h3 class="anchored" data-anchor-id="step-1.-create-the-new-key-pair">Step 1. Create the new key pair</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 create-key-pair <span class="dt">\</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> <span class="op">&lt;</span>my-better-name<span class="op">&gt;</span> <span class="dt">\</span></span>
@@ -756,8 +753,8 @@ graph LR
 </div>
 <p>Or via Console: <strong>EC2</strong> &gt; <strong>Key Pairs</strong> &gt; <strong>Create key pair</strong></p>
 </section>
-<section id="step-2.-get-the-public-key" class="level4">
-<h4 class="anchored" data-anchor-id="step-2.-get-the-public-key">Step 2. Get the public key</h4>
+<section id="step-2.-get-the-public-key" class="level3">
+<h3 class="anchored" data-anchor-id="step-2.-get-the-public-key">Step 2. Get the public key</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-y</span> <span class="at">-f</span> ~/.ssh/<span class="op">&lt;</span>my-better-name<span class="op">&gt;</span>.pem <span class="op">&gt;</span> ~/.ssh/<span class="op">&lt;</span>my-better-name<span class="op">&gt;</span>.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -765,8 +762,8 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/<span class="op">&lt;</span>my-better-name<span class="op">&gt;</span>.pub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="step-3.-add-the-new-public-key-to-the-instance" class="level4">
-<h4 class="anchored" data-anchor-id="step-3.-add-the-new-public-key-to-the-instance">Step 3. Add the new public key to the instance</h4>
+<section id="step-3.-add-the-new-public-key-to-the-instance" class="level3">
+<h3 class="anchored" data-anchor-id="step-3.-add-the-new-public-key-to-the-instance">Step 3. Add the new public key to the instance</h3>
 <p>SSH in using the <code>&lt;old-key&gt;.pem</code> key:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>old-key<span class="op">&gt;</span>.pem ec2-user@<span class="op">&lt;</span>instance-ip<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -776,25 +773,25 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"ssh-rsa AAAA...new-key-content..."</span> <span class="op">&gt;&gt;</span> ~/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="step-4.-test-the-new-key-in-a-new-terminal-keep-the-old-session-open" class="level4">
-<h4 class="anchored" data-anchor-id="step-4.-test-the-new-key-in-a-new-terminal-keep-the-old-session-open">Step 4. Test the new key in a new terminal (keep the old session open)</h4>
+<section id="step-4.-test-the-new-key-in-a-new-terminal-keep-the-old-session-open" class="level3">
+<h3 class="anchored" data-anchor-id="step-4.-test-the-new-key-in-a-new-terminal-keep-the-old-session-open">Step 4. Test the new key in a new terminal (keep the old session open)</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>my-better-name<span class="op">&gt;</span>.pem ec2-user@<span class="op">&lt;</span>instance-ip<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="step-5-remove-the-old-public-key-from-authorized_keys" class="level4">
-<h4 class="anchored" data-anchor-id="step-5-remove-the-old-public-key-from-authorized_keys">Step 5: Remove the old public key from <code>authorized_keys</code></h4>
+<section id="step-5-remove-the-old-public-key-from-authorized_keys" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-remove-the-old-public-key-from-authorized_keys">Step 5: Remove the old public key from <code>authorized_keys</code></h3>
 <p>Edit <code>~/.ssh/authorized_keys</code> and delete the old key line.</p>
 </section>
-<section id="step-6-delete-the-old-key-pair-from-aws" class="level4">
-<h4 class="anchored" data-anchor-id="step-6-delete-the-old-key-pair-from-aws">Step 6: Delete the old key pair from AWS</h4>
+<section id="step-6-delete-the-old-key-pair-from-aws" class="level3">
+<h3 class="anchored" data-anchor-id="step-6-delete-the-old-key-pair-from-aws">Step 6: Delete the old key pair from AWS</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 delete-key-pair <span class="at">--key-name</span> <span class="op">&lt;</span>old-key<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then delete the old <code>.pem</code> locally.</p>
 </section>
-<section id="replacing-key-pairs-notes" class="level4">
-<h4 class="anchored" data-anchor-id="replacing-key-pairs-notes">Replacing key pairs (notes)</h4>
+<section id="replacing-key-pairs-notes" class="level3">
+<h3 class="anchored" data-anchor-id="replacing-key-pairs-notes">Replacing key pairs (notes)</h3>
 <ul>
 <li><p>The “Key pair name” shown in the EC2 console for an instance reflects the key used at launch and won’t update, but access is controlled by <code>~/.ssh/authorized_keys</code> on the instance itself.</p></li>
 <li><p>Security groups, IAM roles, EBS volumes, and Elastic IP all remain unchanged.</p></li>
@@ -802,22 +799,27 @@ graph LR
 </ul>
 </section>
 </section>
-</section>
 <section id="setting-up-an-ssh-config" class="level2">
 <h2 class="anchored" data-anchor-id="setting-up-an-ssh-config">Setting up an SSH config</h2>
-<p>Typing the full <code>ssh -i ~/.ssh/&lt;your-key-name&gt; ec2-user@YOUR_PUBLIC_IP_ADDRESS</code> command every time gets old quickly. SSH reads a config file at <code>~/.ssh/config</code> that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:</p>
+<p>Typing the full:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">touch</span> ~/.ssh/config</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/config</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-name<span class="op">&gt;</span> ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>command every time gets old quickly. SSH reads a config file at <code>~/.ssh/config</code> that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">touch</span> ~/.ssh/config</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/config</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then add an entry describing the connection:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>Host my-ec2</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/&lt;your-key-name&gt;-macbook</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>Host my-ec2</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/&lt;your-key-name&gt;-macbook</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The <code>Host</code> line is the alias we type, <code>HostName</code> is the public IP (or Public DNS name), <code>User</code> is the login user for the AMI, and <code>IdentityFile</code> points to the private key for this machine. With that saved, connecting is now a single short command:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> my-ec2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> my-ec2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can confirm the config is being used by adding <code>-v</code> to the command, which prints the identity file and hostname SSH resolved from the alias. If the public IP changes, we only have to update one line in the config rather than remember a new address.</p>
 </section>
