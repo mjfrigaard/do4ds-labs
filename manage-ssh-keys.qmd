@@ -50,7 +50,7 @@ co_box(
 )
 ```
 
-## Logging in from another machine
+## Logging from other machines
 
 So far we've connected from the same computer that created the key pair. But at some point we'll want to reach the instance from a second machine, like a MacBook Pro we use when we're away from our main desktop. The problem is that our keys live on the original computer, and the server only trusts the keys it already knows about. This section covers how to get set up on a new machine without weakening the security of the instance.
 
@@ -86,13 +86,13 @@ We have two options:
 
 The first option is safer, so we'll cover it below. Copying private keys around is convenient, but every copy is another file that can leak.
 
-### Example: generate a new key on the MacBook
+## Example: generate a new key on the MacBook
 
 This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine. 
 
 On my MacBook, I completed the following steps:
 
-#### Step 1: Create key pair
+### Step 1: Create key pair
 
 This requires creating/downloading a new key pair from the **AWS Console**: 
 
@@ -149,7 +149,7 @@ We now have the following files in the `~/.ssh/`:
 ```
 
 
-#### Step 2: Copy public key
+### Step 2: Copy public key
 
 Giving the key a machine-specific name (like `-macbook`) makes it easy to tell later which key belongs to which computer. Next, display the new public key so we can copy it:
 
@@ -165,7 +165,7 @@ ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX your-email@example.com
 
 **Copy this somewhere safe (like a password manager).**
 
-#### Step 3: Append public key to `authorized_keys`
+### Step 3: Append public key to `authorized_keys`
 
 From a machine that can already reach the instance (i.e., my System76/Ubuntu laptop), connect and append the MacBook's public key to `authorized_keys`:
 
@@ -185,7 +185,7 @@ echo "MACBOOK_PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
 
 Replace `"MACBOOK_PUBLIC_KEY_CONTENT"` with the actual public key.
 
-#### Step 4: Test connection
+### Step 4: Test connection
 
 Now we test the connection from our MacBook with its own key:
 
@@ -195,11 +195,11 @@ Now we test the connection from our MacBook with its own key:
 ssh -i ~/.ssh/<your-key-name>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
-#### Logging in from another machine (notes)
+### Logging in from other machines (notes)
 
 The advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from `authorized_keys` and the other machines keep working.
 
-### Replacing key pairs 
+## Replacing key pairs 
 
 Key pair names are immutable in AWS, which means they can't be renamed; we must create a new one and replace the old.
 
@@ -220,7 +220,7 @@ Key pairs are not tied to security groups. Security groups are attached to the i
   ")
 ```
 
-#### Step 1. Create the new key pair
+### Step 1. Create the new key pair
 
 ```{bash}
 #| eval: false 
@@ -242,7 +242,7 @@ chmod 400 ~/.ssh/<my-better-name>.pem
 
 Or via Console: **EC2** > **Key Pairs** > **Create key pair**
 
-#### Step 2. Get the public key
+### Step 2. Get the public key
 
 ```{bash}
 #| eval: false 
@@ -256,7 +256,7 @@ ssh-keygen -y -f ~/.ssh/<my-better-name>.pem > ~/.ssh/<my-better-name>.pub
 cat ~/.ssh/<my-better-name>.pub
 ```
 
-#### Step 3. Add the new public key to the instance
+### Step 3. Add the new public key to the instance
 
 SSH in using the `<old-key>.pem` key:
 
@@ -274,7 +274,7 @@ Then append the new public key:
 echo "ssh-rsa AAAA...new-key-content..." >> ~/.ssh/authorized_keys
 ```
 
-#### Step 4. Test the new key in a new terminal (keep the old session open)
+### Step 4. Test the new key in a new terminal (keep the old session open)
 
 ```{bash}
 #| eval: false 
@@ -282,11 +282,11 @@ echo "ssh-rsa AAAA...new-key-content..." >> ~/.ssh/authorized_keys
 ssh -i ~/.ssh/<my-better-name>.pem ec2-user@<instance-ip>
 ```
 
-#### Step 5: Remove the old public key from `authorized_keys`
+### Step 5: Remove the old public key from `authorized_keys`
 
 Edit `~/.ssh/authorized_keys` and delete the old key line.
 
-#### Step 6: Delete the old key pair from AWS
+### Step 6: Delete the old key pair from AWS
 
 ```{bash}
 #| eval: false 
@@ -296,7 +296,7 @@ aws ec2 delete-key-pair --key-name <old-key>
 
 Then delete the old `.pem` locally.
 
-#### Replacing key pairs (notes)
+### Replacing key pairs (notes)
 
 - The "Key pair name" shown in the EC2 console for an instance reflects the key used at launch and won't update, but access is controlled by `~/.ssh/authorized_keys` on the instance itself.
 
@@ -306,12 +306,25 @@ Then delete the old `.pem` locally.
 
 ## Setting up an SSH config 
 
-Typing the full `ssh -i ~/.ssh/<your-key-name> ec2-user@YOUR_PUBLIC_IP_ADDRESS` command every time gets old quickly. SSH reads a config file at `~/.ssh/config` that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:
+Typing the full: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/<your-key-name> ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+command every time gets old quickly. SSH reads a config file at `~/.ssh/config` that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
 touch ~/.ssh/config
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 chmod 600 ~/.ssh/config
 ```
 
