@@ -21,3 +21,226 @@ co_box(
   contents = "This section is being revised. Thank you for your patience."
 )
 ```
+
+## Comprehension questions
+
+> *What are the parts of a bash command?*
+
+A bash command has several key parts:
+
+```{mermaid}
+%%| fig-cap: 'Bash Command Structure'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    A["command<br/><code>ls</code>, <code>cd</code>, <code>echo</code>"] --> B["options/flags<br/><code>-l</code>, <code>-a</code>, <code>-r</code>"]
+    B --> C["arguments<br/><code>filenames</code>, <code>paths</code>"]
+    C --> D["redirects<br/><code>&gt;</code>, <code>&lt;</code>, <code>|</code>"]
+
+    style A fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style B fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff
+    style C fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style D fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+```
+
+- **Command:** The program to run (`ls`, `cd`, `echo`, `grep`)
+- **Options/Flags:** Modify behavior, prefixed with `-` (single) or `--` (double)
+- **Arguments:** What the command operates on (files, paths, text)
+- **Redirects:** Send output elsewhere (`>` file, `<` input, `|` pipe)
+
+**Example:** `ls -la /home | grep .txt`
+
+Command: `ls` | Flags: `-la` | Argument: `/home` | Pipe: `|` | Chain: `grep .txt`
+
+> *What is the difference between a relative and an absolute path?*
+
+**Key differences:**
+
+- **Absolute:** Always starts with `/`. Works from anywhere.
+- **Relative:** No leading `/`. Interpreted from your current directory. Use `..` to go up one level, `.` for current directory.
+
+```{mermaid}
+%%| fig-cap: 'Absolute vs Relative Paths'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    Path["Filesystem Paths"]
+
+    Absolute["<strong>Absolute Path</strong><br/>Starts from root<br>directory /"]
+    AbEx1["<code>/home/user/documents/file.txt</code>"]
+    AbEx2["<code>/etc/passwd</code>"]
+    AbDescr["Always same location<br>regardless of current<br>directory"]
+
+    Relative["<strong>Relative Path</strong><br/>Relative to current<br>directory"]
+    RelEx1["<code>documents/file.txt</code>"]
+    RelEx2["<code>../parent-folder/file.txt</code>"]
+    RelDescr["Changes meaning based<br>on where you are<br>in filesystem"]
+
+    Path -->|"Full from root"| Absolute
+    Absolute --> AbEx1
+    Absolute --> AbEx2
+    Absolute --> AbDescr
+
+    Path -->|"From current location"| Relative
+    Relative --> RelEx1
+    Relative --> RelEx2
+    Relative --> RelDescr
+
+    style Path fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Absolute fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Relative fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+
+> *What are some ways to direct them to run in a particular place on the filesystem?*
+
+```{mermaid}
+%%| fig-cap: 'Ways to Control Execution Location'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    Control["Ways to Control<br>Execution Location"]
+
+    CD["<code>cd</code> command<br/>Change directory first"]
+    ABS["Absolute path<br/>Specify full path"]
+    REL["Relative path<br/>Specify from current location"]
+    PWD["<code>pwd</code><br/>Check where you are"]
+    Dot["<code>./file</code><br/>Run from current directory"]
+
+    Control --> CD
+    Control --> ABS
+    Control --> REL
+    Control --> PWD
+    Control --> Dot
+
+    style Control fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style CD fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style ABS fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style REL fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style PWD fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+    style Dot fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+```
+
+**Examples:**
+
+- `cd /path/to/directory`: Change to that directory, then run commands
+- `/absolute/path/to/file`: Run the file with absolute path directly
+- `relative/path/file`: Run file relative to current location
+- `./script.sh`: Run script in current directory (explicit)
+- `pwd`: Always check your current location first
+
+> *How can you copy, move, or delete a file? What about to or from a server?*
+
+**Local operations:**
+
+- `cp source destination`: Copy a file
+- `cp -r source_dir destination_dir`: Copy a directory recursively
+- `mv source destination`: Move or rename a file
+- `rm filename`: Delete a file (permanent, no recovery)
+- `rm -r directory`: Delete a directory and contents
+
+**Server operations (via SSH):**
+
+- `scp local_file user@server:/remote/path`: Copy to server
+- `scp user@server:/remote/file local_path`: Copy from server
+- `scp -r local_dir user@server:/remote/path`: Copy directory to server
+- `rsync -av local_dir user@server:/remote/path`: Sync files (better for large operations)
+- `sftp user@server`: Interactive file transfer session
+
+**Key note:** `rm` is permanent—no trash can. Use `-i` flag to prompt before deletion: `rm -i filename`
+
+### Create a mind map of: operating system, Windows, MacOS, Unix, Linux, Distro, Ubuntu
+
+```{mermaid}
+%%| fig-cap: 'Operating System Family Tree'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+mindmap
+  root((Operating System))
+    Commercial
+      Windows
+        GUI-focused
+        Proprietary kernel
+      MacOS
+        Unix-based
+        Proprietary kernel
+        Desktop & laptop
+    Open Source Unix-like
+      Unix
+        Original design
+        POSIX standard
+        BSD, Solaris
+      Linux
+        Free & open source
+        POSIX compatible
+        Kernel + utilities
+        Distros
+          Ubuntu
+            Debian-based
+            User-friendly
+            Server & desktop
+          CentOS
+            RedHat-based
+            Enterprise
+          Fedora
+            Cutting edge
+            RedHat-based
+        Distro
+          Linux kernel + tools
+          Different package managers
+          Different defaults
+          Community focused
+```
+
+**Key relationships:**
+
+- **Operating System:** Software that manages hardware and runs programs
+- **Windows/MacOS:** Commercial proprietary operating systems
+- **Unix:** Original open standard from 1970s; influenced modern systems
+- **Linux:** Free, open-source Unix-like kernel created by Linus Torvalds
+- **Distro (Distribution):** Linux kernel packaged with utilities, package manager, defaults
+- **Ubuntu:** Popular Linux distro based on Debian; beginner-friendly
+
+> *What are the 3x3 options for Linux file permissions? How are they indicated in ls -l?*
+
+The 3×3 permission matrix:
+
+| Owner (User) | Group | Other |
+|---|---|---|
+| **Read (r)** = 4 | **Read (r)** = 4 | **Read (r)** = 4 |
+| **Write (w)** = 2 | **Write (w)** = 2 | **Write (w)** = 2 |
+| **Execute (x)** = 1 | **Execute (x)** = 1 | **Execute (x)** = 1 |
+
+**How they appear in `ls -l`:**
+
+```
+-rw-r--r-- 1 user group 1234 Jan 15 10:30 file.txt
+^         ^^^^^^ ^^^^^^ ^^^^^^
+|         |      |      |
+|         |      |      +-- Other: read only
+|         |      +--------- Group: read only
+|         +-------------- User: read & write
++----------------------- File type (- = regular file, d = directory)
+```
+
+**Breaking down permissions:**
+
+- **Position 1:** File type (`-` file, `d` directory, `l` link)
+- **Positions 2-4:** Owner permissions (rwx)
+- **Positions 5-7:** Group permissions (rwx)
+- **Positions 8-10:** Other permissions (rwx)
+
+**Octal notation (chmod):**
+
+- `chmod 755 file`: Owner: rwx (7), Group: rx (5), Other: rx (5)
+- `chmod 644 file`: Owner: rw (6), Group: r (4), Other: r (4)
+- `chmod 700 file`: Owner: rwx (7), Group: (0), Other: (0)
+- `chmod 600 file`: Owner: rw (6), Group: (0), Other: (0): typical for SSH keys
