@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-24">
+<meta name="dcterms.date" content="2026-08-02">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Linux Users – DO4DS: Lab Solutions</title>
@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -74,6 +109,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -459,8 +498,28 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#log-in" id="toc-log-in" class="nav-link active" data-scroll-target="#log-in">Log in</a>
+  <ul>
+  <li><a href="#ssh-commands" id="toc-ssh-commands" class="nav-link" data-scroll-target="#ssh-commands">SSH commands</a></li>
+  </ul></li>
+  <li><a href="#the-bash-shell" id="toc-the-bash-shell" class="nav-link" data-scroll-target="#the-bash-shell">The bash shell</a>
+  <ul>
+  <li><a href="#where-am-i-whats-here" id="toc-where-am-i-whats-here" class="nav-link" data-scroll-target="#where-am-i-whats-here">Where am I, what’s here</a></li>
+  <li><a href="#who-am-i-what-can-i-do" id="toc-who-am-i-what-can-i-do" class="nav-link" data-scroll-target="#who-am-i-what-can-i-do">Who am I, what can I do</a></li>
+  <li><a href="#checking-disk-space" id="toc-checking-disk-space" class="nav-link" data-scroll-target="#checking-disk-space">Checking disk space</a></li>
+  <li><a href="#piping-output" id="toc-piping-output" class="nav-link" data-scroll-target="#piping-output">Piping output</a></li>
+  <li><a href="#reading-the-manual" id="toc-reading-the-manual" class="nav-link" data-scroll-target="#reading-the-manual">Reading the manual</a></li>
+  </ul></li>
+  <li><a href="#create-a-non-root-user" id="toc-create-a-non-root-user" class="nav-link" data-scroll-target="#create-a-non-root-user">Create a non-root user</a></li>
+  <li><a href="#add-an-ssh-key-for-your-new-user" id="toc-add-an-ssh-key-for-your-new-user" class="nav-link" data-scroll-target="#add-an-ssh-key-for-your-new-user">Add an SSH key for your new user</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -478,7 +537,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-24</p>
+      <p class="date">2026-08-02</p>
     </div>
   </div>
   
@@ -490,26 +549,264 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="callout callout-style-default callout-warning no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<section id="log-in" class="level2">
+<h2 class="anchored" data-anchor-id="log-in">Log in</h2>
+<p>Start by logging into the AWS EC2 instance. You can refer back to the <a href="./aws-ssh-ec2.html">AWS Server Login</a> and <a href="./manage-ssh-keys.html">Managing SSH key pairs</a> chapters if you need a refresher.</p>
+<section id="ssh-commands" class="level3">
+<h3 class="anchored" data-anchor-id="ssh-commands">SSH commands</h3>
+<p>The commands below connect to the EC2 instance as <code>ec2-user</code> with verbose output:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-v</span> <span class="at">-i</span> ~/.ssh/your-key.pem ec2-user@<span class="op">&lt;</span>ec2-public-ip<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The <code>-i</code> flag suggests an identity file, but SSH will still try keys from your <code>ssh-agent</code> first. If the agent has a key the server accepts, that key wins and the <code>pem</code> is never used.</p>
+<p>Or you can force SSH to authenticate using only the specified <code>pem</code> file:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-v</span> <span class="at">-i</span> ~/.ssh/your-key.pem <span class="at">-o</span> IdentitiesOnly=yes <span class="at">-o</span> IdentityAgent=none ec2-user@<span class="op">&lt;</span>ec2-public-ip<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><p><code>IdentitiesOnly=yes</code> restricts SSH to the key given by <code>-i</code>, ignoring other keys it might otherwise try.</p></li>
+<li><p><code>IdentityAgent=none</code> disables the <code>ssh-agent</code> for this session, preventing agent-held keys from being offered.</p></li>
+</ul>
+<p>After logging in, you’ll see something like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Last login: Fri Jul 17 17:42:40 2026 from ip&lt;your-ip-address.net&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  ~~  \_#####\</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  ~~     \###|       AL2 End of Life is 2026-06-30.</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    ~~~         /    A newer version of Amazon Linux is available!</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      ~~._.   _/</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>21 package(s) needed for security, out of 24 available</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>Run "sudo yum update" to apply all updates.</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>[ec2-user@ip-your-ip-address]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Be sure to run <code>sudo yum update</code> to keep all the packages updated.</p>
+</section>
+</section>
+<section id="the-bash-shell" class="level2">
+<h2 class="anchored" data-anchor-id="the-bash-shell">The bash shell</h2>
+<p>There are entire books written on using the command line, so I’ll just cover the commands I use the most often (or find to be the most useful). The most basic of these is <code>whoami</code>, which reports the account the shell is running as:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">whoami</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ec2-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="where-am-i-whats-here" class="level3">
+<h3 class="anchored" data-anchor-id="where-am-i-whats-here">Where am I, what’s here</h3>
+<p>Right after logging in, get your bearings:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">pwd</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>/home/ec2-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>List everything, including hidden files, with permissions:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>total 16</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>drwx------ 4 ec2-user ec2-user 110 Jul 17 19:09 .</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>drwxr-xr-x 3 root     root      22 Jul  8 13:28 ..</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>-rw------- 1 ec2-user ec2-user 566 Aug  2 07:45 .bash_history</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>-rw-r--r-- 1 ec2-user ec2-user  18 Jul 15  2020 .bash_logout</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>-rw-r--r-- 1 ec2-user ec2-user 193 Jul 15  2020 .bash_profile</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>-rw-r--r-- 1 ec2-user ec2-user 231 Jul 15  2020 .bashrc</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>drwx------ 3 ec2-user ec2-user  18 Jul 17 19:09 .config</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>drwx------ 2 ec2-user ec2-user  29 Jul  8 13:28 .ssh</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>ec2-user</code> owns everything here, and <code>.ssh</code> is already locked down to <code>700</code> before I’ve touched it. That’s Amazon Linux 2’s default, not something I set.</p>
+</section>
+<section id="who-am-i-what-can-i-do" class="level3">
+<h3 class="anchored" data-anchor-id="who-am-i-what-can-i-do">Who am I, what can I do</h3>
+<p><code>id</code> shows the groups behind the <code>sudo</code> access I’ve been using without thinking about it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>uid=1000(ec2-user) gid=1000(ec2-user) groups=1000(ec2-user),4(adm),10(wheel),190(systemd-journal)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>wheel</code> is the group that grants <code>sudo</code> on Amazon Linux 2. Ubuntu calls the equivalent group <code>sudo</code> - same idea, different name. If you’re ever unsure which convention an AMI uses, <code>id</code> will tell you. I’ll use <code>wheel</code> again below when I create a second user.</p>
+</section>
+<section id="checking-disk-space" class="level3">
+<h3 class="anchored" data-anchor-id="checking-disk-space">Checking disk space</h3>
+<p>Worth doing right after logging into any new instance, before you forget:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">df</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Filesystem      Size  Used Avail Use% Mounted on</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>devtmpfs        462M     0  462M   0% /dev</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>tmpfs           471M     0  471M   0% /dev/shm</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>tmpfs           471M  428K  470M   1% /run</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>tmpfs           471M     0  471M   0% /sys/fs/cgroup</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>/dev/nvme0n1p1  8.0G  2.6G  5.5G  32% /</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>tmpfs            95M     0   95M   0% /run/user/1000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The default EC2 root volume is small. Installing R packages or pulling a Docker image is usually what finally runs it out.</p>
+</section>
+<section id="piping-output" class="level3">
+<h3 class="anchored" data-anchor-id="piping-output">Piping output</h3>
+<p>A pipe (<code>|</code>) feeds the output of one command into the next. Counting files in <code>/etc</code> without opening it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> /etc <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>191</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="reading-the-manual" class="level3">
+<h3 class="anchored" data-anchor-id="reading-the-manual">Reading the manual</h3>
+<p>Every command’s flags are documented with <code>man</code>. Before creating a user below, it’s worth checking what <code>useradd</code> does on this particular AMI, since its defaults aren’t the same on every distro:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">man</span> useradd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Arrow keys scroll, <code>q</code> quits back to the shell.</p>
+</section>
+</section>
+<section id="create-a-non-root-user" class="level2">
+<h2 class="anchored" data-anchor-id="create-a-non-root-user">Create a non-root user</h2>
+<p>Everything so far has run as <code>ec2-user</code>, which already has <code>sudo</code>. That’s fine for completing the labs in DO4DS, but on a real life shared server we’d want a personal account for daily work, with <code>sudo</code> granted on purpose (instead of handed out by default).</p>
+<p>Create the account:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> useradd test-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Unlike Ubuntu’s <code>adduser</code>, Amazon Linux 2’s <code>useradd</code> doesn’t prompt for anything - it just creates the account and home directory silently.</p>
+<p>Set a password separately:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> passwd test-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>Changing password for user test-user.</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>New password:</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>Retype new password:</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>passwd: all authentication tokens updated successfully.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Add <code>test-user</code> to <code>wheel</code> so has <code>sudo</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> usermod <span class="at">-aG</span> wheel test-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-aG</code> appends the group without disturbing any groups the user already belongs to - leaving off <code>-a</code> would replace them.</p>
+<p>Confirm it took:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span> test-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>uid=1001(test-user) gid=1001(test-user) groups=1001(test-user),10(wheel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="add-an-ssh-key-for-your-new-user" class="level2">
+<h2 class="anchored" data-anchor-id="add-an-ssh-key-for-your-new-user">Add an SSH key for your new user</h2>
+<p><code>test-user</code> has a password now, but password authentication over SSH is disabled on this instance, same as it is for <code>ec2-user</code>. The account needs its own <code>.ssh</code> directory and an <code>authorized_keys</code> file before it can log in at all.</p>
+<p>I already have a public key trusted for <code>ec2-user</code> (from <a href="./manage-ssh-keys.html">Managing SSH key pairs</a>), so the fastest path is reusing it rather than generating a new pair just for this exercise:</p>
+<p>First I create a <code>.ssh/</code> folder in <code>test-user</code>’s home directory and copy over <code>ec2-user</code>’s <code>authorized_keys</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /home/test-user/.ssh</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cp ~/.ssh/authorized_keys /home/test-user/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Both commands ran via <code>sudo</code>, so the new files belong to <code>root</code>, not <code>test-user</code>. Hand them over and lock them down:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change ownership</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chown <span class="at">-R</span> test-user:test-user /home/test-user/.ssh</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># change permissions</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 700 /home/test-user/.ssh</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 600 /home/test-user/.ssh/authorized_keys</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+<span class="screen-reader-only">Important</span><span style="font-weight: bold; font-size: 1.15em;">Ownership &amp; Permissions</span>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: #282b2d;">
-<p>This section is being revised. Thank you for your patience.</p>
+<p><code>chown</code> and <code>chmod</code> solve two different problems, and both showed up in the commands above.</p>
+<ul>
+<li><p><strong><code>chown user:group file</code></strong> changes <em>who owns</em> a file or directory - the user and the group. <code>sudo chown -R test-user:test-user /home/test-user/.ssh</code> handed the <code>.ssh</code> folder from <code>root</code> (who created it via <code>sudo</code>) to <code>test-user</code>, recursively (<code>-R</code>) so the <code>authorized_keys</code> file inside came along with it.</p></li>
+<li><p><strong><code>chmod mode file</code></strong> changes <em>what the owner, group, and everyone else are allowed to do</em> with a file - read, write, execute. <code>chmod 700</code> restricts a directory to the owner only (read/write/execute); <code>chmod 600</code> restricts a file to owner read/write, no execute. SSH enforces these exact permissions on <code>.ssh</code> and <code>authorized_keys</code> and silently refuses to use anything looser.</p></li>
+</ul>
+<p>In short: <code>chown</code> decides who the file belongs to, <code>chmod</code> decides what they (and everyone else) can do with it.</p>
 </div>
 </div>
 </div>
 </div>
+<p>Same rule as everywhere else with SSH: a <code>.ssh</code> directory or key file that’s group- or world-readable gets silently ignored.</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    subgraph Laptop["Your Computer"]
+      subgraph priv["Private Key"]
+        pkey["&lt;strong&gt;~/.ssh/your-key-name&lt;/strong&gt;"]
+      end
+    end
+    subgraph EC2["EC2 Instance"]
+        ecuser["ec2-user&lt;br/&gt;authorized_keys"]
+        testuser["test-user&lt;br/&gt;authorized_keys&lt;br/&gt;(&lt;em&gt;copied&lt;/em&gt;)"]
+    end
+    pkey --&gt;|"&lt;strong&gt;ssh ec2-user@...&lt;/strong&gt;"| ecuser
+    pkey --&gt;|"&lt;strong&gt;ssh test-user@...&lt;/strong&gt;"| testuser
+
+    style pkey font-family:monospace
+    style Laptop fill:#E8E8E8,stroke:#333,stroke-width:2px,color:#000
+    style EC2 fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style priv fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style ecuser fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style testuser fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+</pre>
+</div>
+<p></p><figcaption> One Trusted Key, Two Local Accounts</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The same private key on my computer now opens two separate accounts, because SSH only checks whether the key I present matches a line in the <code>authorized_keys</code> of the account I’m connecting to.</p>
+<p>From a new terminal (leave the <code>ec2-user</code> session open in case something’s wrong), test the new account:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/your-key-name test-user@<span class="op">&lt;</span>ec2-public-ip<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If successful, you’ll see the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  ~~  \_#####\</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  ~~     \###|       AL2 End of Life is 2026-06-30.</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    ~~~         /    A newer version of Amazon Linux is available!</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>      ~~._.   _/</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>       </span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>[test-user@ip-your-ip-address ~]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Confirm <code>sudo</code> actually works for this account:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">whoami</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>test-user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> whoami</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>We trust you have received the usual lecture from the local System</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>Administrator. It usually boils down to these three things:</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    #1) Respect the privacy of others.</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    #2) Think before you type.</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    #3) With great power comes great responsibility.</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>[sudo] password for test-user:</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>root</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>wheel</code> (not <code>sudo</code>) is the group that grants admin rights on Amazon Linux 2 - check with <code>id</code> if you’re unsure which convention an AMI uses.</p></li>
+<li><p>SSH doesn’t care which account is logging in, only whether the presented private key matches a line in that account’s <code>authorized_keys</code>. Copying a trusted key to a new account is enough; a new key pair isn’t required.</p></li>
+</ol>
 
 
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><em>Use this when you need to verify a specific key works, or when the agent would otherwise shadow the intended key.</em><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
