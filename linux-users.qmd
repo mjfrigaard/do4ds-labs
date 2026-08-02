@@ -10,14 +10,374 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
-  look = "default", 
-  hsize = "1.25", 
-  size = "1.00", 
-  header = "Caution", 
+  look = "default",
+  hsize = "1.25",
+  size = "1.00",
+  header = "Caution",
   fold = FALSE,
   contents = "This section is being revised. Thank you for your patience."
 )
 ```
+
+## Log in
+
+Start by logging into the AWS EC2 instance. You can refer back to the [AWS Server Login](aws-ssh-ec2.qmd) and [Managing SSH key pairs](manage-ssh-keys.qmd) chapters if you need a refresher.
+
+### SSH commands
+
+The commands below connect to the EC2 instance as `ec2-user` with verbose output:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -v -i ~/.ssh/your-key.pem ec2-user@<ec2-public-ip>
+```
+
+The `-i` flag suggests an identity file, but SSH will still try keys from your `ssh-agent` first. If the agent has a key the server accepts, that key wins and the `pem` is never used.
+
+Or you can force SSH to authenticate using only the specified `pem` file:[^force-ssh-pem]
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -v -i ~/.ssh/your-key.pem -o IdentitiesOnly=yes -o IdentityAgent=none ec2-user@<ec2-public-ip>
+```
+
+- `IdentitiesOnly=yes` restricts SSH to the key given by `-i`, ignoring other keys it might otherwise try.
+
+- `IdentityAgent=none` disables the `ssh-agent` for this session, preventing agent-held keys from being offered.
+
+[^force-ssh-pem]: *Use this when you need to verify a specific key works, or when the agent would otherwise shadow the intended key.*
+
+After logging in, you'll see something like this:
+
+```{verbatim}
+Last login: Fri Jul 17 17:42:40 2026 from ip<your-ip-address.net>
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+
+21 package(s) needed for security, out of 24 available
+Run "sudo yum update" to apply all updates.
+[ec2-user@ip-your-ip-address]$
+```
+
+Be sure to run `sudo yum update` to keep all the packages updated.
+
+## The bash shell
+
+There are entire books written on using the command line, so I'll just cover the commands I use the most often (or find to be the most useful). The most basic of these is `whoami`, which reports the account the shell is running as:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+whoami
+```
+
+```{verbatim}
+ec2-user
+```
+
+### Where am I, what's here
+
+Right after logging in, get your bearings:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+pwd
+```
+
+```{verbatim}
+/home/ec2-user
+```
+
+List everything, including hidden files, with permissions:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ls -la
+```
+
+```{verbatim}
+total 16
+drwx------ 4 ec2-user ec2-user 110 Jul 17 19:09 .
+drwxr-xr-x 3 root     root      22 Jul  8 13:28 ..
+-rw------- 1 ec2-user ec2-user 566 Aug  2 07:45 .bash_history
+-rw-r--r-- 1 ec2-user ec2-user  18 Jul 15  2020 .bash_logout
+-rw-r--r-- 1 ec2-user ec2-user 193 Jul 15  2020 .bash_profile
+-rw-r--r-- 1 ec2-user ec2-user 231 Jul 15  2020 .bashrc
+drwx------ 3 ec2-user ec2-user  18 Jul 17 19:09 .config
+drwx------ 2 ec2-user ec2-user  29 Jul  8 13:28 .ssh
+```
+
+`ec2-user` owns everything here, and `.ssh` is already locked down to `700` before I've touched it. That's Amazon Linux 2's default, not something I set.
+
+### Who am I, what can I do
+
+`id` shows the groups behind the `sudo` access I've been using without thinking about it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+id
+```
+
+```{verbatim}
+uid=1000(ec2-user) gid=1000(ec2-user) groups=1000(ec2-user),4(adm),10(wheel),190(systemd-journal)
+```
+
+`wheel` is the group that grants `sudo` on Amazon Linux 2. Ubuntu calls the equivalent group `sudo` - same idea, different name. If you're ever unsure which convention an AMI uses, `id` will tell you. I'll use `wheel` again below when I create a second user.
+
+### Checking disk space
+
+Worth doing right after logging into any new instance, before you forget:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+df -h
+```
+
+```{verbatim}
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        462M     0  462M   0% /dev
+tmpfs           471M     0  471M   0% /dev/shm
+tmpfs           471M  428K  470M   1% /run
+tmpfs           471M     0  471M   0% /sys/fs/cgroup
+/dev/nvme0n1p1  8.0G  2.6G  5.5G  32% /
+tmpfs            95M     0   95M   0% /run/user/1000
+```
+
+The default EC2 root volume is small. Installing R packages or pulling a Docker image is usually what finally runs it out.
+
+### Piping output
+
+A pipe (`|`) feeds the output of one command into the next. Counting files in `/etc` without opening it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ls /etc | wc -l
+```
+
+```{verbatim}
+191
+```
+
+### Reading the manual
+
+Every command's flags are documented with `man`. Before creating a user below, it's worth checking what `useradd` does on this particular AMI, since its defaults aren't the same on every distro:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+man useradd
+```
+
+Arrow keys scroll, `q` quits back to the shell.
+
+## Create a non-root user
+
+Everything so far has run as `ec2-user`, which already has `sudo`. That's fine for completing the labs in DO4DS, but on a real life shared server we'd want a personal account for daily work, with `sudo` granted on purpose (instead of handed out by default).
+
+Create the account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo useradd test-user
+```
+
+Unlike Ubuntu's `adduser`, Amazon Linux 2's `useradd` doesn't prompt for anything - it just creates the account and home directory silently. 
+
+Set a password separately:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo passwd test-user
+```
+
+```{verbatim}
+Changing password for user test-user.
+New password:
+Retype new password:
+passwd: all authentication tokens updated successfully.
+```
+
+Add `test-user` to `wheel` so has `sudo`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo usermod -aG wheel test-user
+```
+
+`-aG` appends the group without disturbing any groups the user already belongs to - leaving off `-a` would replace them. 
+
+Confirm it took:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+id test-user
+```
+
+```{verbatim}
+uid=1001(test-user) gid=1001(test-user) groups=1001(test-user),10(wheel)
+```
+
+## Add an SSH key for your new user
+
+`test-user` has a password now, but password authentication over SSH is disabled on this instance, same as it is for `ec2-user`. The account needs its own `.ssh` directory and an `authorized_keys` file before it can log in at all.
+
+I already have a public key trusted for `ec2-user` (from [Managing SSH key pairs](manage-ssh-keys.qmd)), so the fastest path is reusing it rather than generating a new pair just for this exercise:
+
+First I create a `.ssh/` folder in `test-user`'s home directory and copy over `ec2-user`'s `authorized_keys`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo mkdir -p /home/test-user/.ssh
+sudo cp ~/.ssh/authorized_keys /home/test-user/.ssh/authorized_keys
+```
+
+Both commands ran via `sudo`, so the new files belong to `root`, not `test-user`. Hand them over and lock them down:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+# change ownership
+sudo chown -R test-user:test-user /home/test-user/.ssh
+# change permissions
+sudo chmod 700 /home/test-user/.ssh
+sudo chmod 600 /home/test-user/.ssh/authorized_keys
+```
+
+```{r}
+#| label: co_box_chown_chmod
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Ownership & Permissions",
+  fold = TRUE,
+  contents = "
+`chown` and `chmod` solve two different problems, and both showed up in the commands above.
+
+- **`chown user:group file`** changes *who owns* a file or directory - the user and the group. `sudo chown -R test-user:test-user /home/test-user/.ssh` handed the `.ssh` folder from `root` (who created it via `sudo`) to `test-user`, recursively (`-R`) so the `authorized_keys` file inside came along with it.
+
+- **`chmod mode file`** changes *what the owner, group, and everyone else are allowed to do* with a file - read, write, execute. `chmod 700` restricts a directory to the owner only (read/write/execute); `chmod 600` restricts a file to owner read/write, no execute. SSH enforces these exact permissions on `.ssh` and `authorized_keys` and silently refuses to use anything looser.
+
+In short: `chown` decides who the file belongs to, `chmod` decides what they (and everyone else) can do with it.
+  "
+)
+```
+
+Same rule as everywhere else with SSH: a `.ssh` directory or key file that's group- or world-readable gets silently ignored.
+
+```{mermaid}
+%%| fig-cap: 'One Trusted Key, Two Local Accounts'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph LR
+    subgraph Laptop["Your Computer"]
+      subgraph priv["Private Key"]
+        pkey["<strong>~/.ssh/your-key-name</strong>"]
+      end
+    end
+    subgraph EC2["EC2 Instance"]
+        ecuser["ec2-user<br/>authorized_keys"]
+        testuser["test-user<br/>authorized_keys<br/>(<em>copied</em>)"]
+    end
+    pkey -->|"<strong>ssh ec2-user@...</strong>"| ecuser
+    pkey -->|"<strong>ssh test-user@...</strong>"| testuser
+
+    style pkey font-family:monospace
+    style Laptop fill:#E8E8E8,stroke:#333,stroke-width:2px,color:#000
+    style EC2 fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style priv fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style ecuser fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style testuser fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+```
+
+The same private key on my computer now opens two separate accounts, because SSH only checks whether the key I present matches a line in the `authorized_keys` of the account I'm connecting to.
+
+From a new terminal (leave the `ec2-user` session open in case something's wrong), test the new account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/your-key-name test-user@<ec2-public-ip>
+```
+
+If successful, you'll see the following:
+
+```{verbatim}
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+       
+[test-user@ip-your-ip-address ~]$
+```
+
+Confirm `sudo` actually works for this account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+whoami
+```
+
+```{verbatim}
+test-user
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo whoami
+```
+
+```{verbatim}
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for test-user:
+root
+```
+
+## Recap
+
+1. `wheel` (not `sudo`) is the group that grants admin rights on Amazon Linux 2 - check with `id` if you're unsure which convention an AMI uses.
+
+2. SSH doesn't care which account is logging in, only whether the presented private key matches a line in that account's `authorized_keys`. Copying a trusted key to a new account is enough; a new key pair isn't required.
