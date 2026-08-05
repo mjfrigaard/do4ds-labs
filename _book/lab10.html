@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-28">
+<meta name="dcterms.date" content="2026-08-05">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 10: App Admin – DO4DS: Lab Solutions</title>
@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -74,6 +109,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -459,8 +498,14 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -478,7 +523,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-28</p>
+      <p class="date">2026-08-05</p>
     </div>
   </div>
   
@@ -508,8 +553,92 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<blockquote class="blockquote">
+<p>“<em>What are two different ways to install Linux applications, and what are the commands?</em>”</p>
+</blockquote>
+<p>My instance is Amazon Linux 2, so the system package manager is <code>yum</code>, not Ubuntu’s <code>apt</code>:</p>
+<ul>
+<li><code>sudo yum install &lt;package&gt;</code> pulls a package (and its dependencies) from AL2’s configured repositories.
+<ul>
+<li><code>sudo yum update</code> keeps everything already installed current.</li>
+</ul></li>
+<li>For software that isn’t in the repos, I download the package myself with <code>wget &lt;url&gt;</code> and install it directly: <code>sudo yum localinstall &lt;package&gt;.rpm</code> (or <code>sudo rpm -i &lt;package&gt;.rpm</code>).
+<ul>
+<li>No dependency resolution beyond what’s already on the box, so this is my second choice, not my first.</li>
+</ul></li>
+</ul>
+<blockquote class="blockquote">
+<p>“<em>What does it mean to daemonize a Linux application? What programs and commands are used to do so?</em>”</p>
+</blockquote>
+<p>Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session - instead of a process that dies the moment I close my SSH connection.</p>
+<p>On AL2, <code>systemd</code> is the program that manages this, and <code>systemctl</code> is how I talk to it:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    subgraph Unit["Unit File"]
+        DotService["&lt;strong&gt;/etc/systemd/system/*.service&lt;/strong&gt;"]
+    end
+    Reload["&lt;strong&gt;systemctl daemon-reload&lt;/strong&gt;"]
+    Enable["&lt;strong&gt;systemctl enable&lt;/strong&gt;"]
+    Start["&lt;strong&gt;systemctl start&lt;/strong&gt;"]
+    Status["&lt;strong&gt;systemctl status&lt;/strong&gt;"]
+
+    Unit --&gt; Reload --&gt; Enable --"&lt;em&gt;starts on boot&lt;/em&gt;"--&gt; Start --"&lt;em&gt;running now&lt;/em&gt;"--&gt; Status
+
+    style DotService stroke:#fff,stroke-width:1px,color:#000,font-family:monospace
+    style Unit fill:#1B2A41,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Reload fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Enable fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Start fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Status fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000,font-family:monospace
+
+</pre>
+</div>
+<p></p><figcaption> Daemonizing with systemd</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Once the unit file exists, <code>systemctl restart</code> and <code>systemctl stop</code> manage it going forward, and <code>systemctl disable</code> stops it from starting on boot.</p>
+<blockquote class="blockquote">
+<p>“<em>How do you know if you’ve opened Nano or Vim? How would you exit them if you didn’t mean to?</em>”</p>
+</blockquote>
+<p>Nano tells me right away - the bottom of the screen fills with a menu of keybindings (<code>^X Exit</code>, <code>^O Write Out</code>, etc.), and I can just start typing. Vim gives no such hints: it opens in <strong>normal mode</strong>, the screen is otherwise blank (empty lines marked with <code>~</code>), and typing does nothing useful until I switch to <strong>insert mode</strong>. That silence is usually how I know I’ve landed in Vim by accident.</p>
+<p>To back out without changing anything:</p>
+<ul>
+<li><strong>Nano</strong>: <code>Ctrl + X</code>, then answer <code>N</code> if it asks whether to save.</li>
+<li><strong>Vim</strong>: press <code>Esc</code> first to make sure I’m in normal mode (not typing into the file), then type <code>:q!</code> and hit <code>Enter</code> to quit and discard any changes.</li>
+</ul>
+<blockquote class="blockquote">
+<p><em>“What are four commands to read text files?”</em></p>
+</blockquote>
+<p><code>cat</code>, <code>less</code>, <code>head</code>, and <code>tail</code>. I reach for <code>cat</code> on short files, <code>less</code> for anything long enough to scroll, <code>head</code> when I only need the first lines, and <code>tail -f</code> when I want to watch a log file update in real time.</p>
+<blockquote class="blockquote">
+<p>“<em>How would you create a file called secrets.txt, open it with Vim, write something in, close and save it, and make it so that only you can read it?</em>”</p>
+</blockquote>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vim</span> secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>From there:</p>
+<ol type="1">
+<li>Press <code>i</code> to enter insert mode and type the content.</li>
+<li>Press <code>Esc</code> to return to normal mode.</li>
+<li>Type <code>:wq</code> and hit <code>Enter</code> to write (save) and quit.</li>
+</ol>
+<p>Then lock it down so only I can read it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>600</code> gives the owner read/write and removes every permission for group and other - same restriction I already use on <code>.ssh/authorized_keys</code> in <a href="./linux-users.html">Linux Users</a>.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
