@@ -82,6 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -611,10 +614,10 @@ graph TD
 </blockquote>
 <p>Nano tells me right away - the bottom of the screen fills with a menu of keybindings (<code>^X Exit</code>, <code>^O Write Out</code>, etc.), and I can just start typing. Vim gives no such hints: it opens in <strong>normal mode</strong>, the screen is otherwise blank (empty lines marked with <code>~</code>), and typing does nothing useful until I switch to <strong>insert mode</strong>. That silence is usually how I know I’ve landed in Vim by accident.</p>
 <p>To back out without changing anything:</p>
-<ul>
-<li><strong>Nano</strong>: <code>Ctrl + X</code>, then answer <code>N</code> if it asks whether to save.</li>
-<li><strong>Vim</strong>: press <code>Esc</code> first to make sure I’m in normal mode (not typing into the file), then type <code>:q!</code> and hit <code>Enter</code> to quit and discard any changes.</li>
-</ul>
+<p><strong>Nano</strong>: <code>Ctrl + X</code>, then answer <code>N</code> if it asks whether to save</p>
+<p><a href="img/lab10-nano.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab10-nano.png" class="img-fluid" style="width:100.0%"></a></p>
+<p><strong>Vim</strong>: press <code>Esc</code> first to make sure I’m in normal mode (not typing into the file), then type <code>:q!</code> and hit <code>Enter</code> to quit and discard any changes.</p>
+<p><a href="img/lab10-vim.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="img/lab10-vim.png" class="img-fluid" style="width:100.0%"></a></p>
 <blockquote class="blockquote">
 <p><em>“What are four commands to read text files?”</em></p>
 </blockquote>
@@ -1093,6 +1096,38 @@ graph TD
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
