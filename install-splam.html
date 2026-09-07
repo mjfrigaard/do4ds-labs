@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-09-07">
+<meta name="description" content="DevOps for Data Science: Lab Solutions">
+
+<title>Install splam – DO4DS: Lab Solutions</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./lab11.html" rel="next">
+<link href="./install-apps.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-16b8baa80a3b4b0f35e5c746a53d1b45.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab10.html"><strong>Lab 10: App Admin</strong></a></li><li class="breadcrumb-item"><a href="./install-splam.html"><em>Install <code>splam</code></em></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">DO4DS: Lab Solutions</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/mjfrigaard/do4ds-labs" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome!</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./preface.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 1: Environments as Code</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./model-basic-py.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>Modeling in Python</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./eda-basic.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>EDA in R</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 2: Project Architecture</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./model-vetiver.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>Python processing layer</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./model-vetiver-r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R processing layer</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 3: Databases and APIs</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./py-app-api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Python App &amp; API</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./r-app-api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R App &amp; API</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./plumber.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em><code>plumber</code></em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./plumber2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em><code>plumber2</code></em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 4: Logging and Monitoring</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./app-log-py.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Python App Logging</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./app-log-r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R App Logging</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 5: Deployments and Code Promotion</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./publish-r-py.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>GitHub Actions as CI/CD</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 6: Demystifying Docker</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./py-api-docker.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Python API in a container</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./r-api-docker.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>R API in a container</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 7: Cloud Servers</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./start-aws.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Getting started with AWS</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./aws-ec2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Stand up an EC2 instance</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./s3-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Create S3 &amp; Push/Pull Data</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./gha-s3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>GitHub Actions and S3</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 8: The Command Line</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./aws-ssh-ec2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>AWS Server Login </em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./manage-ssh-keys.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Managing SSH Key Pairs</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 9: Linux Admin</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./linux-users.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Linux Users</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 10: App Admin</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Install Apps</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./install-splam.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><em>Install <code>splam</code></em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 11: Server Resources and Scaling</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./instance-size.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Instance Size</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 12: Computer Networks</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./accessibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Accessibility</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab13.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 13: Domains and DNS</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./configure-dns.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Configure DNS</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./lab14.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>Lab 14: SSL/TLS and HTTPS</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./configure-ssl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Configure SSL</em></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glossary.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Glossary of terms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./plumb.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#what-the-app-needs-from-the-host" id="toc-what-the-app-needs-from-the-host" class="nav-link active" data-scroll-target="#what-the-app-needs-from-the-host">What the app needs from the host</a></li>
+  <li><a href="#getting-a-modern-python-onto-the-instance" id="toc-getting-a-modern-python-onto-the-instance" class="nav-link" data-scroll-target="#getting-a-modern-python-onto-the-instance">Getting a modern Python onto the instance</a></li>
+  <li><a href="#installing-splam-into-opt" id="toc-installing-splam-into-opt" class="nav-link" data-scroll-target="#installing-splam-into-opt">Installing splam into <code>/opt</code></a></li>
+  <li><a href="#where-splam-keeps-its-files" id="toc-where-splam-keeps-its-files" class="nav-link" data-scroll-target="#where-splam-keeps-its-files">Where splam keeps its files</a></li>
+  <li><a href="#creating-the-first-account" id="toc-creating-the-first-account" class="nav-link" data-scroll-target="#creating-the-first-account">Creating the first account</a></li>
+  <li><a href="#privilege-to-control-services" id="toc-privilege-to-control-services" class="nav-link" data-scroll-target="#privilege-to-control-services">Privilege to control services</a></li>
+  <li><a href="#daemonizing-with-systemd" id="toc-daemonizing-with-systemd" class="nav-link" data-scroll-target="#daemonizing-with-systemd">Daemonizing with systemd</a></li>
+  <li><a href="#confirming-it-actually-came-up" id="toc-confirming-it-actually-came-up" class="nav-link" data-scroll-target="#confirming-it-actually-came-up">Confirming it actually came up</a></li>
+  <li><a href="#putting-nginx-in-front" id="toc-putting-nginx-in-front" class="nav-link" data-scroll-target="#putting-nginx-in-front">Putting nginx in front</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab10.html"><strong>Lab 10: App Admin</strong></a></li><li class="breadcrumb-item"><a href="./install-splam.html"><em>Install <code>splam</code></em></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><em>Install <code>splam</code></em></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026-09-07</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
+<p>This isn’t a chapter covered in DO4DS, but I decided to add it because it’s a ‘real world’ example of deploying a Python application on AWS. The application is called <a href="https://mjfrigaard.github.io/splam/"><code>splam</code></a>, or ‘Shiny for Python Linux Admin Management.’ You can view it’s source code here: <a href="https://github.com/mjfrigaard/splam" class="uri">https://github.com/mjfrigaard/splam</a></p>
+<p>This chapter will walk through how to deploy the <code>splam</code> application in an AWS EC2 instance. It will cover the topics we’ve touched on in previous chapters (and include other things to consider).</p>
+<section id="what-the-app-needs-from-the-host" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-app-needs-from-the-host">What the app needs from the host</h2>
+<p><code>splam</code> is a Shiny for Python app that shells out to <code>systemctl</code> and <code>journalctl</code>. Every button in the UI ends up as a subprocess call against the service manager on the machine the app is running on.</p>
+<p>That constraint decides the whole deployment. The app can’t run in a container, because the <code>systemd</code> it would see is the container’s, not the host’s. It can’t run behind Lambda, because there’s no host to manage. It has to run directly on the box it administers, which on AWS means an EC2 instance, daemonized with <code>systemd</code>, with something in front of it terminating TLS.</p>
+<p>Here’s the shape of what we’re building:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Op(["Operator&lt;br/&gt;browser"])
+    Admin(["You&lt;br/&gt;SSH client"])
+
+    subgraph EC2["EC2 Instance"]
+        Nginx["&lt;strong&gt;nginx&lt;/strong&gt;&lt;br/&gt;:443 TLS"]
+        Splam["&lt;strong&gt;splam&lt;/strong&gt;&lt;br/&gt;127.0.0.1:8000"]
+        Sysd[("&lt;strong&gt;systemd&lt;/strong&gt; + &lt;strong&gt;journald&lt;/strong&gt;")]
+    end
+
+    Op --"HTTPS :443"--&gt; Nginx
+    Admin --"SSH :22"--&gt; EC2
+    Nginx --"HTTP :8000"--&gt; Splam
+    Splam --"&lt;em&gt;systemctl / journalctl&lt;/em&gt;"--&gt; Sysd
+    Sysd --"&lt;em&gt;supervises&lt;/em&gt;"--&gt; Splam
+
+    style EC2 fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style Op fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Admin fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Nginx fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Splam fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Sysd fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+</pre>
+</div>
+<p></p><figcaption> splam Deployment on EC2</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Notice the loop at the bottom. <code>systemd</code> supervises <code>splam</code>, and <code>splam</code> controls <code>systemd</code>. That’s fine, right up until you use the app to restart the <code>splam</code> unit itself and wonder why your browser session died.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.15em;">Security group rules</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>The instance security group we set up back in <a href="./aws-ec2.html">AWS EC2</a> needs exactly two inbound rules for this deployment:</p>
+<ul>
+<li><code>22/tcp</code> from your own IP or VPN range, never <code>0.0.0.0/0</code></li>
+<li><code>443/tcp</code> from wherever operators connect</li>
+</ul>
+<p>Do <strong>not</strong> open <code>8000/tcp</code>. The app binds to <code>127.0.0.1</code>, so it isn’t reachable from outside the instance anyway, but leaving the port closed means a misconfigured bind address can’t quietly expose an admin console to the internet.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="getting-a-modern-python-onto-the-instance" class="level2">
+<h2 class="anchored" data-anchor-id="getting-a-modern-python-onto-the-instance">Getting a modern Python onto the instance</h2>
+<p><code>splam</code> needs Python 3.11 or newer. Amazon Linux 2 ships with 3.7:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Python 3.7.16</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That’s the copy <code>yum</code> depends on, so upgrading it in place is off the table for the reasons covered in <a href="./install-apps.html">Install Apps</a>. The fix is the same <code>/opt</code> pattern from that chapter: build a second Python, install it into its own versioned directory, and leave the system one alone.</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Check{"&lt;strong&gt;python3 --version&lt;/strong&gt;&lt;br/&gt;3.11 or newer?"}
+    Yes("Use it directly")
+    Build("Build into&lt;br/&gt;&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;")
+    Venv("&lt;strong&gt;/opt/splam/.venv&lt;/strong&gt;")
+    Sys(["&lt;strong&gt;/usr/bin/python3&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;3.7, owned by yum&lt;/em&gt;"])
+
+    Check --"yes (AL2023, Ubuntu 22.04+)"--&gt; Yes
+    Check --"no (Amazon Linux 2)"--&gt; Build
+    Yes --&gt; Venv
+    Build --"&lt;em&gt;python3 -m venv&lt;/em&gt;"--&gt; Venv
+    Sys --"&lt;em&gt;leave for&lt;/em&gt;"--&gt; Yum("yum, OS tooling")
+
+    style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+    style Build fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Sys fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> Which Python Runs the App</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Install the compiler and the development headers first. These are the same libraries from <a href="./install-apps.html">Install Apps</a>, plus a few Python needs specifically for <code>ssl</code>, <code>bz2</code>, and <code>ctypes</code> support:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum groupinstall <span class="at">-y</span> <span class="st">"Development Tools"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install <span class="at">-y</span> openssl-devel bzip2-devel libffi-devel zlib-devel git</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Download and unpack the source:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzf Python-3.12.1.tgz</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> Python-3.12.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then configure it to land in <code>/opt</code>, and build:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ./configure <span class="at">--prefix</span><span class="op">=</span>/opt/python/3.12.1 <span class="at">--enable-optimizations</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make altinstall</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>--prefix</code> is what keeps the install self contained. <code>altinstall</code> is the flag that matters most: it installs <code>python3.12</code> without also writing a <code>python3</code> symlink that would shadow the system copy.</p>
+<p>Confirm you got what you asked for:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/python/3.12.1/bin/python3.12</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Python 3.12.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;">This takes a while</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p><code>--enable-optimizations</code> runs the profile guided build, which roughly triples compile time. On a <code>t3.micro</code> that’s 20 to 30 minutes, and the box will be pegged the whole time. Drop the flag if you just want a working interpreter and don’t care about a few percent of runtime speed.</p>
+<p>If <code>make</code> dies partway through with an out of memory error, that’s the 1 GB of RAM on a <code>t3.micro</code>, not a broken source tree. Either size up temporarily (see <a href="./instance-size.html">Instance Size</a>) or add swap.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="installing-splam-into-opt" class="level2">
+<h2 class="anchored" data-anchor-id="installing-splam-into-opt">Installing splam into <code>/opt</code></h2>
+<p>The app itself follows the same convention as the interpreter. It’s third party software with its own directory tree, so it goes in <code>/opt/splam</code>.</p>
+<p>Clone the repository:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> git clone https://github.com/mjfrigaard/splam.git /opt/splam</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Create the virtual environment from the <code>/opt</code> Python, not the system one:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/splam/.venv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then install the package and its dependencies into that environment:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/splam/.venv/bin/pip install <span class="at">-e</span> .</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>This pulls Shiny for Python and its transitive dependencies from PyPI, so the instance needs outbound internet access. If you put the box in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.</p>
+<p>When it finishes, two commands exist inside the venv:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> /opt/splam/.venv/bin <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">'shiny|splam'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>shiny</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>splam-chat</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>splam-users</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;">Call by path, not by activation</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>Activating a virtual environment is just a <code>PATH</code> edit for the current shell. It doesn’t survive logout, and <code>systemd</code> never runs a login shell at all, so a unit file that says <code>ExecStart=shiny run ...</code> will fail with <code>command not found</code> no matter how many times activation worked interactively.</p>
+<p>The habit that avoids the whole class of problem is calling the venv binaries by their absolute path: <code>/opt/splam/.venv/bin/shiny</code>, <code>/opt/splam/.venv/bin/splam-users</code>. That’s what goes in the unit file, and it’s what I use in every command below.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="where-splam-keeps-its-files" class="level2">
+<h2 class="anchored" data-anchor-id="where-splam-keeps-its-files">Where splam keeps its files</h2>
+<p>The install spreads across four locations, and each one follows the convention from <a href="./install-apps.html">Install Apps</a> rather than piling everything into one folder.</p>
+<div id="tbl-splam-locations" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-splam-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Where a system install of splam puts things
+</figcaption>
+<div aria-describedby="tbl-splam-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 64%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Location</th>
+<th style="text-align: left;">What lives there</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>/opt/splam</code></td>
+<td style="text-align: left;">Application source and the virtual environment</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>/var/lib/splam</code></td>
+<td style="text-align: left;">Credentials file and the audit trail</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>/etc/systemd/system/splam.service</code></td>
+<td style="text-align: left;">The unit file telling <code>systemd</code> how to run it</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>journald</code></td>
+<td style="text-align: left;">Application stdout and stderr, read with <code>journalctl -u splam</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>By default <code>splam</code> writes its credentials and audit trail to <code>~/.local/share/splam/</code>, which is the right answer for a laptop and the wrong answer for a service. A daemon’s home directory is an implementation detail of whatever account it happens to run as, and audit records that move when the service account changes aren’t much of an audit trail.</p>
+<p>The <code>SPLAM_DATA_DIR</code> environment variable moves them somewhere durable:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /var/lib/splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>/var/lib</code> is the conventional location for state a service owns and expects to persist across restarts. The app creates the directory mode <code>0700</code> if it has to, but making it explicitly up front means the first run doesn’t fail for a reason unrelated to the app.</p>
+<div class="cell" data-fig-width="7.5" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Root(["/"])
+    Opt("&lt;strong&gt;/opt/splam&lt;/strong&gt;")
+    Venv("&lt;strong&gt;.venv/bin/shiny&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;.venv/bin/splam-users&lt;/strong&gt;")
+    Var("&lt;strong&gt;/var/lib/splam&lt;/strong&gt;")
+    Creds("&lt;strong&gt;credentials.json&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;audit_trail.json&lt;/strong&gt;")
+    Etc("&lt;strong&gt;/etc/systemd/system&lt;/strong&gt;")
+    Unit("&lt;strong&gt;splam.service&lt;/strong&gt;")
+    Log("&lt;strong&gt;journald&lt;/strong&gt;")
+    Jctl("&lt;em&gt;journalctl -u splam&lt;/em&gt;")
+
+    Root --"&lt;em&gt;application&lt;/em&gt;"--&gt; Opt --&gt; Venv
+    Root --"&lt;em&gt;state&lt;/em&gt;"--&gt; Var --&gt; Creds
+    Root --"&lt;em&gt;config&lt;/em&gt;"--&gt; Etc --&gt; Unit
+    Root --"&lt;em&gt;logs&lt;/em&gt;"--&gt; Log --&gt; Jctl
+
+    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000
+    style Var fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Creds fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff
+    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff
+    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> splam File Locations</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="creating-the-first-account" class="level2">
+<h2 class="anchored" data-anchor-id="creating-the-first-account">Creating the first account</h2>
+<p><code>splam</code> has no default account, which means a fresh install has a login screen nobody can get past. Create an admin before you daemonize anything, and set <code>SPLAM_DATA_DIR</code> on the command so the credentials land where the service will look for them:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> SPLAM_DATA_DIR=/var/lib/splam /opt/splam/.venv/bin/splam-users add admin</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>Password:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>Repeat for confirmation:</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>Created user 'admin' (role: admin) in /var/lib/splam/credentials.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The password is salted and hashed, not stored. List what exists at any point:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> SPLAM_DATA_DIR=/var/lib/splam /opt/splam/.venv/bin/splam-users list</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>admin     admin</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>There’s a second role worth knowing about. An <code>auditor</code> account can read Status, Logs, Tasks, and the Audit Trail, but can’t start, stop, or restart anything:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> SPLAM_DATA_DIR=/var/lib/splam <span class="dt">\</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  /opt/splam/.venv/bin/splam-users add qa-reviewer <span class="at">--role</span> auditor</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If you skip the <code>SPLAM_DATA_DIR</code> prefix, the account gets written to <code>/root/.local/share/splam/</code> and the service will start with an empty credentials file. Nothing errors, and the symptom is a login screen that rejects a password you know is correct.</p>
+</section>
+<section id="privilege-to-control-services" class="level2">
+<h2 class="anchored" data-anchor-id="privilege-to-control-services">Privilege to control services</h2>
+<p><code>systemctl start</code>, <code>stop</code>, and <code>restart</code> all require privilege. This is the part of the deployment worth slowing down on, because the app authenticates fine without it and then fails at the moment you actually need it.</p>
+<p>Run it as <code>root</code> for a first deploy and every action works. That’s also the widest possible blast radius: anyone who gets past the login screen can restart anything on the box.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span><span style="font-weight: bold; font-size: 1.15em;">Root is a starting point, not a destination</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>Running the unit as <code>root</code> is the fastest way to a working deployment, and it’s what I’d do to confirm the plumbing works end to end. It is not what I’d leave in place.</p>
+<p>The tighter option is a dedicated service account created with <code>sudo useradd -r -s /sbin/nologin splam</code>, then a scoped rule written with <code>sudo visudo -f /etc/sudoers.d/splam</code> listing only the units operators are allowed to touch, one line per command:</p>
+<blockquote class="blockquote">
+<p><code>splam ALL=(root) NOPASSWD: /bin/systemctl restart cron, /bin/systemctl status cron</code></p>
+</blockquote>
+<p>Then change <code>User=splam</code> in the unit file and hand the account ownership of <code>/var/lib/splam</code> with <code>chown</code>. The tradeoff is real: every new unit an operator needs is another entry in that file. Decide which side of it you want to live on before you hand out logins, not after.</p>
+</div>
+</div>
+</div>
+</div>
+<p>Whatever you decide, <code>Status</code> and <code>Logs</code> work at any privilege level. It’s only the action buttons that need rights.</p>
+</section>
+<section id="daemonizing-with-systemd" class="level2">
+<h2 class="anchored" data-anchor-id="daemonizing-with-systemd">Daemonizing with systemd</h2>
+<p>Running <code>shiny run</code> in an SSH session works until the session ends. Making it a <code>systemd</code> unit is what turns it into something that starts on boot and comes back after a crash, which is the whole point of the daemonizing discussion in <a href="./lab10.html">Lab 10</a>.</p>
+<p>Create the unit file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/splam.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And give it this content:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>[Unit]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>Description=splam</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>After=network.target</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>[Service]</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>Type=simple</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>User=root</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/opt/splam</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>Environment=SPLAM_DATA_DIR=/var/lib/splam</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/splam/.venv/bin/shiny run splam.app:app --host 127.0.0.1 --port 8000</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>RestartSec=5</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>[Install]</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>WantedBy=multi-user.target</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Four lines in there are doing the work worth understanding.</p>
+<p><code>ExecStart</code> uses the absolute path into the venv. There’s no shell involved, no <code>PATH</code> to search, and no activation step. If this path is wrong the unit fails instantly, and it’s the single most common cause of a failed first start.</p>
+<p><code>--host 127.0.0.1</code> binds the app to loopback only. Change it to <code>0.0.0.0</code> and the app is reachable from the internet without TLS and without the proxy, which is exactly what we don’t want.</p>
+<p><code>Environment=SPLAM_DATA_DIR=/var/lib/splam</code> is how the service finds the credentials you just created. <code>systemd</code> doesn’t read <code>~/.bashrc</code>, so this is the only place that variable gets set.</p>
+<p><code>Restart=on-failure</code> with <code>RestartSec=5</code> brings the app back after a crash, waiting five seconds between attempts so a fast crash loop doesn’t spin the CPU.</p>
+<p>Load the new file and start the service:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>daemon-reload</code> tells <code>systemd</code> to reread the unit files on disk. <code>enable</code> registers the unit to start on boot, and <code>--now</code> starts it immediately so you don’t have to run <code>start</code> separately.</p>
+</section>
+<section id="confirming-it-actually-came-up" class="level2">
+<h2 class="anchored" data-anchor-id="confirming-it-actually-came-up">Confirming it actually came up</h2>
+<p>Never trust <code>enable --now</code> to mean the app is running. It means <code>systemd</code> tried.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>● splam.service - splam</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>   Loaded: loaded (/etc/systemd/system/splam.service; enabled; vendor preset: disabled)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>   Active: active (running) since Sat 2026-09-05 18:22:41 UTC; 12s ago</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a> Main PID: 4812 (python3.12)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>   CGroup: /system.slice/splam.service</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>           └─4812 /opt/splam/.venv/bin/python3.12 /opt/splam/.venv/bin/shiny run splam.app:app --host 127.0.0.1 --port 8000</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:41 ip-172-31-24-9 systemd[1]: Started splam.</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Started server process [4812]</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Uvicorn running on http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Two things to read here. <code>Active: active (running)</code> is the state, and <code>enabled</code> in the <code>Loaded:</code> line is the confirmation it will come back after a reboot. A unit can be running and not enabled, which works fine until the instance restarts.</p>
+<p>Then confirm something is actually listening, from the instance itself:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>HTTP/1.1 200 OK</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>date: Sat, 05 Sep 2026 18:23:10 GMT</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>server: uvicorn</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>content-type: text/html; charset=utf-8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A <code>200</code> means the login page rendered. A redirect is fine too. Connection refused means the process died between <code>status</code> and <code>curl</code>, and the journal will say why:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> splam <span class="at">-n</span> 50 <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-u</code> filters to this unit, <code>-n 50</code> limits it to the last 50 lines, and <code>--no-pager</code> dumps it straight to the terminal instead of opening <code>less</code>. When you want to watch a start attempt live, <code>journalctl -u splam -f</code> follows the log the same way <code>tail -f</code> does.</p>
+<div class="callout callout-style-default callout-caution no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span><span style="font-weight: bold; font-size: 1.15em;">Reading a failed start</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>Four failures account for almost every bad first start, and each has a distinct signature in <code>journalctl -u splam</code>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">What the journal says</th>
+<th style="text-align: left;">What’s actually wrong</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>Failed at step EXEC ... No such file or directory</code></td>
+<td style="text-align: left;">The <code>ExecStart</code> path is wrong. Check it with <code>ls /opt/splam/.venv/bin/shiny</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>ModuleNotFoundError: No module named 'splam'</code></td>
+<td style="text-align: left;"><code>pip install -e .</code> ran somewhere other than <code>/opt/splam</code>, or into a different venv</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>Address already in use</code></td>
+<td style="text-align: left;">Something already holds <code>:8000</code>, often a <code>shiny run</code> you started by hand and forgot</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>status=203/EXEC</code> with no other output</td>
+<td style="text-align: left;">The venv was built from a Python that no longer exists at that path</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern in all four is the same: <code>systemd</code> executes a literal path with no shell, so anything the interactive session was quietly providing has to be spelled out in the unit file.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="putting-nginx-in-front" class="level2">
+<h2 class="anchored" data-anchor-id="putting-nginx-in-front">Putting nginx in front</h2>
+<p>The app is listening on loopback, which means nothing outside the instance can reach it. Something has to accept the connection on <code>443</code>, terminate TLS, and forward the request inward.</p>
+<p>Install <code>nginx</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> amazon-linux-extras install <span class="at">-y</span> nginx1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Create the site configuration:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/nginx/conf.d/splam.conf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>server {</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    listen 443 ssl;</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    server_name splam.example.com;</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    ssl_certificate     /etc/letsencrypt/live/splam.example.com/fullchain.pem;</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    ssl_certificate_key /etc/letsencrypt/live/splam.example.com/privkey.pem;</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    location / {</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>        proxy_pass http://127.0.0.1:8000;</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        proxy_http_version 1.1;</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        proxy_set_header Upgrade $http_upgrade;</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>        proxy_set_header Connection "upgrade";</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>        proxy_set_header Host $host;</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The certificate paths assume you’ve been through <a href="./configure-ssl.html">Configure SSL</a> and have a hostname pointed at the instance from <a href="./configure-dns.html">Configure DNS</a>. An Elastic IP is worth allocating here, because without one a stopped and restarted instance comes back with a new address and the DNS record goes stale.</p>
+<p>Test the configuration before reloading, since a syntax error will otherwise take <code>nginx</code> down entirely:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nginx <span class="at">-t</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>nginx: configuration file /etc/nginx/nginx.conf test is successful</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then enable and start it, the same two step pattern as the app:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> nginx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.15em;">Shiny needs the WebSocket headers</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: #282b2d;">
+<p>The <code>proxy_http_version</code>, <code>Upgrade</code>, and <code>Connection</code> lines are not boilerplate. Shiny for Python holds its connection to the browser open over a WebSocket rather than plain request and response HTTP.</p>
+<p>Leave them out and the failure is confusing rather than obvious: the page loads, the layout renders, and then nothing responds. No error appears in the browser, and <code>journalctl -u splam</code> shows a session opening and immediately closing. Any Shiny app behind any proxy needs this, in R or in Python.</p>
+</div>
+</div>
+</div>
+</div>
+<p>Load the hostname in a browser and you should get the login screen, served over HTTPS, backed by the account you created earlier.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>splam</code> calls <code>systemctl</code> and <code>journalctl</code> on its own host, so it runs directly on the EC2 instance rather than in a container. That single constraint is what makes this a <code>systemd</code> plus reverse proxy deployment instead of a Docker one.</p></li>
+<li><p>Amazon Linux 2’s Python is too old and belongs to <code>yum</code>. Build 3.12 into <code>/opt/python/3.12.1</code> with <code>make altinstall</code>, put the app in <code>/opt/splam</code>, its state in <code>/var/lib/splam</code>, and leave the system interpreter alone.</p></li>
+<li><p><code>systemd</code> runs no shell and reads no startup files. Absolute paths in <code>ExecStart</code>, <code>Environment=</code> lines for anything the app expects from the environment, and <code>--host 127.0.0.1</code> so the only way in is through the proxy.</p></li>
+<li><p>Verify in three places before you call it deployed: <code>systemctl status</code> for the unit state, <code>curl -I http://127.0.0.1:8000</code> for the app, and the browser over HTTPS for the proxy. When one of them fails, <code>journalctl -u splam -n 50</code> names the reason.</p></li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mjfrigaard\.github\.io\/do4ds-labs\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+        for (let i=0; i<annoteTargets.length; i++) {
+          const annoteTarget = annoteTargets[i];
+          const targetCell = annoteTarget.getAttribute("data-target-cell");
+          const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+          const contentFn = () => {
+            const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+            if (content) {
+              const tipContent = content.cloneNode(true);
+              tipContent.classList.add("code-annotation-tip-content");
+              return tipContent.outerHTML;
+            }
+          }
+          const config = {
+            allowHTML: true,
+            content: contentFn,
+            onShow: (instance) => {
+              selectCodeLines(instance.reference);
+              instance.reference.classList.add('code-annotation-active');
+              window.tippy.hideAll();
+            },
+            onHide: (instance) => {
+              unselectCodeLines();
+              instance.reference.classList.remove('code-annotation-active');
+            },
+            maxWidth: 300,
+            delay: [50, 0],
+            duration: [200, 0],
+            offset: [5, 10],
+            arrow: true,
+            appendTo: function(el) {
+              return el.parentElement.parentElement.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'quarto',
+            placement: 'right',
+            popperOptions: {
+              modifiers: [
+              {
+                name: 'flip',
+                options: {
+                  flipVariations: false, // true by default
+                  allowedAutoPlacements: ['right'],
+                  fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  mainAxis: false,
+                  altAxis: false
+                }
+              }
+              ]        
+            }      
+          };
+          window.tippy(annoteTarget, config); 
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./install-apps.html" class="pagination-link" aria-label="<em>Install Apps</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Install Apps</em></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./lab11.html" class="pagination-link" aria-label="<strong>Lab 11: Server Resources and Scaling</strong>">
+        <span class="nav-page-text"><strong>Lab 11: Server Resources and Scaling</strong></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
