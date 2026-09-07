@@ -13,11 +13,264 @@ source("_common.R")
 #| eval: true
 co_box(
   color = "o",
-  look = "default", 
-  hsize = "1.25", 
-  size = "1.00", 
-  header = "Caution", 
+  look = "default",
+  hsize = "1.25",
+  size = "1.00",
+  header = "Caution",
   fold = FALSE,
   contents = "This section is being revised. Thank you for your patience."
 )
 ```
+
+## Finding your applications
+
+Installing an application and being able to *run* it are two different problems. A package manager like `yum` puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn't check. That's when a command I know is installed comes back as `command not found`.
+
+### The `PATH` variable
+
+`PATH` is an environment variable holding a colon separated list of directories. When I type a command, the shell walks that list from left to right and runs the first matching executable it finds. It never searches the whole filesystem.
+
+Print it to see what the shell is actually checking:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+echo $PATH
+```
+
+```{verbatim}
+/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin
+```
+
+To find out which copy wins, use `which`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3
+```
+
+```{verbatim}
+/usr/bin/python3
+```
+
+If a command isn't found, the executable is almost always on the box, just not in one of those directories. Adding it is a matter of appending the directory to `PATH` in a startup file so the change survives a new login:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+echo 'export PATH="/opt/python/3.12.1/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Putting the new directory first means it takes priority over anything with the same name further down the list.
+
+```{mermaid}
+%%| fig-cap: 'How PATH Search Works'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    Cmd(["shell command<br/><strong>python3</strong>"]) --> Check1("Check<br/><strong>/usr/local/bin</strong>")
+    Check1 -->|"not found"| Check2("Check<br/><strong>/usr/bin</strong>")
+    Check2 -->|"found!"| Run("Run<br/><strong>/usr/bin/python3</strong>")
+    Check1 -->|"found!"| Run2("Run<br/><strong>/usr/local/bin/python3</strong><br/>(first match wins)")
+
+    style Cmd fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Check1 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Check2 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Run fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Run2 fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    
+```
+
+```{r}
+#| label: co_box_path_scope
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "PATH is per user",
+  fold = TRUE,
+  contents = "
+Editing `~/.bashrc` only changes `PATH` for that one account. A service running under `systemd` doesn't read it at all, and neither does a different user who logs in later. If an application has to be visible to everyone (and to services), a symlink into `/usr/local/bin` is more reliable than asking every account to edit a startup file.
+  "
+)
+```
+
+### Symlinks with `ln`
+
+A symlink is a pointer: a small file that redirects to a real one somewhere else. Rather than adding a new directory to everyone's `PATH`, I create a link inside a directory that's already there.
+
+The `-s` flag makes it symbolic, and the real path always comes first:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo ln -s /opt/python/3.12.1/bin/python3 /usr/local/bin/python3
+```
+
+Confirm the link points where you expect:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ls -l /usr/local/bin/python3
+```
+
+```{verbatim}
+lrwxrwxrwx 1 root root 30 Aug 21 14:02 /usr/local/bin/python3 -> /opt/python/3.12.1/bin/python3
+```
+
+```{mermaid}
+%%| fig-cap: 'Symlink Resolution'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    User["User types:<br/><code>python3</code>"]
+    Link["<strong>/usr/local/bin/python3</strong>"]
+    Points["<strong>/opt/python/3.12.1/<br>bin/python3</strong>"]
+    Real["<strong>Actual binary</strong>"]
+
+    User --"Shell finds symlink"--> Link
+    Link --"Symlink points to"--> Points
+    Points --"Real executable runs"--> Real
+
+    style User fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Link fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Points fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000
+    style Real fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+The other reason I reach for `ln` is versioning. When a new version of R or Python goes into `/opt` alongside the old one, repointing a single symlink switches every user over, and repointing it back is the rollback.
+
+## Where do applications live?
+
+Linux spreads a single application across several directories by purpose, not by product. Knowing the convention is how I find a config file or a log without searching for it.
+
+| Location | What lives there |
+|:---------|:-----------------|
+| `/bin`, `/usr/bin` | Core system executables, managed by the package manager |
+| `/usr/local/bin` | Executables installed outside the package manager, plus symlinks |
+| `/opt` | Self contained third party software, one directory per version |
+| `/etc` | Configuration files |
+| `/var/log` | Log files |
+
+: Common application locations {#tbl-app-locations}
+
+```{mermaid}
+%%| fig-cap: 'Application Filesystem Hierarchy'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    Root(["/"])
+    Bin("<strong>/bin</strong> or<br><strong>/usr/bin</strong>")
+    Local("<strong>/usr/local/bin</strong>")
+    Opt("<strong>/opt</strong>")
+    OptPy("<strong>/opt/python/3.12.1</strong>")
+    OptR("<strong>/opt/R/4.4.1</strong>")
+    Etc("<strong>/etc</strong>")
+    Log("<strong>/var/log</strong>")
+
+    Root --"<em>OS managed</em>"--> Bin
+    Root --"<em>symlinks here</em>"--> Local
+    Root --"<em>versions isolated</em>"--> Opt
+    Root --"<em>config files</em>"--> Etc
+    Root --"<em>log files</em>"--> Log
+    Opt --"<em>lib, bin, share</em>"--> OptPy
+    Opt --"<em>lib, bin, share</em>"--> OptR
+
+    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff,font-size:12px,font-family:monospace
+    style Bin fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Local fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-size:12px,font-family:monospace
+    style OptPy fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
+    style OptR fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
+    style Etc fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Log fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    
+```
+
+`/opt` is the important one for data science work. Installing there keeps a version fully contained in its own folder, so nothing overwrites anything the operating system depends on.
+
+## Language versions
+
+The Python already on the instance belongs to the operating system. Amazon Linux 2 uses it for `yum` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
+
+The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/python/3.12.1/bin/python3 -m venv ~/my-app/venv
+source ~/my-app/venv/bin/activate
+```
+
+R has no equivalent system dependency, so multiple versions can coexist in `/opt/R` without conflict. [`rig`](https://github.com/r-lib/rig), the R Installation Manager, handles installing and switching between them:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo rig add 4.4.1
+sudo rig default 4.4.1
+rig list
+```
+
+Both languages depend on system libraries that neither one installs for you. A package that compiles from source will fail with a missing header error until the matching development package is present:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo yum install -y libcurl-devel openssl-devel libxml2-devel
+```
+
+These are the three that account for most failed installs of `curl`, `openssl`, and `xml2`, and every R or Python package that depends on them.
+
+```{mermaid}
+%%| fig-cap: 'Language Runtime Installation Pattern'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+
+graph TD
+    SysPy(["System Python<br/><em>owned by OS</em>"])
+    OptPy(["Your Python<br/><strong>/opt/python/3.12.1</strong><br/><em>isolated version</em>"])
+    Venv("Virtual Env<br/><strong>~/my-app/venv</strong><br/><em>project packages</em>")
+
+    SysPy -->|"leave untouched"| SysTools("yum, AWS CLI,<br/>OS internal tools")
+    OptPy -->|"create venv from"| Venv
+    Venv -->|"install packages to"| Packages("<strong>pip install<br/>my-packages</strong>")
+
+    R(["System R<br/><em>usually absent</em>"])
+    OptR("Multiple R versions<br/><strong>/opt/R/4.4.1</strong><br/><strong>/opt/R/4.3.2</strong><br/><em>rig switches</em>")
+    Libs("System libraries<br/><strong>libcurl-devel</strong><br/><strong>openssl-devel</strong><br/><strong>libxml2-devel</strong>")
+
+    R -->|"alternative"| OptR
+    OptR --> Libs
+    Libs -->|"required for"| RPackages("R packages<br/>from source")
+
+    style SysPy fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style OptPy fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Packages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style R fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style OptR fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Libs fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style RPackages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style SysTools fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+```
+
+## Recap
+
+1. `PATH` decides what the shell can find, and `which` tells you which copy is winning. A `command not found` error usually means a directory is missing from the list, not that the software is missing.
+
+2. Install language runtimes into `/opt` and symlink them into `/usr/local/bin`. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.
