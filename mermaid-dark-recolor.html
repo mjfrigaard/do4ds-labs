@@ -1,0 +1,97 @@
+<script>
+// Every mermaid diagram in this book colors its own nodes with explicit
+// `style nodeId fill:#hex,stroke:#hex,color:#hex` directives. Mermaid
+// renders those as inline `style` attributes on the SVG elements, which
+// beat any CSS class rule by specificity, so the light/dark toggle can't
+// reach them through styles.scss / styles-dark.scss alone. This walks the
+// rendered SVGs and swaps each known light-palette hex for its Atomic Age
+// Space Race dark equivalent whenever body.quarto-dark is active, restoring
+// the original on switch back to light.
+//
+// Chrome normalizes any color assigned via el.style.* to "rgb(r, g, b)"
+// when read back, even if it was originally specified as a hex string, so
+// values are converted to a canonical #rrggbb before the table lookup.
+(function () {
+  // hue-bearing colors: same swap regardless of which property they're on
+  var HUE_MAP = {
+    "#d2562b": "#ff6f3c", "#ff6b35": "#ff6f3c",              // burnt/rocket orange
+    "#2a6f77": "#2ec4b6",                                    // teal -> atomic teal
+    "#5b8c5a": "#5fd068", "#4caf50": "#5fd068",               // avocado -> atomic green
+    "#e8a33d": "#ffd23f",                                    // harvest gold -> solar yellow
+    "#1b2a41": "#1f3a5c",                                    // midnight navy, lightened
+    "#485466": "#3e5c76",                                    // slate blue-grey, lightened
+    "#3e2a1e": "#8b5e3c",                                     // chocolate brown, lightened
+    "#fbf7ec": "#cbcbcb", "#f2e6c2": "#cbcbcb",               // cream fills -> aluminum
+    "#e8e8e8": "#cbcbcb", "#a2aaad": "#cbcbcb",               // light/steel grey -> aluminum
+    "#999999": "#a9b4bd",                                     // mid grey, lightened
+    "#666666": "#7c8a99"                                      // dark grey, lightened
+  };
+  // near-black borders/text: fine on a light page, invisible on a dark one
+  var DARK_NEUTRAL_MAP = {
+    "#000000": "#33475c", "#333333": "#33475c"
+  };
+
+  function toHex(value) {
+    if (!value) return null;
+    var v = value.trim().toLowerCase();
+    if (v[0] === "#") {
+      if (v.length === 4) {
+        v = "#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+      }
+      return v;
+    }
+    var m = v.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (!m) return v; // named colors etc. -- won't match the table, harmless
+    var toByte = function (n) {
+      return ("0" + parseInt(n, 10).toString(16)).slice(-2);
+    };
+    return "#" + toByte(m[1]) + toByte(m[2]) + toByte(m[3]);
+  }
+
+  function mapped(value) {
+    var key = toHex(value);
+    if (!key) return null;
+    return HUE_MAP[key] || DARK_NEUTRAL_MAP[key] || null;
+  }
+
+  function recolorEl(el) {
+    if (!el.style) return;
+    ["fill", "stroke", "color"].forEach(function (prop) {
+      var current = el.style[prop];
+      if (!current) return;
+      var origAttr = "orig" + prop.charAt(0).toUpperCase() + prop.slice(1);
+      if (!el.dataset[origAttr]) {
+        el.dataset[origAttr] = current;
+      }
+      var original = el.dataset[origAttr];
+      var dark = document.body.classList.contains("quarto-dark");
+      if (dark) {
+        var swap = mapped(original);
+        el.style[prop] = swap || original;
+      } else {
+        el.style[prop] = original;
+      }
+    });
+  }
+
+  function recolorAll() {
+    document.querySelectorAll("svg.mermaid-js *").forEach(recolorEl);
+  }
+
+  // new diagrams get rendered into the page asynchronously by mermaid-init.js
+  new MutationObserver(recolorAll).observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  // the color-scheme toggle only changes body's class list, no custom event
+  new MutationObserver(recolorAll).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"]
+  });
+
+  window.addEventListener("load", function () {
+    setTimeout(recolorAll, 0);
+  });
+})();
+</script>
