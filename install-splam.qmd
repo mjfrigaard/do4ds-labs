@@ -127,7 +127,7 @@ graph TD
     style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
     style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
     style Build fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
     style Sys fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
     style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
 ```
@@ -138,6 +138,12 @@ Install the compiler and the development headers first. These are the same libra
 #| eval: false
 #| code-fold: false
 sudo yum groupinstall -y "Development Tools"
+```
+
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo yum install -y openssl-devel bzip2-devel libffi-devel zlib-devel git
 ```
 
@@ -147,8 +153,23 @@ Download and unpack the source:
 #| eval: false
 #| code-fold: false
 cd /tmp
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 wget https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 tar xzf Python-3.12.1.tgz
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 cd Python-3.12.1
 ```
 
@@ -158,6 +179,11 @@ Then configure it to land in `/opt`, and build:
 #| eval: false
 #| code-fold: false
 sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo make altinstall
 ```
 
@@ -188,9 +214,15 @@ co_box(
   header = "This takes a while",
   fold = TRUE,
   contents = "
-`--enable-optimizations` runs the profile guided build, which roughly triples compile time. On a `t3.micro` that's 20 to 30 minutes, and the box will be pegged the whole time. Drop the flag if you just want a working interpreter and don't care about a few percent of runtime speed.
+`--enable-optimizations`, passed to `./configure` above, is what triples the compile time. It builds Python twice: once to produce an instrumented interpreter, then runs it against Python's own test suite to record which code paths get hit most, then rebuilds using that profile data to optimize those paths (profile guided optimization, or PGO). It also turns on link time optimization (LTO). On a `t3.micro` the whole thing takes 20 to 30 minutes with the CPU pegged.
 
-If `make` dies partway through with an out of memory error, that's the 1 GB of RAM on a `t3.micro`, not a broken source tree. Either size up temporarily (see [Instance Size](instance-size.qmd)) or add swap.
+'Runtime speed' here means how fast the finished interpreter executes Python code after it's installed, not how long the build itself takes. PGO typically buys 10 to 20 percent on CPU bound benchmarks. splam isn't CPU bound: it spends its time waiting on subprocess calls (`systemctl`, `journalctl`) and network I/O, so that speedup is not something you'd notice in practice. Drop the flag (`sudo ./configure --prefix=/opt/python/3.12.1`) and the build finishes in a few minutes with a standard, unoptimized interpreter that runs splam exactly as well.
+
+If `make` dies partway through with an out of memory error, that's the 1 GB of RAM on a `t3.micro`, not a broken source tree. 
+
+Either size up temporarily (see [Instance Size](instance-size.qmd)) or add swap. 
+
+More on the flag itself: <https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations>
   "
 )
 ```
@@ -205,6 +237,11 @@ Clone the repository:
 #| eval: false
 #| code-fold: false
 sudo git clone https://github.com/mjfrigaard/splam.git /opt/splam
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 cd /opt/splam
 ```
 
@@ -224,9 +261,67 @@ Then install the package and its dependencies into that environment:
 sudo /opt/splam/.venv/bin/pip install -e .
 ```
 
+When it's complete, you should see something like the following: 
+
+```{verbatim}
+Successfully built splam
+Installing collected packages: websockets, wcwidth, typing-extensions, setuptools, python-multipart, platformdirs, packaging, orjson, narwhals, mdurl, linkify-it-py, libsass, idna, h11, click, asgiref, annotated-types, uvicorn, typing-inspection, pydantic-core, prompt-toolkit, opentelemetry-api, markdown-it-py, htmltools, anyio, watchfiles, starlette, questionary, pydantic, mdit-py-plugins, shinychat, shiny, splam
+Successfully installed annotated-types-0.8.0 anyio-4.15.1 asgiref-3.12.1 click-8.5.0 h11-0.16.0 htmltools-0.7.0 idna-3.19 libsass-0.23.0 linkify-it-py-2.2.0 markdown-it-py-4.2.0 mdit-py-plugins-0.6.1 mdurl-0.1.2 narwhals-2.26.0 opentelemetry-api-1.44.0 orjson-3.12.0 packaging-26.3 platformdirs-4.11.9 prompt-toolkit-3.0.53 pydantic-2.13.5 pydantic-core-2.46.5 python-multipart-0.0.32 questionary-2.1.1 setuptools-84.0.0 shiny-1.8.0 shinychat-0.7.1 splam-0.1.0 starlette-1.6.0 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.53.0 watchfiles-1.2.0 wcwidth-0.8.3 websockets-17.1
+```
+
 This pulls Shiny for Python and its transitive dependencies from PyPI, so the instance needs outbound internet access. If you put the box in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.
 
-When it finishes, two commands exist inside the venv:
+```{r}
+#| label: co_box_no_ssl
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "pip fails with 'ssl module is not available'",
+  fold = TRUE,
+  contents = "
+The interpreter you just built has no SSL support, so pip can't reach PyPI over HTTPS at all. The cause traces back to the `./configure` step: Amazon Linux 2's default `openssl-devel` package is OpenSSL 1.0.2k, and Python 3.10 and newer require 1.1.1 or later to build the `_ssl` extension. Configure looked for a new enough OpenSSL, didn't find one, and silently skipped the module rather than failing the build. `make altinstall` finished without complaint because none of the steps you ran so far touch SSL, so the problem doesn't show up until pip tries to talk to the internet.
+
+AL2 ships that newer OpenSSL under a separate package, `openssl11`, but its `-devel` package can't be installed alongside the old one: both own the same header path, `/usr/include/openssl/*.h`, so `yum` refuses with a conflict rather than letting them collide. The fix is to swap the devel package out, build, then swap it back, since Python only needs the headers at build time, not at runtime:
+
+> `sudo yum remove -y openssl-devel`
+>
+> `sudo yum install -y openssl11-devel`
+>
+> `cd /tmp/Python-3.12.1`
+>
+> `sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations`
+>
+> `sudo make altinstall`
+
+Python's configure script checks for `openssl11` via `pkg-config` before falling back to the system default, which is what makes this work without a `--with-openssl` flag. You don't need to redownload the source or delete the existing `/opt/python/3.12.1` tree, `altinstall` overwrites in place.
+
+Confirm the module actually built this time before retrying the venv:
+
+`/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'`
+
+That should print an OpenSSL 1.1.1 version string, not a traceback. Once it does, put the original devel package back so other builds on the box aren't left pointing at `openssl11`:
+
+> `sudo yum remove -y openssl11-devel`
+>
+> `sudo yum install -y openssl-devel`
+
+Then delete the broken venv and redo the two commands from earlier in this section:
+
+> `sudo rm -rf /opt/splam/.venv`
+>
+> `sudo /opt/python/3.12.1/bin/python3.12 -m venv /opt/splam/.venv`
+>
+> `sudo /opt/splam/.venv/bin/pip install -e .`
+  "
+)
+```
+
+When it finishes, `shiny` plus three `splam-*` entry point scripts exist inside the venv:
 
 ```{bash}
 #| eval: false
@@ -237,6 +332,7 @@ ls /opt/splam/.venv/bin | grep -E 'shiny|splam'
 ```{verbatim}
 shiny
 splam-chat
+splam-incidents
 splam-users
 ```
 
@@ -308,14 +404,15 @@ graph TD
     Root --"<em>logs</em>"--> Log --> Jctl
 
     style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
-    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000
-    style Var fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    style Creds fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
-    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff
-    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff
-    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-family:monospace
+    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-family:monospace
+    style Var fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
+    style Creds fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
+    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff,font-family:monospace
+    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-family:monospace
+    
 ```
 
 ## Creating the first account
@@ -330,8 +427,8 @@ sudo SPLAM_DATA_DIR=/var/lib/splam /opt/splam/.venv/bin/splam-users add admin
 
 ```{verbatim}
 Password:
-Repeat for confirmation:
-Created user 'admin' (role: admin) in /var/lib/splam/credentials.json
+Confirm password:
+User 'admin' saved with role 'admin'
 ```
 
 The password is salted and hashed, not stored. List what exists at any point:
@@ -346,16 +443,23 @@ sudo SPLAM_DATA_DIR=/var/lib/splam /opt/splam/.venv/bin/splam-users list
 admin     admin
 ```
 
+Set the `SPLAM_DATA_DIR` as `/var/lib/splam`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo SPLAM_DATA_DIR=/var/lib/splam
+```
+
+If you skip the `SPLAM_DATA_DIR` prefix, the account gets written to `/root/.local/share/splam/` and the service will start with an empty credentials file. Nothing errors, and the symptom is a login screen that rejects a password you know is correct.
+
 There's a second role worth knowing about. An `auditor` account can read Status, Logs, Tasks, and the Audit Trail, but can't start, stop, or restart anything:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo SPLAM_DATA_DIR=/var/lib/splam \
-  /opt/splam/.venv/bin/splam-users add qa-reviewer --role auditor
+/opt/splam/.venv/bin/splam-users add qa-reviewer --role auditor
 ```
-
-If you skip the `SPLAM_DATA_DIR` prefix, the account gets written to `/root/.local/share/splam/` and the service will start with an empty credentials file. Nothing errors, and the symptom is a login screen that rejects a password you know is correct.
 
 ## Privilege to control services
 
@@ -374,20 +478,132 @@ co_box(
   hsize = "1.15",
   size = "1.00",
   header = "Root is a starting point, not a destination",
-  fold = TRUE,
+  fold = FALSE,
   contents = "
 Running the unit as `root` is the fastest way to a working deployment, and it's what I'd do to confirm the plumbing works end to end. It is not what I'd leave in place.
 
-The tighter option is a dedicated service account created with `sudo useradd -r -s /sbin/nologin splam`, then a scoped rule written with `sudo visudo -f /etc/sudoers.d/splam` listing only the units operators are allowed to touch, one line per command:
-
-> `splam ALL=(root) NOPASSWD: /bin/systemctl restart cron, /bin/systemctl status cron`
-
-Then change `User=splam` in the unit file and hand the account ownership of `/var/lib/splam` with `chown`. The tradeoff is real: every new unit an operator needs is another entry in that file. Decide which side of it you want to live on before you hand out logins, not after.
+The tighter option is a dedicated service account, scoped to exactly the `systemctl` commands operators need and nothing else. The next section walks through setting one up.
   "
 )
 ```
 
 Whatever you decide, `Status` and `Logs` work at any privilege level. It's only the action buttons that need rights.
+
+## Creating a dedicated service account
+
+A system account exists to run one thing and nothing else, so give it exactly the shape that implies: no login shell, no password, no reason for anyone to ever land a session on it.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo useradd -r -s /sbin/nologin splam
+```
+
+`-r` puts it in the system UID range rather than the normal human range, so it never collides with, or gets mistaken for, somebody's actual login. `-s /sbin/nologin` means any attempt to log in as `splam`, over SSH or locally, is rejected outright:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo su - splam
+```
+
+```{verbatim}
+This account is currently not available.
+```
+
+That's the message you want to see. If `su -` into it ever succeeds, the account is doing more than its job requires.
+
+Hand it ownership of the state it writes to, but not the code it runs. `/var/lib/splam` needs to be writable by the service; `/opt/splam` doesn't, and leaving that owned by `root` means a compromised app process can't rewrite its own source or replace the venv it's running from:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo chown -R splam:splam /var/lib/splam
+```
+
+Then scope exactly what it's allowed to escalate to. Every `systemctl` verb and unit an operator needs gets its own line, nothing broader:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo visudo -f /etc/sudoers.d/splam
+```
+
+```{verbatim}
+splam ALL=(root) NOPASSWD: /bin/systemctl restart cron
+splam ALL=(root) NOPASSWD: /bin/systemctl status cron
+splam ALL=(root) NOPASSWD: /bin/systemctl restart nginx
+splam ALL=(root) NOPASSWD: /bin/systemctl status nginx
+```
+
+`visudo` checks syntax before it lets the file save, so a typo fails loudly instead of locking `sudo` for everyone. Check it explicitly anyway:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo visudo -c -f /etc/sudoers.d/splam
+```
+
+```{verbatim}
+/etc/sudoers.d/splam: parsed OK
+```
+
+Confirm the account can actually use what you just granted, without a password prompt in the way:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo -u splam sudo -n systemctl status cron
+```
+
+Status output back means the rule is wired correctly. Anything not on the list, `sudo -u splam sudo -n systemctl restart sshd` for instance, should be refused rather than prompt for a password it will never get.
+
+```{mermaid}
+%%| fig-cap: 'What the Service Account Can Escalate To'
+%%| fig-width: 7.5
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Splam(["splam account<br/><em>no shell, no password</em>"])
+    Sudo{"<strong>sudo -n</strong><br/>/etc/sudoers.d/splam"}
+    Allowed("<strong>restart / status</strong><br/>cron, nginx")
+    Denied(["everything else<br/><em>denied</em>"])
+
+    Splam --> Sudo
+    Sudo --"unit is listed"--> Allowed
+    Sudo --"unit is not listed"--> Denied
+
+    style Splam fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Sudo fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Allowed fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Denied fill:#666,stroke:#999,stroke-width:1px,color:#fff
+```
+
+```{r}
+#| label: co_box_service_account_practices
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Best practices for a service account",
+  fold = TRUE,
+  contents = "
+A few things worth holding to for any service account, not just this one:
+
+- No login shell and no password. The account exists to run a process, not to be logged into, so `/sbin/nologin` and a locked password are the default, not an exception you add later.
+- System UID range (`-r`). Keeps it out of the human login range and out of any audit that lists who can access the box.
+- Own the state, not the code. The account should be able to write to its own data directory and have no write access to the application files it's running.
+- Sudoers by allowlist, never a bare `ALL` grant. One line per verb and unit. A new unit an operator needs is a new line, not a broader rule.
+
+Decide which side of it you want to live on before you hand out logins, not after. Retrofitting a scoped account onto a team that's already used to `root` access is a far harder conversation than starting there.
+  "
+)
+```
 
 ## Daemonizing with systemd
 
@@ -410,7 +626,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+User=splam
 WorkingDirectory=/opt/splam
 Environment=SPLAM_DATA_DIR=/var/lib/splam
 ExecStart=/opt/splam/.venv/bin/shiny run splam.app:app --host 127.0.0.1 --port 8000
@@ -421,7 +637,9 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-Four lines in there are doing the work worth understanding.
+Five lines in there are doing the work worth understanding.
+
+`User=splam` runs the process as the scoped account from the previous section, not `root`. Anything the app needs to do beyond serving requests, restarting the units listed in `/etc/sudoers.d/splam`, comes from that sudoers rule, not from broader privilege on the process itself.
 
 `ExecStart` uses the absolute path into the venv. There's no shell involved, no `PATH` to search, and no activation step. If this path is wrong the unit fails instantly, and it's the single most common cause of a failed first start.
 
@@ -437,6 +655,11 @@ Load the new file and start the service:
 #| eval: false
 #| code-fold: false
 sudo systemctl daemon-reload
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo systemctl enable --now splam
 ```
 
