@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-09-16">
+<meta name="dcterms.date" content="2026-10-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 10: App Admin – DO4DS: Lab Solutions</title>
@@ -563,12 +563,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./install-splam.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install <code>splam</code></em></span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -675,7 +669,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a>
+  <ul>
+  <li><a href="#a-worked-example-daemonizing-a-real-app" id="toc-a-worked-example-daemonizing-a-real-app" class="nav-link" data-scroll-target="#a-worked-example-daemonizing-a-real-app">A worked example: daemonizing a real app</a>
+  <ul class="collapse">
+  <li><a href="#confirming-it-actually-came-up" id="toc-confirming-it-actually-came-up" class="nav-link" data-scroll-target="#confirming-it-actually-came-up">Confirming it actually came up</a></li>
+  </ul></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -696,7 +696,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-09-16</p>
+      <p class="date">2026-10-23</p>
     </div>
   </div>
   
@@ -720,7 +720,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: #282b2d;">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
 <p>This section is being revised. Thank you for your patience.</p>
 </div>
 </div>
@@ -782,6 +782,156 @@ graph TD
 </div>
 </div>
 <p>Once the unit file exists, <code>systemctl restart</code> and <code>systemctl stop</code> manage it going forward, and <code>systemctl disable</code> stops it from starting on boot.</p>
+<section id="a-worked-example-daemonizing-a-real-app" class="level3">
+<h3 class="anchored" data-anchor-id="a-worked-example-daemonizing-a-real-app">A worked example: daemonizing a real app</h3>
+<p><code>splam</code>, the app installed in <a href="./install-apps.html">Install Apps</a>, is a good illustration of why daemonizing matters and what it actually looks like in a unit file. It shells out to <code>systemctl</code> and <code>journalctl</code> on its own host, so it has to run directly on the box it administers rather than in a container - which on AWS means an EC2 instance, daemonized with <code>systemd</code>, with something in front of it terminating TLS (covered in <a href="./configure-ssl.html">Configure SSL</a>).</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Op(["Operator&lt;br/&gt;browser"])
+    Admin(["You&lt;br/&gt;SSH client"])
+
+    subgraph EC2["EC2 Instance"]
+        Nginx["&lt;strong&gt;nginx&lt;/strong&gt;&lt;br/&gt;:443 TLS"]
+        Splam["&lt;strong&gt;splam&lt;/strong&gt;&lt;br/&gt;127.0.0.1:8000"]
+        Sysd[("&lt;strong&gt;systemd&lt;/strong&gt; + &lt;strong&gt;journald&lt;/strong&gt;")]
+    end
+
+    Op --"HTTPS :443"--&gt; Nginx
+    Admin --"SSH :22"--&gt; EC2
+    Nginx --"HTTP :8000"--&gt; Splam
+    Splam --"&lt;em&gt;systemctl / journalctl&lt;/em&gt;"--&gt; Sysd
+    Sysd --"&lt;em&gt;supervises&lt;/em&gt;"--&gt; Splam
+
+    style EC2 fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style Op fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Admin fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Nginx fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Splam fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Sysd fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+</pre>
+</div>
+<p></p><figcaption> splam Deployment on EC2</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Notice the loop at the bottom. <code>systemd</code> supervises <code>splam</code>, and <code>splam</code> controls <code>systemd</code>. That’s fine, right up until you use the app to restart the <code>splam</code> unit itself and wonder why your browser session died.</p>
+<p>Create the unit file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/splam.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And give it this content:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>[Unit]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Description=splam</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>After=network.target</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>[Service]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>Type=simple</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>User=splam</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/opt/splam</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>Environment=SPLAM_DATA_DIR=/var/lib/splam</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/splam/.venv/bin/shiny run splam.app:app --host 127.0.0.1 --port 8000</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>RestartSec=5</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>[Install]</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>WantedBy=multi-user.target</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Five lines in there are doing the work worth understanding.</p>
+<p><code>User=splam</code> runs the process as the scoped service account from <a href="./linux-users.html">Linux Users</a>, not <code>root</code>. Anything the app needs to do beyond serving requests comes from the sudoers rule set up there, not from broader privilege on the process itself.</p>
+<p><code>ExecStart</code> uses the absolute path into the venv. There’s no shell involved, no <code>PATH</code> to search, and no activation step. If this path is wrong the unit fails instantly, and it’s the single most common cause of a failed first start.</p>
+<p><code>--host 127.0.0.1</code> binds the app to loopback only. Change it to <code>0.0.0.0</code> and the app is reachable from the internet without TLS and without the proxy, which is exactly what we don’t want.</p>
+<p><code>Environment=SPLAM_DATA_DIR=/var/lib/splam</code> is how the service finds the credentials created earlier. <code>systemd</code> doesn’t read <code>~/.bashrc</code>, so this is the only place that variable gets set.</p>
+<p><code>Restart=on-failure</code> with <code>RestartSec=5</code> brings the app back after a crash, waiting five seconds between attempts so a fast crash loop doesn’t spin the CPU.</p>
+<p>Load the new file and start the service:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>daemon-reload</code> tells <code>systemd</code> to reread the unit files on disk. <code>enable</code> registers the unit to start on boot, and <code>--now</code> starts it immediately so you don’t have to run <code>start</code> separately.</p>
+<section id="confirming-it-actually-came-up" class="level4">
+<h4 class="anchored" data-anchor-id="confirming-it-actually-came-up">Confirming it actually came up</h4>
+<p>Never trust <code>enable --now</code> to mean the app is running. It means <code>systemd</code> tried.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>● splam.service - splam</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>   Loaded: loaded (/etc/systemd/system/splam.service; enabled; vendor preset: disabled)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>   Active: active (running) since Sat 2026-09-05 18:22:41 UTC; 12s ago</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a> Main PID: 4812 (python3.12)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>   CGroup: /system.slice/splam.service</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>           └─4812 /opt/splam/.venv/bin/python3.12 /opt/splam/.venv/bin/shiny run splam.app:app --host 127.0.0.1 --port 8000</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:41 ip-172-31-24-9 systemd[1]: Started splam.</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Started server process [4812]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Uvicorn running on http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Two things to read here. <code>Active: active (running)</code> is the state, and <code>enabled</code> in the <code>Loaded:</code> line is the confirmation it will come back after a reboot. A unit can be running and not enabled, which works fine until the instance restarts.</p>
+<p>Then confirm something is actually listening, from the instance itself:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>HTTP/1.1 200 OK</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>date: Sat, 05 Sep 2026 18:23:10 GMT</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>server: uvicorn</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>content-type: text/html; charset=utf-8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A <code>200</code> means the login page rendered. A redirect is fine too. Connection refused means the process died between <code>status</code> and <code>curl</code>, and the journal will say why:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> splam <span class="at">-n</span> 50 <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-u</code> filters to this unit, <code>-n 50</code> limits it to the last 50 lines, and <code>--no-pager</code> dumps it straight to the terminal instead of opening <code>less</code>. When you want to watch a start attempt live, <code>journalctl -u splam -f</code> follows the log the same way <code>tail -f</code> does.</p>
+<div class="callout callout-style-default callout-caution no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span><span style="font-weight: bold; font-size: 1.15em;">Reading a failed start</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
+<p>Four failures account for almost every bad first start, and each has a distinct signature in <code>journalctl -u splam</code>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">What the journal says</th>
+<th style="text-align: left;">What’s actually wrong</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>Failed at step EXEC ... No such file or directory</code></td>
+<td style="text-align: left;">The <code>ExecStart</code> path is wrong. Check it with <code>ls /opt/splam/.venv/bin/shiny</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>ModuleNotFoundError: No module named 'splam'</code></td>
+<td style="text-align: left;"><code>pip install -e .</code> ran somewhere other than <code>/opt/splam</code>, or into a different venv</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>Address already in use</code></td>
+<td style="text-align: left;">Something already holds <code>:8000</code>, often a <code>shiny run</code> you started by hand and forgot</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>status=203/EXEC</code> with no other output</td>
+<td style="text-align: left;">The venv was built from a Python that no longer exists at that path</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern in all four is the same: <code>systemd</code> executes a literal path with no shell, so anything the interactive session was quietly providing has to be spelled out in the unit file.</p>
+</div>
+</div>
+</div>
+</div>
 <blockquote class="blockquote">
 <p>“<em>How do you know if you’ve opened Nano or Vim? How would you exit them if you didn’t mean to?</em>”</p>
 </blockquote>
@@ -799,7 +949,7 @@ graph TD
 <p>“<em>How would you create a file called secrets.txt, open it with Vim, write something in, close and save it, and make it so that only you can read it?</em>”</p>
 </blockquote>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vim</span> secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vim</span> secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>From there:</p>
 <ol type="1">
@@ -809,11 +959,13 @@ graph TD
 </ol>
 <p>Then lock it down so only I can read it:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><code>600</code> gives the owner read/write and removes every permission for group and other - same restriction I already use on <code>.ssh/authorized_keys</code> in <a href="./linux-users.html">Linux Users</a>.</p>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->

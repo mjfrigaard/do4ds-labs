@@ -21,3 +21,86 @@ co_box(
   contents = "This section is being revised. Thank you for your patience."
 )
 ```
+
+## Putting nginx in front
+
+An app that binds to `127.0.0.1` (the pattern used by `baseball-trajectory` in [Install Apps](install-apps.qmd) and daemonized in [Lab 10](lab10.qmd)) isn't reachable from outside its own instance. Something has to accept the connection on `443`, terminate TLS, and forward the request inward.
+
+Install `nginx`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo amazon-linux-extras install -y nginx1
+```
+
+Create the site configuration:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo vim /etc/nginx/conf.d/baseball-trajectory.conf
+```
+
+```{verbatim}
+server {
+    listen 443 ssl;
+    server_name trajectory.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/trajectory.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/trajectory.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+}
+```
+
+The certificate paths assume you have a hostname pointed at the instance, covered in [Configure DNS](configure-dns.qmd).
+
+Test the configuration before reloading, since a syntax error will otherwise take `nginx` down entirely:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo nginx -t
+```
+
+```{verbatim}
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+Then enable and start it, the same two step pattern as the app itself:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo systemctl enable --now nginx
+```
+
+```{r}
+#| label: co_box_websocket
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Shiny needs the WebSocket headers",
+  fold = TRUE,
+  contents = "
+The `proxy_http_version`, `Upgrade`, and `Connection` lines are not boilerplate. Shiny for Python holds its connection to the browser open over a WebSocket rather than plain request and response HTTP.
+
+Leave them out and the failure is confusing rather than obvious: the page loads, the layout renders, and then nothing responds. No error appears in the browser, and the app's own logs show a session opening and immediately closing. Any Shiny app behind any proxy needs this, in R or in Python.
+  "
+)
+```
+
+Load the hostname in a browser and you should get the app's landing page, served over HTTPS.

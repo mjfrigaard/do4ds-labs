@@ -296,7 +296,7 @@ Same rule as everywhere else with SSH: a `.ssh` directory or key file that's gro
 %%| fig-cap: 'One Trusted Key, Two Local Accounts'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Laptop["Your Computer"]
@@ -376,8 +376,83 @@ Administrator. It usually boils down to these three things:
 root
 ```
 
+## Creating a dedicated service account
+
+`test-user` above is a human account: it has a password, a home directory, and (once granted) the same `sudo` rights I use interactively. A service account exists to run one thing and nothing else, so it gets a narrower shape: no login shell, no password, no reason for anyone to ever land a session on it.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo useradd -r -s /sbin/nologin baseball-trajectory
+```
+
+`-r` puts it in the system UID range rather than the normal human range, so it never collides with, or gets mistaken for, somebody's actual login. `-s /sbin/nologin` means any attempt to log in as `baseball-trajectory`, over SSH or locally, is rejected outright:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo su - baseball-trajectory
+```
+
+```{verbatim}
+This account is currently not available.
+```
+
+That's the message you want to see. If `su -` into it ever succeeds, the account is doing more than its job requires.
+
+Give it ownership of the state it writes to, but not the code it runs. `baseball-trajectory` makes that easy: it keeps nothing on disk, so the account owns nothing at all. `/opt/baseball-trajectory` stays owned by `root` and readable by everyone, which means a compromised process can't rewrite its own source.
+
+It also needs no `sudo` rights. The app serves requests and calls an external API, and nothing else, so there's nothing to grant.
+
+```{r}
+#| label: co_box_root
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Root is a starting point, not a destination",
+  fold = FALSE,
+  contents = "
+Running a service as `root` is the fastest way to a working deployment, and it's a reasonable way to confirm the plumbing works end to end. It is not what I'd leave in place.
+
+The tighter option is a dedicated service account with no privilege beyond what the app actually uses.
+  "
+)
+```
+
+```{r}
+#| label: co_box_service_account_practices
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Best practices for a service account",
+  fold = TRUE,
+  contents = "
+A few things worth holding to for any service account, not just this one:
+
+- No login shell and no password. The account exists to run a process, not to be logged into, so `/sbin/nologin` and a locked password are the default, not an exception you add later.
+- System UID range (`-r`). Keeps it out of the human login range and out of any audit that lists who can access the box.
+- Own the state, not the code. The account should be able to write to its own data directory and have no write access to the application files it's running.
+- No `sudo` unless the app truly needs it. If it does, grant it by allowlist in `/etc/sudoers.d/`, one line per verb and unit, never a bare `ALL` grant.
+
+Decide which side of it you want to live on before you hand out logins, not after. Retrofitting a scoped account onto a team that's already used to `root` access is a far harder conversation than starting there.
+  "
+)
+```
+
 ## Recap
 
 1. `wheel` (not `sudo`) is the group that grants admin rights on Amazon Linux 2 - check with `id` if you're unsure which convention an AMI uses.
 
 2. SSH doesn't care which account is logging in, only whether the presented private key matches a line in that account's `authorized_keys`. Copying a trusted key to a new account is enough; a new key pair isn't required.
+
+3. A service account is the opposite of a human one: `-r -s /sbin/nologin`, ownership of its own state (if any) but never its code, and no `sudo` rights unless the app genuinely needs them.
