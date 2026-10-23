@@ -717,13 +717,13 @@ graph TD
 </section>
 <section id="ssh-key-authentication-flow" class="level2">
 <h2 class="anchored" data-anchor-id="ssh-key-authentication-flow">SSH Key Authentication Flow</h2>
-<p>Here’s how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It only uses our public key to encrypt a challenge that only our private key can decrypt. This proves we own the private key without ever transmitting it:</p>
+<p>Here’s how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It asks the client to sign some session data with the private key, then checks that signature against our public key. This proves we own the private key without ever transmitting it.</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     actor User as Developer
@@ -737,10 +737,10 @@ sequenceDiagram
     Client-&gt;&gt;Server: Offer client public key
     Server-&gt;&gt;Server: Look up authorized_keys
     alt Public key found
-        Server-&gt;&gt;Client: Challenge (encrypt with public key)
-        Client-&gt;&gt;Client: Decrypt with private key
-        Client-&gt;&gt;Server: Send response
-        Server-&gt;&gt;Server: Verify response
+        Server-&gt;&gt;Client: Challenge (sign session data)
+        Client-&gt;&gt;Client: Sign with private key
+        Client-&gt;&gt;Server: Send signature
+        Server-&gt;&gt;Server: Verify signature with public key
         Server-&gt;&gt;Client: ✓ Authentication successful
         Client-&gt;&gt;User: Connected
     else Public key not found

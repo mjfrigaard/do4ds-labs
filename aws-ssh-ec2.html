@@ -855,13 +855,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Client(["Our Computer"])
     PubIP("&lt;strong&gt;Public IPv4&lt;/strong&gt;:&lt;br&gt;203.0.113.42")
     PubDNS("&lt;strong&gt;Public DNS&lt;/strong&gt;:&lt;br&gt;ec2-203-0-113-42...")
-    IGW("Internet&lt;br&gt;Gateway")
+    IGW["Internet&lt;br&gt;Gateway"]
     VPC("&lt;strong&gt;VPC&lt;/strong&gt;")
     Subnet["&lt;strong&gt;Subnet&lt;/strong&gt;&lt;br&gt;10.0.1.0/24"]
     Instance{{"&lt;strong&gt;EC2 Instance&lt;/strong&gt;"}}
@@ -899,7 +899,7 @@ graph TD
 </section>
 <section id="using-your-ssh-key" class="level2">
 <h2 class="anchored" data-anchor-id="using-your-ssh-key">Using Your SSH Key</h2>
-<p>When we created the key pair in AWS, a <code>.pem</code> file was downloaded to our computer. This file is our private key—keep it secure and never share it. We’ll use the <code>.pem</code> key to authenticate when connecting to our <strong>EC2 Instance</strong>.</p>
+<p>When we created the key pair with the AWS CLI, the private key was written to <code>~/.ssh/vetiver-deploy-key.pem</code> (a key pair created in the console downloads the <code>.pem</code> to your browser’s download folder instead). This file is our private key—keep it secure and never share it. We’ll use the <code>.pem</code> key to authenticate when connecting to our <strong>EC2 Instance</strong>.</p>
 <section id="step-1-set-up-the-key-file" class="level3">
 <h3 class="anchored" data-anchor-id="step-1-set-up-the-key-file">Step 1: Set up the key file</h3>
 <p>First, we move the <code>.pem</code> file to our <code>.ssh</code> directory:</p>
@@ -920,15 +920,15 @@ graph TD
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     ssh["~/.ssh&lt;br/&gt;(700)"]
     config["config&lt;br/&gt;(600)"]
     pem["*.pem or key&lt;br/&gt;(600 or 400)"]
     pub["*.pub&lt;br/&gt;(644)"]
-    known["known_hosts&lt;br/&gt;(644)"]
-    auth["authorized_keys&lt;br/&gt;(600)"]
+    known[("known_hosts&lt;br/&gt;(644)")]
+    auth[("authorized_keys&lt;br/&gt;(600)")]
 
     ssh --&gt; config
     ssh --&gt; pem
@@ -965,7 +965,7 @@ graph LR
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>This key is not known by any other names.</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Are you sure you want to continue connecting (yes/no/[fingerprint])?</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is SSH verifying the server’s public key fingerprint to prevent man-in-the-middle attacks. When we type <code>yes</code>, SSH stores the host key in <code>~/.ssh/known_hosts</code> so it won’t ask again on future connections.</p>
-<p>For an EC2 instance we just created, it’s safe to accept this. The fingerprint comes from the server itself and doesn’t require external verification.</p>
+<p>For an EC2 instance we just created, the risk is low, but the fingerprint can still be checked against the host keys printed in the instance’s system log (see <a href="./manage-ssh-keys.html">Managing SSH Keys</a>).</p>
 </section>
 <section id="successful-connection" class="level4">
 <h4 class="anchored" data-anchor-id="successful-connection">Successful connection</h4>
@@ -1026,7 +1026,7 @@ graph LR
 </section>
 <section id="creating-a-regular-ssh-key-for-routine-access" class="level2">
 <h2 class="anchored" data-anchor-id="creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</h2>
-<p>The AWS <code>.pem</code> key is powerful—it’s our root access to the instance. For daily work, we want to create a separate SSH key pair with limited permissions. This follows the principle of least privilege: use the AWS key only for setup, then use a weaker key for routine access.</p>
+<p>The AWS <code>.pem</code> key is powerful—it’s our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same <code>ec2-user</code> access, so it doesn’t reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.</p>
 <section id="step-1.-generate-a-new-key-pair-locally" class="level3">
 <h3 class="anchored" data-anchor-id="step-1.-generate-a-new-key-pair-locally">Step 1. Generate a new key pair locally</h3>
 <p>On our computer, we’ll create a new SSH key using <code>ssh-keygen</code>:</p>
