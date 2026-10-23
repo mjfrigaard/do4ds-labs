@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-28">
+<meta name="dcterms.date" content="2026-10-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Appendix C — Plumber vs.&nbsp;Plumber2 Syntax – DO4DS: Lab Solutions</title>
@@ -555,12 +555,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./install-splam.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install <code>splam</code></em></span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -671,7 +665,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#syntax-comparison" id="toc-syntax-comparison" class="nav-link" data-scroll-target="#syntax-comparison">Syntax Comparison</a>
   <ul>
   <li><a href="#basic-routing" id="toc-basic-routing" class="nav-link" data-scroll-target="#basic-routing">1. Basic Routing</a></li>
-  <li><a href="#data-validation" id="toc-data-validation" class="nav-link" data-scroll-target="#data-validation">2. Data Validation</a></li>
+  <li><a href="#request-bodies-and-errors" id="toc-request-bodies-and-errors" class="nav-link" data-scroll-target="#request-bodies-and-errors">2. Request Bodies and Errors</a></li>
   <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">3. Summary Table</a></li>
   </ul></li>
   </ul>
@@ -694,7 +688,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-06-28</p>
+      <p class="date">2026-10-23</p>
     </div>
   </div>
   
@@ -708,50 +702,51 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p><code>plumber</code> is the classic way to turn R functions into web APIs using decorators (<code>#*</code>). <code>plumber2</code> represents a more modern, type-safe approach that leverages R function signatures and schema-driven design to improve robustness and documentation.</p>
+<p><code>plumber</code> and <code>plumber2</code> both turn R functions into web APIs, and both define routes with <code>#*</code> annotation comments. <code>plumber2</code> changes what the handler receives (a parsed <code>body</code> and <code>query</code> instead of <code>req</code>), renames the response object, and adds <code>api()</code>, <code>api_get()</code>, and <code>api_post()</code> for building routers in code.</p>
 </section>
 <section id="syntax-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="syntax-comparison">Syntax Comparison</h2>
 <section id="basic-routing" class="level3">
 <h3 class="anchored" data-anchor-id="basic-routing">1. Basic Routing</h3>
-<p><strong>Plumber (Decorator style)</strong></p>
-<p>In <code>plumber</code>, you use special comment decorators to define the HTTP method, path, and parameters.</p>
+<p><strong>Plumber</strong></p>
+<p>In <code>plumber</code>, annotations define the HTTP method, path, and parameters, and each parameter arrives as a function argument:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /hello</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#* @param name The name to greet</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(<span class="at">name =</span> <span class="st">"World"</span>) {</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">message =</span> <span class="fu">paste</span>(<span class="st">"Hello"</span>, name))</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Plumber2 (Signature style)</strong></p>
-<p><code>plumber2</code> focuses on the function definition itself, moving away from heavy reliance on comments and toward more explicit type-driven signatures.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using plumber2, the function signature and </span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># type hints (if available) guide the API structure.</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>hello <span class="ot">&lt;-</span> <span class="cf">function</span>(name<span class="sc">:</span> <span class="at">character =</span> <span class="st">"World"</span>) {</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">message =</span> <span class="fu">paste</span>(<span class="st">"Hello"</span>, name))</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># The routing is often handled by passing these </span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># functions to a plumber2 router object.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="data-validation" class="level3">
-<h3 class="anchored" data-anchor-id="data-validation">2. Data Validation</h3>
-<p><strong>Plumber</strong></p>
-<p>Validation in standard <code>plumber</code> is typically handled imperatively inside the function body using conditional logic.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(data) {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.data.frame</span>(data)) {</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"Input must be a data frame"</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... prediction logic</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Plumber2</strong></p>
-<p><code>plumber2</code> encourages declarative validation, where the expected structure and types are defined upfront, often allowing the framework to reject invalid requests before the function is even called.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plumber2 leverages type annotations or </span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># schema definitions to validate input automatically.</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>predict <span class="ot">&lt;-</span> <span class="cf">function</span>(data<span class="sc">:</span> data.frame) {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The framework ensures 'data' is a data.frame</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># before this code even executes.</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">model_predict</span>(data)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>plumber2</code> keeps the annotations. Query parameters are declared with <code>@query</code> (with a type) and arrive together in the <code>query</code> argument:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @get /hello</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#* @query name:string The name to greet</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(query) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">message =</span> <span class="fu">paste</span>(<span class="st">"Hello"</span>, query<span class="sc">$</span>name))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="request-bodies-and-errors" class="level3">
+<h3 class="anchored" data-anchor-id="request-bodies-and-errors">2. Request Bodies and Errors</h3>
+<p><strong>Plumber</strong></p>
+<p>In <code>plumber</code>, the handler reads the request through <code>req</code> and sets status codes on <code>res</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(req, res) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> req<span class="sc">$</span>body</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.data.frame</span>(data)) {</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    res<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">error =</span> <span class="st">"Input must be a data frame"</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... prediction logic</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Plumber2</strong></p>
+<p><code>plumber2</code> parses the JSON body before the handler runs and passes it in as <code>body</code>; <code>response</code> replaces <code>res</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#* @post /predict</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#* @serializer json</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">function</span>(body, response) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.data.frame</span>(body)) {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    response<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="dv">400</span>L</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">error =</span> <span class="st">"Input must be a data frame"</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... prediction logic</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="summary-table" class="level3">
 <h3 class="anchored" data-anchor-id="summary-table">3. Summary Table</h3>
@@ -770,24 +765,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Primary Mechanism</strong></td>
-<td style="text-align: left;">Decorators (<code>#*</code> comments)</td>
-<td style="text-align: left;">Function Signatures &amp; Schemas</td>
+<td style="text-align: left;"><strong>Route definition</strong></td>
+<td style="text-align: left;"><code>#*</code> annotations or <code>pr_get()</code>/<code>pr_post()</code></td>
+<td style="text-align: left;"><code>#*</code> annotations or <code>api_get()</code>/<code>api_post()</code></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Type Safety</strong></td>
-<td style="text-align: left;">Loose; relies on manual checks</td>
-<td style="text-align: left;">Strong; leverages R type hints</td>
+<td style="text-align: left;"><strong>Router object</strong></td>
+<td style="text-align: left;"><code>pr()</code></td>
+<td style="text-align: left;"><code>api()</code></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Input Validation</strong></td>
-<td style="text-align: left;">Imperative (inside the function)</td>
-<td style="text-align: left;">Declarative (via schema/signature)</td>
+<td style="text-align: left;"><strong>Request data</strong></td>
+<td style="text-align: left;">Arguments and <code>req$body</code></td>
+<td style="text-align: left;">Parsed <code>query</code> and <code>body</code> arguments</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>API Documentation</strong></td>
-<td style="text-align: left;">Swagger/OpenAPI via comments</td>
-<td style="text-align: left;">OpenAPI via type/schema inspection</td>
+<td style="text-align: left;"><strong>Response object</strong></td>
+<td style="text-align: left;"><code>res</code></td>
+<td style="text-align: left;"><code>response</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Parameter types</strong></td>
+<td style="text-align: left;">Documented with <code>@param</code></td>
+<td style="text-align: left;">Declared with <code>@query name:type</code></td>
 </tr>
 </tbody>
 </table>

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-08-02">
+<meta name="dcterms.date" content="2026-10-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Linux Users – DO4DS: Lab Solutions</title>
@@ -560,12 +560,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./install-splam.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install <code>splam</code></em></span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -686,6 +680,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#create-a-non-root-user" id="toc-create-a-non-root-user" class="nav-link" data-scroll-target="#create-a-non-root-user">Create a non-root user</a></li>
   <li><a href="#add-an-ssh-key-for-your-new-user" id="toc-add-an-ssh-key-for-your-new-user" class="nav-link" data-scroll-target="#add-an-ssh-key-for-your-new-user">Add an SSH key for your new user</a></li>
+  <li><a href="#creating-a-dedicated-service-account" id="toc-creating-a-dedicated-service-account" class="nav-link" data-scroll-target="#creating-a-dedicated-service-account">Creating a dedicated service account</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -707,7 +702,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-08-02</p>
+      <p class="date">2026-10-23</p>
     </div>
   </div>
   
@@ -882,7 +877,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: #282b2d;">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
 <p><code>chown</code> and <code>chmod</code> solve two different problems, and both showed up in the commands above.</p>
 <ul>
 <li><p><strong><code>chown user:group file</code></strong> changes <em>who owns</em> a file or directory - the user and the group. <code>sudo chown -R test-user:test-user /home/test-user/.ssh</code> handed the <code>.ssh</code> folder from <code>root</code> (who created it via <code>sudo</code>) to <code>test-user</code>, recursively (<code>-R</code>) so the <code>authorized_keys</code> file inside came along with it.</p></li>
@@ -962,11 +957,127 @@ graph LR
 <span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>[sudo] password for test-user:</span>
 <span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>root</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
+<section id="creating-a-dedicated-service-account" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-dedicated-service-account">Creating a dedicated service account</h2>
+<p><code>test-user</code> above is a human account: it has a password, a home directory, and (once granted) the same <code>sudo</code> rights I use interactively. A service account exists to run one thing and nothing else, so it gets a narrower shape: no login shell, no password, no reason for anyone to ever land a session on it.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> useradd <span class="at">-r</span> <span class="at">-s</span> /sbin/nologin splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-r</code> puts it in the system UID range rather than the normal human range, so it never collides with, or gets mistaken for, somebody’s actual login. <code>-s /sbin/nologin</code> means any attempt to log in as <code>splam</code>, over SSH or locally, is rejected outright:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> su <span class="at">-</span> splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>This account is currently not available.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That’s the message you want to see. If <code>su -</code> into it ever succeeds, the account is doing more than its job requires.</p>
+<p>Hand it ownership of the state it writes to, but not the code it runs. A service’s data directory needs to be writable by the account running it; the application directory doesn’t, and leaving that owned by <code>root</code> means a compromised process can’t rewrite its own source:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chown <span class="at">-R</span> splam:splam /var/lib/splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The default for any account that runs a <code>systemctl start</code>/<code>stop</code>/<code>restart</code> on your behalf (the way <code>splam</code> from <a href="./install-apps.html">Install Apps</a> does) is <code>root</code>, which works but is the widest possible blast radius: anyone who gets past the app’s own login screen can restart anything on the box.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span><span style="font-weight: bold; font-size: 1.15em;">Root is a starting point, not a destination</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
+<p>Running a service as <code>root</code> is the fastest way to a working deployment, and it’s a reasonable way to confirm the plumbing works end to end. It is not what I’d leave in place.</p>
+<p>The tighter option is a dedicated service account, scoped to exactly the <code>systemctl</code> commands it needs and nothing else.</p>
+</div>
+</div>
+</div>
+</div>
+<p>Scope exactly what the account is allowed to escalate to. Every <code>systemctl</code> verb and unit it needs gets its own line, nothing broader:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> visudo <span class="at">-f</span> /etc/sudoers.d/splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>splam ALL=(root) NOPASSWD: /bin/systemctl restart cron</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>splam ALL=(root) NOPASSWD: /bin/systemctl status cron</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>splam ALL=(root) NOPASSWD: /bin/systemctl restart nginx</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>splam ALL=(root) NOPASSWD: /bin/systemctl status nginx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>visudo</code> checks syntax before it lets the file save, so a typo fails loudly instead of locking <code>sudo</code> for everyone. Check it explicitly anyway:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> visudo <span class="at">-c</span> <span class="at">-f</span> /etc/sudoers.d/splam</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>/etc/sudoers.d/splam: parsed OK</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Confirm the account can actually use what you just granted, without a password prompt in the way:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> <span class="at">-u</span> splam sudo <span class="at">-n</span> systemctl status cron</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Status output back means the rule is wired correctly. Anything not on the list, <code>sudo -u splam sudo -n systemctl restart sshd</code> for instance, should be refused rather than prompt for a password it will never get.</p>
+<div class="cell" data-fig-width="7.5" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+
+graph TD
+    Splam(["splam account&lt;br/&gt;&lt;em&gt;no shell, no password&lt;/em&gt;"])
+    Sudo{"&lt;strong&gt;sudo -n&lt;/strong&gt;&lt;br/&gt;/etc/sudoers.d/splam"}
+    Allowed("&lt;strong&gt;restart / status&lt;/strong&gt;&lt;br/&gt;cron, nginx")
+    Denied(["everything else&lt;br/&gt;&lt;em&gt;denied&lt;/em&gt;"])
+
+    Splam --&gt; Sudo
+    Sudo --"unit is listed"--&gt; Allowed
+    Sudo --"unit is not listed"--&gt; Denied
+
+    style Splam fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Sudo fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Allowed fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Denied fill:#666,stroke:#999,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> What the Service Account Can Escalate To</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;">Best practices for a service account</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
+<p>A few things worth holding to for any service account, not just this one:</p>
+<ul>
+<li>No login shell and no password. The account exists to run a process, not to be logged into, so <code>/sbin/nologin</code> and a locked password are the default, not an exception you add later.</li>
+<li>System UID range (<code>-r</code>). Keeps it out of the human login range and out of any audit that lists who can access the box.</li>
+<li>Own the state, not the code. The account should be able to write to its own data directory and have no write access to the application files it’s running.</li>
+<li>Sudoers by allowlist, never a bare <code>ALL</code> grant. One line per verb and unit. A new unit an operator needs is a new line, not a broader rule.</li>
+</ul>
+<p>Decide which side of it you want to live on before you hand out logins, not after. Retrofitting a scoped account onto a team that’s already used to <code>root</code> access is a far harder conversation than starting there.</p>
+</div>
+</div>
+</div>
+</div>
+<p>Some applications keep their own internal user store on top of all this, separate from the Linux accounts on the box. <code>splam</code>, for instance, has no default account, so a fresh install has a login screen nobody can get past until you create one:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> SPLAM_DATA_DIR=/var/lib/splam /opt/splam/.venv/bin/splam-users add admin</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>Password:</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>Confirm password:</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>User 'admin' saved with role 'admin'</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That’s an application-level account, not a Linux one - it has no bearing on <code>useradd</code>, <code>wheel</code>, or anything else above. It matters here only because it’s easy to skip the <code>SPLAM_DATA_DIR</code> prefix and have the account get written to <code>/root/.local/share/splam/</code> instead, where the running service will never find it. Nothing errors; the symptom is a login screen that rejects a password you know is correct.</p>
+</section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
 <li><p><code>wheel</code> (not <code>sudo</code>) is the group that grants admin rights on Amazon Linux 2 - check with <code>id</code> if you’re unsure which convention an AMI uses.</p></li>
 <li><p>SSH doesn’t care which account is logging in, only whether the presented private key matches a line in that account’s <code>authorized_keys</code>. Copying a trusted key to a new account is enough; a new key pair isn’t required.</p></li>
+<li><p>A service account is the opposite of a human one: <code>-r -s /sbin/nologin</code>, ownership of its own state directory only, and <code>sudo</code> rights scoped line by line in <code>/etc/sudoers.d/</code> rather than a blanket grant.</p></li>
 </ol>
 
 

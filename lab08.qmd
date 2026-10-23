@@ -65,13 +65,13 @@ SSH public keys are mathematically safe to share because of the asymmetric encry
 
 ## SSH Key Authentication Flow
 
-Here's how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It only uses our public key to encrypt a challenge that only our private key can decrypt. This proves we own the private key without ever transmitting it:
+Here's how SSH keys work in practice when we authenticate to a remote server. The server never sees our private key. It asks the client to sign some session data with the private key, then checks that signature against our public key. This proves we own the private key without ever transmitting it.
 
 ```{mermaid}
 %%| fig-cap: 'SSH Key Authentication Sequence'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     actor User as Developer
@@ -85,10 +85,10 @@ sequenceDiagram
     Client->>Server: Offer client public key
     Server->>Server: Look up authorized_keys
     alt Public key found
-        Server->>Client: Challenge (encrypt with public key)
-        Client->>Client: Decrypt with private key
-        Client->>Server: Send response
-        Server->>Server: Verify response
+        Server->>Client: Challenge (sign session data)
+        Client->>Client: Sign with private key
+        Client->>Server: Send signature
+        Server->>Server: Verify signature with public key
         Server->>Client: ✓ Authentication successful
         Client->>User: Connected
     else Public key not found

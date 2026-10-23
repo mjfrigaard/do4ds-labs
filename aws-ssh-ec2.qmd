@@ -67,7 +67,7 @@ Understanding how these addresses and identifiers connect is key to accessing ou
 %%| fig-cap: 'EC2 Instance Network Architecture'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Client(["Our Computer"])
@@ -106,7 +106,7 @@ The **NAT** (Network Address Translation) step in the diagram is where the **Int
 
 ## Using Your SSH Key
 
-When we created the key pair in AWS, a `.pem` file was downloaded to our computer. This file is our private key—keep it secure and never share it. We'll use the `.pem` key to authenticate when connecting to our **EC2 Instance**.
+When we created the key pair with the AWS CLI, the private key was written to `~/.ssh/vetiver-deploy-key.pem` (a key pair created in the console downloads the `.pem` to your browser's download folder instead). This file is our private key—keep it secure and never share it. We'll use the `.pem` key to authenticate when connecting to our **EC2 Instance**.
 
 ### Step 1: Set up the key file
 
@@ -136,7 +136,7 @@ SSH is strict about permissions to prevent other users on the computer from read
 %%| fig-cap: '~/.ssh Directory Permissions'
 %%| fig-width: 6.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     ssh["~/.ssh<br/>(700)"]
@@ -187,7 +187,7 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])?
 
 This is SSH verifying the server's public key fingerprint to prevent man-in-the-middle attacks. When we type `yes`, SSH stores the host key in `~/.ssh/known_hosts` so it won't ask again on future connections.
 
-For an EC2 instance we just created, it's safe to accept this. The fingerprint comes from the server itself and doesn't require external verification.
+For an EC2 instance we just created, the risk is low, but the fingerprint can still be checked against the host keys printed in the instance's system log (see [Managing SSH Keys](manage-ssh-keys.qmd)).
 
 #### Successful connection
 
@@ -250,7 +250,7 @@ If the instance was just launched, it may still be booting. Wait a minute and tr
 
 ## Creating a regular SSH key for routine access
 
-The AWS `.pem` key is powerful—it's our root access to the instance. For daily work, we want to create a separate SSH key pair with limited permissions. This follows the principle of least privilege: use the AWS key only for setup, then use a weaker key for routine access.
+The AWS `.pem` key is powerful—it's our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same `ec2-user` access, so it doesn't reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.
 
 ### Step 1. Generate a new key pair locally
 

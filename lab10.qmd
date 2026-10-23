@@ -50,7 +50,7 @@ On AL2, `systemd` is the program that manages this, and `systemctl` is how I tal
 %%| fig-cap: 'Daemonizing with systemd'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
 
 graph TD
     subgraph Unit["Unit File"]
@@ -73,6 +73,169 @@ graph TD
 ```
 
 Once the unit file exists, `systemctl restart` and `systemctl stop` manage it going forward, and `systemctl disable` stops it from starting on boot.
+
+### A worked example: daemonizing a real app
+
+`baseball-trajectory`, the app installed in [Install Apps](install-apps.qmd), is a good illustration of why daemonizing matters and what it actually looks like in a unit file. Started by hand from an SSH session, it dies the moment that session closes. Run as a service on an EC2 instance, `systemd` starts it on boot, restarts it after a crash, and collects its output, with something in front of it terminating TLS (covered in [Configure SSL](configure-ssl.qmd)).
+
+```{mermaid}
+%%| fig-cap: 'baseball-trajectory Deployment on EC2'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+
+graph TD
+    Op(["Operator<br/>browser"])
+    Admin(["You<br/>SSH client"])
+
+    subgraph EC2["EC2 Instance"]
+        Nginx["<strong>nginx</strong><br/>:443 TLS"]
+        App["<strong>baseball-trajectory</strong><br/>127.0.0.1:8000"]
+        Sysd[("<strong>systemd</strong> + <strong>journald</strong>")]
+    end
+    MLB(["MLB Stats API<br/>statsapi.mlb.com"])
+
+    Op --"HTTPS :443"--> Nginx
+    Admin --"SSH :22"--> EC2
+    Nginx --"HTTP :8000"--> App
+    App --"<em>HTTPS :443</em>"--> MLB
+    Sysd --"<em>supervises</em>"--> App
+
+    style EC2 fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+    style Op fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Admin fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Nginx fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style App fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style MLB fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Sysd fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+```
+
+Notice the one outbound arrow. The app pulls rosters and career stats from the MLB Stats API on demand, so the instance's security group and any NAT path have to allow outbound HTTPS, or the app starts cleanly and then fails on the first player lookup.
+
+Create the unit file:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo vim /etc/systemd/system/baseball-trajectory.service
+```
+
+And give it this content:
+
+```{verbatim}
+[Unit]
+Description=baseball-trajectory
+After=network.target
+
+[Service]
+Type=simple
+User=baseball-trajectory
+WorkingDirectory=/opt/baseball-trajectory
+ExecStart=/opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Four lines in there are doing the work worth understanding.
+
+`User=baseball-trajectory` runs the process as the service account from [Linux Users](linux-users.qmd), not `root`. The app only serves requests and calls an external API, so that account needs no extra privilege at all.
+
+`ExecStart` uses the absolute path into the venv. There's no shell involved, no `PATH` to search, and no activation step. If this path is wrong the unit fails instantly, and it's the single most common cause of a failed first start.
+
+`--host 127.0.0.1` binds the app to loopback only. Change it to `0.0.0.0` and the app is reachable from the internet without TLS and without the proxy, which is exactly what we don't want.
+
+`Restart=on-failure` with `RestartSec=5` brings the app back after a crash, waiting five seconds between attempts so a fast crash loop doesn't spin the CPU.
+
+Load the new file and start the service:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo systemctl daemon-reload
+sudo systemctl enable --now baseball-trajectory
+```
+
+`daemon-reload` tells `systemd` to reread the unit files on disk. `enable` registers the unit to start on boot, and `--now` starts it immediately so you don't have to run `start` separately.
+
+#### Confirming it actually came up
+
+Never trust `enable --now` to mean the app is running. It means `systemd` tried.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo systemctl status baseball-trajectory
+```
+
+```{verbatim}
+● baseball-trajectory.service - baseball-trajectory
+   Loaded: loaded (/etc/systemd/system/baseball-trajectory.service; enabled; vendor preset: disabled)
+   Active: active (running) since Sat 2026-09-05 18:22:41 UTC; 12s ago
+ Main PID: 4812 (python3.12)
+   CGroup: /system.slice/baseball-trajectory.service
+           └─4812 /opt/baseball-trajectory/.venv/bin/python3.12 /opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000
+
+Sep 05 18:22:41 ip-172-31-24-9 systemd[1]: Started baseball-trajectory.
+Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Started server process [4812]
+Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Uvicorn running on http://127.0.0.1:8000
+```
+
+Two things to read here. `Active: active (running)` is the state, and `enabled` in the `Loaded:` line is the confirmation it will come back after a reboot. A unit can be running and not enabled, which works fine until the instance restarts.
+
+Then confirm something is actually listening, from the instance itself:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -I http://127.0.0.1:8000
+```
+
+```{verbatim}
+HTTP/1.1 200 OK
+date: Sat, 05 Sep 2026 18:23:10 GMT
+server: uvicorn
+content-type: text/html; charset=utf-8
+```
+
+A `200` means the landing page rendered. A redirect is fine too. Connection refused means the process died between `status` and `curl`, and the journal will say why:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo journalctl -u baseball-trajectory -n 50 --no-pager
+```
+
+`-u` filters to this unit, `-n 50` limits it to the last 50 lines, and `--no-pager` dumps it straight to the terminal instead of opening `less`. When you want to watch a start attempt live, `journalctl -u baseball-trajectory -f` follows the log the same way `tail -f` does.
+
+```{r}
+#| label: co_box_startup_fail
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "y",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Reading a failed start",
+  fold = TRUE,
+  contents = "
+Four failures account for almost every bad first start, and each has a distinct signature in `journalctl -u baseball-trajectory`:
+
+| What the journal says | What's actually wrong |
+|:----------------------|:----------------------|
+| `Failed at step EXEC ... No such file or directory` | The `ExecStart` path is wrong. Check it with `ls /opt/baseball-trajectory/.venv/bin/shiny` |
+| `ModuleNotFoundError: No module named 'baseball_trajectory'` | `pip install -e .` ran somewhere other than `/opt/baseball-trajectory`, or into a different venv |
+| `Address already in use` | Something already holds `:8000`, often a `shiny run` you started by hand and forgot |
+| `status=203/EXEC` with no other output | The venv was built from a Python that no longer exists at that path |
+
+The pattern in all four is the same: `systemd` executes a literal path with no shell, so anything the interactive session was quietly providing has to be spelled out in the unit file.
+  "
+)
+```
 
 > "*How do you know if you've opened Nano or Vim? How would you exit them if you didn’t mean to?*"
 

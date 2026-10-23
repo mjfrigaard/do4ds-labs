@@ -34,7 +34,7 @@ EC2 is a rentable Linux (or Windows) machine in AWS's data center. You get `root
 %%| fig-cap: ‘EC2 Instances’
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     A(["Your<br>Laptop"]) -->|SSH| B["EC2<br>Instance"]
@@ -325,7 +325,7 @@ The security group is like a bouncer who decides who's allowed to knock on which
 %%| fig-cap: ‘EC2 Instances’
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Internet("Internet") -->|"Port <code>8000</code> open"| SG{{"Security<br>Group"}}
@@ -340,6 +340,31 @@ graph TD
     
 ```
 
+### Security group rules for a web app behind a proxy
+
+The port 22 rule above is enough for SSH only access. An instance that also serves a web app behind a reverse proxy (nginx terminating TLS, as in [Configure SSL](configure-ssl.qmd)) needs exactly two inbound rules, no more:
+
+```{r}
+#| label: co_box_sg_web_rules
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Security group rules",
+  fold = TRUE,
+  contents = "
+- `22/tcp` from your own IP or VPN range, never `0.0.0.0/0`
+- `443/tcp` from wherever operators connect
+
+Do **not** open the app's own port (`8000/tcp` for a typical Python app). If the app binds to `127.0.0.1`, it isn't reachable from outside the instance anyway, but leaving the port closed means a misconfigured bind address can't quietly expose the app to the internet.
+  "
+)
+```
+
 Since our end goal is pulling `vetiver` models from an S3 bucket onto the instance, we need to create the IAM role *before* launching (it's easier to attach the instance profile at launch time than to attach it after the fact).
 
 ## Creating an IAM Role for S3 Access
@@ -350,7 +375,7 @@ An IAM role lets the EC2 instance itself authenticate to AWS (no stored credenti
 %%| fig-cap: ‘EC2 Instances & IAM Roles’
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     EC2(["EC2 Instance"]) -->|"Assumes Role"| Role("IAM Role")
@@ -377,7 +402,7 @@ Three pieces are required:
 %%| fig-cap: ‘IAM Roles, Trust Policies, Permission Policies, and Instance Profiles’
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     Role(["<strong>IAM Role</strong>"]) --> Trust[/"<strong>Trust Policy</strong>:<br>who can assume this role"/]
@@ -479,7 +504,7 @@ aws iam attach-role-policy \
 %%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Role(["<strong>ec2-s3-read-role</strong>"]) -->|attached policy| Policy[/"<strong>AmazonS3ReadOnlyAccess</strong>"/]
@@ -538,7 +563,7 @@ aws iam add-role-to-instance-profile \
 %%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     A("ec2-s3-instance-profile") --> B("ec2-s3-read-role")
@@ -608,7 +633,7 @@ In the **AWS Console**, we can see the EC2 instance is running:
 %%| fig-cap: 'Create Role & Attach Policy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {‘theme’: ‘base’, ‘themeVariables’: {‘fontFamily’: ‘monospace’}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Trust[/"trust-policy.json"/] --> Role("ec2-s3-read-role")

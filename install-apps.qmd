@@ -69,7 +69,7 @@ Putting the new directory first means it takes priority over anything with the s
 %%| fig-cap: 'How PATH Search Works'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Cmd(["shell command<br/><strong>python3</strong>"]) --> Check1("Check<br/><strong>/usr/local/bin</strong>")
@@ -112,7 +112,7 @@ The `-s` flag makes it symbolic, and the real path always comes first:
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo ln -s /opt/python/3.12.1/bin/python3 /usr/local/bin/python3
+sudo ln -s /opt/python/3.12.1/bin/python3.12 /usr/local/bin/python3
 ```
 
 Confirm the link points where you expect:
@@ -124,19 +124,19 @@ ls -l /usr/local/bin/python3
 ```
 
 ```{verbatim}
-lrwxrwxrwx 1 root root 30 Aug 21 14:02 /usr/local/bin/python3 -> /opt/python/3.12.1/bin/python3
+lrwxrwxrwx 1 root root 33 Aug 21 14:02 /usr/local/bin/python3 -> /opt/python/3.12.1/bin/python3.12
 ```
 
 ```{mermaid}
 %%| fig-cap: 'Symlink Resolution'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     User["User types:<br/><code>python3</code>"]
     Link["<strong>/usr/local/bin/python3</strong>"]
-    Points["<strong>/opt/python/3.12.1/<br>bin/python3</strong>"]
+    Points["<strong>/opt/python/3.12.1/<br>bin/python3.12</strong>"]
     Real["<strong>Actual binary</strong>"]
 
     User --"Shell finds symlink"--> Link
@@ -169,7 +169,7 @@ Linux spreads a single application across several directories by purpose, not by
 %%| fig-cap: 'Application Filesystem Hierarchy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Root(["/"])
@@ -177,7 +177,7 @@ graph TD
     Local("<strong>/usr/local/bin</strong>")
     Opt("<strong>/opt</strong>")
     OptPy("<strong>/opt/python/3.12.1</strong>")
-    OptR("<strong>/opt/R/4.4.1</strong>")
+    OptR("<strong>/opt/R/4.6.1</strong>")
     Etc("<strong>/etc</strong>")
     Log("<strong>/var/log</strong>")
 
@@ -204,6 +204,10 @@ graph TD
 
 ## Language versions
 
+AWS EC2 instances will not have data science language installed (at least not versions we can use), so the instructions below cover how to install Python and R onto the EC2 instance we've SHH'd into
+
+### Python version
+
 The Python already on the instance belongs to the operating system. Amazon Linux 2 uses it for `yum` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
 
 The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy:
@@ -211,19 +215,176 @@ The safer pattern is to install your own Python into `/opt`, leave the system co
 ```{bash}
 #| eval: false
 #| code-fold: false
-/opt/python/3.12.1/bin/python3 -m venv ~/my-app/venv
-source ~/my-app/venv/bin/activate
+/opt/python/3.12.1/bin/python3.12 -m venv ~/my-app/venv
 ```
 
-R has no equivalent system dependency, so multiple versions can coexist in `/opt/R` without conflict. [`rig`](https://github.com/r-lib/rig), the R Installation Manager, handles installing and switching between them:
+Activate the virtual environment:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo rig add 4.4.1
-sudo rig default 4.4.1
+source ~/my-app/venv/bin/activate
+```
+
+Deactivate the virtual environment with: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+deactivate
+```
+
+### R version
+
+R has no equivalent system dependency, so multiple versions can coexist in `/opt/R` without conflict. [`rig`](https://github.com/r-lib/rig), the R Installation Manager, handles installing and switching between them.
+
+`rig` isn't in the Amazon Linux 2 repositories, so install it first. The portable Linux build is a tarball that unpacks into `/usr/local`, which puts `rig` in `/usr/local/bin` and on the `PATH` for every account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -Ls https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz | \
+  sudo tar xz -C /usr/local
+rig --version
+```
+
+On a Graviton (`arm64`) instance, swap `x86_64` for `aarch64` in the URL. With `rig` installed, add R and make it the default:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo rig add 4.6.1
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo rig default 4.6.1
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 rig list
 ```
+
+`rig` is one way to get R. On an Ubuntu machine (a local workstation, or an Ubuntu AMI instead of Amazon Linux), CRAN publishes its own `apt` repository, which tracks the current release (R 4.6.1 as of this writing). Add CRAN's signing key and repository, then install `r-base`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt update -qq
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt install --no-install-recommends software-properties-common dirmngr
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
+  sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt install --no-install-recommends r-base
+```
+
+`$(lsb_release -cs)` fills in the Ubuntu release codename. Pop!_OS is built on Ubuntu and reports the Ubuntu codename (`noble` on Pop!_OS 24.04), so the same commands work unchanged. CRAN currently builds for 26.04 (`resolute`), 24.04 (`noble`), and 22.04 (`jammy`).
+
+Confirm the version:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+R --version | head -1
+```
+
+```{verbatim}
+R version 4.6.1 (2026-06-24) -- "Happy Hop"
+```
+
+This installs a single, system wide R under `/usr/lib/R` that `apt upgrade` keeps current. If you need several versions side by side, use `rig` instead; it works the same way on Ubuntu.
+
+`rig` answers "*which R is installed on this box?*" It doesn't pin the packages a project uses or the system libraries those packages compile against. [`rix`](https://docs.ropensci.org/rix/) covers that side. It writes a `default.nix` file describing a project's R version, R packages, and system dependencies, and [Nix](https://nixos.org/) builds that environment into `/nix/store`, isolated from both the system and anything `rig` installed.
+
+| Tool | Scope | Lives in |
+|:-----|:------|:---------|
+| `rig` | R versions for the whole instance | `/opt/R/<version>` |
+| `rix` + Nix | R, packages, and system libraries for one project | `/nix/store`, described by `default.nix` |
+
+: rig versus rix {#tbl-rig-rix}
+
+Install Nix with the Determinate Systems installer, which the `rix` docs recommend. The extra configuration adds the `rstats-on-nix` binary cache, so R packages download prebuilt instead of compiling on the instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
+  sh -s -- install --no-confirm --extra-conf "
+trusted-users = root $USER
+substituters = https://cache.nixos.org https://rstats-on-nix.cachix.org
+trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= rstats-on-nix.cachix.org-1:vdiiVgocg6WeJrODIqdprZRUrhi1JzhBnXv7aWI6+F0="
+```
+
+Open a new shell so `nix-shell` and `nix-build` are on your `PATH`. The R that `rig` installed can generate the environment file, so install `rix` into it and describe the project:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+mkdir -p ~/my-r-app && cd ~/my-r-app
+Rscript -e 'install.packages("rix", repos = "https://cloud.r-project.org")'
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+Rscript -e '
+rix::rix(
+  r_ver = "4.6.1",
+  r_pkgs = c("dplyr", "shiny"),
+  system_pkgs = NULL,
+  git_pkgs = NULL,
+  ide = "none",
+  project_path = ".",
+  overwrite = TRUE
+)'
+```
+
+`ide = "none"` fits a server with no editor attached. `rix()` writes `default.nix` and an `.Rprofile`; the `.Rprofile` keeps R inside the Nix environment from reading the library paths of the `rig` installed R.
+
+Build the environment, then enter it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+nix-build
+nix-shell
+```
+
+Inside `nix-shell`, `R` and `Rscript` resolve to the Nix copy, not `/opt/R`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which R
+Rscript -e 'R.version.string'
+```
+
+`which R` should print a path under `/nix/store`. `exit` leaves the shell and puts the `rig` default back in front. Commit `default.nix` with the project and anyone running `nix-build` gets the same R, packages, and system libraries, which also sidesteps the `-devel` packages below for anything Nix provides.
+
+### System libraries
 
 Both languages depend on system libraries that neither one installs for you. A package that compiles from source will fail with a missing header error until the matching development package is present:
 
@@ -239,7 +400,7 @@ These are the three that account for most failed installs of `curl`, `openssl`, 
 %%| fig-cap: 'Language Runtime Installation Pattern'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     SysPy(["System Python<br/><em>owned by OS</em>"])
@@ -251,7 +412,7 @@ graph TD
     Venv -->|"install packages to"| Packages("<strong>pip install<br/>my-packages</strong>")
 
     R(["System R<br/><em>usually absent</em>"])
-    OptR("Multiple R versions<br/><strong>/opt/R/4.4.1</strong><br/><strong>/opt/R/4.3.2</strong><br/><em>rig switches</em>")
+    OptR("Multiple R versions<br/><strong>/opt/R/4.6.1</strong><br/><strong>/opt/R/4.3.2</strong><br/><em>rig switches</em>")
     Libs("System libraries<br/><strong>libcurl-devel</strong><br/><strong>openssl-devel</strong><br/><strong>libxml2-devel</strong>")
 
     R -->|"alternative"| OptR
@@ -269,8 +430,239 @@ graph TD
     style SysTools fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
 ```
 
+### Building Python from source
+
+The packaged Python is sometimes too old for what you need to run. Amazon Linux 2 ships with 3.7:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+python3 --version
+```
+
+```{verbatim}
+Python 3.7.16
+```
+
+That's the copy `yum` depends on, so upgrading it in place is off the table. The fix is the `/opt` pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.
+
+```{mermaid}
+%%| fig-cap: 'Which Python Runs the App'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+
+graph TD
+    Check{"<strong>python3 --version</strong><br/>3.11 or newer?"}
+    Yes("Use it directly")
+    Build("Build into<br/><strong>/opt/python/3.12.1</strong>")
+    Venv("<strong>/opt/myapp/.venv</strong>")
+    Sys(["<strong>/usr/bin/python3</strong><br/><em>3.7, owned by yum</em>"])
+
+    Check --"yes (AL2023, Ubuntu 22.04+)"--> Yes
+    Check --"no (Amazon Linux 2)"--> Build
+    Yes --> Venv
+    Build --"<em>python3 -m venv</em>"--> Venv
+    Sys --"<em>leave for</em>"--> Yum("yum, OS tooling")
+
+    style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+    style Build fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
+    style Sys fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
+```
+
+Install the compiler and the development headers first, plus a few Python needs specifically for `ssl`, `bz2`, and `ctypes` support:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo yum groupinstall -y "Development Tools"
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo yum install -y openssl-devel bzip2-devel libffi-devel zlib-devel git
+```
+
+Download and unpack the source:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+cd /tmp
+wget https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz
+tar xzf Python-3.12.1.tgz
+cd Python-3.12.1
+```
+
+Then configure it to land in `/opt`, and build:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations
+sudo make altinstall
+```
+
+`--prefix` is what keeps the install self contained. `altinstall` is the flag that matters most: it installs `python3.12` without also writing a `python3` symlink that would shadow the system copy.
+
+Confirm you got what you asked for:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/python/3.12.1/bin/python3.12 --version
+```
+
+```{verbatim}
+Python 3.12.1
+```
+
+```{r}
+#| label: co_box_build_time
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "This takes a while",
+  fold = TRUE,
+  contents = "
+`--enable-optimizations`, passed to `./configure` above, is what triples the compile time. It builds Python twice: once to produce an instrumented interpreter, then runs it against Python's own test suite to record which code paths get hit most, then rebuilds using that profile data to optimize those paths (profile guided optimization, or PGO). It also turns on link time optimization (LTO). On a `t3.micro` the whole thing takes 20 to 30 minutes with the CPU pegged.
+
+'Runtime speed' here means how fast the finished interpreter executes Python code after it's installed, not how long the build itself takes. PGO typically buys 10 to 20 percent on CPU bound benchmarks. A subprocess-heavy or I/O-bound app isn't CPU bound, so that speedup is not something you'd notice in practice. Drop the flag (`sudo ./configure --prefix=/opt/python/3.12.1`) and the build finishes in a few minutes with a standard, unoptimized interpreter.
+
+If `make` dies partway through with an out of memory error, see [Instance Size](instance-size.qmd) for what that means and how to work around it on a small instance.
+
+More on the flag itself: <https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations>
+  "
+)
+```
+
+```{r}
+#| label: co_box_no_ssl
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "pip fails with 'ssl module is not available'",
+  fold = TRUE,
+  contents = "
+The interpreter you just built has no SSL support, so pip can't reach PyPI over HTTPS at all. The cause traces back to the `./configure` step: Amazon Linux 2's default `openssl-devel` package is OpenSSL 1.0.2k, and Python 3.10 and newer require 1.1.1 or later to build the `_ssl` extension. Configure looked for a new enough OpenSSL, didn't find one, and silently skipped the module rather than failing the build. `make altinstall` finished without complaint because none of the steps you ran so far touch SSL, so the problem doesn't show up until pip tries to talk to the internet.
+
+AL2 ships that newer OpenSSL under a separate package, `openssl11`, but its `-devel` package can't be installed alongside the old one: both own the same header path, `/usr/include/openssl/*.h`, so `yum` refuses with a conflict rather than letting them collide. The fix is to swap the devel package out, build, then swap it back, since Python only needs the headers at build time, not at runtime:
+
+> `sudo yum remove -y openssl-devel`
+>
+> `sudo yum install -y openssl11-devel`
+>
+> `cd /tmp/Python-3.12.1`
+>
+> `sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations`
+>
+> `sudo make altinstall`
+
+Python's configure script checks for `openssl11` via `pkg-config` before falling back to the system default, which is what makes this work without a `--with-openssl` flag. You don't need to redownload the source or delete the existing `/opt/python/3.12.1` tree, `altinstall` overwrites in place.
+
+Confirm the module actually built this time before retrying the venv:
+
+`/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'`
+
+That should print an OpenSSL 1.1.1 version string, not a traceback. Once it does, put the original devel package back so other builds on the box aren't left pointing at `openssl11`:
+
+> `sudo yum remove -y openssl11-devel`
+>
+> `sudo yum install -y openssl-devel`
+  "
+)
+```
+
+## Installing a real application
+
+Third party software follows the same convention as the interpreter: its own directory tree under `/opt`, not scattered across the filesystem. Here's what that looks like for `baseball-trajectory`, a Shiny for Python app ([source](https://github.com/mjfrigaard/baseball-trajectory)) that plots a player's career arc from the MLB Stats API:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory
+cd /opt/baseball-trajectory
+```
+
+Create the virtual environment from the `/opt` Python, not the system one, then install the package and its dependencies into it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo /opt/python/3.12.1/bin/python3.12 -m venv /opt/baseball-trajectory/.venv
+sudo /opt/baseball-trajectory/.venv/bin/pip install -e .
+```
+
+This pulls the app's dependencies from PyPI, so the instance needs outbound internet access. If the box is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.
+
+The install spreads across three locations, and each one follows the convention above rather than piling everything into one folder:
+
+| Location | What lives there |
+|:---------|:-----------------|
+| `/opt/baseball-trajectory` | Application source and the virtual environment |
+| `/etc/systemd/system/baseball-trajectory.service` | The unit file telling `systemd` how to run it |
+| `journald` | Application stdout and stderr, read with `journalctl -u baseball-trajectory` |
+
+: Where a system install of baseball-trajectory puts things {#tbl-baseball-trajectory-locations}
+
+```{mermaid}
+%%| fig-cap: 'baseball-trajectory File Locations'
+%%| fig-width: 7.5
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+
+graph TD
+    Root(["/"])
+    Opt("<strong>/opt/baseball-trajectory</strong>")
+    Venv("<strong>.venv/bin/shiny</strong><br/><strong>.venv/bin/baseball-trajectory</strong>")
+    Etc("<strong>/etc/systemd/system</strong>")
+    Unit("<strong>baseball-trajectory.service</strong>")
+    Log("<strong>journald</strong>")
+    Jctl("<em>journalctl -u baseball-trajectory</em>")
+
+    Root --"<em>application</em>"--> Opt --> Venv
+    Root --"<em>config</em>"--> Etc --> Unit
+    Root --"<em>logs</em>"--> Log --> Jctl
+
+    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-family:monospace
+    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-family:monospace
+    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
+    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
+    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff,font-family:monospace
+    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-family:monospace
+```
+
+Notice what's missing: there's no `/var/lib` entry. `baseball-trajectory` keeps nothing on disk. Rosters and career stats are fetched from `https://statsapi.mlb.com` and cached in memory, so a restart simply starts with an empty cache. That also means outbound HTTPS isn't just an install time requirement; the running app needs it on every new player lookup.
+
+Before handing it to `systemd`, confirm the console script starts from the venv:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/baseball-trajectory/.venv/bin/baseball-trajectory
+```
+
+It binds to `127.0.0.1:8000`, so from a second SSH session `curl -I http://127.0.0.1:8000` should return `200 OK`. See [Daemonizing with systemd](lab10.qmd) for turning this into a running service and [Linux Users](linux-users.qmd) for the dedicated account it should run as.
+
 ## Recap
 
 1. `PATH` decides what the shell can find, and `which` tells you which copy is winning. A `command not found` error usually means a directory is missing from the list, not that the software is missing.
 
 2. Install language runtimes into `/opt` and symlink them into `/usr/local/bin`. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.
+
+3. When the packaged interpreter is too old, build your own into `/opt` with `make altinstall` rather than touching the system copy. A real application installed the same way gets its own subtree: source and venv under `/opt`, unit file under `/etc/systemd/system`, and logs in `journald`.
