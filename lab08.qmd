@@ -55,13 +55,13 @@ graph TD
 
 > "*Under what circumstances should you move or share your SSH private key? (Hint: this is a trick question.)*"
 
-**Never.** This is the trick–don't ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.
+**Never.** This is the trick: don't ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.
 
 The only place a private key should exist is on machines we own and control. If we suspect a private key has been compromised, generate a new key pair immediately and update the corresponding public key on all remote systems.
 
 > "*What is it about SSH public keys that makes them safe to share?*"
 
-SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they're based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt—it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it's computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.
+SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they're based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt; it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it's computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.
 
 ## SSH Key Authentication Flow
 
@@ -96,3 +96,13 @@ sequenceDiagram
         Client->>User: Permission denied
     end
 ```
+
+## Recap
+
+1. A private key never moves and is never shared. It should only exist on machines we own and control, and if we suspect it's been compromised, we generate a new key pair and update the public key on every remote system.
+
+2. A public key is safe to share because the relationship only runs in one direction: it's computationally infeasible to calculate the private key from the public key.
+
+3. The server never sees the private key during authentication. It checks a signature made with the private key against the public key in `authorized_keys`, which proves we own the private key without transmitting it.
+
+In [AWS Server Login](aws-ssh-ec2.qmd) we'll use an SSH key pair to log into our EC2 instance.

@@ -28,21 +28,23 @@ co_box(
 
 My instance is Amazon Linux 2, so the system package manager is `yum`, not Ubuntu's `apt`:
 
-- `sudo yum install <package>` pulls a package (and its dependencies) from AL2's configured repositories.
-  - `sudo yum update` keeps everything already installed current.
-- For software that isn't in the repos, I download the package myself with `wget <url>` and install it directly: 
+* `sudo yum install <package>` pulls a package (and its dependencies) from AL2's configured repositories.
+  * `sudo yum update` keeps everything already installed current.
+* For software that isn't in the repos, I download the package myself with `wget <url>` and install it directly: 
 
-  ```bash
+  ```{bash}
+  #| eval: false
+  #| code-fold: false
   sudo yum localinstall <package>.rpm
   # or
   sudo rpm -i <package>.rpm
   ```
 
-  - No dependency resolution beyond what's already on the box, so this is my second choice, not my first.
+  * No dependency resolution beyond what's already on the box, so this is my second choice, not my first.
 
 > "*What does it mean to daemonize a Linux application? What programs and commands are used to do so?*"
 
-Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session - instead of a process that dies the moment I close my SSH connection.
+Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session, instead of a process that dies the moment I close my SSH connection.
 
 On AL2, `systemd` is the program that manages this, and `systemctl` is how I talk to it:
 
@@ -239,7 +241,7 @@ The pattern in all four is the same: `systemd` executes a literal path with no s
 
 > "*How do you know if you've opened Nano or Vim? How would you exit them if you didn’t mean to?*"
 
-Nano tells me right away - the bottom of the screen fills with a menu of keybindings (`^X Exit`, `^O Write Out`, etc.), and I can just start typing. Vim gives no such hints: it opens in **normal mode**, the screen is otherwise blank (empty lines marked with `~`), and typing does nothing useful until I switch to **insert mode**. That silence is usually how I know I've landed in Vim by accident.
+Nano tells me right away: the bottom of the screen fills with a menu of keybindings (`^X Exit`, `^O Write Out`, etc.), and I can just start typing. Vim gives no such hints: it opens in **normal mode**, the screen is otherwise blank (empty lines marked with `~`), and typing does nothing useful until I switch to **insert mode**. That silence is usually how I know I've landed in Vim by accident.
 
 To back out without changing anything:
 
@@ -277,4 +279,16 @@ Then lock it down so only I can read it:
 chmod 600 secrets.txt
 ```
 
-`600` gives the owner read/write and removes every permission for group and other - same restriction I already use on `.ssh/authorized_keys` in [Linux Users](linux-users.qmd).
+`600` gives the owner read/write and removes every permission for group and other; it's the same restriction I already use on `.ssh/authorized_keys` in [Linux Users](linux-users.qmd).
+
+## Recap
+
+1. On Amazon Linux 2, `sudo yum install` pulls a package and its dependencies from the configured repositories. A downloaded `.rpm` installed with `yum localinstall` or `rpm -i` is my second choice, because it can't lean on the repositories for dependencies.
+
+2. Daemonizing hands the app to `systemd`: write a unit file in `/etc/systemd/system`, then run `systemctl daemon-reload` and `systemctl enable --now`. In the `baseball-trajectory` unit, `User=`, the absolute `ExecStart` path into the venv, `--host 127.0.0.1`, and `Restart=on-failure` do the real work.
+
+3. `enable --now` only means `systemd` tried. I confirm with `systemctl status` (looking for `active (running)` and `enabled`), then `curl -I http://127.0.0.1:8000`, and I read `journalctl -u baseball-trajectory` when either one fails.
+
+4. Nano shows its keybindings and exits with `Ctrl + X`; Vim opens silently in normal mode and exits without saving with `Esc`, then `:q!`. `chmod 600` makes a file like `secrets.txt` readable only by its owner.
+
+[Install Apps](install-apps.qmd) covers `PATH`, installing language runtimes into `/opt`, and installing `baseball-trajectory` itself.

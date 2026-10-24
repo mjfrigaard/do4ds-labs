@@ -59,7 +59,7 @@ Below we're going to cover some basic concepts and terminology for using EC2 ins
 +=================================+===========================================================================================================================================+
 | **AMI**                         | The OS disk image used to boot the instance (like choosing a Docker base image)                                                           |
 +---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
-| **Instance type**               | The hardware size (CPU/RAM) — e.g. `t3.micro` is small/cheap                                                                              |
+| **Instance type**               | The hardware size (CPU/RAM); e.g., `t3.micro` is small/cheap                                                                              |
 +---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
 | **Key pair**                    | SSH keypair AWS uses to let you log in (like your `~/.ssh` keys, but AWS-managed)                                                         |
 +---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
@@ -67,7 +67,7 @@ Below we're going to cover some basic concepts and terminology for using EC2 ins
 +---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
 | **Egress**                      | Outgoing traffic (traffic leaving the instance).                                                                                          |
 +---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
-| **Security group**              | A firewall — controls which ports/IPs can reach the instance. Security groups control both **egress**/**ingress** separately. By default: |
+| **Security group**              | A firewall: controls which ports/IPs can reach the instance. Security groups control both **egress**/**ingress** separately. By default:  |
 |                                 |                                                                                                                                           |
 |                                 | - All **egress** is allowed (instance can talk to anything)                                                                               |
 |                                 |                                                                                                                                           |
@@ -208,9 +208,9 @@ The security group was created successfully! AWS handed back its ID and ARN so w
 
 The JSON response has two parts:
 
-- `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `vetiver-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
+* `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `vetiver-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
 
-- `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`386252595109`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
+* `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`386252595109`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
 
 We can view the new security group in the **AWS Console** by searching for **Security Groups**:
 
@@ -423,11 +423,11 @@ Recall the users inherit permissions from groups, so we'll need to grant our gro
 
 1.  In the **AWS Console**, we want to attach `IAMFullAccess` to `dev-deploy-group`:
 
-- Log in via browser (as `root` or any admin-capable login)
+* Log in via browser (as `root` or any admin-capable login)
 
-  - **IAM** \> **IAM user groups** \> **`dev-deploy-group`** \> **Add permissions**
+  * **IAM** \> **IAM user groups** \> **`dev-deploy-group`** \> **Add permissions**
 
-    - **Search `IAMFullAccess`** \> **Attach policies**
+    * **Search `IAMFullAccess`** \> **Attach policies**
 
 ![Click to enlarge attaching permissions to IAM user groups](img/lab7-aws-aim-attach-policy-group.png){width="100%" fig-align="center"}
 
@@ -623,9 +623,19 @@ aws ec2 describe-instances \
 
 This will return the `PublicIpAddress.`
 
-## Summary
+## Recap
 
-In the **AWS Console**, we can see the EC2 instance is running: 
+In this portion of the lab we've covered creating the following:
+
+1. **Key Pairs**: A key pair is a set of public and private keys used to securely connect to an EC2 instance via SSH or RDP. AWS stores the public key on the instance, while we keep the private key to authenticate access.
+
+2. **Security groups**: A security group acts as a virtual firewall controlling inbound and outbound traffic for EC2 instances. Rules define allowed protocols, ports, and source or destination IPs.
+
+3. **IAM roles on EC2**: An IAM role grants an EC2 instance temporary permissions to access other AWS services without storing credentials on the instance. This improves security by using AWS-managed, rotating credentials.
+
+4. **Instance profile**: An instance profile is a container that passes an IAM role to an EC2 instance at launch. It links the role's permissions to the instance so applications running on it can assume that role automatically.
+
+In the **AWS Console**, we can see the EC2 instance is running:
 
 ![Click to enlarge the running EC2 instance on AWS Console](img/lab7-aws-ec2-instance-console.png)
 
@@ -650,18 +660,8 @@ graph TD
     style E fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
     style C fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
     style F fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    
+
 ```
-
-In this portion of the lab we've covered creating the following:
-
-1. **Key Pairs**: A key pair is a set of public and private keys used to securely connect to an EC2 instance via SSH or RDP. AWS stores the public key on the instance, while we keep the private key to authenticate access. 
-
-2. **Security groups**: A security group acts as a virtual firewall controlling inbound and outbound traffic for EC2 instances. Rules define allowed protocols, ports, and source or destination IPs.  
-
-3. **IAM roles on EC2**: An IAM role grants an EC2 instance temporary permissions to access other AWS services without storing credentials on the instance. This improves security by using AWS-managed, rotating credentials.
-
-4. **Instance profile**: An instance profile is a container that passes an IAM role to an EC2 instance at launch. It links the role's permissions to the instance so applications running on it can assume that role automatically.
 
 This mirrors a GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.
 

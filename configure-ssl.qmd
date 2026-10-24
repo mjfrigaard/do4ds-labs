@@ -104,3 +104,11 @@ Leave them out and the failure is confusing rather than obvious: the page loads,
 ```
 
 Load the hostname in a browser and you should get the app's landing page, served over HTTPS.
+
+## Recap
+
+1. An app bound to `127.0.0.1` isn't reachable from outside its instance, so `nginx` accepts the connection on `443`, terminates TLS, and forwards the request to `http://127.0.0.1:8000`.
+
+2. Run `sudo nginx -t` before reloading, because a syntax error will otherwise take `nginx` down entirely. Then `systemctl enable --now nginx` starts it with the same pattern as the app.
+
+3. The `proxy_http_version`, `Upgrade`, and `Connection` lines keep Shiny's WebSocket connection open. Leave them out and the page loads, then nothing responds.

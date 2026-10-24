@@ -315,11 +315,11 @@ Recall that `vetiver.VetiverModel()` wraps the raw model with MLOps metadata and
 
 Below we create `vetiver_api` and `app`:
 
--   `vetiver.VetiverAPI()` automatically generates REST API endpoints around the model, generating routes with standard ML serving endpoints\
+*   `vetiver.VetiverAPI()` automatically generates REST API endpoints around the model, generating routes with standard ML serving endpoints\
 
--   `check_prototype=True` ensures requests match training data format.
+*   `check_prototype=True` ensures requests match training data format.
 
--   We can extract the `FastAPI` instance with `.app`
+*   We can extract the `FastAPI` instance with `.app`
 
 ```{python}
 #| eval: false 
@@ -456,9 +456,9 @@ The FastAPI UI shows four automatically created endpoints:
 
 The bottom three sections of the FastAPI UI shows the **Schema Information**:
 
--   **HTTPValidationError**: What error responses look like   
--   **ValidationError**: Specific field validation failures   
--   **Prototype**: Exact input schema expected 
+*   **HTTPValidationError**: What error responses look like   
+*   **ValidationError**: Specific field validation failures   
+*   **Prototype**: Exact input schema expected 
 
 ### Vetiver Interface
 
@@ -994,7 +994,9 @@ sequenceDiagram
 
 To keep the Python environments in each directory self-contained and reproducible, we will 'freeze' the dependencies in a `requirements.txt` in each folder.
 
-```bash
+```{bash}
+#| eval: false
+#| code-fold: false
 pip freeze > requirements.txt
 cat requirements.txt
 ```
@@ -1036,3 +1038,13 @@ cat requirements.txt
 
 6 directories, 7 files
 ```
+
+## Recap
+
+1. Keep the API and the app in separate folders, each with its own virtual environment and `requirements.txt`. Each one runs in its own Terminal session, so we can confirm the API is working before the app sends a single request.
+
+2. `mod-api.py` reads the pinned `scikit-learn` model, builds `prototype_data` from the model's `feature_names_in_`, and wraps both in a `VetiverModel`. `VetiverAPI(v, check_prototype=True)` turns that into a `FastAPI` app with `/ping`, `/metadata`, `/prototype`, and `/predict` endpoints, and `curl` lets us test each one from the Terminal.
+
+3. The Shiny for Python app stacks the `@reactive.calc` and `@reactive.event(input.predict)` decorators, so `requests.post()` only sends the input values when the Predict button is clicked. The prediction it displays should match the `FastAPI` docs response for the same inputs.
+
+Next, we'll build the R version of this app and API in [R App & API](r-app-api.qmd).

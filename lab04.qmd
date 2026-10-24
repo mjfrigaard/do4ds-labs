@@ -128,37 +128,37 @@ graph LR
 Critical data we should make sure not to log includes:
 
 1.  Sensitive Personal Information (PII)    
-    -   Email addresses, phone numbers, names     
-    -   Social Security Numbers, passport numbers   
-    -   Addresses, birth dates    
-    -   Medical information (HIPAA protected)   
+    *   Email addresses, phone numbers, names     
+    *   Social Security Numbers, passport numbers   
+    *   Addresses, birth dates    
+    *   Medical information (HIPAA protected)   
 2.  Authentication Credentials    
-    -   Passwords (plain text or hashed)   
-    -   API keys and tokens     
-    -   Database connection strings with credentials    
-    -   OAuth tokens and refresh tokens   
+    *   Passwords (plain text or hashed)   
+    *   API keys and tokens     
+    *   Database connection strings with credentials    
+    *   OAuth tokens and refresh tokens   
 3.  Financial Information   
-    -   Credit card numbers     
-    -   Bank account numbers    
-    -   Routing numbers   
+    *   Credit card numbers     
+    *   Bank account numbers    
+    *   Routing numbers   
 
 Industry specific guidelines on logging are available below:
 
 1.  Financial Services:   
-    -   Never log account numbers in full   
-    -   Mask payment card data    
-    -   Avoid logging transaction details in plain text   
-        -   Source: [FFIEC IT Examination Handbook](https://ithandbook.ffiec.gov/it-booklets/information-security.aspx)   
+    *   Never log account numbers in full   
+    *   Mask payment card data    
+    *   Avoid logging transaction details in plain text   
+        *   Source: [FFIEC IT Examination Handbook](https://ithandbook.ffiec.gov/it-booklets/information-security.aspx)   
 2.  Healthcare    
-    -   De-identify all patient data in logs    
-    -   Remove [18 HIPAA identifiers](https://www.luc.edu/its/aboutus/itspoliciesguidelines/hipaainformation/the18hipaaidentifiers/)      
-    -   Implement access controls for log files   
-        -   Source: [HHS Security Risk Assessment](https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html)
+    *   De-identify all patient data in logs    
+    *   Remove [18 HIPAA identifiers](https://www.luc.edu/its/aboutus/itspoliciesguidelines/hipaainformation/the18hipaaidentifiers/)      
+    *   Implement access controls for log files   
+        *   Source: [HHS Security Risk Assessment](https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html)
 3.  Government/Defense    
-    -   Classify log data appropriately    
-    -   Implement need-to-know access   
-    -   Encrypt logs containing sensitive information     
-        -   Source: [NIST SP800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
+    *   Classify log data appropriately    
+    *   Implement need-to-know access   
+    *   Encrypt logs containing sensitive information     
+        *   Source: [NIST SP800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
 
 ### Log levels
 
@@ -258,7 +258,7 @@ Tab clicks are fine-grained UI interaction details, so we could use `TRACE` if w
 
 **Python `logging`:** `DEBUG`
 
-Similar reasoning - this diagnostic information for user interactions are primarily useful during development (or when debugging specific user behavior issues). 
+Similar reasoning applies: this diagnostic information for user interactions is primarily useful during development (or when debugging specific user behavior issues). 
 
 :::
 
@@ -278,7 +278,7 @@ The user provided invalid input, but the app can handle it gracefully (show vali
 
 **Python `logging`:** `WARNING`
 
-Same reasoning - unexpected but handled situation. We'd want to track validation failures for UX improvements without treating them as errors.
+Same reasoning applies: this is an unexpected but handled situation. We'd want to track validation failures for UX improvements without treating them as errors.
 
 :::
 
@@ -298,15 +298,15 @@ The API call failed, which means our app cannot complete an intended operation. 
 
 **Python `logging`:** `ERROR`
 
-Same reasoning - this is a genuine failure that prevents the app from functioning as designed.
+Same reasoning applies: this is a genuine failure that prevents the app from functioning as designed.
 
 :::
 
 *Nuances:*
 
--   *We should use `ERROR` if this breaks core functionality*     
--   *We might consider `WARN` if we have robust fallback mechanisms and the app continues normally*   
--   *Use `FATAL` only if the API is so critical that the entire app becomes unusable without it*   
+*   *We should use `ERROR` if this breaks core functionality*     
+*   *We might consider `WARN` if we have robust fallback mechanisms and the app continues normally*   
+*   *Use `FATAL` only if the API is so critical that the entire app becomes unusable without it*   
 
 *Include the HTTP status code, error message, and endpoint in the log:*
 
@@ -336,9 +336,9 @@ Python doesn't have `TRACE`, so `DEBUG` is appropriate for detailed variable sta
 
 *When to log this:*  
 
--   *During development to verify calculations*      
--   *When debugging reported computational issues*     
--   *Should almost never be enabled in production*       
+*   *During development to verify calculations*      
+*   *When debugging reported computational issues*     
+*   *Should almost never be enabled in production*       
 
 
 #### Log Levels Summary
@@ -353,15 +353,15 @@ Python doesn't have `TRACE`, so `DEBUG` is appropriate for detailed variable sta
 
 **General Rules of Thumb:**
 
--   **`TRACE`/`DEBUG`** = "I need to see what's happening inside"
+*   **`TRACE`/`DEBUG`** = "I need to see what's happening inside"
 
--   **`INFO`/`SUCCESS`** = "Normal operations worth recording"
+*   **`INFO`/`SUCCESS`** = "Normal operations worth recording"
 
--   **`WARN`/`WARNING`** = "Something unexpected but manageable"
+*   **`WARN`/`WARNING`** = "Something unexpected but manageable"
 
--   **`ERROR`** = "Something broke but app continues"
+*   **`ERROR`** = "Something broke but app continues"
 
--   **`FATAL`/`CRITICAL`** = "Cannot continue operating"
+*   **`FATAL`/`CRITICAL`** = "Cannot continue operating"
 
 ## Observability
 
@@ -453,9 +453,19 @@ readr::read_lines("_labs/lab04/app-log.R") |>
 #| echo: false
 #| code-overflow: wrap
 library(readr)
-readr::read_lines("_labs/lab04/app-log.py") |> 
-  base::noquote() |> 
+readr::read_lines("_labs/lab04/app-log.py") |>
+  base::noquote() |>
   writeLines()
 ```
 
 </details>
+
+## Recap
+
+1. Logging records what happened (discrete events with enough context to investigate later), while monitoring tracks how the system is performing through metrics over time. Data scientists are responsible for generating meaningful logs and metrics; admins make sure those feed into the organization's existing aggregation and alerting tools.
+
+2. Be careful about what ends up in a log file. Personal information, passwords, API keys, and full account numbers should never be logged, and patient data needs to be de-identified first.
+
+3. Pick the log level based on what the event means for the app. Fine grained interactions and variable values belong at `TRACE` or `DEBUG`, handled problems like invalid input at `WARN`, and failed operations like an external API call at `ERROR`; Python's `logging` has no `TRACE`, so `DEBUG` covers both.
+
+We'll add these logs to the Shiny for Python app in [Python App Logging](app-log-py.qmd).

@@ -172,7 +172,7 @@ This log records when a new user session begins with the session token and clien
 
 We'll also track user interactions (but `throttle` to avoid excessive logging).[^throttle]
 
-[^throttle]: "*Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.* - see the [`shiny::throttle()`](https://shiny.posit.co/r/reference/shiny/latest/debounce.html) documentation for more info."
+[^throttle]: "*Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.* (see the [`shiny::throttle()`](https://shiny.posit.co/r/reference/shiny/latest/debounce.html) documentation for more info."
 
 ```{r}
 #| eval: false 
@@ -497,11 +497,11 @@ We'll cover how to include each output in the **System Status** below.
 
 The status of the `ping` sent to the API can return one of three results:
 
-- `✅ API Online` (response = 200)
+* `✅ API Online` (response = 200)
 
-- `⚠️ API Issues` (non-200 status)
+* `⚠️ API Issues` (non-200 status)
 
-- `❌ API Offline` (non-response)  
+* `❌ API Offline` (non-response)  
 
 ```{r}
 #| label: api_health
@@ -806,5 +806,15 @@ renv::init()
 #| code-fold: false
 renv::snapshot()
 ```
+
+## Recap
+
+1. The `logger` package needs three lines of setup: `log_threshold()` sets the level to `DEBUG`, `appender_tee()` writes each entry to both the console and `shiny_app.log`, and `formatter_glue_or_sprintf` lets us interpolate values like `{session$token}` directly into each message.
+
+2. We used four log levels in the app. `log_debug()` covers throttled input changes and the data sent to the API; `log_info()` records startups, prediction requests, and successful responses; `log_warn()` flags out of range inputs, slow responses, and timeouts; and `log_error()` captures missing inputs, failed requests, and refused connections.
+
+3. The System Status card turns those logs into a simple monitoring display. `api_health()` pings the API and reports it as online, having issues, or offline, while `reactiveFileReader()` polls `shiny_app.log` every second to show the five most recent entries and the time the file was last modified.
+
+In [Lab 5](lab05.qmd) we'll move on to deployments and code promotion.
 
 

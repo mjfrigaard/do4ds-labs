@@ -362,13 +362,23 @@ docker kill penguin-model-r
 2. Script that trains and serializes the penguin regression model (`lm()`)  
 3. Versioned, saved model artifact (the timestamp-named directory is a `vetiver` model board pin)
 4. Local DuckDB database file, likely storing penguin data used for training or logging predictions.  
-5. The main API definition — declares endpoints using `plumber` decorators (`#* @get`, `#* @post`, etc.) 
+5. The main API definition: declares endpoints using `plumber` decorators (`#* @get`, `#* @post`, etc.) 
 6. Project documentation  
 7. Bootstrap script that initializes `renv` when the project is opened
 8. Project-local R package library managed by `renv`  
 9. `renv` configuration options (e.g., snapshot type, ignored packages)  
 10. Temporary directory `renv` uses when installing packages  
-11. Lockfile recording exact package versions for reproducibility  
+11. Lockfile recording exact package versions for reproducibility
+
+## Recap
+
+1. `renv` takes the place of the Python virtual environment. The `Dockerfile` starts from `rocker/r-ver:4.6.0`, installs the system libraries the R packages need, and runs `renv::restore()` against `renv.lock`.
+
+2. Order in the `Dockerfile` matters for build time. Copying `.Rprofile`, `renv/activate.R`, and `renv.lock` before `plumber.R` means the long package install layer only rebuilds when the dependencies change, not when the API code does.
+
+3. The run step mirrors the Python container: `-v` mounts the local `models/` folder at `/data/model`, and `curl http://localhost:8080/ping` returning `"alive"` confirms the `plumber2` API is running inside the container.
+
+In the next lab, we'll move from local containers to the cloud in [Lab 7: Cloud Servers](lab07.qmd).
 
 
 

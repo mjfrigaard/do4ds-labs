@@ -384,7 +384,7 @@ graph LR
 
 We previously turned our Python `scikit-learn` model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`.[^lab02-with-py] 
 
-  - In R, we created a linear model (with `lm()` and `fastDummies`), converted it to a `vetiver_model()`, put it in a `board_folder()`, 'pinned' it with `vetiver_pin_write()`, then converted it into an API with `plumber::pr()` and `vetiver_api()`.[^lab02-with-r] 
+  * In R, we created a linear model (with `lm()` and `fastDummies`), converted it to a `vetiver_model()`, put it in a `board_folder()`, 'pinned' it with `vetiver_pin_write()`, then converted it into an API with `plumber::pr()` and `vetiver_api()`.[^lab02-with-r] 
 
 [^lab02-with-r]: This can be found in [`_labs/lab02/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02/R/model-vetiver-r.qmd). 
 
@@ -728,4 +728,14 @@ DBI::dbWriteTable(con, "penguins", palmerpenguins::penguins)
 
 DBI::dbDisconnect(con)
 ```
+
+## Recap
+
+1. Native database packages (like `psycopg2` or `RPostgres`) connect through their driver straight to the database and bypass the system layer. ODBC and JDBC connections route through a system ODBC manager or a Java runtime. In R, every path converges on `DBI`, while Python offers several competing packages built on the DB API 2.0 standard.
+
+2. An API request bundles an HTTP method, headers, query parameters, and a JSON body; the response returns a status code, headers, and JSON. Python builds these with `requests`, and R builds them with `httr2` functions like `req_body_json()` and `resp_body_json()`.
+
+3. Both Shiny apps convert the bill length, species, and sex inputs into the dummy columns the model expects, send them to the `vetiver` API at `http://127.0.0.1:8080/predict`, and display the returned prediction. The Python app uses `requests.post()`, and the R app pipes `httr2::request()` into `req_body_json()` and `req_perform()`.
+
+Next, [Python App & API](py-app-api.qmd) connects the Python Shiny app to the `vetiver` API from lab 2.
 

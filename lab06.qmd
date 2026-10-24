@@ -90,12 +90,12 @@ Every Dockerfile starts with `FROM`, which names the base image (e.g., `FROM roc
 
 | Command | Purpose |
 |--------------|---------------------------------------------------|
-| `FROM` | Set the base image — always the first instruction |
+| `FROM` | Set the base image (always the first instruction) |
 | `RUN` | Execute shell commands during the build (install packages, create directories) |
 | `COPY` | Copy files from the build context into the image |
 | `WORKDIR` | Set the working directory for all subsequent `RUN`, `COPY`, `CMD`, and `ENTRYPOINT` instructions |
 | `ENV` | Set environment variables available at both build time and runtime |
-| `EXPOSE` | Document which port the container listens on (informational — does not publish the port) |
+| `EXPOSE` | Document which port the container listens on (informational; does not publish the port) |
 | `CMD` | Default command to run when the container starts; can be overridden at `docker run` |
 | `ENTRYPOINT` | Main executable for the container; `CMD` provides its default arguments |
 
@@ -120,52 +120,70 @@ I'll cover how to install/setup Docker desktop on the `Pop!_OS 24.04` operating 
 
 2. Install the following prerequisites    
     
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo apt install ca-certificates curl gnupg lsb-release
     ```
 
 3. Add Docker's GPG key:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo install -m 0755 -d /etc/apt/keyrings
     ```
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     ```
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo chmod a+r /etc/apt/keyrings/docker.gpg
     ```
 
 4. Add the Docker APT repository (use `ubuntu noble` for Pop!_OS 24.04):
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
       https://download.docker.com/linux/ubuntu noble stable" | \
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     ```
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo apt update
     ```
 
-5. Install Docker Desktop. This install may print a permission warning about `_apt` — this is harmless and the install completes normally.
+5. Install Docker Desktop. This install may print a permission warning about `_apt`; this is harmless and the install completes normally.
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo apt install ./Downloads/docker-desktop-amd64.deb
     ```
 
 
 6. Verify the install and start Docker Desktop:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     docker --version
     # Docker version 29.6.0, build fb59821
     ```
     
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     systemctl --user start docker-desktop
     ```
 
@@ -179,19 +197,25 @@ On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-
 
 1. Install `pass` and `gpg` if they are not already present:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     sudo apt install pass gpg
     ```
 
 2. Generate a GPG key. Accept the defaults (RSA, 3072-bit) and enter a name and email when prompted:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     gpg --generate-key
     ```
 
     The output includes a `pub` block; copy the long hex string on that line (the GPG key ID):
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     pub   rsa3072 2025-10-01 [SC] [expires: 2027-10-01]
           <pub-id>
     uid                      martin frigaard <mjfrigaard@pm.me>
@@ -200,19 +224,25 @@ On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-
 
 3. Initialize `pass` with the key ID:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     pass init <pub-id>
     ```
 
 4. Sign in from the Docker Desktop UI (**Sign In** button in the top-right) or from the Terminal:
 
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     docker login
     ```
 
     Docker will prompt for your Docker ID username and password or token and store the credentials via `pass`.
     
-    ```bash
+    ```{bash}
+    #| eval: false
+    #| code-fold: false
     USING WEB-BASED LOGIN
 
     i Info → To sign in with credentials on the command line, use 'docker login -u <username>'
@@ -282,6 +312,16 @@ lab06/R/
 
 9 directories, 9 files
 ```
+
+## Recap
+
+1. A Dockerfile is the recipe, `docker build` turns it into an image, a registry stores and shares images, and `docker run` starts a container from an image. Images are static, containers are ephemeral, and many containers can run from the same image at once.
+
+2. Each `docker run` flag fits a specific situation: `-p` for services that need to be reachable, `-d` for long-lived background services, `--name` when other commands need to reference the container, `--rm` for disposable jobs, and `-v` for data that should outlive the container. In the Dockerfile itself, `ENTRYPOINT` is the right choice when the container should always start the API or app.
+
+3. On Pop!_OS 24.04, Docker Desktop needs Docker's APT repository before the `.deb` will install, and `pass` must be initialized with a GPG key before you can sign in. The Python and R APIs from lab 2 now live in `_labs/lab06/`, ready to containerize.
+
+We'll build and run the first container in [Python API in a container](py-api-docker.qmd).
 
 
 

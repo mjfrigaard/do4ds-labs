@@ -82,7 +82,7 @@ This architecture is comprised of three scripts in two folders:
 
 ```{bash}
 #| eval: false 
-#| code-cold: false
+#| code-fold: false
 R/api/
 ├── api.Rproj
 ├── mod-api.R
@@ -104,7 +104,7 @@ R/api/
 
 ```{bash}
 #| eval: false 
-#| code-cold: false
+#| code-fold: false
 R/app/
 ├── app-api.R #<1>
 ├── app.Rproj
@@ -1741,3 +1741,13 @@ renv::init()
 ```
 
 We'll cover this more in [R App Logging](app-log-r.qmd).
+
+## Recap
+
+1. Training the model on the original categorical variables (and saving the `prototype` with `save_prototype = TRUE`) means the API can accept plain strings. `prep_pred_data()` uses the factor levels stored in the `prototype` to convert `species` and `sex` back into factors before calling `predict()`.
+
+2. Instead of letting `vetiver_api()` generate the endpoints, we wrote our own handler functions and registered them on a router with `pr()`, `pr_set_api_spec()`, `pr_get()`, and `pr_post()`. Each handler has one job: health checks, model information, input documentation, or predictions.
+
+3. `/predict-validated` checks every field before predicting and returns a `400` response listing the valid options, while `/predict-batch` accepts arrays and returns one prediction per row. The Shiny app only needed small changes: it sends `species` and `sex` as strings and uses `tolower()` to match the model's factor levels.
+
+In [`plumber2`](plumber2.qmd) we'll rebuild this same API with the `plumber2` package.

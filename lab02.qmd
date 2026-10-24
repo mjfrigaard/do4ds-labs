@@ -86,32 +86,32 @@ flowchart TD
 
 *2. What are some questions you should explore to reduce the data requirements for your project?*
 
-- Problem Definition    
-  - What is the minimum viable outcome?   
-  - Can we solve a simpler version first?   
-  - What is the cost of being wrong?    
-- Feature Engineering   
-  - Which features are actually predictive?   
-  - Can we derive features from less data?      
-  - What is redundant?    
-- Sampling Strategy   
-  - How much data do we actually need?    
-  - Can we stratify smartly?    
-  - What about active learning?   
-- External Resources    
-  - What data already exists?   
-  - Can we use pre-trained models?    
-  - Are there proxies available?    
+* Problem Definition    
+  * What is the minimum viable outcome?   
+  * Can we solve a simpler version first?   
+  * What is the cost of being wrong?    
+* Feature Engineering   
+  * Which features are actually predictive?   
+  * Can we derive features from less data?      
+  * What is redundant?    
+* Sampling Strategy   
+  * How much data do we actually need?    
+  * Can we stratify smartly?    
+  * What about active learning?   
+* External Resources    
+  * What data already exists?   
+  * Can we use pre-trained models?    
+  * Are there proxies available?    
 
 *3. What are some patterns you can use to make big data smaller?*
 
-- Minimize data movement by doing as much work as possible where the data already sits.
+* Minimize data movement by doing as much work as possible where the data already sits.
 
-- Don't load all your data at once if you don't need to (keep a live connection to your database and only pull specific pieces of data when you actually need them). 
+* Don't load all your data at once if you don't need to (keep a live connection to your database and only pull specific pieces of data when you actually need them). 
 
-- Working with samples can dramatically speed up your analysis while maintaining accuracy for most types of questions
+* Working with samples can dramatically speed up your analysis while maintaining accuracy for most types of questions
 
-- If your data has natural groupings, process one group at a time instead of loading everything.
+* If your data has natural groupings, process one group at a time instead of loading everything.
 
 *4. Where can you put intermediate artifacts in a data science project?*
 
@@ -341,9 +341,9 @@ vetiver_pin_write(model_board, v)
 1. Use temp directory  
 2. `allow_pickle_read` allows reading Python pickle files (needed for `scikit-learn` models) 
 
--  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models).
+*  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models).
 
--  **`vetiver_pin_write()`** receives the `model_board`, which is our `board_folder` object pointing to `temp_dir/models` and `v` (our `VetiverModel` wrapping the `LinearRegression`). 
+*  **`vetiver_pin_write()`** receives the `model_board`, which is our `board_folder` object pointing to `temp_dir/models` and `v` (our `VetiverModel` wrapping the `LinearRegression`). 
 
 ```{python}
 print(f"Model saved to: {temp_dir}/models")
@@ -462,4 +462,14 @@ flowchart LR
 
 ```
 
-This makes our model accessible to any application that can make web requests, which we will cover in the next lab. 
+This makes our model accessible to any application that can make web requests, which we will cover in the next lab.
+
+## Recap
+
+1. A three layer architecture separates presentation, processing, and data. In this lab the data layer is a `duckdb` table, and the processing layer is the `scikit-learn` model we serve with `vetiver`.
+
+2. `duckdb` can't query the `penguins` module directly. We load the data into a DataFrame with `load_penguins()`, create the table with `CREATE OR REPLACE TABLE`, then pull it back with `fetchdf()`.
+
+3. The path from model to API takes three steps. `VetiverModel()` wraps the fitted model with metadata and prototype data, `vetiver_pin_write()` saves a versioned copy to a `pins` board created with `board_folder()`, and `VetiverAPI()` serves it with `/predict`, `/ping`, `/prototype`, and `/metadata` endpoints.
+
+Next, [Python processing layer](model-vetiver.qmd) collects the code from this lab into the `model-vetiver.qmd` file.
