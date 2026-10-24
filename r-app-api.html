@@ -703,6 +703,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#rapi-files" id="toc-rapi-files" class="nav-link" data-scroll-target="#rapi-files"><code>R/api/</code> files</a></li>
   <li><a href="#rapp-files" id="toc-rapp-files" class="nav-link" data-scroll-target="#rapp-files"><code>R/app/</code> files</a></li>
   </ul></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   <li><a href="#original-app-code" id="toc-original-app-code" class="nav-link" data-scroll-target="#original-app-code">Original App Code</a></li>
   </ul>
 </nav>
@@ -1269,6 +1270,15 @@ sequenceDiagram
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>3 directories, 5 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>The <code>vetiver</code> API only takes a few lines in R: read the pinned model with <code>vetiver_pin_read()</code>, pass it to <code>vetiver_api()</code> on a <code>plumber</code> router, and start it with <code>pr_run()</code> on port 8080.</p></li>
+<li><p>The original app failed with an <code>HTTP 500</code> error because it sent the inputs as a JSON list, and the <code>vetiver</code> API expects a data frame or matrix. Building <code>vals()</code> as a single row <code>data.frame</code> (with the categorical inputs converted to numeric) fixed the request.</p></li>
+<li><p>The <code>httr2</code> request is a pipeline: <code>request()</code> sets the URL, <code>req_method()</code> sets the verb, <code>req_body_json()</code> attaches the data, <code>req_perform()</code> sends it, and <code>resp_body_json()</code> parses the response. Wrapping that pipeline in <code>tryCatch()</code> turns connection failures and timeouts into notifications instead of a crashed app.</p></li>
+</ol>
+<p>In <a href="./plumber.html"><code>plumber</code></a> we’ll rebuild this API with custom handler functions, input validation, and batch predictions.</p>
 </section>
 <section id="original-app-code" class="level2">
 <h2 class="anchored" data-anchor-id="original-app-code">Original App Code</h2>

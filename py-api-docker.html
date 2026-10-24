@@ -685,6 +685,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#run-the-container" id="toc-run-the-container" class="nav-link" data-scroll-target="#run-the-container">Run the container</a></li>
   </ul></li>
   <li><a href="#final-project-files" id="toc-final-project-files" class="nav-link" data-scroll-target="#final-project-files">Final project files</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -1112,6 +1113,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </dl>
 </div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>The <code>Dockerfile</code> starts from <code>python:3.11-slim</code>, installs only the API dependencies from <code>requirements-api.txt</code>, copies <code>mod-api.py</code>, and sets <code>MODEL_PATH</code> and <code>PINS_ALLOW_PICKLE_READ</code> as environment variables. The same pickle setting sits at the top of <code>mod-api.py</code>, before <code>pins</code> is imported, so the API can read the pinned model.</p></li>
+<li><p>The model isn’t baked into the image. Running the container with <code>-v "$(pwd)/models":/data/model</code> mounts the local <code>models/</code> folder where <code>MODEL_PATH</code> points, so a new model version doesn’t require a rebuild.</p></li>
+<li><p>A <code>{"ping":"pong"}</code> response from <code>curl http://localhost:8080/ping</code> confirms the API is running inside the container. Because we started it with <code>--rm</code>, <code>docker stop</code> also removes the container.</p></li>
+</ol>
 <p>In the next lab, we’ll run the R api in a Docker container.</p>
 
 

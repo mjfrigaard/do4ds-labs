@@ -691,6 +691,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#what-it-does-1" id="toc-what-it-does-1" class="nav-link" data-scroll-target="#what-it-does-1">What it does</a></li>
   </ul></li>
   <li><a href="#a-note-on-workflow-file-placement" id="toc-a-note-on-workflow-file-placement" class="nav-link" data-scroll-target="#a-note-on-workflow-file-placement">A note on workflow file placement</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -728,12 +729,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="publishing-quartogithub-pages" class="level2">
 <h2 class="anchored" data-anchor-id="publishing-quartogithub-pages">Publishing Quarto/GitHub Pages</h2>
 <p>This book is published using GitHub Pages, which is a free hosting service provided by GitHub. Quarto provides an easy Terminal command for publishing using GitHub Pages:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> publish gh-pages </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> publish gh-pages </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>The lab for this section will accomplish the same thing, but does so using a GitHub Action workflow file. However, if you run the commands above (like I did) the workflow files won’t be generated because the site isn’t published via GitHub Actions. Instead, running <code>quarto publish gh-pages</code> creates a <em>local setup</em>. This means Quarto renders the files locally, then pushes the rendered HTML directly to the <code>gh-pages</code> branch. The commit log for this branch confirms it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> log gh-pages <span class="at">--oneline</span> <span class="at">-5</span></span>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> log gh-pages <span class="at">--oneline</span> <span class="at">-5</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 76175e88 Built site for gh-pages</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 559df417 Built site for gh-pages</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>The <code>Built site for gh-pages</code> messages are Quarto’s signature commit message when it pushes to the branch itself. <strong>No workflow file is involved.</strong></p>
 <p>To convert this to CI publishing, we need to create and commit two files so GitHub Actions can render and deploy on every push to <code>main</code>:</p>
 <ol type="1">
@@ -918,7 +923,7 @@ flowchart TD
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-6" data-code-lines="5" data-code-annotation="1"><code>validate_inputs()</code>, <code>encode_inputs()</code>, <code>parse_prediction()</code> — the same three functions extracted from the app</span>
+<span data-code-cell="annotated-cell-6" data-code-lines="5" data-code-annotation="1"><code>validate_inputs()</code>, <code>encode_inputs()</code>, <code>parse_prediction()</code>: the same three functions extracted from the app</span>
 </dd>
 <dt data-target-cell="annotated-cell-6" data-target-annotation="2">2</dt>
 <dd>
@@ -967,7 +972,7 @@ flowchart TD
 <h3 class="anchored" data-anchor-id="what-it-does-1">What it does</h3>
 <ul>
 <li>The workflow triggers on <strong>pushes</strong> to <code>test</code> and on <strong>pull requests</strong> targeting <code>prod</code>, identical to the Python version</li>
-<li><code>r-lib/actions/setup-r-dependencies@v2</code> reads <code>DESCRIPTION</code> and installs declared packages — the R equivalent of <code>pip install -e ".[test]"</code></li>
+<li><code>r-lib/actions/setup-r-dependencies@v2</code> reads <code>DESCRIPTION</code> and installs declared packages (the R equivalent of <code>pip install -e ".[test]"</code>)</li>
 <li>The system dependency step (<code>libcurl4-openssl-dev</code>, <code>libssl-dev</code>) is needed because <code>httr2</code> links against these libraries on Linux runners</li>
 <li>Tests run via <code>testthat::test_dir()</code> with <code>load_package = 'installed'</code>, which installs the package before running tests rather than sourcing the files directly</li>
 </ul>
@@ -1052,6 +1057,15 @@ flowchart TD
 </div>
 </div>
 <p>With that structure in place, every push to <code>test</code> and every pull request targeting <code>prod</code> will trigger the workflow automatically.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>quarto publish gh-pages</code> renders locally and pushes the HTML straight to the <code>gh-pages</code> branch, so no workflow file is involved. Publishing through CI takes two files: <code>.github/workflows/publish.yml</code> triggers the build on every push to <code>main</code>, and <code>_publish.yml</code> tells Quarto where to deploy.</p></li>
+<li><p>The Python and R test workflows follow the same pattern: both run on pushes to <code>test</code> and on pull requests targeting <code>prod</code>. Python installs the package with <code>pip install -e ".[test]"</code> and runs <code>pytest</code>, while R installs dependencies with <code>r-lib/actions/setup-r-dependencies@v2</code> and runs <code>testthat</code>. Requiring the workflow as a status check in a branch protection rule for <code>prod</code> blocks promotion when tests fail.</p></li>
+<li><p>GitHub Actions only reads workflow files in the repository root’s <code>.github/workflows/</code> directory. The test workflows in this book are references; in a standalone app-package repository, they would run automatically.</p></li>
+</ol>
+<p>Next, we’ll look at containers in <a href="./lab06.html">Lab 6: Demystifying Docker</a>.</p>
 
 
 </section>

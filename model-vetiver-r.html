@@ -677,6 +677,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#turn-into-vetiver-model" id="toc-turn-into-vetiver-model" class="nav-link" data-scroll-target="#turn-into-vetiver-model">Turn into Vetiver Model</a></li>
   <li><a href="#save-to-board" id="toc-save-to-board" class="nav-link" data-scroll-target="#save-to-board">Save to Board</a></li>
   <li><a href="#turn-model-into-api" id="toc-turn-model-into-api" class="nav-link" data-scroll-target="#turn-model-into-api">Turn model into API</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -808,9 +809,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="turn-model-into-api">Turn model into API</h2>
 <p>Unlike Python, we’ll need to create a plumber router from <code>plumber::pr()</code> to pass to the <code>vetiver_api()</code> (along with the deployable <code>vetiver_model()</code> object).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> <span class="fu">pr</span>() <span class="sc">|&gt;</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>app <span class="ot">&lt;-</span> <span class="fu">pr</span>() <span class="sc">|&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">vetiver_api</span>(v)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>Getting the data into <code>duckdb</code> from R takes one extra step: <code>duckdb_register()</code> exposes the <code>penguins</code> data frame to the connection before <code>CREATE OR REPLACE TABLE</code> builds the table. <code>na.omit()</code> then drops the missing rows (Python used <code>dropna()</code>).</p></li>
+<li><p><code>fastDummies::dummy_cols()</code> with <code>remove_first_dummy = TRUE</code> replaces <code>get_dummies(drop_first = True)</code>, and <code>lm()</code> replaces <code>LinearRegression()</code>. The model information comes from <code>summary(model)$r.squared</code> and <code>coef()</code> instead of the <code>scikit-learn</code> attributes.</p></li>
+<li><p><code>vetiver_model()</code>, <code>board_folder()</code>, and <code>vetiver_pin_write()</code> mirror the Python functions. The API step differs: R needs a <code>plumber</code> router from <code>plumber::pr()</code> piped into <code>vetiver_api()</code>, while Python’s <code>VetiverAPI()</code> builds the API directly from the model.</p></li>
+</ol>
+<p>Next, <a href="./lab03.html">Lab 3: Databases and APIs</a> builds Shiny apps in Python and R that send requests to these APIs.</p>
 
 
 </section>

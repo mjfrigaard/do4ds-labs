@@ -899,12 +899,12 @@ graph TD
 </div>
 <section id="understanding-nat" class="level3">
 <h3 class="anchored" data-anchor-id="understanding-nat">Understanding NAT</h3>
-<p>The <strong>NAT</strong> (Network Address Translation) step in the diagram is where the <strong>Internet Gateway</strong> translates the <strong><em>public</em></strong> <strong>IPv4 address</strong> to the <strong><em>private</em></strong> <strong>IPv4 address</strong> of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the <strong>VPC</strong> (Virtual Private Cloud)—your isolated network environment in AWS where the instance lives. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.</p>
+<p>The <strong>NAT</strong> (Network Address Translation) step in the diagram is where the <strong>Internet Gateway</strong> translates the <strong><em>public</em></strong> <strong>IPv4 address</strong> to the <strong><em>private</em></strong> <strong>IPv4 address</strong> of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the <strong>VPC</strong> (Virtual Private Cloud): your isolated network environment in AWS where the instance lives. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.</p>
 </section>
 </section>
 <section id="using-your-ssh-key" class="level2">
 <h2 class="anchored" data-anchor-id="using-your-ssh-key">Using Your SSH Key</h2>
-<p>When we created the key pair with the AWS CLI, the private key was written to <code>~/.ssh/vetiver-deploy-key.pem</code> (a key pair created in the console downloads the <code>.pem</code> to your browser’s download folder instead). This file is our private key—keep it secure and never share it. We’ll use the <code>.pem</code> key to authenticate when connecting to our <strong>EC2 Instance</strong>.</p>
+<p>When we created the key pair with the AWS CLI, the private key was written to <code>~/.ssh/vetiver-deploy-key.pem</code> (a key pair created in the console downloads the <code>.pem</code> to your browser’s download folder instead). This file is our private key; keep it secure and never share it. We’ll use the <code>.pem</code> key to authenticate when connecting to our <strong>EC2 Instance</strong>.</p>
 <section id="step-1-set-up-the-key-file" class="level3">
 <h3 class="anchored" data-anchor-id="step-1-set-up-the-key-file">Step 1: Set up the key file</h3>
 <p>First, we move the <code>.pem</code> file to our <code>.ssh</code> directory:</p>
@@ -1005,7 +1005,7 @@ graph LR
 <li>Type: SSH</li>
 <li>Protocol: TCP</li>
 <li>Port: 22</li>
-<li>Source: Your IP address (or <code>0.0.0.0/0</code> to allow from anywhere—less secure but simpler for testing)</li>
+<li>Source: Your IP address (or <code>0.0.0.0/0</code> to allow from anywhere, which is less secure but simpler for testing)</li>
 </ul>
 <p>Click <strong>Save rules</strong> and try connecting again.</p>
 </section>
@@ -1031,7 +1031,7 @@ graph LR
 </section>
 <section id="creating-a-regular-ssh-key-for-routine-access" class="level2">
 <h2 class="anchored" data-anchor-id="creating-a-regular-ssh-key-for-routine-access">Creating a regular SSH key for routine access</h2>
-<p>The AWS <code>.pem</code> key is powerful—it’s our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same <code>ec2-user</code> access, so it doesn’t reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.</p>
+<p>The AWS <code>.pem</code> key is powerful; it’s our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same <code>ec2-user</code> access, so it doesn’t reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.</p>
 <section id="step-1.-generate-a-new-key-pair-locally" class="level3">
 <h3 class="anchored" data-anchor-id="step-1.-generate-a-new-key-pair-locally">Step 1. Generate a new key pair locally</h3>
 <p>On our computer, we’ll create a new SSH key using <code>ssh-keygen</code>:</p>
@@ -1107,7 +1107,7 @@ graph LR
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@ec2-YOUR-PUBLIC-IP.compute-1.amazonaws.com </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The public DNS is convenient for one-off connections—we don’t need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).</p>
+<p>The public DNS is convenient for one-off connections; we don’t need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).</p>
 <p>When we log in, we should see something like the following:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>Last login: &lt;day&gt; &lt;month&gt; &lt;dd&gt; &lt;hh:mm:ss&gt; &lt;yyyy&gt; from YOUR_PUBLIC_IP_ADDRESS</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>

@@ -700,7 +700,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#last-updated" id="toc-last-updated" class="nav-link" data-scroll-target="#last-updated"><strong><em>Last updated</em></strong></a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a>
+  <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  <li><a href="#additional-diagrams" id="toc-additional-diagrams" class="nav-link" data-scroll-target="#additional-diagrams">Additional diagrams</a>
   <ul>
   <li><a href="#logging-levels-decision-tree" id="toc-logging-levels-decision-tree" class="nav-link" data-scroll-target="#logging-levels-decision-tree">Logging Levels Decision Tree</a></li>
   <li><a href="#timeout-vs-connectionerror" id="toc-timeout-vs-connectionerror" class="nav-link" data-scroll-target="#timeout-vs-connectionerror">Timeout vs ConnectionError</a></li>
@@ -1614,7 +1616,7 @@ graph TD
 <ul>
 <li><code>response_time</code> is the current time minus start time = elapsed seconds.<br>
 </li>
-<li><code>request_times()</code> is a Shiny-specific reactive value - we can call it like a function to get its value.<br>
+<li><code>request_times()</code> is a Shiny-specific reactive value; we can call it like a function to get its value.<br>
 </li>
 <li><code>current_times.append(response_time)</code> adds current response time to the list of times.</li>
 </ul>
@@ -2961,6 +2963,19 @@ sequenceDiagram
 <span data-code-cell="annotated-cell-33" data-code-lines="6" data-code-annotation="5">Dependencies</span>
 </dd>
 </dl>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>setup_logging()</code> configures Python’s <code>logging</code> once with <code>logging.basicConfig()</code>: an <code>INFO</code> threshold, a consistent timestamp, level, and message format, and two handlers. The <code>FileHandler</code> appends to <code>logs/shiny_app.log</code> across restarts, and the <code>StreamHandler</code> echoes the same entries to the console.</p></li>
+<li><p>Every log message includes the <code>py_</code> session ID, so we can filter the log file by user session. The level follows the event: <code>logging.info()</code> for successful predictions and health checks, <code>logging.warning()</code> for out of range inputs, slow responses, and timeouts, and <code>logging.error()</code> for failed requests and refused connections.</p></li>
+<li><p>The <code>try</code>/<code>except</code> blocks catch <code>ConnectionError</code> and <code>Timeout</code> before the generic <code>Exception</code>, because exception order matters. Each branch logs the failure, updates the error counters, and returns a readable message to the UI instead of crashing the app.</p></li>
+<li><p>The System Status card pings the API’s <code>/ping</code> endpoint, and <code>@reactive.file_reader()</code> re-reads the log file whenever it changes, so the 10 most recent entries appear in the app automatically.</p></li>
+</ol>
+<p>In <a href="./app-log-r.html">R App Logging</a> we’ll add the same logging and monitoring to the R Shiny app with the <code>logger</code> package.</p>
+</section>
+<section id="additional-diagrams" class="level2">
+<h2 class="anchored" data-anchor-id="additional-diagrams">Additional diagrams</h2>
 <p>I’ve included a few more mermaid diagrams illustrating the topics covered in this lab.</p>
 <section id="logging-levels-decision-tree" class="level3">
 <h3 class="anchored" data-anchor-id="logging-levels-decision-tree">Logging Levels Decision Tree</h3>
@@ -3096,7 +3111,7 @@ sequenceDiagram
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="https://docs.python.org/3/library/logging.html#"><code>logging</code></a> — Logging facility for Python.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p><a href="https://docs.python.org/3/library/logging.html#"><code>logging</code></a>: Logging facility for Python.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>Shiny for Python <a href="https://shiny.posit.co/py/docs/ui-html.html#html-tag-objects">HTML tag objects</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><a href="https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals">Formatted string literals</a> “<em>let you include the value of Python expressions inside a string by prefixing the string with <code>f</code> or <code>F</code> and writing expressions as <code>{expression}</code></em>.”<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>

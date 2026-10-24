@@ -684,6 +684,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#confirming-it-actually-came-up" id="toc-confirming-it-actually-came-up" class="nav-link" data-scroll-target="#confirming-it-actually-came-up">Confirming it actually came up</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -746,9 +747,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>sudo yum update</code> keeps everything already installed current.</li>
 </ul></li>
 <li><p>For software that isn’t in the repos, I download the package myself with <code>wget &lt;url&gt;</code> and install it directly:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum localinstall <span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum localinstall <span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> <span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <ul>
 <li>No dependency resolution beyond what’s already on the box, so this is my second choice, not my first.</li>
 </ul></li>
@@ -756,7 +759,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <blockquote class="blockquote">
 <p>“<em>What does it mean to daemonize a Linux application? What programs and commands are used to do so?</em>”</p>
 </blockquote>
-<p>Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session - instead of a process that dies the moment I close my SSH connection.</p>
+<p>Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session, instead of a process that dies the moment I close my SSH connection.</p>
 <p>On AL2, <code>systemd</code> is the program that manages this, and <code>systemctl</code> is how I talk to it:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -943,7 +946,7 @@ graph TD
 <blockquote class="blockquote">
 <p>“<em>How do you know if you’ve opened Nano or Vim? How would you exit them if you didn’t mean to?</em>”</p>
 </blockquote>
-<p>Nano tells me right away - the bottom of the screen fills with a menu of keybindings (<code>^X Exit</code>, <code>^O Write Out</code>, etc.), and I can just start typing. Vim gives no such hints: it opens in <strong>normal mode</strong>, the screen is otherwise blank (empty lines marked with <code>~</code>), and typing does nothing useful until I switch to <strong>insert mode</strong>. That silence is usually how I know I’ve landed in Vim by accident.</p>
+<p>Nano tells me right away: the bottom of the screen fills with a menu of keybindings (<code>^X Exit</code>, <code>^O Write Out</code>, etc.), and I can just start typing. Vim gives no such hints: it opens in <strong>normal mode</strong>, the screen is otherwise blank (empty lines marked with <code>~</code>), and typing does nothing useful until I switch to <strong>insert mode</strong>. That silence is usually how I know I’ve landed in Vim by accident.</p>
 <p>To back out without changing anything:</p>
 <p><strong>Nano</strong>: <code>Ctrl + X</code>, then answer <code>N</code> if it asks whether to save</p>
 <p><a href="img/lab10-nano.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/lab10-nano.png" class="img-fluid" style="width:100.0%"></a></p>
@@ -969,11 +972,21 @@ graph TD
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 secrets.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code>600</code> gives the owner read/write and removes every permission for group and other - same restriction I already use on <code>.ssh/authorized_keys</code> in <a href="./linux-users.html">Linux Users</a>.</p>
-
-
+<p><code>600</code> gives the owner read/write and removes every permission for group and other; it’s the same restriction I already use on <code>.ssh/authorized_keys</code> in <a href="./linux-users.html">Linux Users</a>.</p>
 </section>
 </section>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>On Amazon Linux 2, <code>sudo yum install</code> pulls a package and its dependencies from the configured repositories. A downloaded <code>.rpm</code> installed with <code>yum localinstall</code> or <code>rpm -i</code> is my second choice, because it can’t lean on the repositories for dependencies.</p></li>
+<li><p>Daemonizing hands the app to <code>systemd</code>: write a unit file in <code>/etc/systemd/system</code>, then run <code>systemctl daemon-reload</code> and <code>systemctl enable --now</code>. In the <code>baseball-trajectory</code> unit, <code>User=</code>, the absolute <code>ExecStart</code> path into the venv, <code>--host 127.0.0.1</code>, and <code>Restart=on-failure</code> do the real work.</p></li>
+<li><p><code>enable --now</code> only means <code>systemd</code> tried. I confirm with <code>systemctl status</code> (looking for <code>active (running)</code> and <code>enabled</code>), then <code>curl -I http://127.0.0.1:8000</code>, and I read <code>journalctl -u baseball-trajectory</code> when either one fails.</p></li>
+<li><p>Nano shows its keybindings and exits with <code>Ctrl + X</code>; Vim opens silently in normal mode and exits without saving with <code>Esc</code>, then <code>:q!</code>. <code>chmod 600</code> makes a file like <code>secrets.txt</code> readable only by its owner.</p></li>
+</ol>
+<p><a href="./install-apps.html">Install Apps</a> covers <code>PATH</code>, installing language runtimes into <code>/opt</code>, and installing <code>baseball-trajectory</code> itself.</p>
+
+
 </section>
 
 </main> <!-- /main -->

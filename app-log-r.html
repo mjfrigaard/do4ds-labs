@@ -709,6 +709,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   </ul></li>
   <li><a href="#finishing-touches" id="toc-finishing-touches" class="nav-link" data-scroll-target="#finishing-touches">Finishing touches</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -1670,6 +1671,15 @@ flowchart TD
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>The <code>logger</code> package needs three lines of setup: <code>log_threshold()</code> sets the level to <code>DEBUG</code>, <code>appender_tee()</code> writes each entry to both the console and <code>shiny_app.log</code>, and <code>formatter_glue_or_sprintf</code> lets us interpolate values like <code>{session$token}</code> directly into each message.</p></li>
+<li><p>We used four log levels in the app. <code>log_debug()</code> covers throttled input changes and the data sent to the API; <code>log_info()</code> records startups, prediction requests, and successful responses; <code>log_warn()</code> flags out of range inputs, slow responses, and timeouts; and <code>log_error()</code> captures missing inputs, failed requests, and refused connections.</p></li>
+<li><p>The System Status card turns those logs into a simple monitoring display. <code>api_health()</code> pings the API and reports it as online, having issues, or offline, while <code>reactiveFileReader()</code> polls <code>shiny_app.log</code> every second to show the five most recent entries and the time the file was last modified.</p></li>
+</ol>
+<p>In <a href="./lab05.html">Lab 5</a> we’ll move on to deployments and code promotion.</p>
 
 
 </section>
@@ -1677,7 +1687,7 @@ flowchart TD
 <hr>
 <ol>
 <li id="fn1"><p><a href="https://daroczig.github.io/logger/reference/appender_tee.html"><code>appender_tee()</code></a> determines where the logs will be stored and “<em>appends log messages to both console and a file</em>.”<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>“<em>Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.</em> - see the <a href="https://shiny.posit.co/r/reference/shiny/latest/debounce.html"><code>shiny::throttle()</code></a> documentation for more info.”<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>“<em>Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.</em> (see the <a href="https://shiny.posit.co/r/reference/shiny/latest/debounce.html"><code>shiny::throttle()</code></a> documentation for more info.”<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

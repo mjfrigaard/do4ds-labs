@@ -687,6 +687,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#what-is-in-penguin_model" id="toc-what-is-in-penguin_model" class="nav-link" data-scroll-target="#what-is-in-penguin_model">What is in <code>penguin_model/</code>?</a></li>
   </ul></li>
   <li><a href="#vetivermodel---vetiverapi" id="toc-vetivermodel---vetiverapi" class="nav-link" data-scroll-target="#vetivermodel---vetiverapi"><code>VetiverModel</code> -&gt; <code>VetiverAPI</code></a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -893,7 +894,7 @@ NameError: name 'df' is not defined</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>con.execute(<span class="st">"CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;_duckdb.DuckDBPyConnection object at 0x7ba0413bea40&gt;</code></pre>
+<pre><code>&lt;_duckdb.DuckDBPyConnection object at 0x7d3e7fa6aa40&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> con.execute(<span class="st">"SELECT * FROM penguins"</span>).fetchdf().dropna()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>con.close()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1075,7 +1076,7 @@ flowchart LR
  with vetiver.model_card()
 Writing pin:
 Name: 'penguin_model'
-Version: 20261023T150120Z-62e17</code></pre>
+Version: 20261024T061911Z-62e17</code></pre>
 </div>
 </div>
 <ul>
@@ -1085,7 +1086,7 @@ Version: 20261023T150120Z-62e17</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Model saved to: </span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Model saved to: /tmp/tmpdlw_xi36/models</code></pre>
+<pre><code>Model saved to: /tmp/tmp8ehfkutd/models</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1116,7 +1117,7 @@ Version: 20261023T150120Z-62e17</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>print_tree(<span class="ss">f"</span><span class="sc">{</span>temp_dir<span class="sc">}</span><span class="ss">/models"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>└── penguin_model
-    └── 20261023T150120Z-62e17
+    └── 20261024T061911Z-62e17
         ├── data.txt
         └── penguin_model.joblib</code></pre>
 </div>
@@ -1229,6 +1230,15 @@ flowchart LR
 </div>
 </div>
 <p>This makes our model accessible to any application that can make web requests, which we will cover in the next lab.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>A three layer architecture separates presentation, processing, and data. In this lab the data layer is a <code>duckdb</code> table, and the processing layer is the <code>scikit-learn</code> model we serve with <code>vetiver</code>.</p></li>
+<li><p><code>duckdb</code> can’t query the <code>penguins</code> module directly. We load the data into a DataFrame with <code>load_penguins()</code>, create the table with <code>CREATE OR REPLACE TABLE</code>, then pull it back with <code>fetchdf()</code>.</p></li>
+<li><p>The path from model to API takes three steps. <code>VetiverModel()</code> wraps the fitted model with metadata and prototype data, <code>vetiver_pin_write()</code> saves a versioned copy to a <code>pins</code> board created with <code>board_folder()</code>, and <code>VetiverAPI()</code> serves it with <code>/predict</code>, <code>/ping</code>, <code>/prototype</code>, and <code>/metadata</code> endpoints.</p></li>
+</ol>
+<p>Next, <a href="./model-vetiver.html">Python processing layer</a> collects the code from this lab into the <code>model-vetiver.qmd</code> file.</p>
 
 
 </section>

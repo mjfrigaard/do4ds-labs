@@ -641,6 +641,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
   <li><a href="#ssh-key-authentication-flow" id="toc-ssh-key-authentication-flow" class="nav-link" data-scroll-target="#ssh-key-authentication-flow">SSH Key Authentication Flow</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -713,12 +714,12 @@ graph TD
 <blockquote class="blockquote">
 <p>“<em>Under what circumstances should you move or share your SSH private key? (Hint: this is a trick question.)</em>”</p>
 </blockquote>
-<p><strong>Never.</strong> This is the trick–don’t ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.</p>
+<p><strong>Never.</strong> This is the trick: don’t ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.</p>
 <p>The only place a private key should exist is on machines we own and control. If we suspect a private key has been compromised, generate a new key pair immediately and update the corresponding public key on all remote systems.</p>
 <blockquote class="blockquote">
 <p>“<em>What is it about SSH public keys that makes them safe to share?</em>”</p>
 </blockquote>
-<p>SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they’re based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt—it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it’s computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.</p>
+<p>SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they’re based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt; it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it’s computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.</p>
 </section>
 <section id="ssh-key-authentication-flow" class="level2">
 <h2 class="anchored" data-anchor-id="ssh-key-authentication-flow">SSH Key Authentication Flow</h2>
@@ -758,6 +759,15 @@ sequenceDiagram
 </div>
 </div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>A private key never moves and is never shared. It should only exist on machines we own and control, and if we suspect it’s been compromised, we generate a new key pair and update the public key on every remote system.</p></li>
+<li><p>A public key is safe to share because the relationship only runs in one direction: it’s computationally infeasible to calculate the private key from the public key.</p></li>
+<li><p>The server never sees the private key during authentication. It checks a signature made with the private key against the public key in <code>authorized_keys</code>, which proves we own the private key without transmitting it.</p></li>
+</ol>
+<p>In <a href="./aws-ssh-ec2.html">AWS Server Login</a> we’ll use an SSH key pair to log into our EC2 instance.</p>
 
 
 </section>

@@ -709,6 +709,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#full-server" id="toc-full-server" class="nav-link" data-scroll-target="#full-server">Full server</a></li>
   </ul></li>
   <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -1326,7 +1327,7 @@ show/hide JSON response from model-info
 <h4 class="anchored" data-anchor-id="predictions">Predictions</h4>
 <section id="predict" class="level5">
 <h5 class="anchored" data-anchor-id="predict"><strong><code>/predict</code></strong></h5>
-<p>The main prediction endpoint. In <code>plumber2</code>, the <code>body</code> argument replaces the <code>req$postBody</code> + <code>jsonlite::fromJSON()</code> pattern from <code>plumber</code>—<code>plumber2</code> parses the JSON request body automatically.</p>
+<p>The main prediction endpoint. In <code>plumber2</code>, the <code>body</code> argument replaces the <code>req$postBody</code> + <code>jsonlite::fromJSON()</code> pattern from <code>plumber</code>; <code>plumber2</code> parses the JSON request body automatically.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>show/hide handle_predict()</summary>
@@ -1387,7 +1388,7 @@ show/hide JSON response from model-info
 </dd>
 <dt data-target-cell="annotated-cell-23" data-target-annotation="6">6</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="23,29" data-code-annotation="6">Error handling — <code>response$status &lt;- 500L</code> replaces <code>res$status &lt;- 500</code> from <code>plumber</code>.</span>
+<span data-code-cell="annotated-cell-23" data-code-lines="23,29" data-code-annotation="6">Error handling: <code>response$status &lt;- 500L</code> replaces <code>res$status &lt;- 500</code> from <code>plumber</code>.</span>
 </dd>
 </dl>
 </div>
@@ -1922,7 +1923,7 @@ graph TD
 </section>
 <section id="reactive-values" class="level3">
 <h3 class="anchored" data-anchor-id="reactive-values">Reactive values</h3>
-<p>Because the <code>plumber2</code> API’s <code>/predict</code> endpoint accepts <code>species</code> and <code>sex</code> as strings (not dummy variables), <code>vals()</code> can pass them directly—no numeric encoding required:</p>
+<p>Because the <code>plumber2</code> API’s <code>/predict</code> endpoint accepts <code>species</code> and <code>sex</code> as strings (not dummy variables), <code>vals()</code> can pass them directly (no numeric encoding required):</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-37"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-37-1"><a href="#annotated-cell-37-1" aria-hidden="true" tabindex="-1"></a>vals <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
 <span id="annotated-cell-37-2"><a href="#annotated-cell-37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
@@ -2189,6 +2190,14 @@ sequenceDiagram
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>plumber2</code> is a rewrite, not an update: <code>api()</code>, <code>api_get()</code>, <code>api_post()</code>, <code>format_json()</code>, and <code>api_run()</code> replace their <code>pr_*()</code> and <code>serializer_json()</code> counterparts. The model, <code>prep_pred_data()</code>, and the endpoints stay the same as the <code>plumber</code> version.</p></li>
+<li><p>The biggest change is in the handler signatures. <code>plumber2</code> parses the JSON request body and passes it in as the <code>body</code> argument, so the <code>jsonlite::fromJSON(req$postBody)</code> step disappears, and status codes are set with <code>response$status</code>.</p></li>
+<li><p>Because the API accepts <code>species</code> and <code>sex</code> as strings, the Shiny app’s <code>vals()</code> passes the inputs straight through without any dummy variable encoding. We ran this API on port 8081 so it doesn’t collide with the <code>plumber</code> API on port 8080.</p></li>
+</ol>
 <p>We’ll cover how to keep detailed logs on APIs and Apps in <a href="./app-log-r.html">R App Logging</a>.</p>
 
 

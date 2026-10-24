@@ -717,6 +717,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#full-app-server" id="toc-full-app-server" class="nav-link" data-scroll-target="#full-app-server">Full app server</a></li>
   </ul></li>
   <li><a href="#verify" id="toc-verify" class="nav-link" data-scroll-target="#verify">Verify</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -804,7 +805,7 @@ sequenceDiagram
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
 <p>This architecture is comprised of three scripts in two folders:</p>
 <p><strong><code>api/</code></strong></p>
-<div class="cell" data-code-cold="false">
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">R/api/</span></span>
 <span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> api.Rproj</span>
 <span id="annotated-cell-2-3"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> mod-api.R</span>
@@ -831,7 +832,7 @@ sequenceDiagram
 </div>
 </div>
 <p><strong><code>app/</code></strong></p>
-<div class="cell" data-code-cold="false">
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-3"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-3-1"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">R/app/</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-2" class="code-annotation-target"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.R</span>
 <span id="annotated-cell-3-3"><a href="#annotated-cell-3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app.Rproj</span>
@@ -2668,6 +2669,15 @@ sequenceDiagram
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We’ll cover this more in <a href="./app-log-r.html">R App Logging</a>.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>Training the model on the original categorical variables (and saving the <code>prototype</code> with <code>save_prototype = TRUE</code>) means the API can accept plain strings. <code>prep_pred_data()</code> uses the factor levels stored in the <code>prototype</code> to convert <code>species</code> and <code>sex</code> back into factors before calling <code>predict()</code>.</p></li>
+<li><p>Instead of letting <code>vetiver_api()</code> generate the endpoints, we wrote our own handler functions and registered them on a router with <code>pr()</code>, <code>pr_set_api_spec()</code>, <code>pr_get()</code>, and <code>pr_post()</code>. Each handler has one job: health checks, model information, input documentation, or predictions.</p></li>
+<li><p><code>/predict-validated</code> checks every field before predicting and returns a <code>400</code> response listing the valid options, while <code>/predict-batch</code> accepts arrays and returns one prediction per row. The Shiny app only needed small changes: it sends <code>species</code> and <code>sex</code> as strings and uses <code>tolower()</code> to match the model’s factor levels.</p></li>
+</ol>
+<p>In <a href="./plumber2.html"><code>plumber2</code></a> we’ll rebuild this same API with the <code>plumber2</code> package.</p>
 
 
 </section>

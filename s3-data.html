@@ -701,6 +701,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#running-on-ec2" id="toc-running-on-ec2" class="nav-link" data-scroll-target="#running-on-ec2">Running on EC2</a></li>
   </ul></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -1151,15 +1152,28 @@ graph TD
 <h3 class="anchored" data-anchor-id="running-on-ec2">Running on EC2</h3>
 <p>When the EC2 instance boots with the <code>ec2-s3-instance-profile</code> role attached, it automatically has temporary credentials to access S3. Simply set the <code>USE_S3</code> environment variable and the API will load from S3:</p>
 <p><strong>Python:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">USE_S3</span><span class="op">=</span>true</span>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">USE_S3</span><span class="op">=</span>true</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> mod-api.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p><strong>R:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">USE_S3</span><span class="op">=</span>true</span>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">USE_S3</span><span class="op">=</span>true</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> plumber.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>The instance’s IAM role provides temporary AWS credentials automatically, so no static keys need to be stored on the server.</p>
-
-
 </section>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>We created the <code>penguin-vetiver-model-data</code> bucket with <code>aws s3api create-bucket</code> and pushed the Python and R model folders with <code>aws s3 cp --recursive</code>. <code>aws s3 sync</code> does the same job but only uploads new or changed files, which suits repeated deploys.</p></li>
+<li><p>The <code>USE_S3</code> environment variable decides where <code>vetiver_pin_write()</code> sends the model: <code>board_s3()</code> when it’s <code>"true"</code>, <code>board_folder()</code> otherwise. The same switch works in Python (a <code>.env</code> file read by <code>python-dotenv</code>) and in R (a <code>.Renviron</code> file).</p></li>
+<li><p>The APIs read the model back with the same check, so <code>export USE_S3=true</code> is all it takes to load from S3 on EC2. The <code>ec2-s3-instance-profile</code> role supplies temporary credentials, which keeps static keys off the server.</p></li>
+</ol>
+<p>In <a href="./gha-s3.html">GitHub Actions and S3</a> we’ll automate publishing the models to this bucket whenever we push changes.</p>
+
+
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
