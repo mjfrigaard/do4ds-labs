@@ -46,9 +46,9 @@ Or you can force SSH to authenticate using only the specified `pem` file:[^force
 ssh -v -i ~/.ssh/your-key.pem -o IdentitiesOnly=yes -o IdentityAgent=none ec2-user@<ec2-public-ip>
 ```
 
-- `IdentitiesOnly=yes` restricts SSH to the key given by `-i`, ignoring other keys it might otherwise try.
+* `IdentitiesOnly=yes` restricts SSH to the key given by `-i`, ignoring other keys it might otherwise try.
 
-- `IdentityAgent=none` disables the `ssh-agent` for this session, preventing agent-held keys from being offered.
+* `IdentityAgent=none` disables the `ssh-agent` for this session, preventing agent-held keys from being offered.
 
 [^force-ssh-pem]: *Use this when you need to verify a specific key works, or when the agent would otherwise shadow the intended key.*
 
@@ -138,7 +138,7 @@ id
 uid=1000(ec2-user) gid=1000(ec2-user) groups=1000(ec2-user),4(adm),10(wheel),190(systemd-journal)
 ```
 
-`wheel` is the group that grants `sudo` on Amazon Linux 2. Ubuntu calls the equivalent group `sudo` - same idea, different name. If you're ever unsure which convention an AMI uses, `id` will tell you. I'll use `wheel` again below when I create a second user.
+`wheel` is the group that grants `sudo` on Amazon Linux 2. Ubuntu calls the equivalent group `sudo` (same idea, different name). If you're ever unsure which convention an AMI uses, `id` will tell you. I'll use `wheel` again below when I create a second user.
 
 ### Checking disk space
 
@@ -200,7 +200,7 @@ Create the account:
 sudo useradd test-user
 ```
 
-Unlike Ubuntu's `adduser`, Amazon Linux 2's `useradd` doesn't prompt for anything - it just creates the account and home directory silently. 
+Unlike Ubuntu's `adduser`, Amazon Linux 2's `useradd` doesn't prompt for anything; it just creates the account and home directory silently. 
 
 Set a password separately:
 
@@ -225,7 +225,7 @@ Add `test-user` to `wheel` so has `sudo`:
 sudo usermod -aG wheel test-user
 ```
 
-`-aG` appends the group without disturbing any groups the user already belongs to - leaving off `-a` would replace them. 
+`-aG` appends the group without disturbing any groups the user already belongs to; leaving off `-a` would replace them. 
 
 Confirm it took:
 
@@ -451,7 +451,7 @@ Decide which side of it you want to live on before you hand out logins, not afte
 
 ## Recap
 
-1. `wheel` (not `sudo`) is the group that grants admin rights on Amazon Linux 2 - check with `id` if you're unsure which convention an AMI uses.
+1. `wheel` (not `sudo`) is the group that grants admin rights on Amazon Linux 2 (check with `id` if you're unsure which convention an AMI uses).
 
 2. SSH doesn't care which account is logging in, only whether the presented private key matches a line in that account's `authorized_keys`. Copying a trusted key to a new account is enough; a new key pair isn't required.
 

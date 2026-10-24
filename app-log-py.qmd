@@ -88,7 +88,7 @@ from pathlib import Path
 
 Below we configure the logging in the application with `logging`.[^logging] `Path("logs")` creates a [`pathlib.Path` object](https://docs.python.org/3/library/pathlib.html#basic-use), which is our log directory (`log_dir`). The `log_file` is created by joining paths with `/`, which automatically handles path separators for different operating systems. 
 
-[^logging]: [`logging`](https://docs.python.org/3/library/logging.html#) — Logging facility for Python.
+[^logging]: [`logging`](https://docs.python.org/3/library/logging.html#): Logging facility for Python.
 
 
 ```{python}
@@ -714,17 +714,17 @@ The error handling/logging for the inputs sent to the API (and the response) sta
 
 The predictions are stored in `r` and sent using `requests.post()`, which includes:   
 
-- The destination (`api_url`)    
-- Automatic conversion of Python dict to JSON format (`json`)   
-- The maximum wait time in seconds (`timeout`) 
+* The destination (`api_url`)    
+* Automatic conversion of Python dict to JSON format (`json`)   
+* The maximum wait time in seconds (`timeout`) 
 
 **Performance Metrics Tracking**
 
 Performance timing is calculated using:   
 
-- `response_time` is the current time minus start time = elapsed seconds.  
-- `request_times()` is a Shiny-specific reactive value - we can call it like a function to get its value.    
-- `current_times.append(response_time)` adds current response time to the list of times.    
+* `response_time` is the current time minus start time = elapsed seconds.  
+* `request_times()` is a Shiny-specific reactive value; we can call it like a function to get its value.    
+* `current_times.append(response_time)` adds current response time to the list of times.    
 
 The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the `request_times` is updated the stored value using `set(current_times)` (recall that `request_times` is a shiny-specific reactive value). 
 
@@ -762,12 +762,12 @@ The first `if` statement is a rolling window/circular buffer that focuses on the
 
 The `print` statements give us an indication of what was returned in the HTTP status code: 
 
-- **`200`** = Success! Everything worked.    
-- **`400`** = Bad Request (you sent invalid data).     
-- **`404`** = Not Found (wrong URL).     
-- **`422`** = Validation Error (data format wrong).       
-- **`500`** = Server Error (API crashed).       
-- **`503`** = Service Unavailable (API overloaded). 
+* **`200`** = Success! Everything worked.    
+* **`400`** = Bad Request (you sent invalid data).     
+* **`404`** = Not Found (wrong URL).     
+* **`422`** = Validation Error (data format wrong).       
+* **`500`** = Server Error (API crashed).       
+* **`503`** = Service Unavailable (API overloaded). 
 
 ```{mermaid}
 %%| fig-cap: 'HTTP Status Codes Explained'
@@ -1619,7 +1619,21 @@ The final files in the [`do4ds-labs/_labs/lab04/Python`](https://github.com/mjfr
 2. Log file   
 3. RStudio project file   
 4. Documentation for app    
-5. Dependencies     
+5. Dependencies
+
+## Recap
+
+1. `setup_logging()` configures Python's `logging` once with `logging.basicConfig()`: an `INFO` threshold, a consistent timestamp, level, and message format, and two handlers. The `FileHandler` appends to `logs/shiny_app.log` across restarts, and the `StreamHandler` echoes the same entries to the console.
+
+2. Every log message includes the `py_` session ID, so we can filter the log file by user session. The level follows the event: `logging.info()` for successful predictions and health checks, `logging.warning()` for out of range inputs, slow responses, and timeouts, and `logging.error()` for failed requests and refused connections.
+
+3. The `try`/`except` blocks catch `ConnectionError` and `Timeout` before the generic `Exception`, because exception order matters. Each branch logs the failure, updates the error counters, and returns a readable message to the UI instead of crashing the app.
+
+4. The System Status card pings the API's `/ping` endpoint, and `@reactive.file_reader()` re-reads the log file whenever it changes, so the 10 most recent entries appear in the app automatically.
+
+In [R App Logging](app-log-r.qmd) we'll add the same logging and monitoring to the R Shiny app with the `logger` package.
+
+## Additional diagrams
 
 I've included a few more mermaid diagrams illustrating the topics covered in this lab.
 

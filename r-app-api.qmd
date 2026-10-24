@@ -236,13 +236,13 @@ The sections below cover the `httr2` functions used in the Shiny API app.
 
 `httr2::request()` creates the initial request (`response`) object that all other functions will modify:
 
--   Stores the base URL
+*   Stores the base URL
 
--   Sets default HTTP method (`GET`)
+*   Sets default HTTP method (`GET`)
 
--   Initializes empty headers, query parameters, and body
+*   Initializes empty headers, query parameters, and body
 
--   Returns a modifiable request object
+*   Returns a modifiable request object
 
 ```{r}
 #| eval: false
@@ -275,13 +275,13 @@ graph TD
 
 `httr2::req_method()` specifies which HTTP method to use for the request.
 
--   **`GET`**: Retrieve data (no body allowed)
+*   **`GET`**: Retrieve data (no body allowed)
 
--   **`POST`**: Send new data (body allowed)
+*   **`POST`**: Send new data (body allowed)
 
--   **`PUT`**: Update existing data (body allowed)
+*   **`PUT`**: Update existing data (body allowed)
 
--   **`DELETE`**: Remove data (usually no body)
+*   **`DELETE`**: Remove data (usually no body)
 
 ```{mermaid}
 %%| fig-cap: 'Setting the HTTP Method'
@@ -314,13 +314,13 @@ response <- httr2::request(api_url) |>
 
 `httr2::req_body_json()` converts R objects to JSON and includes them in the request body.
 
--   Converts R `list`s/`data.frame`s to JSON format
+*   Converts R `list`s/`data.frame`s to JSON format
 
--   Sets `Content-Type: application/json` header automatically
+*   Sets `Content-Type: application/json` header automatically
 
--   Includes the JSON in the HTTP request body
+*   Includes the JSON in the HTTP request body
 
--   Used primarily with `POST`/`PUT` requests
+*   Used primarily with `POST`/`PUT` requests
 
 ```{mermaid}
 %%| fig-cap: 'Adding a JSON Body'
@@ -405,13 +405,13 @@ response <- httr2::request(api_url) |>
 
 `httr2::resp_body_json()` parses JSON response body into R objects.
 
-- Converts JSON arrays to R vectors/lists
+* Converts JSON arrays to R vectors/lists
 
-- Converts JSON objects to R named lists
+* Converts JSON objects to R named lists
 
-- Handles nested JSON structures
+* Handles nested JSON structures
 
-- Automatically converts data types (numbers, booleans, strings)
+* Automatically converts data types (numbers, booleans, strings)
 
 ```{mermaid}
 %%| fig-cap: 'Parsing the JSON Response'
@@ -532,6 +532,16 @@ This results in the following files:
 
 3 directories, 5 files
 ```
+
+## Recap
+
+1. The `vetiver` API only takes a few lines in R: read the pinned model with `vetiver_pin_read()`, pass it to `vetiver_api()` on a `plumber` router, and start it with `pr_run()` on port 8080.
+
+2. The original app failed with an `HTTP 500` error because it sent the inputs as a JSON list, and the `vetiver` API expects a data frame or matrix. Building `vals()` as a single row `data.frame` (with the categorical inputs converted to numeric) fixed the request.
+
+3. The `httr2` request is a pipeline: `request()` sets the URL, `req_method()` sets the verb, `req_body_json()` attaches the data, `req_perform()` sends it, and `resp_body_json()` parses the response. Wrapping that pipeline in `tryCatch()` turns connection failures and timeouts into notifications instead of a crashed app.
+
+In [`plumber`](plumber.qmd) we'll rebuild this API with custom handler functions, input validation, and batch predictions.
 
 ## Original App Code
 

@@ -542,16 +542,30 @@ When the EC2 instance boots with the `ec2-s3-instance-profile` role attached, it
 
 **Python:**
 
-```bash
+```{bash}
+#| eval: false
+#| code-fold: false
 export USE_S3=true
 python mod-api.py
 ```
 
 **R:**
 
-```bash
+```{bash}
+#| eval: false
+#| code-fold: false
 export USE_S3=true
 Rscript plumber.R
 ```
 
 The instance's IAM role provides temporary AWS credentials automatically, so no static keys need to be stored on the server.
+
+## Recap
+
+1. We created the `penguin-vetiver-model-data` bucket with `aws s3api create-bucket` and pushed the Python and R model folders with `aws s3 cp --recursive`. `aws s3 sync` does the same job but only uploads new or changed files, which suits repeated deploys.
+
+2. The `USE_S3` environment variable decides where `vetiver_pin_write()` sends the model: `board_s3()` when it's `"true"`, `board_folder()` otherwise. The same switch works in Python (a `.env` file read by `python-dotenv`) and in R (a `.Renviron` file).
+
+3. The APIs read the model back with the same check, so `export USE_S3=true` is all it takes to load from S3 on EC2. The `ec2-s3-instance-profile` role supplies temporary credentials, which keeps static keys off the server.
+
+In [GitHub Actions and S3](gha-s3.qmd) we'll automate publishing the models to this bucket whenever we push changes.

@@ -52,8 +52,8 @@ Give the group a meaningful name: `dev-deploy-group`
 
 Under **Attach permissions policies**, search and select the following:
 
-- `AmazonEC2FullAccess`
-- `AmazonS3FullAccess`
+* `AmazonEC2FullAccess`
+* `AmazonS3FullAccess`
 
 Down the road, we should replace these with scoped custom policies later, but for now it will get us up and running.
 
@@ -445,7 +445,7 @@ arn:aws:iam::386252595109:user/mjfrigaard-cli
 | `arn` | arn | Fixed prefix |
 | `aws` | aws | Partition (the standard AWS, not something like GovCloud or China) |
 | `iam` | iam | Service |
-| (blank) | — | Region (IAM is global, so it doesn't specify a region) |
+| (blank) | none | Region (IAM is global, so it doesn't specify a region) |
 | `386252595109` | Account ID | Which AWS account owns this user |
 | `user/mjfrigaard-cli` | Resource | this is an IAM **user** named `mjfrigaard-cli` |
 
@@ -551,9 +551,9 @@ It returns the following:
 
 The `sts` command uses AWS's security token service (STS) validated our keys and returned:
 
-- `UserId`: unique internal ID for this IAM user
-- `Account`: AWS account number
-- `Arn`: confirms we are authenticated as `mjfrigaard-cli`
+* `UserId`: unique internal ID for this IAM user
+* `Account`: AWS account number
+* `Arn`: confirms we are authenticated as `mjfrigaard-cli`
 
 ```{mermaid}
 %%| fig-cap: ‘Humans and services’
@@ -574,6 +574,14 @@ graph LR
     
 ```
 
-This is the standard way to confirm we can CLI credentials are valid and check which identity they belong to. 
+This is the standard way to confirm we can CLI credentials are valid and check which identity they belong to.
+
+## Recap
+
+1. We created the `dev-deploy-group` IAM group, attached the `AmazonEC2FullAccess` and `AmazonS3FullAccess` policies, and added the `mjfrigaard-cli` user to it. The user has no permissions of its own; it inherits them from the group.
+
+2. We created an access key for `mjfrigaard-cli` with the Command Line Interface (CLI) use case. The Access Key ID and Secret Access Key authenticate requests, so they stay private (ARNs, by contrast, are identifiers and safe to share).
+
+3. We installed the AWS CLI with the official installer, confirmed it with `aws --version`, and stored the keys in a `dev-deploy` profile with `aws configure`. Running `aws sts get-caller-identity --profile dev-deploy` returned the `mjfrigaard-cli` ARN, which confirms the credentials work.
 
 In the next section, we're going to cover launching an EC2 instance. 

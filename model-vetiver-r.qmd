@@ -146,6 +146,16 @@ Unlike Python, we'll need to create a plumber router from `plumber::pr()` to pas
 
 ```{r}
 #| eval: false
-app <- pr() |> 
+app <- pr() |>
   vetiver_api(v)
 ```
+
+## Recap
+
+1. Getting the data into `duckdb` from R takes one extra step: `duckdb_register()` exposes the `penguins` data frame to the connection before `CREATE OR REPLACE TABLE` builds the table. `na.omit()` then drops the missing rows (Python used `dropna()`).
+
+2. `fastDummies::dummy_cols()` with `remove_first_dummy = TRUE` replaces `get_dummies(drop_first = True)`, and `lm()` replaces `LinearRegression()`. The model information comes from `summary(model)$r.squared` and `coef()` instead of the `scikit-learn` attributes.
+
+3. `vetiver_model()`, `board_folder()`, and `vetiver_pin_write()` mirror the Python functions. The API step differs: R needs a `plumber` router from `plumber::pr()` piped into `vetiver_api()`, while Python's `VetiverAPI()` builds the API directly from the model.
+
+Next, [Lab 3: Databases and APIs](lab03.qmd) builds Shiny apps in Python and R that send requests to these APIs.

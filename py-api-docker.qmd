@@ -414,7 +414,15 @@ docker kill penguin-model-py
 5. DuckDB database file storing the Palmer penguins dataset.  
 6. Setup and usage instructions for running the API locally and in Docker.
 7. Python dependencies for the `FastAPI` application.  
-8. Python dependencies for both model training and the API.  
+8. Python dependencies for both model training and the API.
+
+## Recap
+
+1. The `Dockerfile` starts from `python:3.11-slim`, installs only the API dependencies from `requirements-api.txt`, copies `mod-api.py`, and sets `MODEL_PATH` and `PINS_ALLOW_PICKLE_READ` as environment variables. The same pickle setting sits at the top of `mod-api.py`, before `pins` is imported, so the API can read the pinned model.
+
+2. The model isn't baked into the image. Running the container with `-v "$(pwd)/models":/data/model` mounts the local `models/` folder where `MODEL_PATH` points, so a new model version doesn't require a rebuild.
+
+3. A `{"ping":"pong"}` response from `curl http://localhost:8080/ping` confirms the API is running inside the container. Because we started it with `--rm`, `docker stop` also removes the container.
 
 In the next lab, we'll run the R api in a Docker container. 
 

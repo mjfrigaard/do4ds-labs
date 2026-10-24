@@ -102,11 +102,11 @@ graph TD
 
 ### Understanding NAT
 
-The **NAT** (Network Address Translation) step in the diagram is where the **Internet Gateway** translates the ***public*** **IPv4 address** to the ***private*** **IPv4 address** of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the **VPC** (Virtual Private Cloud)—your isolated network environment in AWS where the instance lives. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.
+The **NAT** (Network Address Translation) step in the diagram is where the **Internet Gateway** translates the ***public*** **IPv4 address** to the ***private*** **IPv4 address** of the instance. When we connect via SSH to the public IP, the gateway automatically converts that traffic so it reaches the private IP inside the **VPC** (Virtual Private Cloud): your isolated network environment in AWS where the instance lives. This separation keeps internal instance addresses hidden from the internet while still allowing secure access through the public endpoint.
 
 ## Using Your SSH Key
 
-When we created the key pair with the AWS CLI, the private key was written to `~/.ssh/vetiver-deploy-key.pem` (a key pair created in the console downloads the `.pem` to your browser's download folder instead). This file is our private key—keep it secure and never share it. We'll use the `.pem` key to authenticate when connecting to our **EC2 Instance**.
+When we created the key pair with the AWS CLI, the private key was written to `~/.ssh/vetiver-deploy-key.pem` (a key pair created in the console downloads the `.pem` to your browser's download folder instead). This file is our private key; keep it secure and never share it. We'll use the `.pem` key to authenticate when connecting to our **EC2 Instance**.
 
 ### Step 1: Set up the key file
 
@@ -222,10 +222,10 @@ The most common cause. To check the security group rules:
 
 If there's no SSH rule, click **Edit inbound rules** and add:
 
-- Type: SSH
-- Protocol: TCP
-- Port: 22
-- Source: Your IP address (or `0.0.0.0/0` to allow from anywhere—less secure but simpler for testing)
+* Type: SSH
+* Protocol: TCP
+* Port: 22
+* Source: Your IP address (or `0.0.0.0/0` to allow from anywhere, which is less secure but simpler for testing)
 
 Click **Save rules** and try connecting again.
 
@@ -233,10 +233,10 @@ Click **Save rules** and try connecting again.
 
 Different AMIs use different default usernames:
 
-- Amazon Linux 2: `ec2-user`
-- Ubuntu: `ubuntu`
-- CentOS: `centos`
-- RHEL: `ec2-user`
+* Amazon Linux 2: `ec2-user`
+* Ubuntu: `ubuntu`
+* CentOS: `centos`
+* RHEL: `ec2-user`
 
 Try connecting with the correct username for the instance's operating system.
 
@@ -250,7 +250,7 @@ If the instance was just launched, it may still be booting. Wait a minute and tr
 
 ## Creating a regular SSH key for routine access
 
-The AWS `.pem` key is powerful—it's our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same `ec2-user` access, so it doesn't reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.
+The AWS `.pem` key is powerful; it's our root access to the instance. For daily work, we want a separate SSH key pair. It grants the same `ec2-user` access, so it doesn't reduce privilege; it separates routine use from the recovery key, which can then stay offline and be revoked independently.
 
 ### Step 1. Generate a new key pair locally
 
@@ -297,9 +297,9 @@ This creates two files in `~/.ssh.`:
 
 ```
 
-- `~/.ssh/<your-key-name>` is the private key (**keep this secret**)
+* `~/.ssh/<your-key-name>` is the private key (**keep this secret**)
 
-- `~/.ssh/<your-key-name>.pub` is the public key we will share this with the server
+* `~/.ssh/<your-key-name>.pub` is the public key we will share this with the server
 
 ### Step 2. Add the public key to the server
 
@@ -366,7 +366,7 @@ In fact, if we log into the **AWS Console**, we can navigate to **Instances** > 
 ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@ec2-YOUR-PUBLIC-IP.compute-1.amazonaws.com 
 ```
 
-The public DNS is convenient for one-off connections—we don't need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).
+The public DNS is convenient for one-off connections; we don't need to look up the IP address. It encodes the IP in the hostname and changes when we stop/restart the instance (for stable, persistent access, we should assign an Elastic IP address to the instance).
 
 When we log in, we should see something like the following:
 

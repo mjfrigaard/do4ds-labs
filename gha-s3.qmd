@@ -290,7 +290,17 @@ git push origin main
 Then publish the book:
 
 ```{bash}
-#| eval: false 
+#| eval: false
 #| code-fold: false
 quarto publish gh-pages
 ```
+
+## Recap
+
+1. The AWS access key ID and secret access key go in the repository's Secrets, and `AWS_REGION` goes in Variables. The workflow loads them with `aws-actions/configure-aws-credentials`, so the credentials never appear in the code.
+
+2. `publish.yml` runs on pushes to the `lab07-s3` branch that change `py_model.qmd`, `r_model.qmd`, or the workflow file itself. It installs Python and R, then runs both model scripts with `USE_S3=true`, so each run writes a new `vetiver` version to S3.
+
+3. Model changes happen on `lab07-s3` (make changes, test locally, commit, push, and verify with `aws s3 ls`), which keeps `main` reserved for rendering the book. Changes that also belong in the book get merged back into `main`.
+
+[Lab 8](lab08.qmd) moves to the command line and how SSH keys work.

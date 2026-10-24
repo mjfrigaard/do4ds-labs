@@ -237,9 +237,9 @@ The `plumber.R` file defines handler functions and assembles a `plumber2` router
 
 In `plumber2`, these are separated:
 
-- Path parameters are named arguments (e.g., `/users/<id>` → `function(id)`)    
-- Query parameters are accessed via the `query` argument    
-- The request body is accessed via the `body` argument (already parsed from JSON)   
+* Path parameters are named arguments (e.g., `/users/<id>` → `function(id)`)    
+* Query parameters are accessed via the `query` argument    
+* The request body is accessed via the `body` argument (already parsed from JSON)   
 
 ### plumber vs plumber2
 
@@ -554,7 +554,7 @@ handle_input_schema <- function() {
 
 ##### **`/predict`**
 
-The main prediction endpoint. In `plumber2`, the `body` argument replaces the `req$postBody` + `jsonlite::fromJSON()` pattern from `plumber`—`plumber2` parses the JSON request body automatically.
+The main prediction endpoint. In `plumber2`, the `body` argument replaces the `req$postBody` + `jsonlite::fromJSON()` pattern from `plumber`; `plumber2` parses the JSON request body automatically.
 
 ```{r}
 #| eval: false
@@ -598,7 +598,7 @@ handle_predict <- function(body, response) { #<1>
 3. Convert strings to factors.
 4. Make prediction.
 5. Handle different return types from `vetiver`.
-6. Error handling — `response$status <- 500L` replaces `res$status <- 500` from `plumber`.
+6. Error handling: `response$status <- 500L` replaces `res$status <- 500` from `plumber`.
 
 ```{mermaid}
 %%| fig-cap: 'The /predict Data Flow'
@@ -1013,7 +1013,7 @@ ui <- page_sidebar(
 
 ### Reactive values
 
-Because the `plumber2` API's `/predict` endpoint accepts `species` and `sex` as strings (not dummy variables), `vals()` can pass them directly—no numeric encoding required:
+Because the `plumber2` API's `/predict` endpoint accepts `species` and `sex` as strings (not dummy variables), `vals()` can pass them directly (no numeric encoding required):
 
 ```{r}
 #| eval: false
@@ -1220,5 +1220,13 @@ To keep environments self-contained and reproducible, initialize `renv` in each 
 #| eval: false
 renv::init()
 ```
+
+## Recap
+
+1. `plumber2` is a rewrite, not an update: `api()`, `api_get()`, `api_post()`, `format_json()`, and `api_run()` replace their `pr_*()` and `serializer_json()` counterparts. The model, `prep_pred_data()`, and the endpoints stay the same as the `plumber` version.
+
+2. The biggest change is in the handler signatures. `plumber2` parses the JSON request body and passes it in as the `body` argument, so the `jsonlite::fromJSON(req$postBody)` step disappears, and status codes are set with `response$status`.
+
+3. Because the API accepts `species` and `sex` as strings, the Shiny app's `vals()` passes the inputs straight through without any dummy variable encoding. We ran this API on port 8081 so it doesn't collide with the `plumber` API on port 8080.
 
 We'll cover how to keep detailed logs on APIs and Apps in [R App Logging](app-log-r.qmd).
