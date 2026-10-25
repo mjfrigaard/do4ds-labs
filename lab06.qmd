@@ -120,72 +120,72 @@ I'll cover how to install/setup Docker desktop on the `Pop!_OS 24.04` operating 
 
 2. Install the following prerequisites    
     
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo apt install ca-certificates curl gnupg lsb-release
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo apt install ca-certificates curl gnupg lsb-release
+   ```
 
 3. Add Docker's GPG key:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo install -m 0755 -d /etc/apt/keyrings
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo install -m 0755 -d /etc/apt/keyrings
+   ```
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+   ```
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo chmod a+r /etc/apt/keyrings/docker.gpg
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo chmod a+r /etc/apt/keyrings/docker.gpg
+   ```
 
 4. Add the Docker APT repository (use `ubuntu noble` for Pop!_OS 24.04):
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-      https://download.docker.com/linux/ubuntu noble stable" | \
-      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   echo \
+     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+     https://download.docker.com/linux/ubuntu noble stable" | \
+     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   ```
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo apt update
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo apt update
+   ```
 
 5. Install Docker Desktop. This install may print a permission warning about `_apt`; this is harmless and the install completes normally.
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo apt install ./Downloads/docker-desktop-amd64.deb
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo apt install ./Downloads/docker-desktop-amd64.deb
+   ```
 
 
 6. Verify the install and start Docker Desktop:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    docker --version
-    # Docker version 29.6.0, build fb59821
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   docker --version
+   # Docker version 29.6.0, build fb59821
+   ```
     
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    systemctl --user start docker-desktop
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   systemctl --user start docker-desktop
+   ```
 
 ![Docker desktop](img/lab6-docker-start.png){width='100%' fig-align='center'}
 
@@ -197,62 +197,62 @@ On Linux, Docker Desktop uses [`pass`](https://www.passwordstore.org/) (the GPG-
 
 1. Install `pass` and `gpg` if they are not already present:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    sudo apt install pass gpg
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   sudo apt install pass gpg
+   ```
 
 2. Generate a GPG key. Accept the defaults (RSA, 3072-bit) and enter a name and email when prompted:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    gpg --generate-key
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   gpg --generate-key
+   ```
 
     The output includes a `pub` block; copy the long hex string on that line (the GPG key ID):
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    pub   rsa3072 2025-10-01 [SC] [expires: 2027-10-01]
-          <pub-id>
-    uid                      martin frigaard <mjfrigaard@pm.me>
-    sub   cv25519 2026-06-28 [E] [expires: 2029-06-27]
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   pub   rsa3072 2025-10-01 [SC] [expires: 2027-10-01]
+         <pub-id>
+   uid                      martin frigaard <mjfrigaard@pm.me>
+   sub   cv25519 2026-06-28 [E] [expires: 2029-06-27]
+   ```
 
 3. Initialize `pass` with the key ID:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    pass init <pub-id>
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   pass init <pub-id>
+   ```
 
 4. Sign in from the Docker Desktop UI (**Sign In** button in the top-right) or from the Terminal:
 
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    docker login
-    ```
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   docker login
+   ```
 
     Docker will prompt for your Docker ID username and password or token and store the credentials via `pass`.
     
-    ```{bash}
-    #| eval: false
-    #| code-fold: false
-    USING WEB-BASED LOGIN
+   ```{bash}
+   #| eval: false
+   #| code-fold: false
+   USING WEB-BASED LOGIN
 
-    i Info → To sign in with credentials on the command line, use 'docker login -u <username>'
-    
-    
-    Your one-time device confirmation code is: ABCD-EFGH
-    Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
+   i Info → To sign in with credentials on the command line, use 'docker login -u <username>'
+   
+   
+   Your one-time device confirmation code is: ABCD-EFGH
+   Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
 
-    Waiting for authentication in the browser…
-    ```
+   Waiting for authentication in the browser…
+   ```
     
 5. After authentication is complete in the browser, you'll see the following: 
 
@@ -265,6 +265,8 @@ And docker desktop will indicate you've signed in:
 ### Python
 
 The Python API has been moved into [`_labs/lab06/Python/api`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/Python/api):
+
+::: {style="font-style: italic;"}
 
 ```{bash}
 #| eval: false 
@@ -285,10 +287,14 @@ lab06/Python/
 5 directories, 10 files
 ```
 
+:::
+
 ### R 
 
 The R API has been moved into [`_labs/lab06/R/api`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api):
 
+
+::: {style="font-style: italic;"}
 
 ```{bash}
 #| eval: false 
@@ -312,6 +318,8 @@ lab06/R/
 
 9 directories, 9 files
 ```
+
+:::
 
 ## Recap
 

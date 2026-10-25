@@ -117,18 +117,28 @@ Move the downloaded `.pem` file into the `.ssh/` folder and run the following:
 ssh-keygen -t ed25519 -f ~/.ssh/<your-key-name>-macbook -C "your-email@example.com"
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 Generating public/private ed25519 key pair.
 ```
 
+:::
+
 A `passphrase` is requested (but not required). 
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 Enter passphrase for "/path/to/.ssh/<your-key-name>-macbook" (empty for no passphrase):
 Enter same passphrase again:
 ```
 
+:::
+
 After clicking <kbd>Enter</kbd> twice, you'll see something like: 
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 Your identification has been saved in /path/to/.ssh/<your-key-name>-macbook
@@ -149,7 +159,11 @@ The key's randomart image is:
 +----[SHA256]-----+
 ```
 
+:::
+
 We now have the following files in the `~/.ssh/`:
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 ~/.ssh/
@@ -158,6 +172,8 @@ We now have the following files in the `~/.ssh/`:
 └── <your-key-name>-macbook.pub
 
 ```
+
+:::
 
 
 ### Step 2: Copy public key
@@ -170,9 +186,13 @@ Giving the key a machine-specific name (like `-macbook`) makes it easy to tell l
 cat ~/.ssh/<your-key-name>-macbook.pub
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX your-email@example.com
 ```
+
+:::
 
 **Copy this somewhere safe (like a password manager).**
 
@@ -208,6 +228,8 @@ ssh -i ~/.ssh/<your-key-name>-macbook ec2-user@YOUR_PUBLIC_IP_ADDRESS
 
 The first time we connect from a new machine, SSH has never seen this server before, so it asks us to verify the host key. The output looks something like the block below (the real addresses and fingerprint are shown here as placeholders):
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 The authenticity of host 'YOUR_PUBLIC_IP_ADDRESS (YOUR_PUBLIC_IP_ADDRESS)' can't be established.
 ED25519 key fingerprint is SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
@@ -215,15 +237,23 @@ This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 ```
 
+:::
+
 The `The authenticity of host ... can't be established.` is the **host key verification**. This means our client has no record of this server yet, so it can't confirm we're talking to the right machine. 
 
 We answer `yes` only after checking the fingerprint against the value AWS reported for the instance. After confirming, we see the key has been added to the list of known hosts.
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 Warning: Permanently added 'YOUR_PUBLIC_IP_ADDRESS' (ED25519) to the list of known hosts.
 ```
 
+:::
+
 Once we accept it, SSH stores it in `~/.ssh/known_hosts` and won't prompt again unless the key changes.
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 ** WARNING: connection is not using a post-quantum key exchange algorithm.
@@ -231,11 +261,15 @@ Once we accept it, SSH stores it in `~/.ssh/known_hosts` and won't prompt again 
 ** The server may need to be upgraded. See https://openssh.com/pq.html
 ```
 
+:::
+
 Newer OpenSSH versions try a post-quantum key exchange by default. When the server doesn't support it, SSH prints a warning, then falls back to a classical algorithm (this is informational, not an error).
 
 #### Successful login
 
 In the Terminal, we'll see `Last login: ...` and the `[ec2-user@ip-... ~]$` prompt. The shell prompt changing to the instance's user and hostname confirms we're now on the EC2 server.
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 Last login: <day> <month> <dd> <hh:mm:ss> <yyyy> from YOUR_PUBLIC_IP_ADDRESS
@@ -252,6 +286,8 @@ Last login: <day> <month> <dd> <hh:mm:ss> <yyyy> from YOUR_PUBLIC_IP_ADDRESS
 
 [ec2-user@ip-YOUR_INSTANCE_HOSTNAME ~]$
 ```
+
+:::
 
 We can confirm the new key works because the login completes without asking for a password or the old key.
 

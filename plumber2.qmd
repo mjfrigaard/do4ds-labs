@@ -78,6 +78,8 @@ The updated `plumber2` files are in the following folders:
 
 **`api/`**
 
+::: {style="font-style: italic;"}
+
 ```{bash}
 #| eval: false
 #| code-fold: false
@@ -95,7 +97,11 @@ _labs/lab03/R/plumber2/api
 1. `model.R` builds and stores the model used for predictions.
 2. `plumber.R` builds and launches the `plumber2` API.
 
+:::
+
 **`app/`**
+
+::: {style="font-style: italic;"}
 
 ```{bash}
 #| eval: false
@@ -107,6 +113,8 @@ _labs/lab03/R/plumber2/app
 └── renv.lock
 ```
 1. `app-api.R` is the Shiny application that sends requests to the API.
+
+:::
 
 ## The model (`model.R`)
 
@@ -198,6 +206,8 @@ graph LR
 
 Our `api/` folder contains the `models/` directory (the `duckdb` database file is stored *outside* this folder):
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 ├── models
 │   └── penguin_model
@@ -206,6 +216,8 @@ Our `api/` folder contains the `models/` directory (the `duckdb` database file i
 │           └── penguin_model.rds
 └── my-db.duckdb
 ```
+
+:::
 
 The `prototype` stored in the `vetiver` model contains the expected input format, including column names, data types, and factor levels:
 
@@ -224,12 +236,16 @@ We can see this when we examine it's structure:
 str(v$prototype)
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 tibble [0 × 3] (S3: tbl_df/tbl/data.frame)
  $ bill_length_mm: num(0) 
  $ species       : Factor w/ 3 levels "Adelie","Chinstrap",..: 
  $ sex           : Factor w/ 2 levels "female","male": 
 ```
+
+:::
 
 ## The API (`plumber.R`) {#sec-api}
 
@@ -366,12 +382,16 @@ Test with `curl` in the Terminal:[^port]
 curl http://127.0.0.1:8081/ping
 ```
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "status": ["alive"],
   "timestamp": ["2025-10-08 08:31:51"]
 }
 ```
+
+:::
 
 ##### **`/health`**
 
@@ -400,6 +420,8 @@ handle_health <- function() {
 curl http://127.0.0.1:8081/health
 ```
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "status": ["healthy"],
@@ -409,6 +431,8 @@ curl http://127.0.0.1:8081/health
   "r_version": ["R version 4.5.1 (2025-06-13)"]
 }
 ```
+
+:::
 
 #### Model Info
 
@@ -449,6 +473,8 @@ curl http://127.0.0.1:8081/model-prototype
 <details>
 <summary>show/hide JSON response from model-prototype</summary>
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "prototype": {
@@ -465,6 +491,8 @@ curl http://127.0.0.1:8081/model-prototype
   "model_class": ["butchered_lm", "lm"]
 }
 ```
+
+:::
 
 </details>
 
@@ -495,6 +523,8 @@ handle_model_info <- function() {
 <details>
 <summary>show/hide JSON response from model-info</summary>
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "model_name": ["penguin_model"],
@@ -505,6 +535,8 @@ handle_model_info <- function() {
   "description": ["Linear model predicting penguin body mass from bill length, species, and sex"]
 }
 ```
+
+:::
 
 </details>
 
@@ -632,11 +664,15 @@ curl -X POST http://127.0.0.1:8081/predict \
   -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
 ```
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   ".pred": [4180.7965]
 }
 ```
+
+:::
 
 ##### **`/predict-validated`**
 
@@ -770,6 +806,8 @@ curl -X POST http://127.0.0.1:8081/predict-validated \
    -d '{"bill_length_mm": 45, "species": "Emperor", "sex": "male"}'
 ```
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "error": ["Invalid species"],
@@ -777,6 +815,8 @@ curl -X POST http://127.0.0.1:8081/predict-validated \
   "valid_options": ["Adelie", "Chinstrap", "Gentoo"]
 }
 ```
+
+:::
 
 ##### **`/predict-batch`**
 
@@ -834,6 +874,8 @@ curl -X POST http://127.0.0.1:8081/predict-batch \
    }'
 ```
 
+::: {style="font-style: italic;"}
+
 ```json
 {
   "predictions": [4180.7965, 3438.2083, 5438.3484],
@@ -841,6 +883,8 @@ curl -X POST http://127.0.0.1:8081/predict-batch \
   "timestamp": ["2025-10-08 13:45:41"]
 }
 ```
+
+:::
 
 ## The Router
 

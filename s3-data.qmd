@@ -43,12 +43,16 @@ aws s3api create-bucket \
 
 These commands are pretty straightforward, but you can also read more in the documentation.[^aws-s3-buckets] Note that bucket names must be globally unique. The response from the API should be something like the following: 
 
+::: {style="font-style: italic;"}
+
 ```json
 {
     "Location": "/penguin-vetiver-model-data",
     "BucketArn": "arn:aws:s3:::penguin-vetiver-model-data"
 }
 ```
+
+:::
 
 [^aws-s3-buckets]: Read more about creating S3 buckets in [Creating a general purpose bucket
 ](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
@@ -60,6 +64,8 @@ We can also see this in the dashboard by looking up **S3** resources:
 ## Pushing the models to S3
 
 Now that we've created an S3 bucket, we can push the respective Python/R model data into their S3 locations. I'm going to keep the same `Python/` and `R/` folder structure, which I've displayed below:[^lab7-code-files]
+
+::: {style="font-style: italic;"}
 
 ```{verbatim}
 Python/
@@ -80,6 +86,10 @@ Python/
 
 ```
 
+:::
+
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 R/
 ├── Dockerfile
@@ -97,6 +107,8 @@ R/
 
 10 directories, 10 files
 ```
+
+:::
 
 [^lab7-code-files]: These are the [code files](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab07) from [lab 4](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06). 
 
@@ -219,6 +231,8 @@ vetiver_pin_write(board, v)
 
 We can see the confirmation that the model was written to the local board:
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 Model Cards provide a framework for transparent, responsible reporting. 
  Use the vetiver `.qmd` Quarto template as a place to start, 
@@ -227,6 +241,8 @@ Writing pin:
 Name: 'penguin_lab07_model'
 Version: 20260710T065219Z-91fdd
 ```
+
+:::
 
 ### Write to S3 Bucket (`Python`)
 
@@ -288,6 +304,8 @@ else:
 vetiver_pin_write(board, v)
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 Model Cards provide a framework for transparent, responsible reporting. 
  Use the vetiver `.qmd` Quarto template as a place to start, 
@@ -297,6 +315,8 @@ Name: 'penguin_lab07_model'
 Version: 20260710T065220Z-91fdd
 ```
 
+:::
+
 We can confirm it was uploaded with: 
 
 ```{python}
@@ -305,9 +325,13 @@ We can confirm it was uploaded with:
 print(board.pin_list())
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 ['penguin_lab07_model', 'penguin_model']
 ```
+
+:::
 
 We can see the Python model data has been pushed to the S3 bucket in the **AWS Console**:
 
@@ -331,6 +355,8 @@ vetiver::vetiver_pin_write(model_board, v)
 
 We can see the confirmation that the model was written to the local board:
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 #> Creating new version '20260710T152331Z-09946'
 #> Writing to pin 'penguin_lab07_model'
@@ -339,6 +365,8 @@ We can see the confirmation that the model was written to the local board:
 #> • Model Cards provide a framework for transparent, responsible reporting
 #> • Use the vetiver `.Rmd` template as a place to start
 ```
+
+:::
 
 ### Write to S3 Bucket (`R`)
 
@@ -400,10 +428,14 @@ if (Sys.getenv("USE_S3") == "true") {
 vetiver::vetiver_pin_write(board, v)
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 #> Creating new version '20260710T152331Z-09946'
 #> Writing to pin 'penguin_lab07_model'
 ```
+
+:::
 
 We can confirm this with `pins::pin_list()`:
 
@@ -413,9 +445,13 @@ We can confirm this with `pins::pin_list()`:
 pins::pin_list(s3_board)
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 #> [1] "penguin_lab07_model" "penguin_model"
 ```
+
+:::
 
 We can see this model data has been pushed in the **AWS Console**:
 
@@ -488,10 +524,14 @@ print(f"Model type: {type(model)}")
 print(f"Model loaded successfully from {'S3' if os.getenv('USE_S3') == 'true' else 'local'}")
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 Model type: <class 'sklearn.linear_model._base.LinearRegression'>
 Model loaded successfully from S3
 ```
+
+:::
 
 ### R Configuration
 
@@ -516,9 +556,13 @@ model <- vetiver::vetiver_pin_read(model_board, "penguin_lab07_model")
 cat("Model type:", class(model$model)[1], "\n")
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 #> Model type: butchered_lm
 ```
+
+:::
 
 ```{r}
 #| eval: false 
@@ -527,9 +571,13 @@ cat("Model loaded successfully from",
     if(Sys.getenv("USE_S3") == "true") "S3" else "local", "\n")
 ```
 
+::: {style="font-style: italic;"}
+
 ```{verbatim}
 #> Model loaded successfully from S3
 ```
+
+:::
 
 
 #### Environment variables
