@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-The [first lab](https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab01) includes two Quarto documents: 
+This lab shows how to create isolated, reproducible package environments with `renv` (R) and `venv` (Python), which every lab that follows depends on. The [first lab](https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab01) includes two Quarto documents:
 
 ```{r}
 #| collapse: true
@@ -58,7 +58,7 @@ Key takeaways:
 
 ## Virtual environments
 
-`venv` and `renv`, "*keep user-level package caches of the actual packages and use symlinks, so only one copy of the package is installed.*"
+As [do4ds notes](https://do4ds.com/chapters/sec1/1-1-env-as-code.html), `venv` and `renv` "*keep user-level package caches of the actual packages and use symlinks, so only one copy of the package is installed.*"
 
 ### `renv`
 
@@ -66,25 +66,30 @@ First, read the documentation on [project level management with `renv`](https://
 
 I’ve summarized the steps below:
 
-```r
-# create a new R project-local environment
-install.packages("renv")
-renv::init()
+1. Create a new R project-local environment
 
-# install packages into the renv-managed environment
-install.packages(c("tidyverse", "shiny", "ggplot2"))
+    ```r
+    install.packages("renv")
+    renv::init()
+    ```
 
-# snapshot the state of the environment and package versions in 
-# the lock file (renv.lock)
-renv::snapshot()
+2. Install packages into the renv-managed environment
 
-# to deactivate the environment, restart R or close the session
-# renv projects are automatically reactivated the time a project
-# is opened
+    ```r
+    install.packages(c("tidyverse", "shiny", "ggplot2"))
+    ```
 
-# restore the environment on a new system with
-renv::restore()
-```
+3. Snapshot the state of the environment and package versions in the lock file (`renv.lock`)
+
+    ```r
+    renv::snapshot()
+    ```
+
+4. To deactivate the environment, restart R or close the session `renv` projects are automatically reactivated the time a project is opened. Restore the environment on a new system with:
+
+    ```r
+    renv::restore()
+    ```
 
 To demonstrate how to use `renv`, I've copied the `eda-basic.qmd` file into it's own 'project' folder (`renv-eda-basic`):
 
@@ -151,7 +156,7 @@ co_box(
   size = "1.00", 
   header = "**Note**", 
   fold = FALSE,
-  contents = "`renv::install()` will install cached packages if they are available if not, it will install the latest version from CRAN.")
+  contents = "`renv::install()` uses cached packages when available. Otherwise, it installs the latest version from CRAN.")
 ```
 
 Create a snapshot (i.e., the current versions of R and any installed packages, along with the R repositories) with `renv::snapshot()`:
@@ -170,6 +175,8 @@ To make sure the dependencies in the `renv.lock` file have been installed (i.e.,
 renv::restore()
 ```
 
+The diagram below maps how packages flow between CRAN, the `renv` cache, the project library, and the lockfile:
+
 ```{mermaid}
 %%| fig-cap: 'renv'
 %%| fig-align: 'center'
@@ -177,7 +184,7 @@ renv::restore()
 
 flowchart TD
     %% External sources
-    CRAN["CRAN/<br>GitHub/..."]
+    CRAN("CRAN/<br>GitHub/...")
     
     %% Local components
     SysLib("system<br>library")
@@ -225,24 +232,43 @@ flowchart TD
 
 Read the [documentation on Python virtual environments](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment) and using [venv with Quarto](https://quarto.org/docs/projects/virtual-environments.html#using-venv). 
 
-I've summarized the steps below: 
+I've summarized the steps below:
 
-```{bash}
-#| eval: false
-#| code-fold: false
-# create new Python 3 virtual environment in the '.venv' directory 
-python3 -m venv .venv
-# activate the environment
-source .venv/bin/activate
-# use pip to install packages into your environment
-python3 -m pip install jupyter matplotlib pandas
-# deactivate an environment
-deactivate
-# save environment
-python3 -m pip freeze > requirements.txt
-# restoring environment
-python3 -m pip install -r requirements.txt
-```
+1. Create new Python 3 virtual environment in the `.venv` directory 
+
+    ```bash
+    python3 -m venv .venv
+    ```
+
+2. Activate the environment
+
+    ```bash
+    source .venv/bin/activate
+    ```
+
+3. Use `pip` to install packages into your environment
+
+    ```bash
+    python3 -m pip install jupyter matplotlib pandas
+    ```
+
+4. Deactivate an environment
+
+    ```bash 
+    deactivate
+    ```
+
+5. Save environment
+
+    ```bash
+    python3 -m pip freeze > requirements.txt
+    ```
+
+6. Restoring environment
+
+    ```bash 
+    python3 -m pip install -r requirements.txt
+    ```
 
 Use the **Terminal** to navigate to the `venv-model-basic-py` folder and create the Python virtual environment: 
 
@@ -311,7 +337,15 @@ Now we can install required Python packages (we include `jupyter` for interactiv
 pip install palmerpenguins pandas numpy scikit-learn jupyter
 ```
 
-To store the installed packages 
+To store the installed packages, save them to a `requirements.txt` file with `pip freeze`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+python3 -m pip freeze > requirements.txt
+```
+
+The diagram below maps how packages flow between PyPI, the `pip` cache, the virtual environment, and `requirements.txt`:
 
 ```{mermaid}
 %%| fig-cap: 'venv'
@@ -320,7 +354,7 @@ To store the installed packages
 
 flowchart TD
     %% External sources
-    PyPI["PyPI/<br>GitHub/..."]
+    PyPI("PyPI/<br>GitHub/...")
     
     %% Local components
     SysPython("system<br>Python")
