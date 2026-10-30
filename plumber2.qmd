@@ -116,9 +116,16 @@ _labs/lab03/R/plumber2/app
 
 :::
 
+To keep environments self-contained and reproducible, initialize `renv` in each directory:
+
+```{r}
+#| eval: false
+renv::init()
+```
+
 ## The model (`model.R`)
 
-The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app. Extend the code chunk below to review this process (but this code is identical to the original plumber api `model.R` file).
+The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app. This code is identical to the original `plumber` API's `model.R` file; expand the chunk below to review it.
 
 ```{r}
 #| eval: false
@@ -228,7 +235,7 @@ v <- pins::board_folder("models/") |>
   vetiver::vetiver_pin_read("penguin_model")
 ```
 
-We can see this when we examine it's structure:
+We can see this when we examine its structure:
 
 ```{r}
 #| eval: false
@@ -249,7 +256,7 @@ tibble [0 × 3] (S3: tbl_df/tbl/data.frame)
 
 ## The API (`plumber.R`) {#sec-api}
 
-The `plumber.R` file defines handler functions and assembles a `plumber2` router, which is a complete rewrite and uses different function names and handler signatures. The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
+`plumber2` is a complete rewrite of `plumber`. The `plumber.R` file defines handler functions and assembles them into a router. The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
 
 In `plumber2`, these are separated:
 
@@ -273,6 +280,8 @@ Below is a table comparing `plumber` to the new `plumber2` syntax.
 
 
 ### Load model
+
+The code below loads the packages and reads the pinned `vetiver` model from the board:
 
 ```{r}
 #| eval: false
@@ -349,7 +358,7 @@ graph TB
 
 ### Handler functions
 
-Each handler specializes in a different type of request. I've organized the handler functions into four categories: health, model info, documentation, and predictions. The same comment (`#*`) annotation comments define the HTTP method, path, and serializer for each handler when the file is loaded by `plumber2`.
+Each handler specializes in a different type of request. I've organized the handler functions into four categories: health, model info, documentation, and predictions. Each handler is registered programmatically with `api_get()` or `api_post()` in [The Router](#the-router) section, so the `#*` comments above each function serve as documentation only.
 
 #### Health
 
@@ -769,7 +778,7 @@ handle_predict_validated <- function(body, response) {
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    Start("Request<br>Received")
+    Start(["Request<br>Received"])
 
     Start --> Check1{All fields<br>present?}
     Check1 -->|No| Error1("400: Missing fields")
@@ -894,6 +903,8 @@ Each `api_get()` or `api_post()` call maps a URL path and HTTP method to a handl
 
 ### `GET` Endpoints
 
+The `GET` endpoints register the health, model info, and documentation handlers:
+
 ```{r}
 #| eval: false
 #| code-fold: show
@@ -939,6 +950,8 @@ app <- plumber2::api() |>
 | `/input-schema` | GET | `handle_input_schema()` | Field documentation |
 
 ### `POST` Endpoints
+
+The `POST` endpoints add the three prediction handlers to the same router:
 
 ```{r}
 #| eval: false
@@ -1000,6 +1013,8 @@ api_url <- "http://127.0.0.1:8081/predict"
 ```
 
 ### UI
+
+The UI collects the bill length, sex, and species in the sidebar and displays the current inputs and the predicted mass in two cards:
 
 ```{r}
 #| eval: false
@@ -1256,13 +1271,6 @@ sequenceDiagram
     Note over Handler: 4) Format<br>response
     Handler-->>Shiny: {".pred": [4180.797]}
 
-```
-
-To keep environments self-contained and reproducible, initialize `renv` in each directory:
-
-```{r}
-#| eval: false
-renv::init()
 ```
 
 ## Recap

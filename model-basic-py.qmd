@@ -18,7 +18,7 @@ readr::read_lines("_labs/lab01/model-basic-py.qmd") |>
 
 </details>
 
-I've added the `reticulate` code below to run this code in Quarto. 
+Because this book renders with knitr, I've added the `reticulate` code below to supply the Python environment for the chunks that follow.
 
 ```{r}
 #| results: hide
@@ -32,6 +32,7 @@ virtualenv_install(
                "scikit-learn", "jupyter"))
 ```
 
+The first Python chunk imports the `penguins` data, `get_dummies()` from `pandas`, `numpy`, and the `scikit-learn` modules for the model:
 
 ```{python}
 #| eval: true
@@ -42,12 +43,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing
 ```
 
+Next, we load the penguins data, drop the rows with missing values, and view the first three rows:
+
 ```{python}
 #| eval: true
 df = penguins.load_penguins().dropna()
 
 df.head(3)
 ```
+
+We encode `species` and `sex` as indicator columns with `get_dummies()`, then fit a `LinearRegression()` model that predicts `body_mass_g`:
 
 ```{python}
 #| eval: true
@@ -56,6 +61,8 @@ y = df['body_mass_g']
 
 model = LinearRegression().fit(X, y)
 ```
+
+Finally, we print the model's R², intercept, column names, and coefficients:
 
 ```{python}
 #| eval: true

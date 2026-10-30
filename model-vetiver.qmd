@@ -1,4 +1,4 @@
-# <em>Python processing layer</em> {#sec-model-vetiver}
+# <em>Python model API with vetiver</em> {#sec-model-vetiver}
 
 ```{r}
 #| label: common
@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-Below is the code I included in `_labs/lab02/model-vetiver/model-vetiver.qmd`: 
+This chapter is the standalone lab file for the processing layer in [Lab 2](lab02.qmd). Below is the code I included in `_labs/lab02/model-vetiver/model-vetiver.qmd`:
 
 ```{r}
 #| eval: false
@@ -51,6 +51,8 @@ import duckdb
 
 ## Get Data
 
+The code below loads the `penguins` data, writes it to a `duckdb` table, and reads it back as a DataFrame without missing values.
+
 ```{python}
 #| eval: false
 penguins_data = load_penguins() #<1>
@@ -66,6 +68,8 @@ df.head(3)
 
 ## Define Model and Fit
 
+Next, we dummy code `species` and `sex` and fit a linear regression that predicts `body_mass_g`.
+
 ```{python}
 #| eval: false
 X = get_dummies(df[['bill_length_mm', 'species', 'sex']], drop_first = True)
@@ -74,7 +78,9 @@ y = df['body_mass_g']
 model = LinearRegression().fit(X, y)
 ```
 
-## Get some information
+## Print model fit statistics
+
+The fitted model's R², intercept, columns, and coefficients are printed below.
 
 ```{python}
 #| eval: false
@@ -86,6 +92,8 @@ print(f"Coefficients {model.coef_}")
 
 ## Turn into Vetiver Model
 
+`VetiverModel()` wraps the fitted model with its name and prototype data (`X`).
+
 ```{python}
 #| eval: false
 from vetiver import VetiverModel
@@ -93,6 +101,8 @@ v = VetiverModel(model, model_name='penguin_model', prototype_data=X)
 ```
 
 ## Save to Board
+
+The code below creates a `pins` board in `./models` and writes a versioned copy of the `VetiverModel` to it.
 
 ```{python}
 #| eval: false

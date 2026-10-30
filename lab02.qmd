@@ -23,7 +23,7 @@ co_box(
 )
 ```
 
-Lab 2 introduces the[ `vetiver` package](https://rstudio.github.io/vetiver-r/) for modeling in [`model-vetiver.qmd`](model-vetiver.qmd). The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) and [Python](https://rstudio.github.io/vetiver-python/). 
+Lab 1 fit a `scikit-learn` model to the `penguins` data in [`model-basic-py.qmd`](model-basic-py.qmd); Lab 2 places that model in the processing layer of a three-layer architecture and serves it as an API. This lab introduces the [`vetiver` package](https://rstudio.github.io/vetiver-r/) for that step in [`model-vetiver.qmd`](model-vetiver.qmd). The `vetiver` package comes in both flavors: [R](https://vetiver.rstudio.com/) and [Python](https://rstudio.github.io/vetiver-python/). 
 
 ```{r}
 #| collapse: true
@@ -39,6 +39,8 @@ If you'd like to see the same process using R, check out the [R version](model-v
 ## Comprehension Questions
 
 1. What are the layers of a three-layer application architecture? What libraries could you use to implement a three-layer architecture in R or Python?
+
+The three layers are presentation, processing, and data. Shiny can implement the presentation layer, `vetiver` (served with `plumber` in R or FastAPI in Python) can implement the processing layer, and `duckdb` can implement the data layer.
 
 ```{=html}
 <style>
@@ -60,7 +62,7 @@ If you'd like to see the same process using R, check out the [R version](model-v
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 flowchart TD
     Present("Presentation<br>Layer") -.-> Process("Processing<br>Layer")
-    Process -.-> Data("Data<br>Layer")
+    Process -.-> Data[("Data<br>Layer")]
     
     subgraph UI["<strong>User Interface</strong>"]
         Present
@@ -232,7 +234,7 @@ print(f"Coefficients {model.coef_}")
 
 ## `model` -> `VetiverModel`
 
-The model is created with `VetiverModel()`, which is a **wrapper class** that takes our trained machine learning model and adds important metadata and functionality for deployment and versioning.
+`VetiverModel()` wraps the trained model in a class that adds deployment and versioning metadata.
 
 ```{python}
 from vetiver import VetiverModel
@@ -291,9 +293,9 @@ flowchart LR
     
 ```
 
-### What are `pins` boards? 
+### What are `pins` boards?
 
-In this version, we're going to save our `pins` board to a temporary location (`f"{temp_dir}/models"`), but in the lab, we'll create the directory before creating the board. 
+A `pins` board is a storage interface with a standardized structure for storing "pins" (data objects and models). The `board_folder()` function creates a board in a local folder. In this version, we're going to save our `pins` board to a temporary location (`f"{temp_dir}/models"`), but in the lab, we'll create the directory before creating the board. 
 
 ```{mermaid}
 %%| fig-cap: 'board_folder()'
@@ -341,9 +343,9 @@ vetiver_pin_write(model_board, v)
 1. Use temp directory  
 2. `allow_pickle_read` allows reading Python pickle files (needed for `scikit-learn` models) 
 
-*  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder. This creates a standardized structure for storing "pins" (data objects/models).
+*  **`board_folder()`** creates the `pins` board that sets up a storage interface to a local temporary folder.
 
-*  **`vetiver_pin_write()`** receives the `model_board`, which is our `board_folder` object pointing to `temp_dir/models` and `v` (our `VetiverModel` wrapping the `LinearRegression`). 
+*  **`vetiver_pin_write()`** takes two arguments: `model_board` (the board at `temp_dir/models`) and `v` (the `VetiverModel`).
 
 ```{python}
 print(f"Model saved to: {temp_dir}/models")
@@ -408,9 +410,9 @@ flowchart LR
     Mod("<strong>model</strong>") --> VetMod("<strong>VetiverModel(model)</strong>")
     VetMod --> VPW("<strong>vetiver_pin_write()</strong>")
     VPW --> Joblib[("Serialized <strong>.joblib</strong>")]
-    VPW --> Meta("Metadata <strong>.txt</strong>")
-    
-    Rep("To<br>reproduce...") --> VPR("<strong>vetiver_pin_read()</strong>")
+    VPW --> Meta[("Metadata <strong>.txt</strong>")]
+
+    Rep(["To<br>reproduce..."]) --> VPR("<strong>vetiver_pin_read()</strong>")
     VPR --> Joblib
     VPR --> Meta
     VPR --> Recon("Reconstructed<br><strong>VetiverModel()</strong>")

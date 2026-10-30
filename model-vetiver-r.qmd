@@ -50,7 +50,7 @@ library(pins)
 
 ## Get Data
 
-Load the `palmerpenguins` data, create a connection with `dbConnect()`, register the R data frame with `duckdb`, create the `penguins` table: 
+We load the `palmerpenguins` data and create a connection with `dbConnect()`. Then we register the R data frame with `duckdb` and create the `penguins` table:
 
 ```{r}
 #| eval: false
@@ -63,7 +63,7 @@ duckdb_register(con, "penguins_data", penguins_data)
 dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
 ```
 
-Omit missing, disconnect from DB: 
+We then drop missing rows and disconnect from the database:
 
 ```{r}
 #| eval: false
@@ -98,7 +98,9 @@ y <- df$body_mass_g
 model <- lm(y ~ ., data = X)
 ```
 
-## Get some information
+## Extract model fit statistics
+
+We pull the R-squared, intercept, coefficients, and column names from the fitted model:
 
 ```{r}
 #| eval: false
@@ -107,6 +109,8 @@ intercept <- coef(model)[1]
 coefficients <- coef(model)[-1]
 column_names <- names(X)
 ```
+
+Then we print each statistic to the console with `cat()`:
 
 ```{r}
 #| eval: false
@@ -118,18 +122,13 @@ cat("Coefficients:", paste(coefficients, collapse = ", "), "\n")
 
 ## Turn into Vetiver Model
 
+`vetiver_model()` wraps the fitted `lm()` object into a deployable `vetiver` model named `penguin_model`:
+
 ```{r}
 #| eval: false
 #| message: false 
 #| warning: false
 v <- vetiver_model(model, model_name = "penguin_model")
-```
-
-Below we can see the model information stored in the `models/` folder:
-
-```{r}
-#| collapse: true
-fs::dir_tree("_labs/lab02/R/models/")
 ```
 
 ## Save to Board
@@ -138,6 +137,13 @@ fs::dir_tree("_labs/lab02/R/models/")
 #| eval: false
 model_board <- board_folder("./models")
 vetiver_pin_write(model_board, v)
+```
+
+Below we can see the model information stored in the `models/` folder:
+
+```{r}
+#| collapse: true
+fs::dir_tree("_labs/lab02/R/models/")
 ```
 
 ## Turn model into API

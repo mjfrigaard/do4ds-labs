@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+In this lab I'll launch a `vetiver` API in one session and send predictions to it from a Shiny app (using `httr2`) in another.
+
 I isolated development for the R Shiny app and API for lab 3 into separate `app/` and `api/` directories:
 
 ```{r}
@@ -73,7 +75,7 @@ app <- plumber::pr() |> vetiver::vetiver_api(v)
 
 ### Start the API
 
-The API will keep running when you run the app.
+Run the API below in its own session; `pr_run()` blocks the console, so we'll launch the app from a second session.
 
 ```{r}
 #| eval: false
@@ -151,7 +153,7 @@ ui <- page_sidebar(
 )
 ```
 
-But clicking **Predict** originally produced the following error:
+In the original server, `vals()` returned a `list()` (the full code is in [Original App Code](#original-app-code) at the end of this chapter). With that list, clicking **Predict** produced the following error:
 
 ::: {style="font-style: italic;"}
 
@@ -196,7 +198,7 @@ Our error tells us `'data' should be a data frame or a matrix`, so we'll convert
 
 ### Predictions
 
-The predictions in the server creates a `response` object and returns `response$.pred[1]` (i.e., only the predictions).
+The `pred()` reactive sends `vals()` to the API and returns only `response$.pred[1]`.
 
 ```{r}
 #| eval: false
@@ -236,7 +238,7 @@ The predictions in the server creates a `response` object and returns `response$
     }) |> 
     bindEvent(input$predict, ignoreInit = TRUE)
 ```
-1. `app_url` is "http://127.0.0.1:8080/predict"   
+1. `api_url` is "http://127.0.0.1:8080/predict"   
 2. Converts `vals()/request_data` into a JSON array structure instead of a flat object (which is the format `vetiver` expects)   
 
 
@@ -246,7 +248,7 @@ The sections below cover the `httr2` functions used in the Shiny API app.
 
 #### The `request()`
 
-`httr2::request()` creates the initial request (`response`) object that all other functions will modify:
+`httr2::request()` creates the initial request object that all other functions will modify:
 
 *   Stores the base URL
 
@@ -271,7 +273,7 @@ response <- httr2::request(api_url)
 
 graph TD
 
-	A("<strong>request()</strong> URL") --> B("Creates base<br>request object")
+	A(["<strong>request()</strong> URL"]) --> B("Creates base<br>request object")
 
 	B --> C("Contains URL and<br>default settings")
     style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -302,7 +304,7 @@ graph TD
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A("Request Object") --> B("<strong>req_method()</strong>")
+	A(["Request Object"]) --> B("<strong>req_method()</strong>")
 	B --> C("Sets HTTP verb")
 	C --> D("GET/POST/PUT/DELETE/PATCH")
     style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -341,7 +343,7 @@ response <- httr2::request(api_url) |>
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A("R Object") --> B("<strong>req_body_json()</strong>")
+	A[/"R Object"/] --> B("<strong>req_body_json()</strong>")
 	B --> C("Converts to JSON")
 	C --> D("Adds to request body")
     style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -389,7 +391,7 @@ What happens:\
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-	A("Complete Request<br>Object") --> B("<strong>req_perform()</strong>")
+	A(["Complete Request<br>Object"]) --> B("<strong>req_perform()</strong>")
 	B --> C("Sends HTTP request")
 	C --> D("Returns response<br>object")
     style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -432,7 +434,7 @@ response <- httr2::request(api_url) |>
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-      A("JSON Response Body") --> B("<strong>resp_body_json()</strong>")
+      A[/"JSON Response Body"/] --> B("<strong>resp_body_json()</strong>")
       B --> C("Parses JSON to R objects")
       C --> D("Lists, data.frames, etc.")
     style A fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff

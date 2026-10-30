@@ -22,7 +22,14 @@ co_box(
 )
 ```
 
-This solution is a more robust example using the [`plumber`](https://www.rplumber.io/) package. I've summarized the changes to our original API (along with the inclusion of the [`logger` package](https://daroczig.github.io/logger/)) below. 
+In this solution we'll rebuild the lab 3 API with the [`plumber`](https://www.rplumber.io/) package and write our own handler functions instead of letting `vetiver_api()` generate the endpoints. The main changes from [lab 3](lab03.qmd) are:
+
+* `prep_pred_data()`: a helper that converts the `species` and `sex` strings from JSON into factors.
+* `/predict-validated`: an endpoint that checks every field and returns a `400` error for invalid input.
+* `/predict-batch`: an endpoint that accepts arrays and returns one prediction per row.
+* `logger`: the [`logger` package](https://daroczig.github.io/logger/) adds logging to this API in [R App Logging](app-log-r.qmd).
+
+Install the development version of `plumber`:
 
 ```{r}
 #| eval: false
@@ -118,7 +125,7 @@ R/app/
 └── renv.lock
 
 ```
-1. `mod-api.R` reads the stored model and launches a `vetiver` API.
+1. `app-api.R` is the Shiny app that sends requests to the `plumber` API.
 
 :::
 
@@ -196,7 +203,7 @@ vetiver::vetiver_pin_write(model_board, v) #<10>
 
 graph LR
     subgraph Training["<strong>Model Training</strong>"]
-		ModelR("<strong>model.R</strong>")
+		ModelR(["<strong>model.R</strong>"])
         DuckDB[("DuckDB <br> (as <strong>my-db.duckdb</strong>)")]
         PinBoard[("Pin Board<br><strong>models/penguin_model/</strong>")]
 
@@ -1083,7 +1090,7 @@ handle_predict_validated <- function(req, res) {
   return(result)
 }
 ```
-1. Collect response in JSON   
+1. Parse JSON request body.
 2. Validate required fields     
 3. Check for missing fields  
 4. Validate species   
@@ -1101,7 +1108,7 @@ handle_predict_validated <- function(req, res) {
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    Start("Request<br>Received")
+    Start(["Request<br>Received"])
 
     Start --> Check1{All fields<br>present?}
     Check1 -->|No| Error1("❌ Return:<br>Missing fields error")
@@ -1486,19 +1493,19 @@ sequenceDiagram
 
     Shiny->>Handler: POST /predict<br>{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}
 
-    Note over Handler: 1) Parse<br>JSON
+    Note over Handler: i. Parse<br>JSON
     Handler->>Handler: jsonlite::fromJSON()
 
-    Note over Handler: 2) Validate<br>& Convert
+    Note over Handler: ii. Validate<br>& Convert
     Handler->>Helper: prep_pred_data()
     Helper-->>Handler: data.frame with factors
 
-    Note over Handler: 3) Predict
+    Note over Handler: iii. Predict
     Handler->>Model: predict(v, data)
     Note over Model: y = β₀ +<br>β₁×bill_length +<br>β₂×species +<br>β₃×sex
     Model-->>Handler: 4180.797
 
-    Note over Handler: 4) Format<br>response
+    Note over Handler: iv. Format<br>response
     Handler->>Handler: list(.pred = 4180.797)
 
     Handler-->>Shiny: {"pred": [4180.797]}
@@ -1518,6 +1525,8 @@ api_url <- "http://127.0.0.1:8080/predict"
 ```
 
 ### UI
+
+The UI collects the bill length, sex, and species in the sidebar and displays the current inputs and the predicted mass in two cards:
 
 ```{r}
 #| eval: false
@@ -1766,19 +1775,19 @@ sequenceDiagram
 
     Shiny->>Handler: POST /predict<br>{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}
 
-    Note over Handler: 1) Parse JSON
+    Note over Handler: i. Parse JSON
     Handler->>Handler: jsonlite::fromJSON()
 
-    Note over Handler: 2) Validate<br>& Convert
+    Note over Handler: ii. Validate<br>& Convert
     Handler->>Helper: prep_pred_data()
     Helper-->>Handler: data.frame with factors
 
-    Note over Handler: 3) Predict
+    Note over Handler: iii. Predict
     Handler->>Model: predict(v, data)
     Note over Model: y = β₀ +<br>β₁×bill_length +<br>β₂×species +<br>β₃×sex
     Model-->>Handler: 4180.797
 
-    Note over Handler: 4) Format<br>response
+    Note over Handler: iv. Format<br>response
     Handler->>Handler: list(.pred = 4180.797)
 
     Handler-->>Shiny: {".pred": [4180.797]}

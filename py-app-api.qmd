@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+In this lab, I'll serve the lab 2 model with a `Vetiver`/`FastAPI` API and call it from a Shiny for Python app.
+
 In [lab 2](lab02.qmd), we created a Python model with `scikit-learn`, converted it into a `VetiverModel`, saved it in a `pins` board folder, then created a `VetiverAPI`. The files we created in lab 2 are displayed in the folder tree below:[^lab02-model-py]
 
 [^lab02-model-py]: View the contents of this folder in the [GitHub repo](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02/model-vetiver). 
@@ -66,7 +68,7 @@ The Python script [`_labs/lab03/Python/api/mod-api.py`](https://github.com/mjfri
 
 graph TD
     subgraph T1["<strong>API Server</strong>"]
-        RunApi("<strong>Run<br>mod-api.py</strong>") --"create"--> VetMod("<strong>VetiverModel</strong>")
+        RunApi(["<strong>Run<br>mod-api.py</strong>"]) --"create"--> VetMod("<strong>VetiverModel</strong>")
         VetMod --"convert to"--> VetAPI("<strong>VetiverAPI</strong>")
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
@@ -74,7 +76,7 @@ graph TD
     style RunApi stroke-width:1px, rx:20, ry:20, font-size:16px
     
    subgraph Browse["<strong>Browser</strong>"]
-        Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<code>/docs</code>"--> Docs("API Docs")
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<code>/docs</code>"--> Docs("API Docs")
         Http --"<code>/ping</code>"--> Health("<strong>Health Check</strong>")
         Http --"<code>/metadata</code>"--> Info("<strong>Model Info</strong>")
         Docs & Health & Info --> FastAPI
@@ -260,9 +262,9 @@ else:
 
 1.  original R model structure
 
-### Print outputs
+### Inspect `prototype_data`
 
-I've written four `print()` statements below to provide confirmation (or debugging info) for `prototype_data`'s 1) shape (dimensions), 2) column names, and 3) the full structure:
+I've written three `print()` statements below to provide confirmation (or debugging info) for `prototype_data`'s 1) shape (dimensions), 2) column names, and 3) the full structure:
 
 ```{python}
 #| eval: false 
@@ -417,7 +419,7 @@ graph TB
    
 ```
 
-### Print outputs
+### Run the server with `uvicorn`
 
 The print statements below will provide messages/debugging information and links to the documents/health check/metadata.
 
@@ -464,7 +466,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
 
 :::
 
-The `FastAPI` UI is automatically generated and provides interactive API documentation, and the `Vetiver` will be useful for developing our Shiny for Python app.
+FastAPI generates interactive docs at `/docs`. The Vetiver landing page at `/` shows the model card we'll reference while building the app.
 
 ### FastAPI Interface
 
@@ -536,20 +538,20 @@ To test, create multiple Terminal sessions: one to run the API and a second for 
 
 graph TD
     subgraph T1["<strong>API</strong>"]
-        RunApi("Run<br>mod-api.py") --"create"--> VetMod("<strong>VetiverModel</strong>")
+        RunApi(["Run<br>mod-api.py"]) --"create"--> VetMod("<strong>VetiverModel</strong>")
         VetMod --"convert to"--> VetAPI("<strong>VetiverAPI</strong>")
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
 
     subgraph T2["<strong>Test</strong>"]
-        Curl("<strong>curl</strong><br>commands") --> ManPostReq("Manual<br>POST<br>request")
+        Curl(["<strong>curl</strong><br>commands"]) --> ManPostReq("Manual<br>POST<br>request")
         ManPostReq --> FastAPI
         FastAPI --> JSONReq("JSON<br>Response<br>Test")
         JSONReq --> VerAPI("Verify<br>API Works")
     end
 
     subgraph Browse["<strong>Browser</strong>"]
-        Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<strong>/docs</strong>"--> Docs("API Docs")
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<strong>/docs</strong>"--> Docs("API Docs")
         Http --"<strong>/ping</strong>"--> Health("Health Check")
         Http --"<strong>/metadata</strong>"--> Info("Model Info")
         Docs & Health & Info --> FastAPI
@@ -660,20 +662,20 @@ Now that we've confirmed our API is running, we can launch our Shiny (for Python
 
 graph TD
     subgraph T1["<strong>API Server</strong>"]
-        RunApi("Run<br>mod-api.py") --"create"--> VetMod("<strong>VetiverModel</strong>")
+        RunApi(["Run<br>mod-api.py"]) --"create"--> VetMod("<strong>VetiverModel</strong>")
         VetMod --"convert to"--> VetAPI("<strong>VetiverAPI</strong>")
         VetAPI --"extract"--> FastAPI("<strong>FastAPI</strong>")
     end
 
     subgraph T2["<strong>API Testing</strong>"]
-        Curl("<strong>curl</strong><br>command") --> ManPostReq("Manual<br>POST<br>request")
+        Curl(["<strong>curl</strong><br>command"]) --> ManPostReq("Manual<br>POST<br>request")
         ManPostReq --> FastAPI
         FastAPI --> JSONReq("JSON<br>Response<br>Test")
         JSONReq --> VerAPI("Verify<br>API Works")
     end
 
     subgraph T3["<strong>Shiny App</strong>"]
-       RunApp("Run<br>app-api.py") --> UI("User<br>Interface")
+       RunApp(["Run<br>app-api.py"]) --> UI("User<br>Interface")
        UI --> HttpPostReq("HTTP<br>POST<br>Request")
        HttpPostReq --> FastAPI
        FastAPI --> JSONResp("JSON<br>Response")
@@ -681,7 +683,7 @@ graph TD
     end
 
     subgraph Browse["<strong>Browser</strong>"]
-        Http("`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`") --"<strong>/docs</strong>"--> Docs("API Docs")
+        Http(["`Got to <strong>http://</strong><strong>127.0.0.1:8080/</strong>`"]) --"<strong>/docs</strong>"--> Docs("API Docs")
         Http --"<strong>/ping</strong>"--> Health("Health Check")
         Http --"<strong>/metadata</strong>"--> Info("Model Info")
         Docs & Health & Info --> FastAPI
@@ -729,6 +731,8 @@ import requests
 
 api_url = 'http://127.0.0.1:8080/predict'
 ```
+
+The first syntax difference shows up in this chunk: Python assigns `api_url` with `=`, where R uses `<-`.
 
 | **Component** | **Python**                 | **R**            |
 | ------------- | -------------------------- | ---------------- |
@@ -847,7 +851,7 @@ Expand the R code below to compare:
 
 graph TD
     subgraph "Python Decorators"
-        A("<strong>@reactive.calc</strong>") --> B[Function<br>definition]
+        A("<strong>@reactive.calc</strong>") --> B("Function<br>definition")
         C("<strong>@reactive.event</strong>") --> D("Event-driven<br>reactives")
         E("<strong>@render.text</strong>") --> F("Output<br>rendering")
     end

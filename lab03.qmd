@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+In the previous labs, we built a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs.
+
 The original files in [`_labs/lab03`](https://github.com/alexkgold/do4ds/tree/main/_labs/lab3) are below: 
 
 ::: {style="font-style: italic;"}
@@ -44,8 +46,6 @@ The original files in [`_labs/lab03`](https://github.com/alexkgold/do4ds/tree/ma
 
 :::
 
-In the previous labs, we build a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs. 
-
 ## Comprehension questions
 
 ### Databases
@@ -54,7 +54,7 @@ In the previous labs, we build a Python model API with [`vetiver`](https://rstud
 
 #### Python and databases 
 
-In Python, there is a large database ecosystem (i.e., many driver options). ORM support with  [SQLAlchemy](https://www.sqlalchemy.org/) and it's flexible (i.e., it can bypass standards if needed). 
+In Python, there is a large database ecosystem (i.e., many driver options). [SQLAlchemy](https://www.sqlalchemy.org/) adds ORM support and can bypass the DB-API standard when needed.
 
 ```{mermaid}
 %%| fig-cap: 'Python DB Connections'
@@ -63,7 +63,7 @@ In Python, there is a large database ecosystem (i.e., many driver options). ORM 
 
 graph TB
     subgraph PyApp["Python App"]
-        PyCode("<strong>app-api.py</strong>")
+        PyCode(["<strong>app-api.py</strong>"])
     end
 
     
@@ -142,7 +142,7 @@ In R, the **`DBI` package provides a universal interface** (same code works acro
 
 graph TB
     subgraph RApp["<strong>R App</strong>"]
-        A("<strong>app-api.R</strong>")
+        A(["<strong>app-api.R</strong>"])
     end
 
     
@@ -263,8 +263,8 @@ In general, APIs are like the digital 'plumbing' that makes connections between 
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    DS("Data Scientist") --> Req("API Request")
-    Req --> ApiServ("API Server")
+    DS(["Data Scientist"]) --> Req("API Request")
+    Req --> ApiServ["API Server"]
     ApiServ --> DataProcMod("Data Processing/Model")
     DataProcMod --> Res("Results")
     Res --> ApiServ
@@ -307,7 +307,7 @@ graph LR
 		E2 --> H2
 		F2 --> H2
 		G2 --> H2
-		H2 --> I2("API Server")
+		H2 --> I2["API Server"]
 		I2 --> J2("HTTP Response")
 		J2 --> K2("<strong>response.status_code</strong><br>200, 404, 500, etc.")
 		J2 --> L2("<strong>response.headers</strong><br>Response metadata")
@@ -352,7 +352,7 @@ graph LR
         E1 --> H1
         F1 --> H1
         G1 --> H1
-        H1 --> I1("API Server")
+        H1 --> I1["API Server"]
         I1 --> J1("HTTP Response")
         J1 --> K1("<strong>resp_status()</strong><br>200, 404, 500, etc.")
         J1 --> L1("<strong>resp_headers()</strong><br>Response metadata")
@@ -381,6 +381,7 @@ graph LR
 
 > ***3. How can environment variables be used to keep secrets secure in your code?***
 
+Environment variables keep secrets (API keys, database passwords) out of the code itself. In R, we store them in a `.Renviron` file and read them with `Sys.getenv()`; in Python, we store them in a `.env` file (loaded with `python-dotenv`) and read them with `os.environ`. Both files go in `.gitignore`, so the secrets never end up in version control.
 
 
 
@@ -418,6 +419,8 @@ _labs/lab03/
 
 The [model-db.qmd](_labs/lab03/model-db.qmd) file contains the EDA from [lab 1](lab01.qmd).
 
+It begins by importing `duckdb`, `pandas`, `numpy`, and `scikit-learn`:
+
 ```{python}
 #| eval: false
 #| code-fold: false
@@ -427,6 +430,8 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing
 ```
+
+The code below connects to `my-db.duckdb`, queries the `penguins` table into a data frame (dropping missing rows), and closes the connection:
 
 ```{python}
 #| eval: false
@@ -438,6 +443,8 @@ con.close()
 df.head(3)
 ```
 
+Next, we create dummy variables with `get_dummies()` and fit a linear regression model:
+
 ```{python}
 #| eval: false
 #| code-fold: false
@@ -446,6 +453,8 @@ y = df['body_mass_g']
 
 model = LinearRegression().fit(X, y)
 ```
+
+Finally, we print the R-squared, intercept, columns, and coefficients from the fitted model:
 
 ```{python}
 #| eval: false
@@ -532,6 +541,8 @@ app = App(app_ui, server)
 
 
 ### Data load {#sec-py-data-load-py}
+
+`py-data-load.py` loads the `palmerpenguins` data and writes it to a `penguins` table in `my-db.duckdb`:
 
 ```{python}
 #| eval: false
@@ -731,6 +742,8 @@ shinyApp(ui = ui, server = server)
 ```
 
 ### Data load {#sec-r-data-load-r}
+
+`r-data-load.R` connects to `my-db.duckdb`, writes the `palmerpenguins` data to a `penguins` table with `dbWriteTable()`, and disconnects:
 
 ```{r}
 #| eval: false
