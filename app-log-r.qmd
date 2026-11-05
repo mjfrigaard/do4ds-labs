@@ -22,9 +22,9 @@ co_box(
 )
 ```
 
-This lab covers how to use logging and monitoring to track events inside data science projects (specifically inside a Shiny application), and what you can do with logs and metrics when they are created. 
+This lab covers how to use logging and monitoring to track events inside data science projects. Our focus is on events inside a Shiny application. We'll also cover what you can do with logs and metrics when they are created. 
 
-## Overview
+## The App and API from Lab 3
 
 For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber2` version](plumber2.qmd)) from the previous lab (i.e., the user inputs are sent to the API with the **Predict** button):
 
@@ -45,7 +45,7 @@ For a refresher, I've included a diagram of the Shiny App and API (using the [`p
 ```{mermaid}
 %%| fig-cap: 'Shiny R App and plumber API'
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     participant User as User's<br>Browser
@@ -76,9 +76,9 @@ sequenceDiagram
     
 ```
 
-The files for the application and API can be found in the following location: 
-
 ## The API
+
+The files for the API are in the `_labs/lab04/R/api/` folder:
 
 ::: {style="font-style: italic;"}
 
@@ -459,7 +459,11 @@ After clicking **Predict**, the response from the API displays the predicted pen
 
 ### System Status
 
-In the **System Status** display, we'll 1) send a `ping` to the API and return the result as **API Status**, 2) print a subset of **Recent Logs** from the log file specified above in the `logger::log_appender()` function, and 3) include a timestamp displaying when the log file was **Last updated**. 
+The **System Status** display has three outputs:
+
+1. A `ping` to the API, returned as **API Status**.
+2. A subset of **Recent Logs** from the log file set in `logger::log_appender()`.
+3. A timestamp showing when the log file was **Last updated**.
 
 ![](img/lab4-system-status-wireframe.png){width='100%' fig-align='center'}
 
@@ -564,7 +568,7 @@ All the events captured with  `logger::log_*()` functions are written to the log
 %%| fig-cap: 'Logging in Server'
 %%| fig-align: 'center'
 %%| fig-width: 7.0
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart TD
 	 subgraph User["Log Generation"]
@@ -658,7 +662,7 @@ To make this display more manageable, we'll limit the number of extracted logs t
 %%| fig-cap: 'Displaying logs'
 %%| fig-align: 'center'
 %%| fig-width: 7.0
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 flowchart TD
   A("<strong>reactiveFileReader()</strong> ")
@@ -751,7 +755,7 @@ INFO [2025-09-09 13:27:41] API health check successful - Session: 40ba19c3b213c5
 
 :::
 
-We can these logs show up in the UI:
+We can see these logs in the UI:
 
 ![](img/lab4-api-recent-logs-display.png){width='100%' fig-align='center'}
 
@@ -767,7 +771,7 @@ INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213
 
 :::
 
-We can also see out UI updates with the recent logs: 
+We can also see our UI updates with the recent logs: 
 
 ![](img/lab4-api-recent-logs-predictions.png){width='100%' fig-align='center'}
 
@@ -820,6 +824,8 @@ To finish off our app, we'll include a `README.md` with instructions for launchi
 install.packages('renv')
 renv::init()
 ```
+
+After the app code is final, `renv::snapshot()` records its dependencies in the `renv.lock` file:
 
 ```{r}
 #| eval: false

@@ -26,12 +26,26 @@ co_box(
 
 An app that binds to `127.0.0.1` (the pattern used by `baseball-trajectory` in [Install Apps](install-apps.qmd) and daemonized in [Lab 10](lab10.qmd)) isn't reachable from outside its own instance. Something has to accept the connection on `443`, terminate TLS, and forward the request inward.
 
+## Installing nginx
+
 Install `nginx`:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
 sudo amazon-linux-extras install -y nginx1
+```
+
+## Writing the server block
+
+The server block points at Let's Encrypt certificate files, so request them first. Install `certbot` from EPEL and ask for a certificate for the hostname (port `80` must be open in the security group, and `nginx` must not be running yet, because `--standalone` binds to that port itself):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo amazon-linux-extras install -y epel
+sudo yum install -y certbot
+sudo certbot certonly --standalone -d trajectory.example.com
 ```
 
 Create the site configuration:
@@ -41,6 +55,8 @@ Create the site configuration:
 #| code-fold: false
 sudo vim /etc/nginx/conf.d/baseball-trajectory.conf
 ```
+
+Give it a server block that listens on 443, loads the certificate, and proxies to the app on 8000:
 
 ```{verbatim}
 server {
@@ -62,6 +78,8 @@ server {
 
 The certificate paths assume you have a hostname pointed at the instance, covered in [Configure DNS](configure-dns.qmd).
 
+## Testing and starting nginx
+
 Test the configuration before reloading, since a syntax error will otherwise take `nginx` down entirely:
 
 ```{bash}
@@ -79,7 +97,7 @@ nginx: configuration file /etc/nginx/nginx.conf test is successful
 
 :::
 
-Then enable and start it, the same two step pattern as the app itself:
+Enable and start it in one command, the same `enable --now` used for the app:
 
 ```{bash}
 #| eval: false

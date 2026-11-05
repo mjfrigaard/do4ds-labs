@@ -30,11 +30,11 @@ In this  section I'll cover setting up AWS credentials as repository secrets and
 %%| fig-cap: 'GitHub Actions Automated Deployment'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Push(["<strong>Developer</strong><br/><em>Pushes to branch</em>"]) 
-    GHA{{"<strong>GitHub Actions</strong>"}}
+    GHA["<strong>GitHub Actions</strong>"]
     Push --Triggers--> GHA
     GHA --"Build Models"--> Build("<strong>Vetiver Models</strong><br/><em>(py_model.qmd, <br>r_model.qmd)</em>")
     Build --> Auth("<strong>Configure</strong><br><em>AWS Credentials</em>")
@@ -68,26 +68,28 @@ These credentials belong to the `mjfrigaard-cli` IAM user with `AmazonS3FullAcce
 
 ### Setting up GitHub Secrets and Variables
 
+The diagram below shows how secrets and variables reach the workflow job.
+
 ```{mermaid}
 %%| fig-cap: 'GitHub Secrets and Variables Flow'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Secrets(["GitHub Secrets<br/>(Sensitive)"])
     Vars(["GitHub Variables<br/>(Config)"])
 
-    Secrets --> AccessKey["<strong>AWS_ACCESS_KEY_ID</strong>"]
-    Secrets --> SecretKey["<strong>AWS_SECRET_ACCESS_KEY</strong>"]
-    Vars --> Region["<strong>AWS_REGION</strong>"]
+    Secrets --> AccessKey("<strong>AWS_ACCESS_KEY_ID</strong>")
+    Secrets --> SecretKey("<strong>AWS_SECRET_ACCESS_KEY</strong>")
+    Vars --> Region("<strong>AWS_REGION</strong>")
 
-    AccessKey --> Workflow{{"Workflow Job<br/>(aws-actions/<br>configure-aws-<br>credentials)"}}
+    AccessKey --> Workflow("Workflow Job<br/>(aws-actions/<br>configure-aws-<br>credentials)")
     SecretKey --> Workflow
     Region --> Workflow
 
-    Workflow --> S3["Temporary AWS<br/>Credentials"]
-    S3 --> Access[["Access to S3"]]
+    Workflow --> S3("Temporary AWS<br/>Credentials")
+    S3 --> Access[("Access to S3")]
 
     style Secrets fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style Vars fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -104,7 +106,7 @@ graph TD
 
 Next, we create `.github/workflows/publish.yml`[^gha-workflow] to build and publish the models to our S3 bucket. The models are automatically versioned by `vetiver` (e.g., `20260710T065220Z-91fdd`), so we're creating a new version in S3 with each workflow run.
 
-```yaml
+```{.yaml}
 name: Publish Models to S3
 
 on:
@@ -113,6 +115,8 @@ on:
     paths:
       - '_labs/lab07/py_model.qmd'
       - '_labs/lab07/r_model.qmd'
+      - '_labs/lab07/py_model.py'
+      - '_labs/lab07/r_model.R'
       - '.github/workflows/publish.yml'
 
 jobs:
@@ -144,12 +148,12 @@ jobs:
         working-directory: ./_labs/lab07
         run: |
           python -m pip install --upgrade pip
-          pip install -r Python/requirements.txt pins vetiver python-dotenv
+          pip install -r Python/requirements.txt pins vetiver python-dotenv s3fs
 
       - name: Install R dependencies
         working-directory: ./_labs/lab07
         run: |
-          R -e "install.packages(c('vetiver', 'pins', 'plumber2', 'paws.storage'))" #<4>
+          R -e "install.packages(c('vetiver', 'pins', 'plumber2', 'paws.storage', 'palmerpenguins', 'duckdb', 'DBI', 'dplyr'))" #<4>
 
       - name: Build and publish Python model #<5>
         working-directory: ./_labs/lab07
@@ -169,11 +173,13 @@ jobs:
           Rscript r_model.R #<5>
           
 ```
-1. **Trigger**: Runs when `py_model.qmd`, `r_model.qmd`, or this workflow file changes on the `lab07-s3` branch
+1. **Trigger**: Runs when `py_model.qmd`, `r_model.qmd`, `py_model.py`, `r_model.R`, or this workflow file changes on the `lab07-s3` branch
 2. **Checkout**: Downloads the latest code from the repository  
 3. **AWS Auth**: Uses `aws-actions/configure-aws-credentials` to load the IAM user's access keys from encrypted GitHub secrets  
 4. **Setup**: Installs Python 3.12 and R 4.4 with required dependencies  
 5. **Build & Publish**: Runs `py_model.py` and `r_model.R` with `USE_S3=true` environment variable, which causes the model scripts to write directly to S3
+
+The `py_model.py` and `r_model.R` scripts hold the code chunks from `py_model.qmd` and `r_model.qmd`. The workflow runs the same model code without rendering either document. When we change a `.qmd` file, we update its script to match.
 
 Publishing with GitHub Actions automates the model deployment while keeping the AWS credentials in encrypted repository secrets rather than in the code.
 
@@ -182,9 +188,7 @@ Publishing with GitHub Actions automates the model deployment while keeping the 
 
 ## Developing on the `lab07-s3` Branch
 
-Now, I want to keep the `main` branch reserved for the Quarto book rendering, so any model changes will go in the `lab07-s3` branch (which triggers the model publishing workflow). Since I've already been developing on `main`, I'll need to create and switch to the `lab07-s3` branch:
-
-First I'll create/check out the `lab07-s3` branch from `main`:
+Because I want the `main` branch reserved for the Quarto book rendering, I'll create and check out a `lab07-s3` branch from `main` for model changes (pushing to this branch triggers the model publishing workflow):
 
 ```{bash}
 #| eval: false 
@@ -222,8 +226,14 @@ Then render/run the files with the changes
 #| eval: false 
 #| code-fold: false
 quarto render py_model.qmd
-# or
-Rscript r_model.R
+```
+
+Or
+
+```{bash}
+#| eval: false 
+#| code-fold: false
+quarto render r_model.qmd
 ```
 
 ### Commit changes 

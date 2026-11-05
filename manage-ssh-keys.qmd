@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-Working across multiple machines makes it easy to get sloppy with keys, so a few rules are worth stating plainly.
+This chapter covers logging in from a second machine, replacing AWS key pairs, and setting up an SSH config. Working across multiple machines makes it easy to get sloppy with keys, so a few rules are worth stating plainly.
 
 ## Security considerations
 
@@ -60,7 +60,7 @@ SSH authentication is based on a key pair: the private key stays on our computer
 %%| fig-cap: 'SSH Key Pair Authentication'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Client["Your Computer"]
@@ -90,8 +90,19 @@ The first option is safer, so we'll cover it below. Copying private keys around 
 
 This is the same process we followed in [Creating a regular SSH key for routine access](aws-ssh-ec2.qmd#creating-a-regular-ssh-key-for-routine-access), just run on the new machine.
 
-***Do I need to install aws console on my mac to SSH into the EC2 instance?***
-
+```{r}
+#| label: co_box_aws_cli_mac
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.10",
+  size = "1.00",
+  header = "Do I need to install aws console on my mac to SSH into the EC2 instance?",
+  fold = FALSE,
+  contents = "
 No. To SSH into an EC2 instance, we only need:
 
 1. SSH (built into macOS by default)    
@@ -99,17 +110,15 @@ No. To SSH into an EC2 instance, we only need:
 3. The instance's IP address
 
 We don't need the **AWS Console** or AWS CLI installed to SSH. However, the AWS CLI is useful if we want to manage keys and instances from the command line
-(e.g., `aws ec2 create-key-pair`). 
+(e.g., `aws ec2 create-key-pair`).
+")
+```
 
 On my MacBook, I completed the following steps:
 
 ### Step 1: Create key pair
 
-We'll start by creating/downloading a new key pair from the **AWS Console**: 
-
-![](img/lab8-macbook-create-key-aws-console.png){width='100%' fig-align='center'}
-
-Move the downloaded `.pem` file into the `.ssh/` folder and run the following:
+We'll start by generating a new ed25519 key pair on the MacBook with `ssh-keygen`:
 
 ```{bash}
 #| eval: false
@@ -168,7 +177,6 @@ We now have the following files in the `~/.ssh/`:
 ```{verbatim}
 ~/.ssh/
 ├── <your-key-name>-macbook
-├── <your-key-name>-macbook.pem
 └── <your-key-name>-macbook.pub
 
 ```
@@ -312,12 +320,12 @@ The public IP, internal hostname, host key fingerprint, and login timestamps abo
 %%| fig-cap: 'MacBook SSH Key Setup Workflow'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    A(["Step 1: Generate key pair<br/>on MacBook<br/><code>ssh-keygen</code>"]) --> B["Step 2: Copy public key<br/>from MacBook<br/><code>cat ...pub</code>"]
-    B --> C["Step 3: Add to server<br/>from another machine<br/>SSH + append to <code>authorized_keys</code>"]
-    C --> D["Step 4: Test<br/>Connect from MacBook<br/>with new key"]
+    A(["Step 1: Generate key pair<br/>on MacBook<br/><code>ssh-keygen</code>"]) --> B("Step 2: Copy public key<br/>from MacBook<br/><code>cat ...pub</code>")
+    B --> C("Step 3: Add to server<br/>from another machine<br/>SSH + append to <code>authorized_keys</code>")
+    C --> D("Step 4: Test<br/>Connect from MacBook<br/>with new key")
     D --> E(["✓ Access granted"])
 
     style A fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
@@ -327,7 +335,7 @@ graph TD
     style E fill:#4CAF50,stroke:#fff,stroke-width:2px,color:#fff
 ```
 
-### Logging in from other machines (notes)
+### Why one key per machine
 
 The advantage here is that each machine has its own key. If our MacBook is ever lost or stolen, we can remove that one public key from `authorized_keys` and the other machines keep working.
 
@@ -335,7 +343,7 @@ The advantage here is that each machine has its own key. If our MacBook is ever 
 %%| fig-cap: 'Multi-Machine SSH Access After MacBook Setup'
 %%| fig-width: 9.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Mac["MacBook"]
@@ -382,6 +390,8 @@ Key pairs are not tied to security groups. Security groups are attached to the i
 
 ### Step 1. Create the new key pair
 
+This command creates a new RSA key pair in AWS and saves the private key to a local `.pem` file:
+
 ```{bash}
 #| eval: false 
 #| code-fold: false 
@@ -393,6 +403,7 @@ aws ec2 create-key-pair \
   --output text > ~/.ssh/<my-better-name>.pem
 ```
 
+SSH refuses a private key that other users can read, so we restrict the `.pem` file to read only for our user:
 
 ```{bash}
 #| eval: false 
@@ -404,11 +415,15 @@ Or via Console: **EC2** > **Key Pairs** > **Create key pair**
 
 ### Step 2. Get the public key
 
+The `-y` flag tells `ssh-keygen` to read the private key and write its matching public key to a `.pub` file:
+
 ```{bash}
 #| eval: false 
 #| code-fold: false 
 ssh-keygen -y -f ~/.ssh/<my-better-name>.pem > ~/.ssh/<my-better-name>.pub
 ```
+
+Then we print the public key so we can copy it:
 
 ```{bash}
 #| eval: false 
@@ -436,6 +451,8 @@ echo "ssh-rsa AAAA...new-key-content..." >> ~/.ssh/authorized_keys
 
 ### Step 4. Test the new key in a new terminal (keep the old session open)
 
+In a second terminal, we connect with the new key while the first session stays open as a fallback:
+
 ```{bash}
 #| eval: false 
 #| code-fold: false 
@@ -448,6 +465,8 @@ Edit `~/.ssh/authorized_keys` and delete the old key line.
 
 ### Step 6: Delete the old key pair from AWS
 
+Once the new key works, we can delete the old key pair from AWS:
+
 ```{bash}
 #| eval: false 
 #| code-fold: false 
@@ -456,7 +475,7 @@ aws ec2 delete-key-pair --key-name <old-key>
 
 Then delete the old `.pem` locally.
 
-### Replacing key pairs (notes)
+### What a key swap does not change
 
 * The "Key pair name" shown in the EC2 console for an instance reflects the key used at launch and won't update, but access is controlled by `~/.ssh/authorized_keys` on the instance itself.
 
@@ -466,7 +485,7 @@ Then delete the old `.pem` locally.
 
 ## Setting up an SSH config 
 
-Typing the full: 
+Typing the full `ssh -i` command every time gets old quickly:
 
 ```{bash}
 #| eval: false
@@ -474,7 +493,7 @@ Typing the full:
 ssh -i ~/.ssh/<your-key-name> ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
-command every time gets old quickly. SSH reads a config file at `~/.ssh/config` that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:
+SSH reads a config file at `~/.ssh/config` that lets us assign a short alias to a connection. On the MacBook, we open (or create) the file:
 
 ```{bash}
 #| eval: false

@@ -41,7 +41,7 @@ aws s3api create-bucket \
   --profile dev-deploy
 ```
 
-These commands are pretty straightforward, but you can also read more in the documentation.[^aws-s3-buckets] Note that bucket names must be globally unique. The response from the API should be something like the following: 
+Bucket names must be globally unique. You can read more in the documentation.[^aws-s3-buckets] The response from the API should be something like the following: 
 
 ::: {style="font-style: italic;"}
 
@@ -171,7 +171,7 @@ We can also see the `Python/` and `R/` in the dashboard under **Amazon S3** > **
 ![Click to enlarge S3 bucket with penguin model data](img/lab7-s3-bucket-upload.png){width='100%' fig-align='center'}
 
 
-## Pushing model data
+## Writing models to S3 with pins
 
 I've create a Quarto documents for each respective R and Python `vetiver` model:
 
@@ -185,20 +185,20 @@ The model data can be written to either a local folder (for development) or dire
 %%| fig-cap: 'Model Push (Write) Flow'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    Model["Trained Model<br/>(py_model.py, r_model.R)"]
-    Check["Check USE_S3<br/>Environment Variable"]
+    Model(["Trained Model<br/>(py_model.py, r_model.R)"])
+    Check{"Check USE_S3<br/>Environment Variable"}
     Model --> Check
 
-    Check -->|USE_S3=false| Local["Write to<br/>Local Folder"]
-    Check -->|USE_S3=true| S3["Write to<br/>S3 Bucket"]
+    Check -->|USE_S3=false| Local("Write to<br/>Local Folder")
+    Check -->|USE_S3=true| S3("Write to<br/>S3 Bucket")
 
-    Local --> LocalBoard["board_folder()"]
-    S3 --> S3Board["board_s3()"]
+    Local --> LocalBoard("board_folder()")
+    S3 --> S3Board("board_s3()")
 
-    LocalBoard --> LocalPath["models/penguin_model/"]
+    LocalBoard --> LocalPath[("models/penguin_model/")]
     S3Board --> S3Path[("s3://penguin-vetiver-model-data/<br/>Python|R/models/")]
 
     style Model fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -211,7 +211,7 @@ graph LR
     style S3Path fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-To push the `vetiver` model data when it rebuilds, we will have to adapt the 'Write to Local Board` sections: 
+To push the model when it rebuilds, we'll adapt the Write to Local Board sections below.
 
 ### Write to Local Board (`Python`)
 
@@ -245,8 +245,6 @@ Version: 20260710T065219Z-91fdd
 :::
 
 ### Write to S3 Bucket (`Python`)
-
-To write this model data to the S3 bucket, we'll need to make the following changes:
 
 ```{r}
 #| label: co_box_py_env_vars
@@ -283,6 +281,8 @@ pip install python-dotenv
 3. Add `.env` to `.gitignore`.")
 ```
 
+To write this model data to the S3 bucket, we'll need to make the following changes:
+
 ```{python}
 #| eval: false
 #| code-fold: false
@@ -304,11 +304,13 @@ else:
 vetiver_pin_write(board, v)
 ```
 
+The output confirms the pin was written:
+
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-Model Cards provide a framework for transparent, responsible reporting. 
- Use the vetiver `.qmd` Quarto template as a place to start, 
+Model Cards provide a framework for transparent, responsible reporting.
+ Use the vetiver `.qmd` Quarto template as a place to start,
  with vetiver.model_card()
 Writing pin:
 Name: 'penguin_lab07_model'
@@ -442,7 +444,7 @@ We can confirm this with `pins::pin_list()`:
 ```{r}
 #| eval: false 
 #| code-fold: false 
-pins::pin_list(s3_board)
+pins::pin_list(board)
 ```
 
 ::: {style="font-style: italic;"}
@@ -465,23 +467,23 @@ Once the models are in S3, our APIs can load them directly using `USE_S3` approa
 %%| fig-cap: 'Model Pull (Read) Flow'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    API["API Startup<br/>(mod-api.py, plumber.R)"]
-    Check["Check USE_S3<br/>Environment Variable"]
+    API(["API Startup<br/>(mod-api.py, plumber.R)"])
+    Check{"Check USE_S3<br/>Environment Variable"}
     API --> Check
 
-    Check -->|USE_S3=false| Local["Load from<br/>Local Folder"]
-    Check -->|USE_S3=true| S3["Load from<br/>S3 Bucket"]
+    Check -->|USE_S3=false| Local("Load from<br/>Local Folder")
+    Check -->|USE_S3=true| S3("Load from<br/>S3 Bucket")
 
-    Local --> LocalBoard["board_folder()"]
-    S3 --> S3Board["board_s3()"]
+    Local --> LocalBoard("board_folder()")
+    S3 --> S3Board("board_s3()")
 
-    LocalBoard --> LocalPath["models/penguin_model/"]
+    LocalBoard --> LocalPath[("models/penguin_model/")]
     S3Board --> S3Path[("s3://penguin-vetiver-model-data/<br/>Python|R/models/")]
 
-    LocalPath --> Ready["Model Ready<br/>to Serve"]
+    LocalPath --> Ready(["Model Ready<br/>to Serve"])
     S3Path --> Ready
 
     style API fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff

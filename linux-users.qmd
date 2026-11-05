@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+This chapter sets up two accounts on the EC2 instance: a `sudo` enabled personal account for daily work, and a locked down service account that will run the `baseball-trajectory` app.
+
 ## Log in
 
 Log back into the EC2 instance as `ec2-user` (the [Linux Commands](linux-commands.qmd) chapter covers the SSH options and what to expect after connecting). The [AWS Server Login](aws-ssh-ec2.qmd) and [Managing SSH key pairs](manage-ssh-keys.qmd) chapters are there if you need a refresher.
@@ -67,7 +69,7 @@ passwd: all authentication tokens updated successfully.
 
 :::
 
-Add `test-user` to `wheel` so has `sudo`:
+Add `test-user` to `wheel` so it has `sudo`:
 
 ```{bash}
 #| eval: false
@@ -97,7 +99,7 @@ uid=1001(test-user) gid=1001(test-user) groups=1001(test-user),10(wheel)
 
 `test-user` has a password now, but password authentication over SSH is disabled on this instance, same as it is for `ec2-user`. The account needs its own `.ssh` directory and an `authorized_keys` file before it can log in at all.
 
-I already have a public key trusted for `ec2-user` (from [Managing SSH key pairs](manage-ssh-keys.qmd)), so the fastest path is reusing it rather than generating a new pair just for this exercise:
+I already have a public key trusted for `ec2-user` (from [Managing SSH key pairs](manage-ssh-keys.qmd)), so the fastest path is reusing it rather than generating a new pair just for this exercise.
 
 First I create a `.ssh/` folder in `test-user`'s home directory and copy over `ec2-user`'s `authorized_keys`:
 
@@ -108,7 +110,7 @@ sudo mkdir -p /home/test-user/.ssh
 sudo cp ~/.ssh/authorized_keys /home/test-user/.ssh/authorized_keys
 ```
 
-Both commands ran via `sudo`, so the new files belong to `root`, not `test-user`. Hand them over and lock them down:
+Both commands ran via `sudo`, so the new files belong to `root`, not `test-user`. Hand them over and lock them down (SSH silently ignores a `.ssh` directory or key file that's group or world readable):
 
 ```{bash}
 #| eval: false
@@ -144,13 +146,11 @@ In short: `chown` decides who the file belongs to, `chmod` decides what they (an
 )
 ```
 
-Same rule as everywhere else with SSH: a `.ssh` directory or key file that's group- or world-readable gets silently ignored.
-
 ```{mermaid}
 %%| fig-cap: 'One Trusted Key, Two Local Accounts'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph Laptop["Your Computer"]
@@ -204,7 +204,7 @@ If successful, you'll see the following:
 
 :::
 
-Confirm `sudo` actually works for this account:
+Confirm the account's identity with `whoami`:
 
 ```{bash}
 #| eval: false
@@ -219,6 +219,8 @@ test-user
 ```
 
 :::
+
+Then confirm `sudo` escalates to root:
 
 ```{bash}
 #| eval: false

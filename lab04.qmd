@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+This lab answers the comprehension questions from [Chapter 4](https://do4ds.com/chapters/sec1/1-4-monitor-log.html) of do4ds (Logging and Monitoring). It also adds logging to the R and Python Shiny apps from lab 3. Logs record what happened inside an app, so they're the first place we look when a prediction fails or a user reports a problem.
+
 The original files in `do4ds/_labs/lab04` are below:
 
 ```{r}
@@ -45,13 +47,13 @@ Below are my answers to the comprehension questions in this chapter.
 
 Logging is a record of "***What happened***"--logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.
 
-Monitoring is usually a display of "***How is it performing***"--tracking quantitative metrics and system health indicators over time to understand trends and current state.
+Monitoring tracks quantitative metrics and system health over time to answer "***How is it performing***".
 
 ```{mermaid}
 %%| fig-cap: 'Logging vs. Monitoring'
 %%| fig-align: 'center'
 %%| fig-width: 6.5
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph "LOG: events"
@@ -172,7 +174,7 @@ In R, the `logger` package has the following levels:
 %%| fig-cap: 'R logger'
 %%| fig-align: 'center'
 %%| fig-width: 6.5
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     LogLevels("Logging Levels<br>Least -> Most Severe") --> TRACE("TRACE")
@@ -215,7 +217,7 @@ In Python, the `logging` facility has the following log levels:
 %%| fig-cap: 'Python logging'
 %%| fig-align: 'center'
 %%| fig-width: 6.5
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     A("Logging Levels<br>Least -> Most Severe") --> B("DEBUG")
@@ -258,7 +260,7 @@ Tab clicks are fine-grained UI interaction details, so we could use `TRACE` if w
 
 **Python `logging`:** `DEBUG`
 
-Similar reasoning applies: this diagnostic information for user interactions is primarily useful during development (or when debugging specific user behavior issues). 
+The same reasoning applies: diagnostic information about user interactions is primarily useful during development (or when debugging specific user behavior issues).
 
 :::
 
@@ -365,7 +367,13 @@ Python doesn't have `TRACE`, so `DEBUG` is appropriate for detailed variable sta
 
 ## Observability
 
-We can't prevent code failures (or when they happen), but we *can* create [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that 1) **accept failure is inevitable** (rather than trying to prevent it), 2) **implement comprehensive monitoring and logging**, and 3) **enable rapid diagnosis** (i.e., using logs and metrics to reconstruct what failed and why).
+We can't prevent failures or predict when they'll happen. We *can* build [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that:
+
+1. **Accept failure is inevitable** (rather than trying to prevent it).
+
+2. **Implement comprehensive monitoring and logging**.
+
+3. **Enable rapid diagnosis** (i.e., using logs and metrics to reconstruct what failed and why).
 
 To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
 
@@ -373,7 +381,7 @@ To do this, data scientist and developers need to generate meaningful logs and m
 %%| fig-cap: 'Observability Responsibilities'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
     subgraph DatSci["Data Scientist"]
@@ -383,7 +391,7 @@ graph LR
     
     subgraph SysAdmin["System Admins"]
         C("Collect &<br>Aggregate")
-        D("Store &<br>Process")
+        D[("Store &<br>Process")]
         E("Monitor &<br>Alert")
     end
     
@@ -416,7 +424,7 @@ graph LR
     
 ```
 
-This will give us:
+Observable systems give data science teams three benefits:
 
 1)  Operational peace of mind (the ability to detect and resolve issues quickly)
 
@@ -425,6 +433,8 @@ This will give us:
 3)  Team validation (prove the team's impact and justify resources)
 
 ## Logging in R
+
+`app-log.R` adds `log4r` logging to the lab 3 Shiny app. It logs when the app starts, when a prediction is requested and returned, and when the API returns an HTTP error. [R App Logging](app-log-r.qmd) walks through the full code.
 
 <details>
 
@@ -443,6 +453,8 @@ readr::read_lines("_labs/lab04/app-log.R") |>
 </details>
 
 ## Logging in Python
+
+`app-log.py` adds Python's `logging` module to the lab 3 Shiny for Python app. It logs the same events: the app starting, a request being made and returned, and an HTTP error. [Python App Logging](app-log-py.qmd) walks through the full code.
 
 <details>
 

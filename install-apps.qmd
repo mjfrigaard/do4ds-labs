@@ -77,7 +77,7 @@ Putting the new directory first means it takes priority over anything with the s
 %%| fig-cap: 'How PATH Search Works'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Cmd(["shell command<br/><strong>python3</strong>"]) --> Check1("Check<br/><strong>/usr/local/bin</strong>")
@@ -143,13 +143,13 @@ lrwxrwxrwx 1 root root 33 Aug 21 14:02 /usr/local/bin/python3 -> /opt/python/3.1
 %%| fig-cap: 'Symlink Resolution'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     User(["User types:<br/><code>python3</code>"])
-    Link["<strong>/usr/local/bin/python3</strong>"]
-    Points["<strong>/opt/python/3.12.1/<br>bin/python3.12</strong>"]
-    Real["<strong>Actual binary</strong>"]
+    Link("<strong>/usr/local/bin/python3</strong>")
+    Points("<strong>/opt/python/3.12.1/<br>bin/python3.12</strong>")
+    Real("<strong>Actual binary</strong>")
 
     User --"Shell finds symlink"--> Link
     Link --"Symlink points to"--> Points
@@ -181,7 +181,7 @@ Linux spreads a single application across several directories by purpose, not by
 %%| fig-cap: 'Application Filesystem Hierarchy'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Root(["/"])
@@ -216,13 +216,13 @@ graph TD
 
 ## Language versions
 
-AWS EC2 instances will not have data science language installed (at least not versions we can use), so the instructions below cover how to install Python and R onto the EC2 instance we've SHH'd into
+EC2 instances don't ship with current versions of R or Python, so this section installs both on the instance we've SSH'd into.
 
 ### Python version
 
 The Python already on the instance belongs to the operating system. Amazon Linux 2 uses it for `yum` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
 
-The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy:
+The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy (the steps that build it are in [Building Python from source](#building-python-from-source) below):
 
 ```{bash}
 #| eval: false
@@ -268,17 +268,31 @@ On a Graviton (`arm64`) instance, swap `x86_64` for `aarch64` in the URL. With `
 sudo rig add 4.6.1
 ```
 
+Set it as the default:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 sudo rig default 4.6.1
 ```
 
+Confirm the install; the asterisk marks the default version:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 rig list
 ```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+* 4.6.1
+```
+
+:::
+
+Your output may look different; newer `rig` versions print a table with a header row and more columns.
 
 `rig` is one way to get R. On an Ubuntu machine (a local workstation, or an Ubuntu AMI instead of Amazon Linux), CRAN publishes its own `apt` repository, which tracks the current release (R 4.6.1 as of this writing). Add CRAN's signing key and repository, then install `r-base`:
 
@@ -288,11 +302,15 @@ rig list
 sudo apt update -qq
 ```
 
+Install the tools `add-apt-repository` and key handling depend on:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 sudo apt install --no-install-recommends software-properties-common dirmngr
 ```
+
+Add CRAN's signing key:
 
 ```{bash}
 #| eval: false
@@ -301,11 +319,15 @@ wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
   sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 ```
 
+Add the CRAN repository for your Ubuntu release:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 ```
+
+Install R:
 
 ```{bash}
 #| eval: false
@@ -416,10 +438,10 @@ These are the three that account for most failed installs of `curl`, `openssl`, 
 %%| fig-cap: 'Language Runtime Installation Pattern'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
-    SysPy(["System Python<br/><em>owned by OS</em>"])
+    SysPy["System Python<br/><em>owned by OS</em>"]
     OptPy(["Your Python<br/><strong>/opt/python/3.12.1</strong><br/><em>isolated version</em>"])
     Venv("Virtual Env<br/><strong>~/my-app/venv</strong><br/><em>project packages</em>")
 
@@ -427,7 +449,7 @@ graph TD
     OptPy -->|"create venv from"| Venv
     Venv -->|"install packages to"| Packages("<strong>pip install<br/>my-packages</strong>")
 
-    R(["System R<br/><em>usually absent</em>"])
+    R["System R<br/><em>usually absent</em>"]
     OptR("Multiple R versions<br/><strong>/opt/R/4.6.1</strong><br/><strong>/opt/R/4.3.2</strong><br/><em>rig switches</em>")
     Libs("System libraries<br/><strong>libcurl-devel</strong><br/><strong>openssl-devel</strong><br/><strong>libxml2-devel</strong>")
 
@@ -470,14 +492,14 @@ That's the copy `yum` depends on, so upgrading it in place is off the table. The
 %%| fig-cap: 'Which Python Runs the App'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
 
 graph TD
     Check{"<strong>python3 --version</strong><br/>3.11 or newer?"}
     Yes("Use it directly")
     Build("Build into<br/><strong>/opt/python/3.12.1</strong>")
     Venv("<strong>/opt/myapp/.venv</strong>")
-    Sys(["<strong>/usr/bin/python3</strong><br/><em>3.7, owned by yum</em>"])
+    Sys["<strong>/usr/bin/python3</strong><br/><em>3.7, owned by yum</em>"]
 
     Check --"yes (AL2023, Ubuntu 22.04+)"--> Yes
     Check --"no (Amazon Linux 2)"--> Build
@@ -493,7 +515,7 @@ graph TD
     style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
 ```
 
-Install the compiler and the development headers first, plus a few Python needs specifically for `ssl`, `bz2`, and `ctypes` support:
+Install the compiler and the development headers first, plus a few that Python needs for `ssl`, `bz2`, and `ctypes` support:
 
 ```{bash}
 #| eval: false
@@ -647,7 +669,7 @@ The install spreads across three locations, and each one follows the convention 
 %%| fig-cap: 'baseball-trajectory File Locations'
 %%| fig-width: 7.5
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
 
 graph TD
     Root(["/"])

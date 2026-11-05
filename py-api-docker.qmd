@@ -22,6 +22,7 @@ co_box(
 )
 ```
 
+In this lab, we'll put the Python `vetiver` API from [Lab 6](lab06.qmd) in a Docker container. We'll run the API locally first, then build the image and run it with the model mounted from the host.
 
 ## Set up
 
@@ -142,7 +143,7 @@ Version: 20260618T104900Z-91fdd
 
 ## Run the API
 
-We're going to make a small change to `mod-api.py` in this lab, and its because we need the  `os.environ['PINS_ALLOW_PICKLE_READ']` at the top (before any imports). 
+Add `os.environ['PINS_ALLOW_PICKLE_READ']` to the top of `mod-api.py`, right after `import os` and before importing `pins`.
 
 
 ```{python}
@@ -323,7 +324,9 @@ CMD ["python3", "mod-api.py"] #<9>
 9. runs the FastAPI application when the container starts  
 
 
-The `python:3.11-slim` minimizes container size. The `--no-cache-dir -r` will perform a `pip` install without caching to reduce image size. The `ENV` lines are environment variables (path to data and pickle files), and `EXPOSE` will allow us to use a port (similar to `mod-api.py`).
+The `python:3.11-slim` base image minimizes container size. It runs Python 3.11 rather than the local 3.12.3. The mismatch is safe because `requirements-api.txt` pins the same `scikit-learn` version (1.6.1) used to train the model.
+
+The `--no-cache-dir` flag stops `pip` from caching downloaded packages, which keeps the image smaller. The `ENV` lines are environment variables (path to data and pickle files). `EXPOSE` only documents that the API listens on port 8080 (the port set in `mod-api.py`); the `-p` flag in `docker run` publishes it.
 
 ### Build the image
 
@@ -401,8 +404,9 @@ If the graceful stop doesn't work, you can force kill it:
 docker kill penguin-model-py
 ```
 
-## Final project files 
+## Final project files
 
+The finished `api/` folder now looks like this:
 
 ::: {style="font-style: italic;"}
 

@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+This lab turns the `baseball-trajectory` app from [Install Apps](install-apps.qmd) into a supervised `systemd` service that runs under the service account from [Linux Users](linux-users.qmd).
+
 ## Comprehension questions
 
 > "*What are two different ways to install Linux applications, and what are the commands?*"
@@ -52,18 +54,18 @@ On AL2, `systemd` is the program that manages this, and `systemctl` is how I tal
 %%| fig-cap: 'Daemonizing with systemd'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
 
 graph TD
     subgraph Unit["Unit File"]
         DotService["<strong>/etc/systemd/system/*.service</strong>"]
     end
-    Reload["<strong>systemctl daemon-reload</strong>"]
-    Enable["<strong>systemctl enable</strong>"]
-    Start["<strong>systemctl start</strong>"]
-    Status["<strong>systemctl status</strong>"]
+    Reload("<strong>systemctl daemon-reload</strong>")
+    Enable("<strong>systemctl enable</strong><br/><em>starts on boot</em>")
+    Start("<strong>systemctl start</strong>")
+    Status("<strong>systemctl status</strong>")
 
-    Unit --> Reload --> Enable --"<em>starts on boot</em>"--> Start --"<em>running now</em>"--> Status
+    Unit --> Reload --> Enable --> Start --"<em>running now</em>"--> Status
 
     style DotService stroke:#fff,stroke-width:1px,color:#000,font-family:monospace,font-size:11px
     style Unit fill:#1B2A41,stroke:#fff,stroke-width:1px,color:#fff
@@ -78,24 +80,24 @@ Once the unit file exists, `systemctl restart` and `systemctl stop` manage it go
 
 ### A worked example: daemonizing a real app
 
-`baseball-trajectory`, the app installed in [Install Apps](install-apps.qmd), is a good illustration of why daemonizing matters and what it actually looks like in a unit file. Started by hand from an SSH session, it dies the moment that session closes. Run as a service on an EC2 instance, `systemd` starts it on boot, restarts it after a crash, and collects its output, with something in front of it terminating TLS (covered in [Configure SSL](configure-ssl.qmd)).
+`baseball-trajectory`, the app installed in [Install Apps](install-apps.qmd), is a good illustration of why daemonizing matters and what it actually looks like in a unit file. Started by hand from an SSH session, it dies the moment that session closes. When the app runs as a service, `systemd` starts it on boot, restarts it after a crash, and collects its output. In front of the app, nginx terminates TLS; [Configure SSL](configure-ssl.qmd) covers that setup.
 
 ```{mermaid}
 %%| fig-cap: 'baseball-trajectory Deployment on EC2'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
 
 graph TD
     Op(["Operator<br/>browser"])
     Admin(["You<br/>SSH client"])
 
     subgraph EC2["EC2 Instance"]
-        Nginx["<strong>nginx</strong><br/>:443 TLS"]
-        App["<strong>baseball-trajectory</strong><br/>127.0.0.1:8000"]
-        Sysd[("<strong>systemd</strong> + <strong>journald</strong>")]
+        Nginx("<strong>nginx</strong><br/>:443 TLS")
+        App("<strong>baseball-trajectory</strong><br/>127.0.0.1:8000")
+        Sysd("<strong>systemd</strong> + <strong>journald</strong>")
     end
-    MLB(["MLB Stats API<br/>statsapi.mlb.com"])
+    MLB["MLB Stats API<br/>statsapi.mlb.com"]
 
     Op --"HTTPS :443"--> Nginx
     Admin --"SSH :22"--> EC2
@@ -141,7 +143,7 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-Four lines in there are doing the work worth understanding.
+Four directives control how the service runs: `User`, `ExecStart`, `--host`, and `Restart`.
 
 `User=baseball-trajectory` runs the process as the service account from [Linux Users](linux-users.qmd), not `root`. The app only serves requests and calls an external API, so that account needs no extra privilege at all.
 

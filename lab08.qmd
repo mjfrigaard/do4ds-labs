@@ -22,6 +22,8 @@ co_box(
 )
 ```
 
+This lab answers the chapter 8 comprehension questions and illustrates how SSH key authentication works.
+
 ## Comprehension questions
 
 > "*Draw a mental map that includes the following: terminal, shell, theme manager, operating system, my laptop.*"
@@ -30,13 +32,13 @@ co_box(
 %%| fig-cap: 'System Architecture: Layers and Components'
 %%| fig-width: 7.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Laptop(["<strong>Laptop</strong><br/><em>(Hardware)</em>"])
     OS("<strong>Operating System</strong><br/><em>(macOS, Linux,<br>Windows)</em>")
     Shell("<strong>Shell</strong><br/><em>(bash, zsh, fish)</em>")
-    Terminal{{"<strong>Terminal</strong><br/><em>(Application)</em>"}}
+    Terminal("<strong>Terminal</strong><br/><em>(Application)</em>")
     Theme("<strong>Theme Manager</strong><br/><em>(Appearance settings)</em>")
 
     Laptop --> OS
@@ -55,13 +57,13 @@ graph TD
 
 > "*Under what circumstances should you move or share your SSH private key? (Hint: this is a trick question.)*"
 
-**Never.** This is the trick: don't ever move or share an SSH private key under any circumstances. A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.
+**Never.** A private key is like the password to our entire identity on remote systems. If someone gains access to it, they can impersonate us, access our servers, and compromise our systems.
 
 The only place a private key should exist is on machines we own and control. If we suspect a private key has been compromised, generate a new key pair immediately and update the corresponding public key on all remote systems.
 
 > "*What is it about SSH public keys that makes them safe to share?*"
 
-SSH public keys are mathematically safe to share because of the asymmetric encryption algorithm they're based on (typically RSA or ECDSA). The public key can only encrypt messages that the private key can decrypt; it cannot be reversed to derive the private key. The mathematical relationship is one-way: given a public key, it's computationally infeasible to calculate the corresponding private key. This asymmetry is what makes public-key cryptography work. We can safely distribute our public key anywhere (GitHub, servers, etc.) because knowing the public key provides no information about the private key.
+SSH public keys are safe to share because the math behind each key pair (typically Ed25519 or RSA) only works in one direction: given a public key, it's computationally infeasible to calculate the corresponding private key. A server uses our public key to verify signatures that only our private key can create, so we can distribute the public key anywhere (GitHub, servers, etc.) without exposing the private key.
 
 ## SSH Key Authentication Flow
 
@@ -71,7 +73,7 @@ Here's how SSH keys work in practice when we authenticate to a remote server. Th
 %%| fig-cap: 'SSH Key Authentication Sequence'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 sequenceDiagram
     actor User as Developer

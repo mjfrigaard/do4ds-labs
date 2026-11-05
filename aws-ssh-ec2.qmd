@@ -32,7 +32,9 @@ If we click on the EC2 widget, we'll see we have 1 instance running, 1 key pair,
 
 We want to click on the **Instances (running)** to get the server information. Rather than give you another screenshot, I've created a table below of the information.
 
-## EC2 server info
+## Reading the EC2 instance details
+
+The table below describes each detail listed on the instance summary page.
 
 | Server Detail | Description |
 |------------------------------------|------------------------------------|
@@ -67,7 +69,7 @@ Understanding how these addresses and identifiers connect is key to accessing ou
 %%| fig-cap: 'EC2 Instance Network Architecture'
 %%| fig-width: 8.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph TD
     Client(["Our Computer"])
@@ -75,10 +77,10 @@ graph TD
     PubDNS("<strong>Public DNS</strong>:<br>ec2-203-0-113-42...")
     IGW["Internet<br>Gateway"]
     VPC("<strong>VPC</strong>")
-    Subnet["<strong>Subnet</strong><br>10.0.1.0/24"]
-    Instance{{"<strong>EC2 Instance</strong>"}}
-    PrivIP["<strong>Private IPv4</strong>:<br>10.0.1.42"]
-    PrivDNS["<strong>Private DNS</strong>:<br>ip-10-0-1-42..."]
+    Subnet("<strong>Subnet</strong><br>10.0.1.0/24")
+    Instance("<strong>EC2 Instance</strong>")
+    PrivIP("<strong>Private IPv4</strong>:<br>10.0.1.42")
+    PrivDNS("<strong>Private DNS</strong>:<br>ip-10-0-1-42...")
     
     Client -->|"<em>SSH port 22</em>"| PubIP
     PubIP -.->|resolves to| PubDNS
@@ -136,13 +138,13 @@ SSH is strict about permissions to prevent other users on the computer from read
 %%| fig-cap: '~/.ssh Directory Permissions'
 %%| fig-width: 6.0
 %%| fig-align: 'center'
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
 
 graph LR
-    ssh["~/.ssh<br/>(700)"]
-    config["config<br/>(600)"]
-    pem["*.pem or key<br/>(600 or 400)"]
-    pub["*.pub<br/>(644)"]
+    ssh("~/.ssh<br/>(700)")
+    config[("config<br/>(600)")]
+    pem[("*.pem or key<br/>(600 or 400)")]
+    pub[("*.pub<br/>(644)")]
     known[("known_hosts<br/>(644)")]
     auth[("authorized_keys<br/>(600)")]
 
@@ -336,13 +338,15 @@ mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 ```
 
-Replace `YOUR_PUBLIC_KEY_CONTENT` with the contents of `~/.ssh/<your-key-name>.pub` on our local computer. We can view it with:
+On our local computer, we can view the contents of the public key with `cat`:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
 cat ~/.ssh/<your-key-name>.pub
 ```
+
+Back on the server, append the key (replace `YOUR_PUBLIC_KEY_CONTENT` with the output of `cat`):
 
 ```{bash}
 #| eval: false

@@ -22,15 +22,17 @@ co_box(
 )
 ```
 
+The previous chapter put the Python API in a Docker container. This chapter does the same for the R version, which serves the model with `plumber2`. We'll run the API locally first, then build the image and run it in a container.
+
 ## Set up
 
-The original [lab 6 files](https://github.com/alexkgold/do4ds/tree/main/_labs/lab6) are only available for the Python API, butI've created both Python and R versions, and you can access and run the API from the [`R/api/` folder.](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api):
+The original [lab 6 files](https://github.com/alexkgold/do4ds/tree/main/_labs/lab6) are only available for the Python API, but I've created both Python and R versions. You can access and run the R API from the [`R/api/` folder](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api).
 
 With R, we don't have to confirm the R version (or create a virtual environment), because `renv` is handling our project-level dependencies. 
 
 ## Build model (optional)
 
-We can run the scripts/commands to build the model, but it's not required. 
+Rebuilding the model is optional; run `model.R` to refresh the pin:
 
 ```{r}
 #| eval: false 
@@ -76,7 +78,9 @@ This message is displayed once per session.
 
 :::
 
-We can run the API with the `plumber.R` file: 
+## Run the API
+
+We can run the API with the `plumber.R` file:
 
 ```{r}
 #| eval: false 
@@ -187,7 +191,7 @@ curl -X POST "http://localhost:8080/predict-validated" \
 
 :::
 
-`plumber2` provides a validated endpoint (`/predict-validated`) that checks for required fields and valid factor levels, ensuring the input matches the model's expectations.
+Our `plumber.R` defines a `/predict-validated` endpoint that checks for required fields and valid factor levels, ensuring the input matches the model's expectations.
 
 Make sure to quit the API before building the Docker image and running the model in the container. `plumber.R` assigns the API to `app`, so from the R session that started it:
 
@@ -267,7 +271,7 @@ CMD ["Rscript", "plumber.R"] #<18>
 17. Expose port where Plumber API will listen     
 18. Start the Plumber API when container runs     
 
-Using `--no-install-recommends` minimizes the image size. We're copying `.Rprofile` and `renv` so the R package installation layer won't rebuild unless `renv.lock` or bootstrap files change (the `.Rprofile` automatically sources `renv/activate.R`, which bootstraps `renv` and configures `.libPaths()` to use the project-local library before `restore()` runs). `COPY plumber.R .` prevents re-running the long package installation if only app code changes.  
+Using `--no-install-recommends` minimizes the image size. We're copying `.Rprofile` and `renv` so the R package installation layer won't rebuild unless `renv.lock` or bootstrap files change. The `.Rprofile` automatically sources `renv/activate.R`, which bootstraps `renv` and configures `.libPaths()` to use the project-local library before `restore()` runs. Placing `COPY plumber.R .` after `restore()` avoids reinstalling packages when only the app code changes.
 
 ### Build the image
 
@@ -383,7 +387,7 @@ docker kill penguin-model-r
 1. Defines the container image to deploy this API (base image, dependencies, startup command)   
 2. Script that trains and serializes the penguin regression model (`lm()`)  
 3. Versioned, saved model artifact (the timestamp-named directory is a `vetiver` model board pin)
-4. Local DuckDB database file, likely storing penguin data used for training or logging predictions.  
+4. Local DuckDB database file with the `penguins` table that `model.R` creates and queries for training data.
 5. The main API definition: declares endpoints using `plumber` decorators (`#* @get`, `#* @post`, etc.) 
 6. Project documentation  
 7. Bootstrap script that initializes `renv` when the project is opened
