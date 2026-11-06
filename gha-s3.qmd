@@ -266,10 +266,43 @@ GitHub Actions will automatically detects the `push` to `lab07-s3`, build the mo
 
 ### Verify
 
-We can verify the models were published using:
+The GitHub CLI (`gh`) lets us follow the workflow from the Terminal. First, list the most recent runs of `publish.yml`. Each row shows the status, the commit message, the branch, the run ID, and how long the run took:
 
 ```{bash}
-#| eval: false 
+#| eval: false
+#| code-fold: false
+gh run list --workflow publish.yml --limit 2
+```
+
+Pass the run ID from that list to `gh run watch` to follow the run until it finishes. The `--exit-status` flag makes the command fail when the run fails, so we don't have to read the output to know the result:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+gh run watch <run-id> --exit-status
+```
+
+To see where the time goes, `gh api` requests the run's jobs from the GitHub REST API (`{owner}` and `{repo}` are filled in from the current repository). The `--jq` filter prints each step's name and how many seconds it took. The **Install R dependencies** step should take about a minute with `use-public-rspm: true` (compiling from source took most of the 25 minute first run):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs \
+  --jq '.jobs[0].steps[] | "\(.name): \(((.completed_at|fromdate)-(.started_at|fromdate)))s"'
+```
+
+We can also confirm R downloaded its packages from Package Manager by searching the run's log for its address (`packagemanager.posit.co`). The `__linux__` part of each URL means Package Manager sends a prebuilt binary for the runner's Linux version:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+gh run view <run-id> --log | grep -m3 "packagemanager.posit.co"
+```
+
+Finally, we verify the models were published by listing the files in the bucket. Each run adds a new version folder (named with the date and time, e.g., `20261106T183259Z-6a79d`) under `Python/models/penguin_lab07_model/` and `R/models/penguin_lab07_model/`:
+
+```{bash}
+#| eval: false
 #| code-fold: false
 # List files in S3
 aws s3 ls s3://penguin-vetiver-model-data/ --recursive --profile dev-deploy
