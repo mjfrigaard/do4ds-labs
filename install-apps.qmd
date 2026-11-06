@@ -633,82 +633,10 @@ That should print an OpenSSL 1.1.1 version string, not a traceback. Once it does
 )
 ```
 
-## Installing a real application
-
-Third party software follows the same convention as the interpreter: its own directory tree under `/opt`, not scattered across the filesystem. Here's what that looks like for `baseball-trajectory`, a Shiny for Python app ([source](https://github.com/mjfrigaard/baseball-trajectory)) that plots a player's career arc from the MLB Stats API:
-
-```{bash}
-#| eval: false
-#| code-fold: false
-sudo git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory
-cd /opt/baseball-trajectory
-```
-
-Create the virtual environment from the `/opt` Python, not the system one, then install the package and its dependencies into it:
-
-```{bash}
-#| eval: false
-#| code-fold: false
-sudo /opt/python/3.12.1/bin/python3.12 -m venv /opt/baseball-trajectory/.venv
-sudo /opt/baseball-trajectory/.venv/bin/pip install -e .
-```
-
-This pulls the app's dependencies from PyPI, so the instance needs outbound internet access. If the box is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.
-
-The install spreads across three locations, and each one follows the convention above rather than piling everything into one folder:
-
-| Location | What lives there |
-|:---------|:-----------------|
-| `/opt/baseball-trajectory` | Application source and the virtual environment |
-| `/etc/systemd/system/baseball-trajectory.service` | The unit file telling `systemd` how to run it |
-| `journald` | Application stdout and stderr, read with `journalctl -u baseball-trajectory` |
-
-: Where a system install of baseball-trajectory puts things {#tbl-baseball-trajectory-locations}
-
-```{mermaid}
-%%| fig-cap: 'baseball-trajectory File Locations'
-%%| fig-width: 7.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
-
-graph TD
-    Root(["/"])
-    Opt("<strong>/opt/baseball-trajectory</strong>")
-    Venv("<strong>.venv/bin/shiny</strong><br/><strong>.venv/bin/baseball-trajectory</strong>")
-    Etc("<strong>/etc/systemd/system</strong>")
-    Unit("<strong>baseball-trajectory.service</strong>")
-    Log("<strong>journald</strong>")
-    Jctl("<em>journalctl -u baseball-trajectory</em>")
-
-    Root --"<em>application</em>"--> Opt --> Venv
-    Root --"<em>config</em>"--> Etc --> Unit
-    Root --"<em>logs</em>"--> Log --> Jctl
-
-    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-family:monospace
-    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-family:monospace
-    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
-    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
-    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff,font-family:monospace
-    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-family:monospace
-```
-
-Notice what's missing: there's no `/var/lib` entry. `baseball-trajectory` keeps nothing on disk. Rosters and career stats are fetched from `https://statsapi.mlb.com` and cached in memory, so a restart simply starts with an empty cache. That also means outbound HTTPS isn't just an install time requirement; the running app needs it on every new player lookup.
-
-Before handing it to `systemd`, confirm the console script starts from the venv:
-
-```{bash}
-#| eval: false
-#| code-fold: false
-/opt/baseball-trajectory/.venv/bin/baseball-trajectory
-```
-
-It binds to `127.0.0.1:8000`, so from a second SSH session `curl -I http://127.0.0.1:8000` should return `200 OK`. See [Daemonizing with systemd](lab10.qmd) for turning this into a running service and [Linux Users](linux-users.qmd) for the dedicated account it should run as.
-
 ## Recap
 
 1. `PATH` decides what the shell can find, and `which` tells you which copy is winning. A `command not found` error usually means a directory is missing from the list, not that the software is missing.
 
 2. Install language runtimes into `/opt` and symlink them into `/usr/local/bin`. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.
 
-3. When the packaged interpreter is too old, build your own into `/opt` with `make altinstall` rather than touching the system copy. A real application installed the same way gets its own subtree: source and venv under `/opt`, unit file under `/etc/systemd/system`, and logs in `journald`.
+3. When the packaged interpreter is too old, build your own into `/opt` with `make altinstall` rather than touching the system copy. [Installing a Real Application](install-real-app.qmd) applies the same pattern to a full app.
