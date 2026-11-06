@@ -6,8 +6,6 @@ on:
     paths:
       - '_labs/lab07/py_model.qmd'
       - '_labs/lab07/r_model.qmd'
-      - '_labs/lab07/py_model.py'
-      - '_labs/lab07/r_model.R'
       - '.github/workflows/publish.yml'
 
 jobs:
@@ -35,16 +33,19 @@ jobs:
         with:
           r-version: '4.4'
 
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
       - name: Install Python dependencies
         working-directory: ./_labs/lab07
         run: |
           python -m pip install --upgrade pip
-          pip install -r Python/requirements.txt pins vetiver python-dotenv s3fs
+          pip install -r Python/requirements.txt pins vetiver python-dotenv s3fs jupyter
 
       - name: Install R dependencies
         working-directory: ./_labs/lab07
         run: |
-          R -e "install.packages(c('vetiver', 'pins', 'plumber2', 'paws.storage', 'palmerpenguins', 'duckdb', 'DBI', 'dplyr'))"
+          R -e "install.packages(c('vetiver', 'pins', 'plumber2', 'paws.storage', 'palmerpenguins', 'duckdb', 'DBI', 'dplyr', 'rmarkdown', 'knitr'))"
 
       - name: Build and publish Python model
         working-directory: ./_labs/lab07
@@ -53,7 +54,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
           PINS_ALLOW_PICKLE_READ: '1'
         run: |
-          python py_model.py
+          quarto render py_model.qmd
 
       - name: Build and publish R model
         working-directory: ./_labs/lab07
@@ -61,4 +62,4 @@ jobs:
           USE_S3: 'true'
           AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
         run: |
-          Rscript r_model.R
+          quarto render r_model.qmd
