@@ -2,11 +2,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.30">
+<meta name="generator" content="quarto-1.11.9">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-07-11">
+<meta name="dcterms.date" content="2026-11-06">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>R API in a container – DO4DS: Lab Solutions</title>
@@ -14,10 +14,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -74,16 +77,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./py-api-docker.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-a8da12e74b29c2e7b17644f84b91567b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-a5c02d233a214fa7390f529d7eb41226.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-63028f2f808dc4cf66735cddaffabf43.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9c76ae0ca6ddb1b458522b3580f62851.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a1cc23217b866e63e85de3c949cf0b9b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -118,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </head>
 
-<body class="nav-sidebar floating quarto-dark"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-sidebar floating quarto-dark"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -141,6 +145,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       for (let i=0; i < toggles.length; i++) {
         const toggle = toggles[i];
         if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
           if (alternate) {
             toggle.classList.add("alternate");
           } else {
@@ -170,13 +175,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       manageTransitions('#quarto-margin-sidebar .nav-link', true);
       // Switch the toggles
       setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
       if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
         manageTransitions("body", false);
-        window.scrollTo(0, 1);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
         setTimeout(() => {
-          window.scrollTo(0, 0);
+          window.scrollTo(0, scrollY);
           manageTransitions("body", true);
         }, 40);
       }
@@ -268,6 +279,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       // Read the current dark / light value
       let toAlternate = !hasAlternateSentinel();
       toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
       setStyleSentinel(toAlternate);
       toggleGiscusIfUsed(toAlternate, darkModeDefault);
       window.dispatchEvent(new Event('resize'));
@@ -282,13 +294,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav">
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
     <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab06.html"><strong>Lab 6: Demystifying Docker</strong></a></li><li class="breadcrumb-item"><a href="./r-api-docker.html"><em>R API in a container</em></a></li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab06.html"><strong>Lab 6: Demystifying Docker</strong></a></li><li class="breadcrumb-item"><a href="./r-api-docker.html"><em>R API in a container</em></a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
@@ -299,13 +311,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Site">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">DO4DS: Lab Solutions</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/mjfrigaard/do4ds-labs" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
 </div>
     </div>
       </div>
@@ -331,12 +343,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab01.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 1: Environments as Code</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-1-label"><strong>Lab 1: Environments as Code</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-controls="quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section: <strong>Lab 1: Environments as Code</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-1" aria-labelledby="quarto-sidebar-section-1-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./model-basic-py.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>Modeling in Python</em></span></a>
@@ -352,15 +364,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab02.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 2: Project Architecture</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-2-label"><strong>Lab 2: Project Architecture</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-controls="quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section: <strong>Lab 2: Project Architecture</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" aria-labelledby="quarto-sidebar-section-2-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./model-vetiver.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>Python processing layer</em></span></a>
+  <a href="./model-vetiver.html" class="sidebar-item-text sidebar-link"><span class="chapter-title"><em>Python model API with vetiver</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -374,12 +386,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab03.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 3: Databases and APIs</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-3-label"><strong>Lab 3: Databases and APIs</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-controls="quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section: <strong>Lab 3: Databases and APIs</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-3" aria-labelledby="quarto-sidebar-section-3-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./py-app-api.html" class="sidebar-item-text sidebar-link">
@@ -409,12 +421,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab04.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 4: Logging and Monitoring</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-4-label"><strong>Lab 4: Logging and Monitoring</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-controls="quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section: <strong>Lab 4: Logging and Monitoring</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-4" aria-labelledby="quarto-sidebar-section-4-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./app-log-py.html" class="sidebar-item-text sidebar-link">
@@ -432,12 +444,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab05.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 5: Deployments and Code Promotion</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-5-label"><strong>Lab 5: Deployments and Code Promotion</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-controls="quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section: <strong>Lab 5: Deployments and Code Promotion</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" aria-labelledby="quarto-sidebar-section-5-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./publish-r-py.html" class="sidebar-item-text sidebar-link">
@@ -449,12 +461,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab06.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 6: Demystifying Docker</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-6-label"><strong>Lab 6: Demystifying Docker</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-controls="quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section: <strong>Lab 6: Demystifying Docker</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-6" aria-labelledby="quarto-sidebar-section-6-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./py-api-docker.html" class="sidebar-item-text sidebar-link">
@@ -472,12 +484,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab07.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 7: Cloud Servers</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-7-label"><strong>Lab 7: Cloud Servers</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-controls="quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section: <strong>Lab 7: Cloud Servers</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-7" aria-labelledby="quarto-sidebar-section-7-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./start-aws.html" class="sidebar-item-text sidebar-link">
@@ -507,12 +519,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab08.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 8: The Command Line</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-8-label"><strong>Lab 8: The Command Line</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-controls="quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section: <strong>Lab 8: The Command Line</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-8" aria-labelledby="quarto-sidebar-section-8-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./aws-ssh-ec2.html" class="sidebar-item-text sidebar-link">
@@ -530,12 +542,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab09.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 9: Linux Admin</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-9-label"><strong>Lab 9: Linux Admin</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-controls="quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section: <strong>Lab 9: Linux Admin</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-9" aria-labelledby="quarto-sidebar-section-9-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./linux-commands.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Linux Commands</em></span></a>
+  </div>
+</li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./linux-users.html" class="sidebar-item-text sidebar-link">
@@ -547,22 +565,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab10.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 10: App Admin</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-10-label"><strong>Lab 10: App Admin</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-controls="quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section: <strong>Lab 10: App Admin</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-10" aria-labelledby="quarto-sidebar-section-10-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><em>Install Apps</em></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./install-splam.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install <code>splam</code></em></span></a>
   </div>
 </li>
       </ul>
@@ -570,12 +582,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab11.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 11: Server Resources and Scaling</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-11-label"><strong>Lab 11: Server Resources and Scaling</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-controls="quarto-sidebar-section-11" aria-expanded="true" aria-label="Toggle section: <strong>Lab 11: Server Resources and Scaling</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-11" aria-labelledby="quarto-sidebar-section-11-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./instance-size.html" class="sidebar-item-text sidebar-link">
@@ -587,12 +599,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab12.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 12: Computer Networks</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-12-label"><strong>Lab 12: Computer Networks</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-controls="quarto-sidebar-section-12" aria-expanded="true" aria-label="Toggle section: <strong>Lab 12: Computer Networks</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-12" aria-labelledby="quarto-sidebar-section-12-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./accessibility.html" class="sidebar-item-text sidebar-link">
@@ -604,12 +616,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab13.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 13: Domains and DNS</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-13-label"><strong>Lab 13: Domains and DNS</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" aria-controls="quarto-sidebar-section-13" aria-expanded="true" aria-label="Toggle section: <strong>Lab 13: Domains and DNS</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-13" aria-labelledby="quarto-sidebar-section-13-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./configure-dns.html" class="sidebar-item-text sidebar-link">
@@ -621,12 +633,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a href="./lab14.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><strong>Lab 14: SSL/TLS and HTTPS</strong></span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+ <span class="menu-text" id="quarto-sidebar-section-14-label"><strong>Lab 14: SSL/TLS and HTTPS</strong></span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" aria-controls="quarto-sidebar-section-14" aria-expanded="true" aria-label="Toggle section: <strong>Lab 14: SSL/TLS and HTTPS</strong>">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
       </div>
-      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-14" aria-labelledby="quarto-sidebar-section-14-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./configure-ssl.html" class="sidebar-item-text sidebar-link">
@@ -637,13 +649,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true">
- <span class="menu-text">Appendices</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+            <button type="button" class="sidebar-item-text sidebar-item-toggle sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" aria-controls="quarto-sidebar-section-15" aria-expanded="true">
+ <span class="menu-text" id="quarto-sidebar-section-15-label">Appendices</span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
       </div>
-      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-15" aria-labelledby="quarto-sidebar-section-15-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./glossary.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Glossary of terms</span></a>
@@ -659,6 +668,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <a href="./plumb.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Plumber vs.&nbsp;Plumber2 Syntax</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./palette.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Color palette</span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -667,12 +681,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
     <h2 id="toc-title">Contents</h2>
    
   <ul>
   <li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a></li>
   <li><a href="#build-model-optional" id="toc-build-model-optional" class="nav-link" data-scroll-target="#build-model-optional">Build model (optional)</a></li>
+  <li><a href="#run-the-api" id="toc-run-the-api" class="nav-link" data-scroll-target="#run-the-api">Run the API</a></li>
   <li><a href="#testing-the-api" id="toc-testing-the-api" class="nav-link" data-scroll-target="#testing-the-api">Testing the API</a></li>
   <li><a href="#docker" id="toc-docker" class="nav-link" data-scroll-target="#docker">Docker</a>
   <ul>
@@ -680,14 +695,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#run-the-container" id="toc-run-the-container" class="nav-link" data-scroll-target="#run-the-container">Run the container</a></li>
   </ul></li>
   <li><a href="#final-project-files" id="toc-final-project-files" class="nav-link" data-scroll-target="#final-project-files">Final project files</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content" id="quarto-document-content" tabindex="-1">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab06.html"><strong>Lab 6: Demystifying Docker</strong></a></li><li class="breadcrumb-item"><a href="./r-api-docker.html"><em>R API in a container</em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab06.html"><strong>Lab 6: Demystifying Docker</strong></a></li><li class="breadcrumb-item"><a href="./r-api-docker.html"><em>R API in a container</em></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><em>R API in a container</em></h1>
 </div>
@@ -700,7 +716,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-07-11</p>
+      <p class="date">2026-11-06</p>
     </div>
   </div>
   
@@ -712,18 +728,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<p>The previous chapter put the Python API in a Docker container. This chapter does the same for the R version, which serves the model with <code>plumber2</code>. We’ll run the API locally first, then build the image and run it in a container.</p>
 <section id="set-up" class="level2">
 <h2 class="anchored" data-anchor-id="set-up">Set up</h2>
-<p>The original <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab6">lab 6 files</a> are only available for the Python API, butI’ve created both Python and R versions, and you can access and run the API from the <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api"><code>R/api/</code> folder.</a>:</p>
+<p>The original <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab6">lab 6 files</a> are only available for the Python API, but I’ve created both Python and R versions. You can access and run the R API from the <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab06/R/api"><code>R/api/</code> folder</a>.</p>
 <p>With R, we don’t have to confirm the R version (or create a virtual environment), because <code>renv</code> is handling our project-level dependencies.</p>
 </section>
 <section id="build-model-optional" class="level2">
 <h2 class="anchored" data-anchor-id="build-model-optional">Build model (optional)</h2>
-<p>We can run the scripts/commands to build the model, but it’s not required.</p>
+<p>Rebuilding the model is optional; run <code>model.R</code> to refresh the pin:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"model.R"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We should see something like this:</p>
+<div style="font-style: italic;">
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">===</span> Model Training Complete ===</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Formula:</span></span>
@@ -753,6 +771,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Version:</span> </span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Pin</span> location: ./models/penguin_model</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</div>
+</section>
+<section id="run-the-api" class="level2">
+<h2 class="anchored" data-anchor-id="run-the-api">Run the API</h2>
 <p>We can run the API with the <code>plumber.R</code> file:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"plumber.R"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -771,6 +793,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8080/ping</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"status"</span><span class="fu">:</span> <span class="ot">[</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"alive"</span></span>
@@ -779,10 +802,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"2026-06-28 14:15:15"</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>Test detailed health:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8080/health</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"status"</span><span class="fu">:</span> <span class="ot">[</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"healthy"</span></span>
@@ -800,12 +825,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"R version 4.6.0 (2026-04-24)"</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>Test prediction using the following:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST <span class="st">"http://localhost:8080/predict-validated"</span> <span class="dt">\</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">"Content-Type: application/json"</span> <span class="dt">\</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">'{"bill_length_mm": 45.0, "species": "Gentoo", "sex": "male"}'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"prediction"</span><span class="fu">:</span> <span class="ot">[</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fl">5275.6639</span></span>
@@ -828,8 +855,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"2026-06-28 14:16:33"</span></span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
 <span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>plumber2</code> provides a validated endpoint (<code>/predict-validated</code>) that checks for required fields and valid factor levels, ensuring the input matches the model’s expectations.</p>
-<p>Make sure to quit the API before building the Docker image and running the model in the container.</p>
+</div>
+<p>Our <code>plumber.R</code> defines a <code>/predict-validated</code> endpoint that checks for required fields and valid factor levels, ensuring the input matches the model’s expectations.</p>
+<p>Make sure to quit the API before building the Docker image and running the model in the container. <code>plumber.R</code> assigns the API to <code>app</code>, so from the R session that started it:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>app<span class="sc">$</span><span class="fu">stop</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -841,133 +869,133 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> <span class="at">--user</span> start docker-desktop</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Create a <code>Dockerfile</code> with the following:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-12"><pre class="sourceCode dockerfile code-annotation-code code-with-copy code-annotated"><code class="sourceCode dockerfile"><span id="annotated-cell-12-1"><a href="#annotated-cell-12-1" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="1">1</button><span id="annotated-cell-12-2" class="code-annotation-target"><a href="#annotated-cell-12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.6.0</span>
-<span id="annotated-cell-12-3"><a href="#annotated-cell-12-3" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="2">2</button><span id="annotated-cell-12-4" class="code-annotation-target"><a href="#annotated-cell-12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">apt-get</span> update <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="3">3</button><span id="annotated-cell-12-5" class="code-annotation-target"><a href="#annotated-cell-12-5" aria-hidden="true" tabindex="-1"></a>    libssl-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-6"><a href="#annotated-cell-12-6" aria-hidden="true" tabindex="-1"></a>    libcurl4-openssl-dev <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="4">4</button><span id="annotated-cell-12-7" class="code-annotation-target"><a href="#annotated-cell-12-7" aria-hidden="true" tabindex="-1"></a>    libxml2-dev <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="5">5</button><span id="annotated-cell-12-8" class="code-annotation-target"><a href="#annotated-cell-12-8" aria-hidden="true" tabindex="-1"></a>    libfontconfig1-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-9"><a href="#annotated-cell-12-9" aria-hidden="true" tabindex="-1"></a>    libharfbuzz-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-10"><a href="#annotated-cell-12-10" aria-hidden="true" tabindex="-1"></a>    libfribidi-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-11"><a href="#annotated-cell-12-11" aria-hidden="true" tabindex="-1"></a>    libfreetype6-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-12"><a href="#annotated-cell-12-12" aria-hidden="true" tabindex="-1"></a>    libpng-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-13"><a href="#annotated-cell-12-13" aria-hidden="true" tabindex="-1"></a>    libtiff5-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-14"><a href="#annotated-cell-12-14" aria-hidden="true" tabindex="-1"></a>    libjpeg-dev <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="6">6</button><span id="annotated-cell-12-15" class="code-annotation-target"><a href="#annotated-cell-12-15" aria-hidden="true" tabindex="-1"></a>    cmake <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="7">7</button><span id="annotated-cell-12-16" class="code-annotation-target"><a href="#annotated-cell-12-16" aria-hidden="true" tabindex="-1"></a>    libsodium-dev <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="8">8</button><span id="annotated-cell-12-17" class="code-annotation-target"><a href="#annotated-cell-12-17" aria-hidden="true" tabindex="-1"></a>    libx11-dev <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="9">9</button><span id="annotated-cell-12-18" class="code-annotation-target"><a href="#annotated-cell-12-18" aria-hidden="true" tabindex="-1"></a>    pandoc <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="10">10</button><span id="annotated-cell-12-19" class="code-annotation-target"><a href="#annotated-cell-12-19" aria-hidden="true" tabindex="-1"></a>    xz-utils <span class="dt">\</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="11">11</button><span id="annotated-cell-12-20" class="code-annotation-target"><a href="#annotated-cell-12-20" aria-hidden="true" tabindex="-1"></a>    libuv1-dev <span class="dt">\</span></span>
-<span id="annotated-cell-12-21"><a href="#annotated-cell-12-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span>
-<span id="annotated-cell-12-22"><a href="#annotated-cell-12-22" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="12">12</button><span id="annotated-cell-12-23" class="code-annotation-target"><a href="#annotated-cell-12-23" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /app</span>
-<span id="annotated-cell-12-24"><a href="#annotated-cell-12-24" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="13">13</button><span id="annotated-cell-12-25" class="code-annotation-target"><a href="#annotated-cell-12-25" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> .Rprofile .</span>
-<span id="annotated-cell-12-26"><a href="#annotated-cell-12-26" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> renv/activate.R renv/activate.R</span>
-<span id="annotated-cell-12-27"><a href="#annotated-cell-12-27" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> renv.lock .</span>
-<span id="annotated-cell-12-28"><a href="#annotated-cell-12-28" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="14">14</button><span id="annotated-cell-12-29" class="code-annotation-target"><a href="#annotated-cell-12-29" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"renv::restore(prompt = FALSE)"</span></span>
-<span id="annotated-cell-12-30"><a href="#annotated-cell-12-30" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="15">15</button><span id="annotated-cell-12-31" class="code-annotation-target"><a href="#annotated-cell-12-31" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> plumber.R .</span>
-<span id="annotated-cell-12-32"><a href="#annotated-cell-12-32" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="16">16</button><span id="annotated-cell-12-33" class="code-annotation-target"><a href="#annotated-cell-12-33" aria-hidden="true" tabindex="-1"></a><span class="kw">ENV</span> MODEL_PATH=/data/model</span>
-<span id="annotated-cell-12-34"><a href="#annotated-cell-12-34" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="17">17</button><span id="annotated-cell-12-35" class="code-annotation-target"><a href="#annotated-cell-12-35" aria-hidden="true" tabindex="-1"></a><span class="kw">EXPOSE</span> 8080</span>
-<span id="annotated-cell-12-36"><a href="#annotated-cell-12-36" aria-hidden="true" tabindex="-1"></a></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-12" data-target-annotation="18">18</button><span id="annotated-cell-12-37" class="code-annotation-target"><a href="#annotated-cell-12-37" aria-hidden="true" tabindex="-1"></a><span class="kw">CMD</span> [<span class="st">"Rscript"</span>, <span class="st">"plumber.R"</span>]</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-8"><pre class="sourceCode dockerfile code-annotation-code code-with-copy code-annotated"><code class="sourceCode dockerfile"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="1">1</button><span id="annotated-cell-8-2" class="code-annotation-target"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.6.0</span>
+<span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="2">2</button><span id="annotated-cell-8-4" class="code-annotation-target"><a href="#annotated-cell-8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">apt-get</span> update <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="3">3</button><span id="annotated-cell-8-5" class="code-annotation-target"><a href="#annotated-cell-8-5" aria-hidden="true" tabindex="-1"></a>    libssl-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-6"><a href="#annotated-cell-8-6" aria-hidden="true" tabindex="-1"></a>    libcurl4-openssl-dev <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="4">4</button><span id="annotated-cell-8-7" class="code-annotation-target"><a href="#annotated-cell-8-7" aria-hidden="true" tabindex="-1"></a>    libxml2-dev <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="5">5</button><span id="annotated-cell-8-8" class="code-annotation-target"><a href="#annotated-cell-8-8" aria-hidden="true" tabindex="-1"></a>    libfontconfig1-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-9"><a href="#annotated-cell-8-9" aria-hidden="true" tabindex="-1"></a>    libharfbuzz-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-10"><a href="#annotated-cell-8-10" aria-hidden="true" tabindex="-1"></a>    libfribidi-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-11"><a href="#annotated-cell-8-11" aria-hidden="true" tabindex="-1"></a>    libfreetype6-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-12"><a href="#annotated-cell-8-12" aria-hidden="true" tabindex="-1"></a>    libpng-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-13"><a href="#annotated-cell-8-13" aria-hidden="true" tabindex="-1"></a>    libtiff5-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-14"><a href="#annotated-cell-8-14" aria-hidden="true" tabindex="-1"></a>    libjpeg-dev <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="6">6</button><span id="annotated-cell-8-15" class="code-annotation-target"><a href="#annotated-cell-8-15" aria-hidden="true" tabindex="-1"></a>    cmake <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="7">7</button><span id="annotated-cell-8-16" class="code-annotation-target"><a href="#annotated-cell-8-16" aria-hidden="true" tabindex="-1"></a>    libsodium-dev <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="8">8</button><span id="annotated-cell-8-17" class="code-annotation-target"><a href="#annotated-cell-8-17" aria-hidden="true" tabindex="-1"></a>    libx11-dev <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="9">9</button><span id="annotated-cell-8-18" class="code-annotation-target"><a href="#annotated-cell-8-18" aria-hidden="true" tabindex="-1"></a>    pandoc <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="10">10</button><span id="annotated-cell-8-19" class="code-annotation-target"><a href="#annotated-cell-8-19" aria-hidden="true" tabindex="-1"></a>    xz-utils <span class="dt">\</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="11">11</button><span id="annotated-cell-8-20" class="code-annotation-target"><a href="#annotated-cell-8-20" aria-hidden="true" tabindex="-1"></a>    libuv1-dev <span class="dt">\</span></span>
+<span id="annotated-cell-8-21"><a href="#annotated-cell-8-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span>
+<span id="annotated-cell-8-22"><a href="#annotated-cell-8-22" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="12">12</button><span id="annotated-cell-8-23" class="code-annotation-target"><a href="#annotated-cell-8-23" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /app</span>
+<span id="annotated-cell-8-24"><a href="#annotated-cell-8-24" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="13">13</button><span id="annotated-cell-8-25" class="code-annotation-target"><a href="#annotated-cell-8-25" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> .Rprofile .</span>
+<span id="annotated-cell-8-26"><a href="#annotated-cell-8-26" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> renv/activate.R renv/activate.R</span>
+<span id="annotated-cell-8-27"><a href="#annotated-cell-8-27" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> renv.lock .</span>
+<span id="annotated-cell-8-28"><a href="#annotated-cell-8-28" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="14">14</button><span id="annotated-cell-8-29" class="code-annotation-target"><a href="#annotated-cell-8-29" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"renv::restore(prompt = FALSE)"</span></span>
+<span id="annotated-cell-8-30"><a href="#annotated-cell-8-30" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="15">15</button><span id="annotated-cell-8-31" class="code-annotation-target"><a href="#annotated-cell-8-31" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> plumber.R .</span>
+<span id="annotated-cell-8-32"><a href="#annotated-cell-8-32" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="16">16</button><span id="annotated-cell-8-33" class="code-annotation-target"><a href="#annotated-cell-8-33" aria-hidden="true" tabindex="-1"></a><span class="kw">ENV</span> MODEL_PATH=/data/model</span>
+<span id="annotated-cell-8-34"><a href="#annotated-cell-8-34" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="17">17</button><span id="annotated-cell-8-35" class="code-annotation-target"><a href="#annotated-cell-8-35" aria-hidden="true" tabindex="-1"></a><span class="kw">EXPOSE</span> 8080</span>
+<span id="annotated-cell-8-36"><a href="#annotated-cell-8-36" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="18">18</button><span id="annotated-cell-8-37" class="code-annotation-target"><a href="#annotated-cell-8-37" aria-hidden="true" tabindex="-1"></a><span class="kw">CMD</span> [<span class="st">"Rscript"</span>, <span class="st">"plumber.R"</span>]</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-12" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="2" data-code-annotation="1">Base image: R 4.6.0 from Rocker project (Debian/Ubuntu-based)<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="2" data-code-annotation="1">Base image: R 4.6.0 from Rocker project (Debian/Ubuntu-based)<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="4" data-code-annotation="2">Install system-level build dependencies required by R packages.</span>
+<span data-code-cell="annotated-cell-8" data-code-lines="4" data-code-annotation="2">Install system-level build dependencies required by R packages.</span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="3">3</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="5,6" data-code-annotation="3">OpenSSL and crypto libraries for <code>httr</code>, <code>curl</code>, <code>openssl</code> R packages<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="5,6" data-code-annotation="3">OpenSSL and crypto libraries for <code>httr</code>, <code>curl</code>, <code>openssl</code> R packages<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="4">4</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="7" data-code-annotation="4">XML parsing for <code>xml2</code> package<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="7" data-code-annotation="4">XML parsing for <code>xml2</code> package<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="5">5</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="5">5</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="8,14" data-code-annotation="5">Font rendering libraries for <code>ragg</code>, <code>svglite</code>, <code>systemfonts</code> packages</span>
+<span data-code-cell="annotated-cell-8" data-code-lines="8,14" data-code-annotation="5">Font rendering libraries for <code>ragg</code>, <code>svglite</code>, <code>systemfonts</code> packages</span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="6">6</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="6">6</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="15" data-code-annotation="6">Build tools for native compilation of R packages<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="15" data-code-annotation="6">Build tools for native compilation of R packages<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="7">7</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="7">7</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="16" data-code-annotation="7">Cryptography library for <code>sodium</code> package<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="16" data-code-annotation="7">Cryptography library for <code>sodium</code> package<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="8">8</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="8">8</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="17" data-code-annotation="8">X11 libraries for <code>clipr</code> package<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="17" data-code-annotation="8">X11 libraries for <code>clipr</code> package<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="9">9</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="9">9</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="18" data-code-annotation="9">Document conversion for <code>knitr</code> package<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="18" data-code-annotation="9">Document conversion for <code>knitr</code> package<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="10">10</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="10">10</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="19" data-code-annotation="10">Compression utilities for <code>duckdb</code> package extraction<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="19" data-code-annotation="10">Compression utilities for <code>duckdb</code> package extraction<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="11">11</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="11">11</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="20,21" data-code-annotation="11"><code>libuv</code> library for <code>fs</code> package<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="20,21" data-code-annotation="11"><code>libuv</code> library for <code>fs</code> package<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="12">12</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="12">12</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="23" data-code-annotation="12">Set working directory for the application<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="23" data-code-annotation="12">Set working directory for the application<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="13">13</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="13">13</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="25,27" data-code-annotation="13">Copy <code>renv</code> bootstrap files first (before application code) to leverage Docker’s layer caching<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="25,27" data-code-annotation="13">Copy <code>renv</code> bootstrap files first (before application code) to leverage Docker’s layer caching<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="14">14</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="14">14</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="29" data-code-annotation="14">Restore R package dependencies from <code>renv.lock</code>.<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="29" data-code-annotation="14">Restore R package dependencies from <code>renv.lock</code>.<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="15">15</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="15">15</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="31" data-code-annotation="15">Copy the application code after dependencies are installed<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="31" data-code-annotation="15">Copy the application code after dependencies are installed<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="16">16</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="16">16</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="33" data-code-annotation="16">Set environment variable for model path (application-specific)<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="33" data-code-annotation="16">Set environment variable for model path (application-specific)<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="17">17</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="17">17</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="35" data-code-annotation="17">Expose port where Plumber API will listen<br>
+<span data-code-cell="annotated-cell-8" data-code-lines="35" data-code-annotation="17">Expose port where Plumber API will listen<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-12" data-target-annotation="18">18</dt>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="18">18</dt>
 <dd>
-<span data-code-cell="annotated-cell-12" data-code-lines="37" data-code-annotation="18">Start the Plumber API when container runs</span>
+<span data-code-cell="annotated-cell-8" data-code-lines="37" data-code-annotation="18">Start the Plumber API when container runs</span>
 </dd>
 </dl>
-<p>Using <code>--no-install-recommends</code> minimizes the image size. We’re copying <code>.Rprofile</code> and <code>renv</code> so the R package installation layer won’t rebuild unless <code>renv.lock</code> or bootstrap files change (the <code>.Rprofile</code> automatically sources <code>renv/activate.R</code>, which bootstraps <code>renv</code> and configures <code>.libPaths()</code> to use the project-local library before <code>restore()</code> runs). <code>COPY plumber.R .</code> prevents re-running the long package installation if only app code changes.</p>
+<p>Using <code>--no-install-recommends</code> minimizes the image size. We’re copying <code>.Rprofile</code> and <code>renv</code> so the R package installation layer won’t rebuild unless <code>renv.lock</code> or bootstrap files change. The <code>.Rprofile</code> automatically sources <code>renv/activate.R</code>, which bootstraps <code>renv</code> and configures <code>.libPaths()</code> to use the project-local library before <code>restore()</code> runs. Placing <code>COPY plumber.R .</code> after <code>restore()</code> avoids reinstalling packages when only the app code changes.</p>
 <section id="build-the-image" class="level3">
 <h3 class="anchored" data-anchor-id="build-the-image">Build the image</h3>
 <p>Build the image (run this from new Terminal in <code>_labs/lab06/R/api/</code> directory):</p>
@@ -999,6 +1027,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8080/ping</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The response should be:</p>
+<div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"status"</span><span class="fu">:</span> <span class="ot">[</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"alive"</span></span>
@@ -1007,6 +1036,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"2026-06-28 14:15:00"</span></span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>To stop the container, run the following:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> stop penguin-model-r</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1020,6 +1050,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="final-project-files" class="level2">
 <h2 class="anchored" data-anchor-id="final-project-files">Final project files</h2>
+<div style="font-style: italic;">
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-19"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><span id="annotated-cell-19-1"><a href="#annotated-cell-19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> api.Rproj</span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="1">1</button><span id="annotated-cell-19-2" class="code-annotation-target"><a href="#annotated-cell-19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> Dockerfile</span>
@@ -1044,7 +1075,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </dd>
 <dt data-target-cell="annotated-cell-19" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-19" data-code-lines="3" data-code-annotation="2">Script that trains and serializes the penguin classification model<br>
+<span data-code-cell="annotated-cell-19" data-code-lines="3" data-code-annotation="2">Script that trains and serializes the penguin regression model (<code>lm()</code>)<br>
 </span>
 </dd>
 <dt data-target-cell="annotated-cell-19" data-target-annotation="3">3</dt>
@@ -1053,12 +1084,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </dd>
 <dt data-target-cell="annotated-cell-19" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-19" data-code-lines="5" data-code-annotation="4">Local DuckDB database file, likely storing penguin data used for training or logging predictions.<br>
-</span>
+<span data-code-cell="annotated-cell-19" data-code-lines="5" data-code-annotation="4">Local DuckDB database file with the <code>penguins</code> table that <code>model.R</code> creates and queries for training data.</span>
 </dd>
 <dt data-target-cell="annotated-cell-19" data-target-annotation="5">5</dt>
 <dd>
-<span data-code-cell="annotated-cell-19" data-code-lines="6" data-code-annotation="5">The main API definition — declares endpoints using <code>plumber</code> decorators (<code>#* @get</code>, <code>#* @post</code>, etc.)</span>
+<span data-code-cell="annotated-cell-19" data-code-lines="6" data-code-annotation="5">The main API definition: declares endpoints using <code>plumber</code> decorators (<code>#* @get</code>, <code>#* @post</code>, etc.)</span>
 </dd>
 <dt data-target-cell="annotated-cell-19" data-target-annotation="6">6</dt>
 <dd>
@@ -1091,6 +1121,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </dl>
 </div>
 </div>
+</div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p><code>renv</code> takes the place of the Python virtual environment. The <code>Dockerfile</code> starts from <code>rocker/r-ver:4.6.0</code>, installs the system libraries the R packages need, and runs <code>renv::restore()</code> against <code>renv.lock</code>.</p></li>
+<li><p>Order in the <code>Dockerfile</code> matters for build time. Copying <code>.Rprofile</code>, <code>renv/activate.R</code>, and <code>renv.lock</code> before <code>plumber.R</code> means the long package install layer only rebuilds when the dependencies change, not when the API code does.</p></li>
+<li><p>The run step mirrors the Python container: <code>-v</code> mounts the local <code>models/</code> folder at <code>/data/model</code>, and <code>curl http://localhost:8080/ping</code> returning <code>"alive"</code> confirms the <code>plumber2</code> API is running inside the container.</p></li>
+</ol>
+<p>In the next lab, we’ll move from local containers to the cloud in <a href="./lab07.html">Lab 7: Cloud Servers</a>.</p>
 
 
 </section>
@@ -1203,15 +1243,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
       const i = window.document.createElement("i");
       i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
     }
     setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
@@ -1290,7 +1365,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
         if (!isInternal(link.href)) {
@@ -1299,8 +1375,69 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
+          if (!link.classList.contains('no-external-icon')) {
+          }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
       const config = {
         allowHTML: true,
@@ -1314,6 +1451,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         interactiveBorder: 10,
         theme: 'quarto',
         placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
       };
       if (contentFn) {
         config.content = contentFn;
@@ -1476,44 +1614,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           const lineIds = lines.map((line) => {
             return targetCell + "-" + line;
           })
-          let top = null;
-          let height = null;
-          let parent = null;
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
           if (lineIds.length > 0) {
-              //compute the position of the single el (top and bottom and make a div)
-              const el = window.document.getElementById(lineIds[0]);
-              top = el.offsetTop;
-              height = el.offsetHeight;
-              parent = el.parentElement.parentElement;
-            if (lineIds.length > 1) {
-              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-              height = bottom - top;
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
             }
-            if (top !== null && height !== null && parent !== null) {
-              // cook up a div (if necessary) and position it 
-              let div = window.document.getElementById("code-annotation-line-highlight");
-              if (div === null) {
-                div = window.document.createElement("div");
-                div.setAttribute("id", "code-annotation-line-highlight");
-                div.style.position = 'absolute';
-                parent.appendChild(div);
-              }
-              div.style.top = top - 2 + "px";
-              div.style.height = height + 4 + "px";
-              div.style.left = 0;
-              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-              if (gutterDiv === null) {
-                gutterDiv = window.document.createElement("div");
-                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-                gutterDiv.style.position = 'absolute';
-                const codeCell = window.document.getElementById(targetCell);
-                const gutter = codeCell.querySelector('.code-annotation-gutter');
-                gutter.appendChild(gutterDiv);
-              }
-              gutterDiv.style.top = top - 2 + "px";
-              gutterDiv.style.height = height + 4 + "px";
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
             }
+            placeBand(gutterDiv, el, lastEl);
             selectedAnnoteEl = annoteEl;
           }
         };
@@ -1590,6 +1738,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             interactiveBorder: 10,
             theme: 'quarto',
             placement: 'right',
+            plugins: [hideOnEscAndFocusOut],
             popperOptions: {
               modifiers: [
               {
@@ -1651,7 +1800,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
   });
   </script>
-<nav class="page-navigation">
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+<nav class="page-navigation" aria-label="Page">
   <div class="nav-page nav-page-previous">
       <a href="./py-api-docker.html" class="pagination-link" aria-label="<em>Python API in a container</em>">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Python API in a container</em></span>
