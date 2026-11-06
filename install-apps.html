@@ -73,7 +73,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./lab11.html" rel="next">
+<link href="./install-real-app.html" rel="next">
 <link href="./lab10.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -578,6 +578,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./install-real-app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Installing a Real Application</em></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -699,7 +705,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#system-libraries" id="toc-system-libraries" class="nav-link" data-scroll-target="#system-libraries">System libraries</a></li>
   <li><a href="#building-python-from-source" id="toc-building-python-from-source" class="nav-link" data-scroll-target="#building-python-from-source">Building Python from source</a></li>
   </ul></li>
-  <li><a href="#installing-a-real-application" id="toc-installing-a-real-application" class="nav-link" data-scroll-target="#installing-a-real-application">Installing a real application</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -1279,102 +1284,12 @@ graph TD
 </div>
 </section>
 </section>
-<section id="installing-a-real-application" class="level2">
-<h2 class="anchored" data-anchor-id="installing-a-real-application">Installing a real application</h2>
-<p>Third party software follows the same convention as the interpreter: its own directory tree under <code>/opt</code>, not scattered across the filesystem. Here’s what that looks like for <code>baseball-trajectory</code>, a Shiny for Python app (<a href="https://github.com/mjfrigaard/baseball-trajectory">source</a>) that plots a player’s career arc from the MLB Stats API:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Create the virtual environment from the <code>/opt</code> Python, not the system one, then install the package and its dependencies into it:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/baseball-trajectory/.venv</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/baseball-trajectory/.venv/bin/pip install <span class="at">-e</span> .</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>This pulls the app’s dependencies from PyPI, so the instance needs outbound internet access. If the box is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.</p>
-<p>The install spreads across three locations, and each one follows the convention above rather than piling everything into one folder:</p>
-<div id="tbl-baseball-trajectory-locations" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-baseball-trajectory-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: Where a system install of baseball-trajectory puts things
-</figcaption>
-<div aria-describedby="tbl-baseball-trajectory-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 35%">
-<col style="width: 64%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Location</th>
-<th style="text-align: left;">What lives there</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>/opt/baseball-trajectory</code></td>
-<td style="text-align: left;">Application source and the virtual environment</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>/etc/systemd/system/baseball-trajectory.service</code></td>
-<td style="text-align: left;">The unit file telling <code>systemd</code> how to run it</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>journald</code></td>
-<td style="text-align: left;">Application stdout and stderr, read with <code>journalctl -u baseball-trajectory</code></td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<div class="cell" data-fig-width="7.5" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
-
-graph TD
-    Root(["/"])
-    Opt("&lt;strong&gt;/opt/baseball-trajectory&lt;/strong&gt;")
-    Venv("&lt;strong&gt;.venv/bin/shiny&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;.venv/bin/baseball-trajectory&lt;/strong&gt;")
-    Etc("&lt;strong&gt;/etc/systemd/system&lt;/strong&gt;")
-    Unit("&lt;strong&gt;baseball-trajectory.service&lt;/strong&gt;")
-    Log("&lt;strong&gt;journald&lt;/strong&gt;")
-    Jctl("&lt;em&gt;journalctl -u baseball-trajectory&lt;/em&gt;")
-
-    Root --"&lt;em&gt;application&lt;/em&gt;"--&gt; Opt --&gt; Venv
-    Root --"&lt;em&gt;config&lt;/em&gt;"--&gt; Etc --&gt; Unit
-    Root --"&lt;em&gt;logs&lt;/em&gt;"--&gt; Log --&gt; Jctl
-
-    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-family:monospace
-    style Venv fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-family:monospace
-    style Etc fill:#2a6f77,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
-    style Unit fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace
-    style Log fill:#666,stroke:#999,stroke-width:2px,color:#fff,font-family:monospace
-    style Jctl fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-family:monospace
-</pre>
-</div>
-<p></p><figcaption> baseball-trajectory File Locations</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-<p>Notice what’s missing: there’s no <code>/var/lib</code> entry. <code>baseball-trajectory</code> keeps nothing on disk. Rosters and career stats are fetched from <code>https://statsapi.mlb.com</code> and cached in memory, so a restart simply starts with an empty cache. That also means outbound HTTPS isn’t just an install time requirement; the running app needs it on every new player lookup.</p>
-<p>Before handing it to <code>systemd</code>, confirm the console script starts from the venv:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/baseball-trajectory/.venv/bin/baseball-trajectory</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>It binds to <code>127.0.0.1:8000</code>, so from a second SSH session <code>curl -I http://127.0.0.1:8000</code> should return <code>200 OK</code>. See <a href="./lab10.html">Daemonizing with systemd</a> for turning this into a running service and <a href="./linux-users.html">Linux Users</a> for the dedicated account it should run as.</p>
-</section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
 <li><p><code>PATH</code> decides what the shell can find, and <code>which</code> tells you which copy is winning. A <code>command not found</code> error usually means a directory is missing from the list, not that the software is missing.</p></li>
 <li><p>Install language runtimes into <code>/opt</code> and symlink them into <code>/usr/local/bin</code>. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.</p></li>
-<li><p>When the packaged interpreter is too old, build your own into <code>/opt</code> with <code>make altinstall</code> rather than touching the system copy. A real application installed the same way gets its own subtree: source and venv under <code>/opt</code>, unit file under <code>/etc/systemd/system</code>, and logs in <code>journald</code>.</p></li>
+<li><p>When the packaged interpreter is too old, build your own into <code>/opt</code> with <code>make altinstall</code> rather than touching the system copy. <a href="./install-real-app.html">Installing a Real Application</a> applies the same pattern to a full app.</p></li>
 </ol>
 
 
@@ -2049,8 +1964,8 @@ graph TD
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./lab11.html" class="pagination-link" aria-label="<strong>Lab 11: Server Resources and Scaling</strong>">
-        <span class="nav-page-text"><strong>Lab 11: Server Resources and Scaling</strong></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./install-real-app.html" class="pagination-link" aria-label="<em>Installing a Real Application</em>">
+        <span class="nav-page-text"><em>Installing a Real Application</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
