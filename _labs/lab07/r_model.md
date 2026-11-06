@@ -134,13 +134,6 @@ model_board <- pins::board_folder("R/models")
 vetiver::vetiver_pin_write(model_board, v)
 ```
 
-    #> Replacing version '20260711T205956Z-09946' with '20260711T210253Z-09946'
-    #> Writing to pin 'penguin_lab07_model'
-    #> 
-    #> Create a Model Card for your published model
-    #> • Model Cards provide a framework for transparent, responsible reporting
-    #> • Use the vetiver `.Rmd` template as a place to start
-
 ## Write to S3
 
 To write the model to an S3 bucket, set the `USE_S3` environment
