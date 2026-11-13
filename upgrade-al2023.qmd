@@ -1,0 +1,354 @@
+# <em>Upgrade to Amazon Linux 2023</em> {.unnumbered}
+
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default",
+  hsize = "1.25",
+  size = "1.00",
+  header = "Caution",
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
+The instance I launched in [Stand up an EC2 instance](aws-ec2.qmd) runs Amazon Linux 2 (AL2). That was fine when the book we written, but it breaks down once I start installing language runtimes. This chapter replaces it with an Amazon Linux 2023 (AL2023) instance. I've opted to keep both versions because it's likely you'll have to perform an upgrade (i.e., we need to before any of the installs in [Install Apps](install-apps.qmd)).
+
+## Why upgrade?
+
+The login banner already hints at the problem:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+```
+
+:::
+
+AL2 stopped receiving updates on that date. The bigger issue for this book is its C library. AL2 ships `glibc` 2.26, and modern prebuilt binaries expect something newer. I discovered this when I tried to install R with `rig`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo /usr/local/bin/rig add 4.6.1
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+✗ Cannot download JSON: HTTP status client error (404 Not Found) for url (https://api.r-hub.io/rversions/resolve/4.6.1/linux-amzn-2/x86_64)
+✗ Failed to resolve R version: Cannot download JSON: HTTP status client error (404 Not Found) for url (https://api.r-hub.io/rversions/resolve/4.6.1/linux-amzn-2/x86_64)
+✗ Unsupported glibc version 2.26: user-mode R installation requires glibc 2.34 or later
+```
+
+:::
+
+The output reports two failures. First, there is no R build for `linux-amzn-2`. Second, the fallback build needs `glibc` 2.34. AL2023 ships `glibc` 2.34, and R builds exist for it.
+
+## When should I upgrade?
+
+You don't have to upgrade an instance that already does its job, but the timing matters. Upgrade before you install anything you'd have to rebuild. For this book, that point is the start of Lab 10.
+
+Labs 7 through 9 only need SSH, users, and the shell, and those work the same on both versions. Everything after Lab 10 depends on the operating system: language runtimes, `systemd` services, `nginx`, and TLS certificates. Each command tested on AL2 would need retesting on AL2023.
+
+Outside this book, the same rule applies. Three signals say it's time: 
+
+1. The server/OS you're using reaches end of life  
+2. A package you need drops support for the version you're using, or  
+3. You're about to build something new on the instance  
+
+Each one makes the move cheaper now than later.
+
+## How the upgrade works
+
+There's no in-place upgrade from AL2 to AL2023. AWS treats AL2023 as a new operating system, so the upgrade means launching a new instance and retiring the old one. The diagram below shows the order.
+
+```{mermaid}
+%%| fig-cap: 'Replacing an AL2 instance with AL2023'
+%%| fig-width: 6.5
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+
+flowchart TD
+    Start(["AL2 instance<br>running"])
+    Ami("Find the newest<br>AL2023 AMI")
+    Launch("Launch the new instance<br>with the same key, group, and role")
+    Login("Log in and confirm<br>the OS and glibc")
+    Copy("Copy files from<br>the old instance")
+    Check{"Everything<br>needed copied?"}
+    Term(["Terminate the<br>AL2 instance"])
+
+    Start -->|"i."| Ami
+    Ami -->|"ii."| Launch
+    Launch -->|"iii."| Login
+    Login -->|"iv."| Copy
+    Copy --> Check
+    Check -->|"yes"| Term
+    Check -->|"no"| Copy
+
+    style Start fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Ami fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Launch fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Login fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Copy fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Term fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+The old instance keeps running until the last step. If anything goes wrong on the new one, I can still log into the old one and get what I need.
+
+## Finding the AL2023 AMI
+
+An Amazon Machine Image (AMI) is the template a new instance boots from. The launch command in [Stand up an EC2 instance](aws-ec2.qmd) used a fixed AMI ID. That ID pins the instance to whatever image was current when I wrote it. AWS publishes new AL2023 images every few weeks, so I look up the newest one instead. 
+
+First we need to log into the `aws` cli: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws login
+```
+
+This will take you to the AWS sign in page in the browser. The page asks whether to sign in as the `root` user or as an IAM user: **use the IAM user (the account ID or alias, IAM username, and password).**
+
+The `root` user is the email address that created the account. It has unrestricted access that no policy can limit. I only sign in as `root` for the few tasks that require it: billing and payment settings, changing the `root` email or password, closing the account, or restoring access if every IAM admin is locked out. Launching instances and looking up AMIs are everyday tasks, and an IAM user with the right policy handles them.
+
+With the CLI signed in, I look up the newest AL2023 image:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
+            "Name=state,Values=available" \
+  --query "sort_by(Images, &CreationDate)[-1].[ImageId,Name]" \
+  --output text \
+  --profile dev-deploy
+```
+
+The filter matches the standard AL2023 images (not the `minimal` ones), and the query sorts them by date and keeps the last:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+ami-0b71756f4d851f798	al2023-ami-2023.12.20261112.0-kernel-6.1-x86_64
+```
+
+:::
+
+Your AMI ID will differ, because each region and each release has its own. On a Graviton (`arm64`) instance type, change `x86_64` to `arm64` in the filter.
+
+```{r}
+#| label: co_box_ssm
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.10",
+  size = "1.00",
+  header = "Note",
+  fold = TRUE,
+  contents = "AWS also publishes the newest AMI ID as a public SSM parameter (`/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64`), and `run-instances` can read it directly with `--image-id resolve:ssm:...`. Both need the `ssm:GetParameters` permission. The `dev-deploy` user doesn't have it, so this chapter uses `describe-images`, which only needs the EC2 read access we already granted."
+)
+```
+
+## Launching the new instance
+
+The new instance reuses everything from [Stand up an EC2 instance](aws-ec2.qmd): the key pair, the security group, and the instance profile. Only the AMI changes. I store the AMI ID in a shell variable and add a `Name` tag, so the two instances are easy to tell apart in the console:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+AMI_ID=$(aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
+            "Name=state,Values=available" \
+  --query "sort_by(Images, &CreationDate)[-1].ImageId" \
+  --output text \
+  --profile dev-deploy)
+
+aws ec2 run-instances \
+  --image-id "$AMI_ID" \
+  --instance-type t3.micro \
+  --key-name vetiver-deploy-key \
+  --security-groups vetiver-sg \
+  --iam-instance-profile Name=ec2-s3-instance-profile \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vetiver-al2023}]' \
+  --query "Instances[0].InstanceId" \
+  --output text \
+  --profile dev-deploy
+```
+
+The `--query` trims the long JSON response down to the new instance ID. I'll use `NEW_INSTANCE_ID` for it below; substitute your own.
+
+The instance starts in the `pending` state. Instead of checking again by hand, `aws ec2 wait` blocks until it's running, and then I look up its public IP address:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 wait instance-running \
+  --instance-ids NEW_INSTANCE_ID \
+  --profile dev-deploy
+
+aws ec2 describe-instances \
+  --instance-ids NEW_INSTANCE_ID \
+  --query "Reservations[*].Instances[*].PublicIpAddress" \
+  --output text \
+  --profile dev-deploy
+```
+
+## Logging into the new instance
+
+The login is the same as before: same private key, same `ec2-user` account, new IP address.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@NEW_PUBLIC_IP_ADDRESS
+```
+
+The first connection asks me to confirm the host's fingerprint, because my machine has never seen this server. Type `yes`. The AL2023 banner confirms I'm on the new instance:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+[ec2-user@ip-xxx-xx-x-xxx ~]$
+```
+
+:::
+
+If `ssh` times out instead, the port 22 rule in `vetiver-sg` probably doesn't match my current IP address. The fix is in [Logging into the instance](install-apps.qmd#logging-into-the-instance).
+
+I can confirm the operating system and the glibc version that caused the original failure:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+grep PRETTY_NAME /etc/os-release
+ldd --version | head -1
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+PRETTY_NAME="Amazon Linux 2023.12.20261112"
+ldd (GNU libc) 2.34
+```
+
+:::
+
+## Copying files from the old instance
+
+Most of what this book puts on the instance comes from somewhere else: data from S3, code from GitHub, and software from installers. Anything I've changed by hand on the old instance is the exception. For me that's my `~/.bashrc` and a few scratch files.
+
+I copy them through my local machine with `scp`, which works over the same SSH connection. Run these from the local machine, not from either instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+scp -i ~/.ssh/<your-key-file-name>.pem \
+  ec2-user@OLD_PUBLIC_IP_ADDRESS:~/.bashrc ./bashrc-al2
+
+scp -i ~/.ssh/<your-key-file-name>.pem \
+  ./bashrc-al2 ec2-user@NEW_PUBLIC_IP_ADDRESS:~/bashrc-al2
+```
+
+I copy the old `.bashrc` under a different name on purpose. AL2023 ships its own `.bashrc`, so I compare the two and move over only the lines I added (like `PATH` changes), instead of overwriting the new file.
+
+Don't copy software installed under `/opt` or `/usr/local`. It was built against AL2's libraries and may not run on AL2023. [Install Apps](install-apps.qmd) reinstalls it on the new instance.
+
+## What changes on AL2023
+
+Most of what I do on the command line works the same, but a few differences show up right away. The table below lists the ones this book runs into.
+
+| Area | Amazon Linux 2 | Amazon Linux 2023 |
+|------|----------------|-------------------|
+| Package manager | `yum` | `dnf` (`yum` still works as an alias) |
+| Extra repositories | `amazon-linux-extras` | Removed; packages are in the main repository |
+| glibc | 2.26 | 2.34 |
+| System Python | 3.7 | 3.9 |
+| `curl` | Full `curl` | `curl-minimal` (fewer protocols) |
+| `cron` | Installed | Not installed; use `systemd` timers or `dnf install cronie` |
+| Default user | `ec2-user` | `ec2-user` |
+
+The first two rows matter most. Commands later in the book use `dnf`, and none of them need `amazon-linux-extras`.
+
+## Terminating the old instance
+
+Once the new instance has everything I need, the old one only costs money. Before I remove it, I check for anything left behind. I log into the old instance one more time and look at the home directory and `/opt`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ls -la ~
+ls /opt
+```
+
+```{r}
+#| label: co_box_terminate
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.10",
+  size = "1.00",
+  header = "Warning",
+  fold = FALSE,
+  contents = "Terminating an instance can't be undone. Its root volume is deleted with it by default, so anything you didn't copy is gone. If you're unsure, stop the instance with `aws ec2 stop-instances` instead and terminate it later. A stopped instance doesn't bill for compute, but its volume still costs a small amount each month."
+)
+```
+
+When I'm sure, I terminate the old instance from my local machine:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 terminate-instances \
+  --instance-ids i-0069201f3688cec43 \
+  --profile dev-deploy
+```
+
+The response shows the state changing from `running` to `shutting-down`. After a few minutes, `describe-instances` reports it as `terminated`.
+
+The remaining chapters use the new instance ID wherever an instance ID appears. If you followed along, replace it with your own.
+
+## Recap
+
+AL2 reached end of life on 2026-06-30, and its glibc 2.26 is too old for modern prebuilt binaries such as R from `rig`. In this chapter we:
+
+1. Found the newest AL2023 AMI with `describe-images`, instead of hard coding an AMI ID.
+2. Launched a new instance with the same key pair, security group, and instance profile.
+3. Logged in and confirmed AL2023 and glibc 2.34.
+4. Copied hand-edited files through the local machine, and left installed software behind.
+5. Terminated the old instance once nothing on it was needed.
+
+In the next chapter, [Install Apps](install-apps.qmd), we install Python and R on the new instance.

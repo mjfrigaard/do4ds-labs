@@ -198,7 +198,7 @@ This will return a JSON with the following:
 ``` json
 {
     "GroupId": "sg-0884d49f913b38416",
-    "SecurityGroupArn": "arn:aws:ec2:us-east-1:386252595109:security-group/sg-0884d49f913b38416"
+    "SecurityGroupArn": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/sg-0884d49f913b38416"
 }
 ```
 
@@ -210,7 +210,7 @@ The JSON response has two parts:
 
 * `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `vetiver-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
 
-* `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`386252595109`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
+* `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`ACCOUNT_ID`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
 
 We can view the new security group in the **AWS Console** by searching for **Security Groups**:
 
@@ -287,13 +287,13 @@ These commands should return something like the following:
         {
             "SecurityGroupRuleId": "sgr-016b1800a27252666",
             "GroupId": "sg-0884d49f913b38416",
-            "GroupOwnerId": "386252595109",
+            "GroupOwnerId": "ACCOUNT_ID",
             "IsEgress": false,
             "IpProtocol": "tcp",
             "FromPort": 22,
             "ToPort": 22,
             "CidrIpv4": "70.163.154.253/32",
-            "SecurityGroupRuleArn": "arn:aws:ec2:us-east-1:386252595109:security-group-rule/sgr-016b1800a27252666"
+            "SecurityGroupRuleArn": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/sgr-016b1800a27252666"
         }
     ]
 }
@@ -312,7 +312,7 @@ We successfully opened port 22 (SSH) so only our current IP can attempt to conne
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | `"GroupId": "sg-0884d49f913b38416"`                 | Confirms which security group this rule belongs to, in this case, `vetiver-sg`.                                                                              |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| `"GroupOwnerId": "386252595109"`                    | Our AWS account number. Confirms the rule lives in our account.                                                                                              |
+| `"GroupOwnerId": "ACCOUNT_ID"`                      | Our AWS account number. Confirms the rule lives in our account.                                                                                              |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | `"IsEgress": false`                                 | Confirms this is an ***ingress*** rule (incoming traffic), not ***egress*** (outgoing).                                                                      |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -478,7 +478,7 @@ The JSON returned tells us this role has been created:
     "Role": {
         "RoleName": "ec2-s3-read-role",
         "RoleId": "AROAVT3TS36SSEK7FFJ4E",
-        "Arn": "arn:aws:iam::386252595109:role/ec2-s3-read-role",
+        "Arn": "arn:aws:iam::ACCOUNT_ID:role/ec2-s3-read-role",
         "CreateDate": "2026-07-08T13:25:03+00:00",
         "AssumeRolePolicyDocument": {
           < omitted >
@@ -583,13 +583,21 @@ graph TD
 
 #### Launch EC2
 
-The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup:
+The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup. The first command looks up the newest Amazon Linux 2023 AMI, so the instance never starts from an outdated image (see [Upgrade to Amazon Linux 2023](upgrade-al2023.qmd)):
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
+AMI_ID=$(aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
+            "Name=state,Values=available" \
+  --query "sort_by(Images, &CreationDate)[-1].ImageId" \
+  --output text \
+  --profile dev-deploy)
+
 aws ec2 run-instances \
-  --image-id ami-0c02fb55956c7d316 \
+  --image-id "$AMI_ID" \
   --instance-type t3.micro \
   --key-name vetiver-deploy-key \
   --security-groups vetiver-sg \

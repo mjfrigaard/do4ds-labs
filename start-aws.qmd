@@ -65,7 +65,7 @@ As we can see, this group doesn't have any users, so we'll create and add them n
 
 ### Creating Users
 
-Back in **AWS Console**, we'll to navigate to:
+Back in **AWS Console**, we'll navigate to:
 
 **IAM Users** \> **Create User**
 
@@ -75,7 +75,7 @@ We'll give the user a meaningful username: `mjfrigaard-cli`
 
 ![Create IAM user](img/lab7-iam-user-details.png){width="100%" fig-align="center"}
 
-We have to option to check "*Provide user access to the AWS Management Console*", but we should only do this if we need this user to log into the **Console**. Because `mjfrigaard-cli` will only access the CLI, we can skip this.
+We have the option to check "*Provide user access to the AWS Management Console*". Right now `mjfrigaard-cli` only needs the CLI, so we'll leave it unchecked and give the user only the access it uses. A user without a Console password can't sign in to the Console, so there's one less credential to protect. We can turn Console access on later without recreating the user (see [Console access for `mjfrigaard-cli`](#console-access)).
 
 Now, under **Add user to group**, we select `dev-deploy-group` and click **Next**
 
@@ -406,7 +406,7 @@ Then the browser opened and I was able to log in as the `root` user:
 
 ![Browser confirmation](img/lab7-aws-cli-login-success.png){width="80%" fig-align="center"}
 
-I logged in as `root` here because it's the only identity with Console access so far (we skipped Console access when we created `mjfrigaard-cli`). The `root` user has unrestricted access to the entire account, so going forward I recommend using the `mjfrigaard-cli` IAM user and saving `root` for the few tasks that require it. We'll configure the access keys for `mjfrigaard-cli` in the CLI Configuration section below.
+I logged in as `root` here because it's the only identity with Console access so far (we skipped Console access when we created `mjfrigaard-cli`). The `root` user has unrestricted access to the entire account, so going forward I recommend using the `mjfrigaard-cli` IAM user and saving `root` for the few tasks that require it. Signing in as `mjfrigaard-cli` needs a Console password, which we add in [Console access for `mjfrigaard-cli`](#console-access). We'll configure the access keys for `mjfrigaard-cli` in the CLI Configuration section below.
 
 ```{r}
 #| label: co_box_cli_access_key
@@ -449,7 +449,7 @@ This is how it works:
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-arn:aws:iam::386252595109:user/mjfrigaard-cli
+arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli
 ```
 
 :::
@@ -460,7 +460,7 @@ arn:aws:iam::386252595109:user/mjfrigaard-cli
 | `aws` | aws | Partition (the standard AWS, not something like GovCloud or China) |
 | `iam` | iam | Service |
 | (blank) | none | Region (IAM is global, so it doesn't specify a region) |
-| `386252595109` | Account ID | Which AWS account owns this user |
+| `ACCOUNT_ID`   | Account ID | Which AWS account owns this user |
 | `user/mjfrigaard-cli` | Resource | this is an IAM **user** named `mjfrigaard-cli` |
 
 ```{mermaid}
@@ -473,7 +473,7 @@ graph LR
     ARN["ARN"] --"Partition"--> Partition("<strong>aws</strong>")
     ARN --"Service"--> Service("<strong>iam<br>s3<br>ec2")
     ARN --"Region"--> Region("<strong>us-east-1 </strong>")
-    ARN --"Account ID"--> Account("<strong>386252595109</strong>")
+    ARN --"Account ID"--> Account("<strong>ACCOUNT_ID</strong>")
     ARN --"Resource Path"--> Resource("<strong>user/mjfrigaard-cli</strong>")
     
     style ARN fill:#E8A33D,stroke:#000000,stroke-width:1px,font-size:14px,text-align:left,font-family:monospace,color:#ffffff
@@ -485,7 +485,7 @@ graph LR
     
 ```
 
-In plain English: *"IAM user named `mjfrigaard-cli` in AWS account `386252595109`."*
+In plain English: *"IAM user named `mjfrigaard-cli` in AWS account `ACCOUNT_ID`."*
 
 **Should I keep my ARN a secret?**
 
@@ -508,7 +508,7 @@ aws iam create-account-alias --account-alias my-company-name
 This changes your console log in URL from:
 
 ```{verbatim}
-https://386252595109.signin.aws.amazon.com/console
+https://ACCOUNT_ID.signin.aws.amazon.com/console
 ```
 
 to:
@@ -559,7 +559,7 @@ It returns the following:
 {
     "UserId": "AWS_ACCESS_KEY_ID",
     "Account": "NUMBER_SET",
-    "Arn": "arn:aws:iam::386252595109:user/mjfrigaard-cli"
+    "Arn": "arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli"
 }
 ```
 
@@ -590,6 +590,102 @@ graph LR
 
 This is the standard way to confirm our CLI credentials are valid and check which identity they belong to.
 
+## Console access for `mjfrigaard-cli` {#console-access}
+
+When we created `mjfrigaard-cli`, we skipped Console access because the user only needed the CLI. That changes once `aws login` or the Console asks for an IAM user sign in. The IAM user screen asks for an account ID or alias, an IAM username, and a password, and `mjfrigaard-cli` doesn't have a password yet.
+
+The **IAM users** dashboard shows this. The **Password age** and **Console last sign-in** columns for `mjfrigaard-cli` are both empty (`-`), which means the user has never had a Console password. There's nothing to reset, so we enable Console access instead. Sign in to the Console as `root` one last time and:
+
+1. Go to **IAM** \> **IAM users** and click `mjfrigaard-cli`.
+2. Open the **Security credentials** tab.
+3. Under **Console sign-in**, click **Enable console access**.
+
+    ![Enable console access on the **Security credentials** tab](img/start-aws-console-sign-in.png){width="100%" fig-align="center"}
+
+4. Choose **Custom password** and enter a strong password. Leave "*User must create a new password at next sign-in*" unchecked, because this is our own account.
+5. Click **Apply**. The confirmation shows the Console sign-in URL with the account ID or alias.
+
+From here on, sign in as the IAM user with the account ID or alias, `mjfrigaard-cli`, and the new password. Save `root` for the few tasks that require it: billing, changing the `root` email or password, closing the account, or restoring access if every IAM admin is locked out.
+
+## Rotating access keys
+
+The access key we created for `mjfrigaard-cli` is a long-term credential. It never expires on its own, so anyone who finds it can use it until we delete it. The **IAM users** dashboard shows the key's age in the **Active key age** column, and it flags keys older than 90 days with a warning icon.
+
+Rotating means replacing the key with a new one on a schedule. An IAM user can hold two access keys at once, which lets us rotate without downtime. We create the new key, switch everything over, and only then retire the old one.
+
+### Checking the current keys
+
+Start by listing the user's keys and checking when each one was last used. These commands need IAM permissions. We attach `IAMFullAccess` to `dev-deploy-group` in [Stand up an EC2 instance](aws-ec2.qmd), and after that the `dev-deploy` profile can run them:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws iam list-access-keys \
+  --user-name mjfrigaard-cli \
+  --profile dev-deploy
+
+aws iam get-access-key-last-used \
+  --access-key-id OLD_ACCESS_KEY_ID \
+  --profile dev-deploy
+```
+
+`list-access-keys` returns each key's ID, status, and creation date. `get-access-key-last-used` returns the last date, service, and region the key was used. A key that hasn't been used in months can be deleted without rotating.
+
+### Rotating the key
+
+The rotation takes five steps, and the old key keeps working until the fourth:
+
+1. Create a second key. Copy the secret from the output; AWS won't show it again.
+
+    ```bash
+    aws iam create-access-key \
+      --user-name mjfrigaard-cli \
+      --profile dev-deploy
+    ```
+
+2. Put the new key everywhere the old one lives. For this book that's the local `dev-deploy` profile and the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` secrets in the GitHub repository ([GitHub Actions and S3](gha-s3.qmd)).
+
+    ```bash
+    aws configure --profile dev-deploy
+    ```
+
+3. Confirm the new key works:
+
+    ```bash
+    aws sts get-caller-identity --profile dev-deploy
+    ```
+
+4. Deactivate the old key. A deactivated key can be turned back on if something still depended on it.
+
+    ```bash
+    aws iam update-access-key \
+      --user-name mjfrigaard-cli \
+      --access-key-id OLD_ACCESS_KEY_ID \
+      --status Inactive \
+      --profile dev-deploy
+    ```
+
+5. After a few days with nothing broken (including a GitHub Actions run), delete it:
+
+    ```bash
+    aws iam delete-access-key \
+      --user-name mjfrigaard-cli \
+      --access-key-id OLD_ACCESS_KEY_ID \
+      --profile dev-deploy
+    ```
+
+### Key management practices
+
+Rotation limits how long a leaked key stays useful, but a few habits keep keys from leaking at all:
+
+* Rotate every 90 days: this matches the IAM dashboard warning and most security guidance.
+* Keep one active key: the second slot is for rotation, not for a spare.
+* Never commit keys: they belong in `~/.aws/credentials` or a secrets store (like GitHub secrets), never in code, `.env` files under version control, or chat messages.
+* Delete unused keys: `get-access-key-last-used` shows which ones are safe to remove.
+* Prefer short-lived credentials where you can: `aws login` and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all.
+
+If a key ever leaks, don't wait for the schedule. Deactivate it immediately, then rotate.
+
 ## Recap
 
 1. We created the `dev-deploy-group` IAM group, attached the `AmazonEC2FullAccess` and `AmazonS3FullAccess` policies, and added the `mjfrigaard-cli` user to it. The user has no permissions of its own; it inherits them from the group.
@@ -597,5 +693,9 @@ This is the standard way to confirm our CLI credentials are valid and check whic
 2. We created an access key for `mjfrigaard-cli` with the Command Line Interface (CLI) use case. The Access Key ID and Secret Access Key authenticate requests, so they stay private (ARNs, by contrast, are identifiers and safe to share).
 
 3. We installed the AWS CLI with the official installer, confirmed it with `aws --version`, and stored the keys in a `dev-deploy` profile with `aws configure`. Running `aws sts get-caller-identity --profile dev-deploy` returned the `mjfrigaard-cli` ARN, which confirms the credentials work.
+
+4. We enabled Console access for `mjfrigaard-cli`, so everyday sign ins use the IAM user instead of `root`.
+
+5. We rotate the access key every 90 days by creating a second key, switching the `dev-deploy` profile and GitHub secrets to it, then deactivating and deleting the old one.
 
 In the next section, we're going to cover launching an EC2 instance. 

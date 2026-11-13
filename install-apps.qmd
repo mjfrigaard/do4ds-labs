@@ -24,7 +24,7 @@ co_box(
 
 ## Logging into the instance
 
-Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from my local machine:
+Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from your local machine:
 
 ```{bash}
 #| eval: false
@@ -67,7 +67,27 @@ aws ec2 authorize-security-group-ingress \
   --profile dev-deploy
 ```
 
-The Amazon Linux 2 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance.
+The Amazon Linux 2 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Last login: Thu Nov 12 15:22:56 2026 from YOUR_IP
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2026-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+
+[ec2-user@ip-xxx-xx-x-xxx ~]$
+```
+
+:::
 
 ## Finding your applications
 
@@ -111,14 +131,59 @@ which python3
 
 If a command isn't found, the executable is almost always on the box, just not in one of those directories. Adding it is a matter of appending the directory to `PATH` in a startup file so the change survives a new login:
 
+Say we want to use Python 3.12.1: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+tree /opt/python/ -L 2
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/opt/python/
+└── 3.12.1
+    ├── bin
+    ├── include
+    ├── lib
+    └── share
+
+5 directories, 0 files
+```
+
+:::
+
+We add the path to the binary using the following:
+
 ```{bash}
 #| eval: false
 #| code-fold: false
 echo 'export PATH="/opt/python/3.12.1/bin:$PATH"' >> ~/.bashrc
+```
+
+
+```{bash}
+#| eval: false
+#| code-fold: false
 source ~/.bashrc
 ```
 
 Putting the new directory first means it takes priority over anything with the same name further down the list.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/local/bin/python3
+```
+
+:::
 
 ```{mermaid}
 %%| fig-cap: 'How PATH Search Works'
@@ -302,17 +367,30 @@ R has no equivalent system dependency, so multiple versions can coexist in `/opt
 ```{bash}
 #| eval: false
 #| code-fold: false
-curl -Ls https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz | \
-  sudo tar xz -C /usr/local
-rig --version
+curl -Ls https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz | sudo tar xz -C /usr/local
 ```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which rig && rig --version
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/local/bin/rig
+RIG -- The R Installation Manager 0.11.1
+```
+
+:::
 
 On a Graviton (`arm64`) instance, swap `x86_64` for `aarch64` in the URL. With `rig` installed, add R and make it the default:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo rig add 4.6.1
+sudo /usr/local/bin/rig add 4.6.1
 ```
 
 Set it as the default:
@@ -320,7 +398,7 @@ Set it as the default:
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo rig default 4.6.1
+sudo /usr/local/bin/rig default 4.6.1
 ```
 
 Confirm the install; the asterisk marks the default version:
