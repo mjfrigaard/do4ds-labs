@@ -22,6 +22,53 @@ co_box(
 )
 ```
 
+## Logging into the instance
+
+Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from my local machine:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 start-instances \
+  --instance-ids i-0069201f3688cec43 \
+  --profile dev-deploy
+```
+
+A stopped instance gets a new public IP address when it starts again (unless it has an Elastic IP), so look up the current one:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 describe-instances \
+  --instance-ids i-0069201f3688cec43 \
+  --query "Reservations[*].Instances[*].PublicIpAddress" \
+  --output text \
+  --profile dev-deploy
+```
+
+Then connect with the private key from [AWS Server Login](aws-ssh-ec2.qmd):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+If `ssh` hangs and ends with `Connection timed out`, my own IP address has probably changed since I added the port 22 rule to `vetiver-sg`. Check the current address and add a rule for it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -s https://checkip.amazonaws.com
+aws ec2 authorize-security-group-ingress \
+  --group-name vetiver-sg \
+  --protocol tcp --port 22 \
+  --cidr YOUR_IP/32 \
+  --profile dev-deploy
+```
+
+The Amazon Linux 2 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance.
+
 ## Finding your applications
 
 Installing an application and being able to *run* it are two different problems. A package manager like `yum` puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn't check. That's when a command I know is installed comes back as `command not found`.

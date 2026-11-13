@@ -6,6 +6,28 @@
 source("_common.R")
 ```
 
+## Logging into the instance
+
+The install runs on the same EC2 instance as [Install Apps](install-apps.qmd). Start it (if it's stopped), look up its current public IP address, and connect:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 start-instances \
+  --instance-ids i-0069201f3688cec43 \
+  --profile dev-deploy
+aws ec2 describe-instances \
+  --instance-ids i-0069201f3688cec43 \
+  --query "Reservations[*].Instances[*].PublicIpAddress" \
+  --output text \
+  --profile dev-deploy
+ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+If the connection times out, follow the security group fix in [Logging into the instance](install-apps.qmd#logging-into-the-instance).
+
+## Installing into /opt
+
 Third party software follows the same convention as the interpreter in [Install Apps](install-apps.qmd): its own directory tree under `/opt`, not scattered across the filesystem. Here's what that looks like for `baseball-trajectory`, a Shiny for Python app ([source](https://github.com/mjfrigaard/baseball-trajectory)) that plots a player's career arc from the MLB Stats API:
 
 ```{bash}
