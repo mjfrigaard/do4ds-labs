@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-06">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Stand up an EC2 instance – DO4DS: Lab Solutions</title>
@@ -577,6 +577,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" aria-labelledby="quarto-sidebar-section-10-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./upgrade-al2023.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Upgrade to Amazon Linux 2023</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
@@ -740,7 +746,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-06</p>
+      <p class="date">2026-11-13</p>
     </div>
   </div>
   
@@ -979,7 +985,7 @@ graph TD
 <p>This will return a JSON with the following:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"GroupId"</span><span class="fu">:</span> <span class="st">"sg-0884d49f913b38416"</span><span class="fu">,</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"SecurityGroupArn"</span><span class="fu">:</span> <span class="st">"arn:aws:ec2:us-east-1:386252595109:security-group/sg-0884d49f913b38416"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"SecurityGroupArn"</span><span class="fu">:</span> <span class="st">"arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/sg-0884d49f913b38416"</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The security group was created successfully! AWS handed back its ID and ARN so we can reference it in future commands.</p>
 <section id="response-explanation" class="level4">
@@ -987,7 +993,7 @@ graph TD
 <p>The JSON response has two parts:</p>
 <ul>
 <li><p><code>GroupId</code> is the unique ID AWS assigned to our new security group. We’ll use this ID (not the name <code>vetiver-sg</code>) in later commands, like attaching it to an EC2 instance or adding firewall rules.</p></li>
-<li><p><code>SecurityGroupArn</code> is the full AWS resource identifier (ARN) for the new security group. It encodes the region (<code>us-east-1</code>), account number (<code>386252595109</code>), and the resource type/ID (<code>security-group/sg-0884d49f913b38416</code>), which is not something we need to memorize or protect as secret.</p></li>
+<li><p><code>SecurityGroupArn</code> is the full AWS resource identifier (ARN) for the new security group. It encodes the region (<code>us-east-1</code>), account number (<code>ACCOUNT_ID</code>), and the resource type/ID (<code>security-group/sg-0884d49f913b38416</code>), which is not something we need to memorize or protect as secret.</p></li>
 </ul>
 <p>We can view the new security group in the <strong>AWS Console</strong> by searching for <strong>Security Groups</strong>:</p>
 <div class="quarto-figure quarto-figure-center">
@@ -1084,13 +1090,13 @@ graph TD
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"SecurityGroupRuleId"</span><span class="fu">:</span> <span class="st">"sgr-016b1800a27252666"</span><span class="fu">,</span></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"GroupId"</span><span class="fu">:</span> <span class="st">"sg-0884d49f913b38416"</span><span class="fu">,</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"GroupOwnerId"</span><span class="fu">:</span> <span class="st">"386252595109"</span><span class="fu">,</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"GroupOwnerId"</span><span class="fu">:</span> <span class="st">"ACCOUNT_ID"</span><span class="fu">,</span></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"IsEgress"</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"IpProtocol"</span><span class="fu">:</span> <span class="st">"tcp"</span><span class="fu">,</span></span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"FromPort"</span><span class="fu">:</span> <span class="dv">22</span><span class="fu">,</span></span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"ToPort"</span><span class="fu">:</span> <span class="dv">22</span><span class="fu">,</span></span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"CidrIpv4"</span><span class="fu">:</span> <span class="st">"70.163.154.253/32"</span><span class="fu">,</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"SecurityGroupRuleArn"</span><span class="fu">:</span> <span class="st">"arn:aws:ec2:us-east-1:386252595109:security-group-rule/sgr-016b1800a27252666"</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"SecurityGroupRuleArn"</span><span class="fu">:</span> <span class="st">"arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/sgr-016b1800a27252666"</span></span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1122,7 +1128,7 @@ graph TD
 <td>Confirms which security group this rule belongs to, in this case, <code>vetiver-sg</code>.</td>
 </tr>
 <tr class="even">
-<td><code>"GroupOwnerId": "386252595109"</code></td>
+<td><code>"GroupOwnerId": "ACCOUNT_ID"</code></td>
 <td>Our AWS account number. Confirms the rule lives in our account.</td>
 </tr>
 <tr class="odd">
@@ -1316,7 +1322,7 @@ graph LR
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Role"</span><span class="fu">:</span> <span class="fu">{</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"RoleName"</span><span class="fu">:</span> <span class="st">"ec2-s3-read-role"</span><span class="fu">,</span></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"RoleId"</span><span class="fu">:</span> <span class="st">"AROAVT3TS36SSEK7FFJ4E"</span><span class="fu">,</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::386252595109:role/ec2-s3-read-role"</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::ACCOUNT_ID:role/ec2-s3-read-role"</span><span class="fu">,</span></span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"CreateDate"</span><span class="fu">:</span> <span class="st">"2026-07-08T13:25:03+00:00"</span><span class="fu">,</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"AssumeRolePolicyDocument"</span><span class="fu">:</span> <span class="fu">{</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>          <span class="er">&lt;</span> <span class="er">omitted</span> <span class="er">&gt;</span></span>
@@ -1415,15 +1421,23 @@ graph TD
 </section>
 <section id="launch-ec2" class="level4">
 <h4 class="anchored" data-anchor-id="launch-ec2">Launch EC2</h4>
-<p>The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup:</p>
+<p>The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup. The first command looks up the newest Amazon Linux 2023 AMI, so the instance never starts from an outdated image (see <a href="./upgrade-al2023.html">Upgrade to Amazon Linux 2023</a>):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 run-instances <span class="dt">\</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--image-id</span> ami-0c02fb55956c7d316 <span class="dt">\</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> t3.micro <span class="dt">\</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> vetiver-deploy-key <span class="dt">\</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--security-groups</span> vetiver-sg <span class="dt">\</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--iam-instance-profile</span> Name=ec2-s3-instance-profile <span class="dt">\</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="va">AMI_ID</span><span class="op">=</span><span class="va">$(</span><span class="ex">aws</span> ec2 describe-images <span class="dt">\</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--owners</span> amazon <span class="dt">\</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--filters</span> <span class="st">"Name=name,Values=al2023-ami-2023.*-x86_64"</span> <span class="dt">\</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Name=state,Values=available"</span> <span class="dt">\</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"sort_by(Images, &amp;CreationDate)[-1].ImageId"</span> <span class="dt">\</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy<span class="va">)</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 run-instances <span class="dt">\</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--image-id</span> <span class="st">"</span><span class="va">$AMI_ID</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> t3.micro <span class="dt">\</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">--key-name</span> vetiver-deploy-key <span class="dt">\</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--security-groups</span> vetiver-sg <span class="dt">\</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--iam-instance-profile</span> Name=ec2-s3-instance-profile <span class="dt">\</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The JSON output from <code>aws ec2 run-instances</code> is long, but I’ll break down some of it’s contents:</p>
 <table class="caption-top table">

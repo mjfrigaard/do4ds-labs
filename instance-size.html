@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-06">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Instance Size – DO4DS: Lab Solutions</title>
@@ -27,6 +27,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -535,6 +570,12 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-10" aria-labelledby="quarto-sidebar-section-10-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./upgrade-al2023.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Upgrade to Amazon Linux 2023</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
@@ -674,7 +715,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-06</p>
+      <p class="date">2026-11-13</p>
     </div>
   </div>
   
@@ -707,11 +748,27 @@ ul.task-list li input[type="checkbox"] {
 <section id="when-a-build-runs-out-of-memory" class="level2">
 <h2 class="anchored" data-anchor-id="when-a-build-runs-out-of-memory">When a build runs out of memory</h2>
 <p>Compiling anything from source, not just Python (see <a href="./install-apps.html">Install Apps</a>), is memory hungry in a way normal application workloads aren’t. <code>t3.micro</code> gives you 1 GB of RAM, and a <code>make</code> step that dies partway through with an out of memory error is that limit, not a broken source tree.</p>
-<p>Two ways out, and they trade off differently:</p>
+<p>There are two ways around the limit, and each trades off differently:</p>
 <ul>
-<li><strong>Size up temporarily.</strong> Stop the instance, change the instance type to something with more RAM, start it back up, run the build, then size back down. This costs a few minutes of downtime and a little more spend for the duration, but nothing about the build itself changes.</li>
-<li><strong>Add swap.</strong> Swap space lets the kernel page memory out to disk instead of killing the process, so the build finishes on the original instance type. It’s slower under memory pressure than real RAM would be, but for a one-time build that’s a fine trade, and it avoids touching the instance’s configuration at all.</li>
+<li>Size up temporarily: stop the instance, change the instance type to something with more RAM, start it back up, run the build, then size back down. This costs a few minutes of downtime and a little more spend for the duration, but nothing about the build itself changes.</li>
+<li>Add swap: swap space lets the kernel page memory out to disk instead of killing the process, so the build finishes on the original instance type. It’s slower under memory pressure than real RAM would be, but for a one time build that’s a fine trade, and it avoids touching the instance’s configuration at all.</li>
 </ul>
+<p>To add swap, create a 2 GB file, restrict it to <code>root</code>, format it as swap, and turn it on:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> fallocate <span class="at">-l</span> 2G /swapfile</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 600 /swapfile</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkswap /swapfile</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapon /swapfile</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We can confirm the kernel is using it with <code>free -h</code>. The <code>Swap:</code> row should now show a total of about 2.0Gi:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The swap file only lasts until the next reboot. After the build finishes, I turn it off and remove the file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapoff /swapfile</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> rm /swapfile</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <p>Either way, this is a build-time problem, not a runtime one. Once the compiled artifact exists, running it day to day doesn’t need the extra headroom.</p>
 
 

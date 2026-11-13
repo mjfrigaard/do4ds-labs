@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-06">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Getting started with AWS – DO4DS: Lab Solutions</title>
@@ -577,6 +577,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" aria-labelledby="quarto-sidebar-section-10-label" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./upgrade-al2023.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>Upgrade to Amazon Linux 2023</em></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><em>Install Apps</em></span></a>
   </div>
@@ -722,6 +728,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   </ul></li>
   <li><a href="#cli-configuration" id="toc-cli-configuration" class="nav-link" data-scroll-target="#cli-configuration">CLI Configuration</a></li>
+  <li><a href="#console-access" id="toc-console-access" class="nav-link" data-scroll-target="#console-access">Console access for <code>mjfrigaard-cli</code></a></li>
+  <li><a href="#rotating-access-keys" id="toc-rotating-access-keys" class="nav-link" data-scroll-target="#rotating-access-keys">Rotating access keys</a>
+  <ul>
+  <li><a href="#checking-the-current-keys" id="toc-checking-the-current-keys" class="nav-link" data-scroll-target="#checking-the-current-keys">Checking the current keys</a></li>
+  <li><a href="#rotating-the-key" id="toc-rotating-the-key" class="nav-link" data-scroll-target="#rotating-the-key">Rotating the key</a></li>
+  <li><a href="#key-management-practices" id="toc-key-management-practices" class="nav-link" data-scroll-target="#key-management-practices">Key management practices</a></li>
+  </ul></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -743,7 +756,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-06</p>
+      <p class="date">2026-11-13</p>
     </div>
   </div>
   
@@ -816,7 +829,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="creating-users" class="level3">
 <h3 class="anchored" data-anchor-id="creating-users">Creating Users</h3>
-<p>Back in <strong>AWS Console</strong>, we’ll to navigate to:</p>
+<p>Back in <strong>AWS Console</strong>, we’ll navigate to:</p>
 <p><strong>IAM Users</strong> &gt; <strong>Create User</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -834,7 +847,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <figcaption>Create IAM user</figcaption>
 </figure>
 </div>
-<p>We have to option to check “<em>Provide user access to the AWS Management Console</em>”, but we should only do this if we need this user to log into the <strong>Console</strong>. Because <code>mjfrigaard-cli</code> will only access the CLI, we can skip this.</p>
+<p>We have the option to check “<em>Provide user access to the AWS Management Console</em>”. Right now <code>mjfrigaard-cli</code> only needs the CLI, so we’ll leave it unchecked and give the user only the access it uses. A user without a Console password can’t sign in to the Console, so there’s one less credential to protect. We can turn Console access on later without recreating the user (see <a href="#console-access">Console access for <code>mjfrigaard-cli</code></a>).</p>
 <p>Now, under <strong>Add user to group</strong>, we select <code>dev-deploy-group</code> and click <strong>Next</strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -1211,7 +1224,7 @@ graph TD
 <figcaption>Browser confirmation</figcaption>
 </figure>
 </div>
-<p>I logged in as <code>root</code> here because it’s the only identity with Console access so far (we skipped Console access when we created <code>mjfrigaard-cli</code>). The <code>root</code> user has unrestricted access to the entire account, so going forward I recommend using the <code>mjfrigaard-cli</code> IAM user and saving <code>root</code> for the few tasks that require it. We’ll configure the access keys for <code>mjfrigaard-cli</code> in the CLI Configuration section below.</p>
+<p>I logged in as <code>root</code> here because it’s the only identity with Console access so far (we skipped Console access when we created <code>mjfrigaard-cli</code>). The <code>root</code> user has unrestricted access to the entire account, so going forward I recommend using the <code>mjfrigaard-cli</code> IAM user and saving <code>root</code> for the few tasks that require it. Signing in as <code>mjfrigaard-cli</code> needs a Console password, which we add in <a href="#console-access">Console access for <code>mjfrigaard-cli</code></a>. We’ll configure the access keys for <code>mjfrigaard-cli</code> in the CLI Configuration section below.</p>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1250,7 +1263,7 @@ graph TD
 <p>The ARN a unique identifier for a specific AWS resource (a user, bucket, instance, policy, etc).<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> ARNs are similar to fully qualified file paths, but for AWS resources.</p>
 <p>This is how it works:</p>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>arn:aws:iam::386252595109:user/mjfrigaard-cli</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <table class="caption-top table">
 <colgroup>
@@ -1287,7 +1300,7 @@ graph TD
 <td>Region (IAM is global, so it doesn’t specify a region)</td>
 </tr>
 <tr class="odd">
-<td><code>386252595109</code></td>
+<td><code>ACCOUNT_ID</code></td>
 <td>Account ID</td>
 <td>Which AWS account owns this user</td>
 </tr>
@@ -1310,7 +1323,7 @@ graph LR
     ARN["ARN"] --"Partition"--&gt; Partition("&lt;strong&gt;aws&lt;/strong&gt;")
     ARN --"Service"--&gt; Service("&lt;strong&gt;iam&lt;br&gt;s3&lt;br&gt;ec2")
     ARN --"Region"--&gt; Region("&lt;strong&gt;us-east-1 &lt;/strong&gt;")
-    ARN --"Account ID"--&gt; Account("&lt;strong&gt;386252595109&lt;/strong&gt;")
+    ARN --"Account ID"--&gt; Account("&lt;strong&gt;ACCOUNT_ID&lt;/strong&gt;")
     ARN --"Resource Path"--&gt; Resource("&lt;strong&gt;user/mjfrigaard-cli&lt;/strong&gt;")
     
     style ARN fill:#E8A33D,stroke:#000000,stroke-width:1px,font-size:14px,text-align:left,font-family:monospace,color:#ffffff
@@ -1326,7 +1339,7 @@ graph LR
 </div>
 </div>
 </div>
-<p>In plain English: <em>“IAM user named <code>mjfrigaard-cli</code> in AWS account <code>386252595109</code>.”</em></p>
+<p>In plain English: <em>“IAM user named <code>mjfrigaard-cli</code> in AWS account <code>ACCOUNT_ID</code>.”</em></p>
 <p><strong>Should I keep my ARN a secret?</strong></p>
 <p>No–ARNs are not credentials. They are identifiers, similar to a username or a URL. It’s safe to share, log, or put in documentation. It does not grant access by itself (they just identify a resource).</p>
 <p>However, you should keep the Access Key ID + Secret Access Key secret, because these are used to authenticate.</p>
@@ -1339,7 +1352,7 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-account-alias <span class="at">--account-alias</span> my-company-name</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This changes your console log in URL from:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>https://386252595109.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>https://ACCOUNT_ID.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>to:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>https://my-company-name.signin.aws.amazon.com/console</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is a purely cosmetic change; it doesn’t affect permissions or ARNs.</p>
@@ -1371,7 +1384,7 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"UserId"</span><span class="fu">:</span> <span class="st">"AWS_ACCESS_KEY_ID"</span><span class="fu">,</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Account"</span><span class="fu">:</span> <span class="st">"NUMBER_SET"</span><span class="fu">,</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::386252595109:user/mjfrigaard-cli"</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"Arn"</span><span class="fu">:</span> <span class="st">"arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli"</span></span>
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>AWS’s security token service (STS) validated our keys and returned:</p>
 <ul>
@@ -1406,12 +1419,93 @@ graph LR
 </div>
 <p>This is the standard way to confirm our CLI credentials are valid and check which identity they belong to.</p>
 </section>
+<section id="console-access" class="level2">
+<h2 class="anchored" data-anchor-id="console-access">Console access for <code>mjfrigaard-cli</code></h2>
+<p>When we created <code>mjfrigaard-cli</code>, we skipped Console access because the user only needed the CLI. That changes once <code>aws login</code> or the Console asks for an IAM user sign in. The IAM user screen asks for an account ID or alias, an IAM username, and a password, and <code>mjfrigaard-cli</code> doesn’t have a password yet.</p>
+<p>The <strong>IAM users</strong> dashboard shows this. The <strong>Password age</strong> and <strong>Console last sign-in</strong> columns for <code>mjfrigaard-cli</code> are both empty (<code>-</code>), which means the user has never had a Console password. There’s nothing to reset, so we enable Console access instead. Sign in to the Console as <code>root</code> one last time and:</p>
+<ol type="1">
+<li><p>Go to <strong>IAM</strong> &gt; <strong>IAM users</strong> and click <code>mjfrigaard-cli</code>.</p></li>
+<li><p>Open the <strong>Security credentials</strong> tab.</p></li>
+<li><p>Under <strong>Console sign-in</strong>, click <strong>Enable console access</strong>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/start-aws-console-sign-in.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Enable console access on the Security credentials tab"><img src="img/start-aws-console-sign-in.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Enable console access on the Security credentials tab"></a></p>
+</figure>
+</div>
+<figcaption>Enable console access on the <strong>Security credentials</strong> tab</figcaption>
+</figure>
+</div></li>
+<li><p>Choose <strong>Custom password</strong> and enter a strong password. Leave “<em>User must create a new password at next sign-in</em>” unchecked, because this is our own account.</p></li>
+<li><p>Click <strong>Apply</strong>. The confirmation shows the Console sign-in URL with the account ID or alias.</p></li>
+</ol>
+<p>From here on, sign in as the IAM user with the account ID or alias, <code>mjfrigaard-cli</code>, and the new password. Save <code>root</code> for the few tasks that require it: billing, changing the <code>root</code> email or password, closing the account, or restoring access if every IAM admin is locked out.</p>
+</section>
+<section id="rotating-access-keys" class="level2">
+<h2 class="anchored" data-anchor-id="rotating-access-keys">Rotating access keys</h2>
+<p>The access key we created for <code>mjfrigaard-cli</code> is a long-term credential. It never expires on its own, so anyone who finds it can use it until we delete it. The <strong>IAM users</strong> dashboard shows the key’s age in the <strong>Active key age</strong> column, and it flags keys older than 90 days with a warning icon.</p>
+<p>Rotating means replacing the key with a new one on a schedule. An IAM user can hold two access keys at once, which lets us rotate without downtime. We create the new key, switch everything over, and only then retire the old one.</p>
+<section id="checking-the-current-keys" class="level3">
+<h3 class="anchored" data-anchor-id="checking-the-current-keys">Checking the current keys</h3>
+<p>Start by listing the user’s keys and checking when each one was last used. These commands need IAM permissions. We attach <code>IAMFullAccess</code> to <code>dev-deploy-group</code> in <a href="./aws-ec2.html">Stand up an EC2 instance</a>, and after that the <code>dev-deploy</code> profile can run them:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam list-access-keys <span class="dt">\</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam get-access-key-last-used <span class="dt">\</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>list-access-keys</code> returns each key’s ID, status, and creation date. <code>get-access-key-last-used</code> returns the last date, service, and region the key was used. A key that hasn’t been used in months can be deleted without rotating.</p>
+</section>
+<section id="rotating-the-key" class="level3">
+<h3 class="anchored" data-anchor-id="rotating-the-key">Rotating the key</h3>
+<p>The rotation takes five steps, and the old key keeps working until the fourth:</p>
+<ol type="1">
+<li><p>Create a second key. Copy the secret from the output; AWS won’t show it again.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-access-key <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>Put the new key everywhere the old one lives. For this book that’s the local <code>dev-deploy</code> profile and the <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> secrets in the GitHub repository (<a href="./gha-s3.html">GitHub Actions and S3</a>).</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>Confirm the new key works:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>Deactivate the old key. A deactivated key can be turned back on if something still depended on it.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam update-access-key <span class="dt">\</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--status</span> Inactive <span class="dt">\</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>After a few days with nothing broken (including a GitHub Actions run), delete it:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam delete-access-key <span class="dt">\</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+</ol>
+</section>
+<section id="key-management-practices" class="level3">
+<h3 class="anchored" data-anchor-id="key-management-practices">Key management practices</h3>
+<p>Rotation limits how long a leaked key stays useful, but a few habits keep keys from leaking at all:</p>
+<ul>
+<li>Rotate every 90 days: this matches the IAM dashboard warning and most security guidance.</li>
+<li>Keep one active key: the second slot is for rotation, not for a spare.</li>
+<li>Never commit keys: they belong in <code>~/.aws/credentials</code> or a secrets store (like GitHub secrets), never in code, <code>.env</code> files under version control, or chat messages.</li>
+<li>Delete unused keys: <code>get-access-key-last-used</code> shows which ones are safe to remove.</li>
+<li>Prefer short-lived credentials where you can: <code>aws login</code> and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all.</li>
+</ul>
+<p>If a key ever leaks, don’t wait for the schedule. Deactivate it immediately, then rotate.</p>
+</section>
+</section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
 <li><p>We created the <code>dev-deploy-group</code> IAM group, attached the <code>AmazonEC2FullAccess</code> and <code>AmazonS3FullAccess</code> policies, and added the <code>mjfrigaard-cli</code> user to it. The user has no permissions of its own; it inherits them from the group.</p></li>
 <li><p>We created an access key for <code>mjfrigaard-cli</code> with the Command Line Interface (CLI) use case. The Access Key ID and Secret Access Key authenticate requests, so they stay private (ARNs, by contrast, are identifiers and safe to share).</p></li>
 <li><p>We installed the AWS CLI with the official installer, confirmed it with <code>aws --version</code>, and stored the keys in a <code>dev-deploy</code> profile with <code>aws configure</code>. Running <code>aws sts get-caller-identity --profile dev-deploy</code> returned the <code>mjfrigaard-cli</code> ARN, which confirms the credentials work.</p></li>
+<li><p>We enabled Console access for <code>mjfrigaard-cli</code>, so everyday sign ins use the IAM user instead of <code>root</code>.</p></li>
+<li><p>We rotate the access key every 90 days by creating a second key, switching the <code>dev-deploy</code> profile and GitHub secrets to it, then deactivating and deleting the old one.</p></li>
 </ol>
 <p>In the next section, we’re going to cover launching an EC2 instance.</p>
 
