@@ -603,7 +603,10 @@ The **IAM users** dashboard shows this. The **Password age** and **Console last 
     ![Enable console access on the **Security credentials** tab](img/start-aws-console-sign-in.png){width="100%" fig-align="center"}
 
 4. Choose **Custom password** and enter a strong password. Leave "*User must create a new password at next sign-in*" unchecked, because this is our own account.
-5. Click **Apply**. The confirmation shows the Console sign-in URL with the account ID or alias.
+
+    ![Choose **Custom password** in the **Enable console access** dialog](img/start-aws-console-sign-in-pw.png){width="80%" fig-align="center"}
+
+5. Click **Enable console access**. The confirmation shows the Console sign-in URL with the account ID or alias.
 
 From here on, sign in as the IAM user with the account ID or alias, `mjfrigaard-cli`, and the new password. Save `root` for the few tasks that require it: billing, changing the `root` email or password, closing the account, or restoring access if every IAM admin is locked out.
 
@@ -643,7 +646,7 @@ The rotation takes five steps, and the old key keeps working until the fourth:
       --profile dev-deploy
     ```
 
-2. Put the new key everywhere the old one lives. For this book that's the local `dev-deploy` profile and the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` secrets in the GitHub repository ([GitHub Actions and S3](gha-s3.qmd)).
+2. Put the new key everywhere the old one lives. For this book that's only the local `dev-deploy` profile. GitHub Actions doesn't use this key ([GitHub Actions and S3](gha-s3.qmd) uses a role instead), so there's nothing to update there.
 
     ```bash
     aws configure --profile dev-deploy
@@ -665,7 +668,7 @@ The rotation takes five steps, and the old key keeps working until the fourth:
       --profile dev-deploy
     ```
 
-5. After a few days with nothing broken (including a GitHub Actions run), delete it:
+5. After a few days with nothing broken, delete it:
 
     ```bash
     aws iam delete-access-key \
@@ -682,7 +685,7 @@ Rotation limits how long a leaked key stays useful, but a few habits keep keys f
 * Keep one active key: the second slot is for rotation, not for a spare.
 * Never commit keys: they belong in `~/.aws/credentials` or a secrets store (like GitHub secrets), never in code, `.env` files under version control, or chat messages.
 * Delete unused keys: `get-access-key-last-used` shows which ones are safe to remove.
-* Prefer short-lived credentials where you can: `aws login` and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all.
+* Prefer short-lived credentials where you can: `aws login` and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all (we set this up in [GitHub Actions and S3](gha-s3.qmd)).
 
 If a key ever leaks, don't wait for the schedule. Deactivate it immediately, then rotate.
 
@@ -696,6 +699,6 @@ If a key ever leaks, don't wait for the schedule. Deactivate it immediately, the
 
 4. We enabled Console access for `mjfrigaard-cli`, so everyday sign ins use the IAM user instead of `root`.
 
-5. We rotate the access key every 90 days by creating a second key, switching the `dev-deploy` profile and GitHub secrets to it, then deactivating and deleting the old one.
+5. We rotate the access key every 90 days by creating a second key, switching the `dev-deploy` profile to it, then deactivating and deleting the old one.
 
 In the next section, we're going to cover launching an EC2 instance. 
