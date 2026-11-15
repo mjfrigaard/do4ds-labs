@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-13">
+<meta name="dcterms.date" content="2026-11-15">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Getting started with AWS – DO4DS: Lab Solutions</title>
@@ -756,7 +756,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-13</p>
+      <p class="date">2026-11-15</p>
     </div>
   </div>
   
@@ -1437,8 +1437,18 @@ graph LR
 <figcaption>Enable console access on the <strong>Security credentials</strong> tab</figcaption>
 </figure>
 </div></li>
-<li><p>Choose <strong>Custom password</strong> and enter a strong password. Leave “<em>User must create a new password at next sign-in</em>” unchecked, because this is our own account.</p></li>
-<li><p>Click <strong>Apply</strong>. The confirmation shows the Console sign-in URL with the account ID or alias.</p></li>
+<li><p>Choose <strong>Custom password</strong> and enter a strong password. Leave “<em>User must create a new password at next sign-in</em>” unchecked, because this is our own account.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/start-aws-console-sign-in-pw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="Choose Custom password in the Enable console access dialog"><img src="img/start-aws-console-sign-in-pw.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="Choose Custom password in the Enable console access dialog"></a></p>
+</figure>
+</div>
+<figcaption>Choose <strong>Custom password</strong> in the <strong>Enable console access</strong> dialog</figcaption>
+</figure>
+</div></li>
+<li><p>Click <strong>Enable console access</strong>. The confirmation shows the Console sign-in URL with the account ID or alias.</p></li>
 </ol>
 <p>From here on, sign in as the IAM user with the account ID or alias, <code>mjfrigaard-cli</code>, and the new password. Save <code>root</code> for the few tasks that require it: billing, changing the <code>root</code> email or password, closing the account, or restoring access if every IAM admin is locked out.</p>
 </section>
@@ -1468,7 +1478,7 @@ graph LR
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-access-key <span class="dt">\</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Put the new key everywhere the old one lives. For this book that’s the local <code>dev-deploy</code> profile and the <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> secrets in the GitHub repository (<a href="./gha-s3.html">GitHub Actions and S3</a>).</p>
+<li><p>Put the new key everywhere the old one lives. For this book that’s only the local <code>dev-deploy</code> profile. GitHub Actions doesn’t use this key (<a href="./gha-s3.html">GitHub Actions and S3</a> uses a role instead), so there’s nothing to update there.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 <li><p>Confirm the new key works:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
@@ -1478,7 +1488,7 @@ graph LR
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--status</span> Inactive <span class="dt">\</span></span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>After a few days with nothing broken (including a GitHub Actions run), delete it:</p>
+<li><p>After a few days with nothing broken, delete it:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam delete-access-key <span class="dt">\</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
@@ -1493,7 +1503,7 @@ graph LR
 <li>Keep one active key: the second slot is for rotation, not for a spare.</li>
 <li>Never commit keys: they belong in <code>~/.aws/credentials</code> or a secrets store (like GitHub secrets), never in code, <code>.env</code> files under version control, or chat messages.</li>
 <li>Delete unused keys: <code>get-access-key-last-used</code> shows which ones are safe to remove.</li>
-<li>Prefer short-lived credentials where you can: <code>aws login</code> and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all.</li>
+<li>Prefer short-lived credentials where you can: <code>aws login</code> and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all (we set this up in <a href="./gha-s3.html">GitHub Actions and S3</a>).</li>
 </ul>
 <p>If a key ever leaks, don’t wait for the schedule. Deactivate it immediately, then rotate.</p>
 </section>
@@ -1505,7 +1515,7 @@ graph LR
 <li><p>We created an access key for <code>mjfrigaard-cli</code> with the Command Line Interface (CLI) use case. The Access Key ID and Secret Access Key authenticate requests, so they stay private (ARNs, by contrast, are identifiers and safe to share).</p></li>
 <li><p>We installed the AWS CLI with the official installer, confirmed it with <code>aws --version</code>, and stored the keys in a <code>dev-deploy</code> profile with <code>aws configure</code>. Running <code>aws sts get-caller-identity --profile dev-deploy</code> returned the <code>mjfrigaard-cli</code> ARN, which confirms the credentials work.</p></li>
 <li><p>We enabled Console access for <code>mjfrigaard-cli</code>, so everyday sign ins use the IAM user instead of <code>root</code>.</p></li>
-<li><p>We rotate the access key every 90 days by creating a second key, switching the <code>dev-deploy</code> profile and GitHub secrets to it, then deactivating and deleting the old one.</p></li>
+<li><p>We rotate the access key every 90 days by creating a second key, switching the <code>dev-deploy</code> profile to it, then deactivating and deleting the old one.</p></li>
 </ol>
 <p>In the next section, we’re going to cover launching an EC2 instance.</p>
 
