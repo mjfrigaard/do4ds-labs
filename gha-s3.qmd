@@ -574,6 +574,40 @@ Pass the run ID from that list to `gh run watch` to follow the run until it fini
 gh run watch <run-id> --exit-status
 ```
 
+To confirm the run used the role (and not an access key), search the **Configure AWS credentials** step in the run's log:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+gh run view <run-id> --log | grep -i -m5 "assum\|gha-s3-publish-role"
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+publish-models	Configure AWS credentials	2026-11-15T05:41:59.5159429Z   role-to-assume: arn:aws:iam::ACCOUNT_ID:role/gha-s3-publish-role
+publish-models	Configure AWS credentials	2026-11-15T05:41:59.9075276Z Assuming role with OIDC
+publish-models	Configure AWS credentials	2026-11-15T05:42:00.1552995Z Authenticated as assumedRoleId ROLE_ID:GitHubActions
+```
+
+:::
+
+`Assuming role with OIDC` means GitHub traded its token for temporary credentials, and `GitHubActions` is the session name the action gives the role. If the role is missing an S3 permission, the build steps fail with `AccessDenied`, so we also check that the log has none (`0` means no matches):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+gh run view <run-id> --log | grep -i -c "accessdenied\|not authorized"
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+0
+```
+
+:::
+
 To see where the time goes, `gh api` requests the run's jobs from the GitHub REST API (`{owner}` and `{repo}` are filled in from the current repository). The `--jq` filter prints each step's name and how many seconds it took. The **Install R dependencies** step should take about a minute with `use-public-rspm: true` (compiling from source took most of the 25 minute first run):
 
 ```{bash}
