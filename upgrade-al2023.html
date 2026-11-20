@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-17">
+<meta name="dcterms.date" content="2026-11-20">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Upgrade to Amazon Linux 2023 – DO4DS: Lab Solutions</title>
@@ -728,7 +728,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-17</p>
+      <p class="date">2026-11-20</p>
     </div>
   </div>
   
@@ -758,7 +758,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The instance I launched in <a href="./aws-ec2.html">Stand up an EC2 instance</a> runs Amazon Linux 2 (AL2). That was fine when the book we written, but it breaks down once I start installing language runtimes. This chapter replaces it with an Amazon Linux 2023 (AL2023) instance. I’ve opted to keep both versions because it’s likely you’ll have to perform an upgrade (i.e., we need to before any of the installs in <a href="./install-apps.html">Install Apps</a>).</p>
+<p>The instance I launched in <a href="./aws-ec2.html">Stand up an EC2 instance</a> runs Amazon Linux 2 (AL2). This worked fine when <a href="https://do4ds.com/">do4ds</a> was written, but it started breaking down once I started installing language runtimes.</p>
+<p>This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I’ve opted to keep both versions because it’s likely you’ll have to perform an upgrade (i.e., we need to before any of the installs in <a href="./install-apps.html">Install Apps</a>).</p>
 <section id="why-upgrade" class="level2">
 <h2 class="anchored" data-anchor-id="why-upgrade">Why upgrade?</h2>
 <p>The login banner already hints at the problem:</p>
@@ -768,7 +769,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    ~~~         /    A newer version of Amazon Linux is available!</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>AL2 stopped receiving updates on that date. The bigger issue for this book is its C library. AL2 ships <code>glibc</code> 2.26, and modern prebuilt binaries expect something newer. I discovered this when I tried to install R with <code>rig</code>:</p>
+<p>AL2 stopped receiving updates on that date, so upgrading before the ‘End of Life’ is obviously idea. The issue for the examples in the book is the C library it uses.</p>
+<p>AL2 ships <code>glibc</code> 2.26, and modern prebuilt binaries expect something newer. I discovered this when I tried to install R with <code>rig</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /usr/local/bin/rig add 4.6.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -796,6 +798,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="how-the-upgrade-works" class="level2">
 <h2 class="anchored" data-anchor-id="how-the-upgrade-works">How the upgrade works</h2>
 <p>There’s no in-place upgrade from AL2 to AL2023. AWS treats AL2023 as a new operating system, so the upgrade means launching a new instance and retiring the old one. The diagram below shows the order.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span><span style="font-weight: bold; font-size: 1.15em;">In-place upgrade?</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.05em; color: var(--callout-body-color, #282b2d);">
+<p>An in-place upgrade updates the operating system on the running instance instead of replacing it. It fits when the upgrade stays within one major version:</p>
+<ul>
+<li>On AL2, <code>sudo yum update</code> installs security patches and package updates.</li>
+<li>On AL2023, <code>sudo dnf upgrade --releasever=latest</code> moves the instance to the newest AL2023 release.</li>
+</ul>
+<p>Some other distributions also support a major version upgrade in place (Ubuntu has <code>do-release-upgrade</code>). That’s reasonable for an instance that’s hard to rebuild, as long as we take an EBS snapshot first so we can roll back.</p>
+<p>Moving between major versions in place is riskier: every package, library, and service changes at once, and a failure can leave the instance unable to boot. AL2 to AL2023 isn’t offered at all, so we replace the instance. A replacement also gives us a clean system and keeps the old instance as a fallback until the new one works.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="cell" data-fig-width="6.5" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -861,7 +887,7 @@ flowchart TD
 </div>
 <p>Your AMI ID will differ, because each region and each release has its own. On a Graviton (<code>arm64</code>) instance type, change <code>x86_64</code> to <code>arm64</code> in the filter.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -870,7 +896,7 @@ flowchart TD
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
 <p>AWS also publishes the newest AMI ID as a public SSM parameter (<code>/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64</code>), and <code>run-instances</code> can read it directly with <code>--image-id resolve:ssm:...</code>. Both need the <code>ssm:GetParameters</code> permission. The <code>dev-deploy</code> user doesn’t have it, so this chapter uses <code>describe-images</code>, which only needs the EC2 read access we already granted.</p>
@@ -1025,7 +1051,7 @@ flowchart TD
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> /opt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="true" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -1034,7 +1060,7 @@ flowchart TD
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse show">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
 <p>Terminating an instance can’t be undone. Its root volume is deleted with it by default, so anything you didn’t copy is gone. If you’re unsure, stop the instance with <code>aws ec2 stop-instances</code> instead and terminate it later. A stopped instance doesn’t bill for compute, but its volume still costs a small amount each month.</p>

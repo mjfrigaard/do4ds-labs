@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-17">
+<meta name="dcterms.date" content="2026-11-20">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Getting started with AWS – DO4DS: Lab Solutions</title>
@@ -733,6 +733,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#checking-the-current-keys" id="toc-checking-the-current-keys" class="nav-link" data-scroll-target="#checking-the-current-keys">Checking the current keys</a></li>
   <li><a href="#rotating-the-key" id="toc-rotating-the-key" class="nav-link" data-scroll-target="#rotating-the-key">Rotating the key</a></li>
+  <li><a href="#rotation-best-practices" id="toc-rotation-best-practices" class="nav-link" data-scroll-target="#rotation-best-practices">Rotation best practices</a>
+  <ul class="collapse">
+  <li><a href="#cleaning-up-the-old-key" id="toc-cleaning-up-the-old-key" class="nav-link" data-scroll-target="#cleaning-up-the-old-key">Cleaning up the old key</a></li>
+  <li><a href="#when-a-key-leaks" id="toc-when-a-key-leaks" class="nav-link" data-scroll-target="#when-a-key-leaks">When a key leaks</a></li>
+  </ul></li>
   <li><a href="#key-management-practices" id="toc-key-management-practices" class="nav-link" data-scroll-target="#key-management-practices">Key management practices</a></li>
   </ul></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
@@ -756,7 +761,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-17</p>
+      <p class="date">2026-11-20</p>
     </div>
   </div>
   
@@ -1188,8 +1193,10 @@ graph TD
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div style="font-style: italic;">
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># aws-cli/2.35.15 Python/3.14.5 Linux/7.0.11-76070011-generic exe/x86_64.pop.24</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </div>
 </section>
 </section>
@@ -1421,8 +1428,30 @@ graph LR
 </section>
 <section id="console-access" class="level2">
 <h2 class="anchored" data-anchor-id="console-access">Console access for <code>mjfrigaard-cli</code></h2>
-<p>When we created <code>mjfrigaard-cli</code>, we skipped Console access because the user only needed the CLI. That changes once <code>aws login</code> or the Console asks for an IAM user sign in. The IAM user screen asks for an account ID or alias, an IAM username, and a password, and <code>mjfrigaard-cli</code> doesn’t have a password yet.</p>
-<p>The <strong>IAM users</strong> dashboard shows this. The <strong>Password age</strong> and <strong>Console last sign-in</strong> columns for <code>mjfrigaard-cli</code> are both empty (<code>-</code>), which means the user has never had a Console password. There’s nothing to reset, so we enable Console access instead. Sign in to the Console as <code>root</code> one last time and:</p>
+<p>When we created <code>mjfrigaard-cli</code>, we skipped Console access because the user only needed the CLI. That changes once <code>aws login</code> or the Console asks for an IAM user sign in.</p>
+<p>The IAM user screen asks for an account ID or alias, an IAM username, and a password, and <code>mjfrigaard-cli</code> doesn’t have a password yet.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab7-aws-iam-user-login.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="The IAM user sign in screen asks for an account ID or alias, an IAM username, and a password"><img src="img/lab7-aws-iam-user-login.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%" alt="The IAM user sign in screen asks for an account ID or alias, an IAM username, and a password"></a></p>
+</figure>
+</div>
+<figcaption>The <strong>IAM user sign in</strong> screen asks for an account ID or alias, an IAM username, and a password</figcaption>
+</figure>
+</div>
+<p>When we log into the <strong>Console</strong> as <code>root</code>, we can see the <strong>IAM users</strong> dashboard shows this.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/lab7-aws-iam-users-dashboard.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="The IAM users dashboard: mjfrigaard-cli has no password age and Console access is Disabled"><img src="img/lab7-aws-iam-users-dashboard.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="The IAM users dashboard: mjfrigaard-cli has no password age and Console access is Disabled"></a></p>
+</figure>
+</div>
+<figcaption>The <strong>IAM users</strong> dashboard: <code>mjfrigaard-cli</code> has no password age and Console access is <strong>Disabled</strong></figcaption>
+</figure>
+</div>
+<p>The <strong>Password age</strong> column for <code>mjfrigaard-cli</code> is empty (<code>-</code>) and <strong>Console access</strong> is <strong>Disabled</strong>, which means the user has never had a Console password. There’s nothing to reset, so we enable Console access instead. Sign in to the Console as <code>root</code> one last time and:</p>
 <ol type="1">
 <li><p>Go to <strong>IAM</strong> &gt; <strong>IAM users</strong> and click <code>mjfrigaard-cli</code>.</p></li>
 <li><p>Open the <strong>Security credentials</strong> tab.</p></li>
@@ -1431,7 +1460,7 @@ graph LR
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/start-aws-console-sign-in.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Enable console access on the Security credentials tab"><img src="img/start-aws-console-sign-in.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Enable console access on the Security credentials tab"></a></p>
+<p><a href="img/start-aws-console-sign-in.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16" title="Enable console access on the Security credentials tab"><img src="img/start-aws-console-sign-in.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Enable console access on the Security credentials tab"></a></p>
 </figure>
 </div>
 <figcaption>Enable console access on the <strong>Security credentials</strong> tab</figcaption>
@@ -1442,15 +1471,35 @@ graph LR
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/start-aws-console-sign-in-pw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="Choose Custom password in the Enable console access dialog"><img src="img/start-aws-console-sign-in-pw.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="Choose Custom password in the Enable console access dialog"></a></p>
+<p><a href="img/start-aws-console-sign-in-pw.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17" title="Choose Custom password in the Enable console access dialog"><img src="img/start-aws-console-sign-in-pw.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="Choose Custom password in the Enable console access dialog"></a></p>
 </figure>
 </div>
 <figcaption>Choose <strong>Custom password</strong> in the <strong>Enable console access</strong> dialog</figcaption>
 </figure>
 </div></li>
-<li><p>Click <strong>Enable console access</strong>. The confirmation shows the Console sign-in URL with the account ID or alias.</p></li>
+<li><p>Click <strong>Enable console access</strong>. The confirmation shows the Console sign-in URL with the account ID or alias.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/start-aws-console-password.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18" title="The Console password confirmation shows the sign-in URL, user name, and a one-time view of the password"><img src="img/start-aws-console-password.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%" alt="The Console password confirmation shows the sign-in URL, user name, and a one-time view of the password"></a></p>
+</figure>
+</div>
+<figcaption>The <strong>Console password</strong> confirmation shows the sign-in URL, user name, and a one-time view of the password</figcaption>
+</figure>
+</div></li>
 </ol>
 <p>From here on, sign in as the IAM user with the account ID or alias, <code>mjfrigaard-cli</code>, and the new password. Save <code>root</code> for the few tasks that require it: billing, changing the <code>root</code> email or password, closing the account, or restoring access if every IAM admin is locked out.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/start-aws-console-home-cli.png" class="lightbox" data-gallery="quarto-lightbox-gallery-19" title="Console Home signed in as mjfrigaard-cli: the account menu shows the IAM user, and widgets outside its permissions show Access denied"><img src="img/start-aws-console-home-cli.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Console Home signed in as mjfrigaard-cli: the account menu shows the IAM user, and widgets outside its permissions show Access denied"></a></p>
+</figure>
+</div>
+<figcaption>Console Home signed in as <code>mjfrigaard-cli</code>: the account menu shows the IAM user, and widgets outside its permissions show <strong>Access denied</strong></figcaption>
+</figure>
+</div>
 </section>
 <section id="rotating-access-keys" class="level2">
 <h2 class="anchored" data-anchor-id="rotating-access-keys">Rotating access keys</h2>
@@ -1462,50 +1511,195 @@ graph LR
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam list-access-keys <span class="dt">\</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam get-access-key-last-used <span class="dt">\</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code>list-access-keys</code> returns each key’s ID, status, and creation date. <code>get-access-key-last-used</code> returns the last date, service, and region the key was used. A key that hasn’t been used in months can be deleted without rotating.</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    "AccessKeyMetadata": [</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>            "UserName": "mjfrigaard-cli",</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>            "AccessKeyId": "OLD_ACCESS_KEY_ID",</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>            "Status": "Active",</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>            "CreateDate": "2026-07-04T07:01:27+00:00"</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>mjfrigaard-cli</code> has one active key. Copy its <code>AccessKeyId</code>; the next command and step 4 of the rotation use it as <code>OLD_ACCESS_KEY_ID</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam get-access-key-last-used <span class="dt">\</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    "UserName": "mjfrigaard-cli",</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    "AccessKeyLastUsed": {</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>        "LastUsedDate": "2026-11-19T06:47:00+00:00",</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>        "ServiceName": "ec2",</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        "Region": "us-east-1"</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>list-access-keys</code> returns each key’s ID, status, and creation date. <code>get-access-key-last-used</code> returns the last date, service, and region the key was used. A key that hasn’t been used in months can be deleted without rotating. Ours was used recently for EC2, so it’s still in use and we rotate it instead.</p>
 </section>
 <section id="rotating-the-key" class="level3">
 <h3 class="anchored" data-anchor-id="rotating-the-key">Rotating the key</h3>
 <p>The rotation takes five steps, and the old key keeps working until the fourth:</p>
 <ol type="1">
 <li><p>Create a second key. Copy the secret from the output; AWS won’t show it again.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-access-key <span class="dt">\</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Put the new key everywhere the old one lives. For this book that’s only the local <code>dev-deploy</code> profile. GitHub Actions doesn’t use this key (<a href="./gha-s3.html">GitHub Actions and S3</a> uses a role instead), so there’s nothing to update there.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Confirm the new key works:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Deactivate the old key. A deactivated key can be turned back on if something still depended on it.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam update-access-key <span class="dt">\</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam create-access-key <span class="dt">\</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--status</span> Inactive <span class="dt">\</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Alternatives to access keys
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>When we create a key in the Console and choose <strong>Command Line Interface (CLI)</strong>, AWS recommends <code>aws login</code> (short-term credentials from our Console sign-in) or AWS CloudShell (a terminal in the browser) instead. We keep the long-term key because every lab uses the <code>dev-deploy</code> profile, so check “<em>I understand the above recommendation and want to proceed to create an access key</em>” and continue.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="img/start-aws-access-key-alternatives.png" class="lightbox" data-gallery="quarto-lightbox-gallery-20" title="The Access key best practices &amp; alternatives page recommends aws login and AWS CloudShell"><img src="img/start-aws-access-key-alternatives.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="The Access key best practices &amp; alternatives page recommends aws login and AWS CloudShell"></a></p>
+</figure>
+</div>
+<figcaption>The <strong>Access key best practices &amp; alternatives</strong> page recommends <code>aws login</code> and AWS CloudShell</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div></li>
+<li><p>Put the new key everywhere the old one lives. For this book that’s only the local <code>dev-deploy</code> profile. GitHub Actions doesn’t use this key (<a href="./gha-s3.html">GitHub Actions and S3</a> uses a role instead), so there’s nothing to update there.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>Confirm the new key works:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> sts get-caller-identity <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    "UserId": "USER_ID",</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    "Account": "ACCOUNT_ID",</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    "Arn": "arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli"</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The <code>Arn</code> ends in <code>user/mjfrigaard-cli</code>, so the profile now signs in with the new key.</p></li>
+<li><p>Deactivate the old key. A deactivated key can be turned back on if something still depended on it.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam update-access-key <span class="dt">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--status</span> Inactive <span class="dt">\</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 <li><p>After a few days with nothing broken, delete it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam delete-access-key <span class="dt">\</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam delete-access-key <span class="dt">\</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>List the keys again to confirm only the new one is left:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam list-access-keys <span class="dt">\</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-name</span> mjfrigaard-cli <span class="dt">\</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    "AccessKeyMetadata": [</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>            "UserName": "mjfrigaard-cli",</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>            "AccessKeyId": "NEW_ACCESS_KEY_ID",</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>            "Status": "Active",</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>            "CreateDate": "2026-11-20T05:59:13+00:00"</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></li>
 </ol>
+</section>
+<section id="rotation-best-practices" class="level3">
+<h3 class="anchored" data-anchor-id="rotation-best-practices">Rotation best practices</h3>
+<p>The five steps above work for any long-term key, but I’ve found the order matters more than the commands. Each step leaves a way back until the old key is gone. The diagram below shows the full cycle, including what to do when something breaks:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Start(["&lt;strong&gt;Key reaches 90 days&lt;/strong&gt;"])
+    Create("Create a&lt;br&gt;second key")
+    Update("Update every place&lt;br&gt;the old key lives")
+    Works{"New key&lt;br&gt;works?"}
+    Deact("Deactivate&lt;br&gt;the old key")
+    Broken{"Anything break&lt;br&gt;in a few days?"}
+    React("Reactivate the old key&lt;br&gt;and find what used it")
+    Delete("Delete&lt;br&gt;the old key")
+    Done(["&lt;strong&gt;One active key&lt;/strong&gt;"])
+
+    Start --&gt;|"i. create"| Create
+    Create --&gt;|"ii. switch"| Update
+    Update --&gt;|"iii. verify"| Works
+    Works --&gt;|"no"| Update
+    Works --&gt;|"yes, iv. deactivate"| Deact
+    Deact --&gt; Broken
+    Broken --&gt;|"yes"| React
+    React --&gt; Update
+    Broken --&gt;|"no, v. delete"| Delete
+    Delete --&gt; Done
+
+    style Start fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Create fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Update fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Works fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Deact fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Broken fill:#1B2A41,stroke:#000000,stroke-width:1px,color:#ffffff
+    style React fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Delete fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Done fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+</pre>
+</div>
+<p></p><figcaption> Access key rotation cycle</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>These habits keep each rotation safe and on schedule:</p>
+<ul>
+<li>Rotate every 90 days: this matches the IAM dashboard warning and most security guidance. A calendar reminder works better than waiting for the warning icon.</li>
+<li>Keep one active key: the second slot is for rotation, not for a spare. Two active keys means two secrets to protect.</li>
+<li>List where the key lives before you start: for this book it’s only <code>~/.aws/credentials</code>. A key you forgot to update is the most common reason a rotation breaks something.</li>
+<li>Verify before you deactivate: <code>aws sts get-caller-identity</code> should return the <code>mjfrigaard-cli</code> ARN with the new key. If it doesn’t, the old key still works, so nothing is lost.</li>
+<li>Deactivate before you delete: a deactivated key can be turned back on, but a deleted key is gone for good.</li>
+</ul>
+<section id="cleaning-up-the-old-key" class="level4">
+<h4 class="anchored" data-anchor-id="cleaning-up-the-old-key">Cleaning up the old key</h4>
+<p>Before deleting the old key, check that nothing used it after we deactivated it. An inactive key can’t sign requests, so its last used date should stay the same:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> iam get-access-key-last-used <span class="dt">\</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--access-key-id</span> OLD_ACCESS_KEY_ID <span class="dt">\</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Copies of the old key can also outlive it in notes, scripts, or shell history. Search for the old key ID and remove any copies you find (<code>-I</code> skips binary files, and <code>-l</code> prints only the file names):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-rIl</span> <span class="st">"OLD_ACCESS_KEY_ID"</span> ~ <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="when-a-key-leaks" class="level4">
+<h4 class="anchored" data-anchor-id="when-a-key-leaks">When a key leaks</h4>
+<p>A leaked key changes the order. Deactivate it right away, even if something still depends on it, then create the new key and update each place it’s used. A few minutes of downtime is better than leaving a working key in someone else’s hands.</p>
+</section>
 </section>
 <section id="key-management-practices" class="level3">
 <h3 class="anchored" data-anchor-id="key-management-practices">Key management practices</h3>
 <p>Rotation limits how long a leaked key stays useful, but a few habits keep keys from leaking at all:</p>
 <ul>
-<li>Rotate every 90 days: this matches the IAM dashboard warning and most security guidance.</li>
-<li>Keep one active key: the second slot is for rotation, not for a spare.</li>
 <li>Never commit keys: they belong in <code>~/.aws/credentials</code> or a secrets store (like GitHub secrets), never in code, <code>.env</code> files under version control, or chat messages.</li>
 <li>Delete unused keys: <code>get-access-key-last-used</code> shows which ones are safe to remove.</li>
 <li>Prefer short-lived credentials where you can: <code>aws login</code> and IAM Identity Center issue credentials that expire on their own. GitHub Actions can assume an IAM role through OpenID Connect (OIDC) instead of storing keys at all (we set this up in <a href="./gha-s3.html">GitHub Actions and S3</a>).</li>
 </ul>
-<p>If a key ever leaks, don’t wait for the schedule. Deactivate it immediately, then rotate.</p>
 </section>
 </section>
 <section id="recap" class="level2">
