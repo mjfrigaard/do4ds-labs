@@ -645,6 +645,25 @@ aws iam list-access-keys \
   --profile dev-deploy
 ```
 
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "AccessKeyMetadata": [
+        {
+            "UserName": "mjfrigaard-cli",
+            "AccessKeyId": "OLD_ACCESS_KEY_ID",
+            "Status": "Active",
+            "CreateDate": "2026-07-04T07:01:27+00:00"
+        }
+    ]
+}
+```
+
+:::
+
+`mjfrigaard-cli` has one active key. Copy its `AccessKeyId`; the next command and step 4 of the rotation use it as `OLD_ACCESS_KEY_ID`.
+
 ```{bash}
 #| eval: false
 #| code-fold: false
@@ -653,7 +672,22 @@ aws iam get-access-key-last-used \
   --profile dev-deploy
 ```
 
-`list-access-keys` returns each key's ID, status, and creation date. `get-access-key-last-used` returns the last date, service, and region the key was used. A key that hasn't been used in months can be deleted without rotating.
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "UserName": "mjfrigaard-cli",
+    "AccessKeyLastUsed": {
+        "LastUsedDate": "2026-11-19T06:47:00+00:00",
+        "ServiceName": "ec2",
+        "Region": "us-east-1"
+    }
+}
+```
+
+:::
+
+`list-access-keys` returns each key's ID, status, and creation date. `get-access-key-last-used` returns the last date, service, and region the key was used. A key that hasn't been used in months can be deleted without rotating. Ours was used recently for EC2, so it's still in use and we rotate it instead.
 
 ### Rotating the key
 
@@ -667,6 +701,14 @@ The rotation takes five steps, and the old key keeps working until the fourth:
       --profile dev-deploy
     ```
 
+   ::: {.callout-note collapse="true" title="Alternatives to access keys"}
+
+   When we create a key in the Console and choose **Command Line Interface (CLI)**, AWS recommends `aws login` (short-term credentials from our Console sign-in) or AWS CloudShell (a terminal in the browser) instead. We keep the long-term key because every lab uses the `dev-deploy` profile, so check "*I understand the above recommendation and want to proceed to create an access key*" and continue.
+
+   ![The **Access key best practices & alternatives** page recommends `aws login` and AWS CloudShell](img/start-aws-access-key-alternatives.png){width="100%" fig-align="center"}
+
+   :::
+
 2. Put the new key everywhere the old one lives. For this book that's only the local `dev-deploy` profile. GitHub Actions doesn't use this key ([GitHub Actions and S3](gha-s3.qmd) uses a role instead), so there's nothing to update there.
 
     ```bash
@@ -678,6 +720,20 @@ The rotation takes five steps, and the old key keeps working until the fourth:
     ```bash
     aws sts get-caller-identity --profile dev-deploy
     ```
+
+   ::: {style="font-style: italic;"}
+
+   ```{verbatim}
+   {
+       "UserId": "USER_ID",
+       "Account": "ACCOUNT_ID",
+       "Arn": "arn:aws:iam::ACCOUNT_ID:user/mjfrigaard-cli"
+   }
+   ```
+
+   :::
+
+   The `Arn` ends in `user/mjfrigaard-cli`, so the profile now signs in with the new key.
 
 4. Deactivate the old key. A deactivated key can be turned back on if something still depended on it.
 
@@ -697,6 +753,31 @@ The rotation takes five steps, and the old key keeps working until the fourth:
       --access-key-id OLD_ACCESS_KEY_ID \
       --profile dev-deploy
     ```
+
+   List the keys again to confirm only the new one is left:
+
+    ```bash
+    aws iam list-access-keys \
+      --user-name mjfrigaard-cli \
+      --profile dev-deploy
+    ```
+
+   ::: {style="font-style: italic;"}
+
+   ```{verbatim}
+   {
+       "AccessKeyMetadata": [
+           {
+               "UserName": "mjfrigaard-cli",
+               "AccessKeyId": "NEW_ACCESS_KEY_ID",
+               "Status": "Active",
+               "CreateDate": "2026-11-20T05:59:13+00:00"
+           }
+       ]
+   }
+   ```
+
+   :::
 
 ### Rotation best practices
 
