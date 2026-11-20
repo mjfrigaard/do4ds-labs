@@ -156,26 +156,36 @@ This will take you to the AWS sign in page in the browser. The page asks whether
 
 The `root` user is the email address that created the account. It has unrestricted access that no policy can limit. I only sign in as `root` for the few tasks that require it: billing and payment settings, changing the `root` email or password, closing the account, or restoring access if every IAM admin is locked out. Launching instances and looking up AMIs are everyday tasks, and an IAM user with the right policy handles them.
 
+![Console Home after signing in as the `mjfrigaard-cli` IAM user (top right)](img/upgrade-al2023-console-home.png){width="100%" fig-align="center"}
+
 With the CLI signed in, I look up the newest AL2023 image:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-aws ec2 describe-images \
-  --owners amazon \
-  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
-            "Name=state,Values=available" \
-  --query "sort_by(Images, &CreationDate)[-1].[ImageId,Name]" \
-  --output text \
-  --profile dev-deploy
+# these are lookup/filter commands (think 'search and find')
+aws ec2 describe-images \ #<1>
+  --owners amazon \ #<2>
+  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \ #<3>
+            "Name=state,Values=available" \ #<4>
+  --query "sort_by(Images, &CreationDate)[-1].[ImageId,Name]" \ #<5>
+  --output text \ #<6>
+  --profile dev-deploy #<7>
 ```
+1. Lists Amazon Machine Images (AMIs). An AMI is the disk template a new instance boots from.
+2. Keeps only images Amazon publishes, which rules out look-alike community images.  
+3. Matches names starting with `al2023-ami-2023.` and ending in `-x86_64`. The `*` covers the version and kernel.  
+4. Drops images that are still being built or have been retired. Several filters must all match.  
+5. A JMESPath expression run on the result. `sort_by(..., &CreationDate)` orders the images oldest to newest, `[-1]` takes the last (newest) one, and `[ImageId,Name]` keeps just those two fields.  
+6. Prints plain tab-separated text instead of JSON.  
+7. Uses the `dev-deploy` credentials from `~/.aws/credentials`.  
 
 The filter matches the standard AL2023 images (not the `minimal` ones), and the query sorts them by date and keeps the last:
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-ami-0b71756f4d851f798	al2023-ami-2023.12.20261112.0-kernel-6.1-x86_64
+ami-0d00ab3a044f7f788	al2023-ami-2023.12.20261120.0-kernel-6.12-x86_64
 ```
 
 :::
@@ -205,43 +215,72 @@ The new instance reuses everything from [Stand up an EC2 instance](aws-ec2.qmd):
 ```{bash}
 #| eval: false
 #| code-fold: false
-AMI_ID=$(aws ec2 describe-images \
-  --owners amazon \
-  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
-            "Name=state,Values=available" \
-  --query "sort_by(Images, &CreationDate)[-1].ImageId" \
-  --output text \
-  --profile dev-deploy)
+# store shell variable
+AMI_ID=$(aws ec2 describe-images \ #<1>
+  --owners amazon \ #<2>
+  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \ #<3>
+            "Name=state,Values=available" \ #<4>
+  --query "sort_by(Images, &CreationDate)[-1].ImageId" \ #<5>
+  --output text \ #<6>
+  --profile dev-deploy) #<7>
+# use stored variable
+NEW_INSTANCE_ID=$(aws ec2 run-instances \ #<8>
+  --image-id "$AMI_ID" \ #<9>
+  --instance-type t3.micro \ #<10>
+  --key-name aws-dev \ #<11>
+  --security-groups dev-sg \ #<12>
+  --iam-instance-profile Name=ec2-s3-instance-profile \ #<13>
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=dev-al2023}]' \ #<14>
+  --query "Instances[0].InstanceId" \ #<15>
+  --output text \ #<16>
+  --profile dev-deploy) #<17>
 
-aws ec2 run-instances \
-  --image-id "$AMI_ID" \
-  --instance-type t3.micro \
-  --key-name vetiver-deploy-key \
-  --security-groups vetiver-sg \
-  --iam-instance-profile Name=ec2-s3-instance-profile \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vetiver-al2023}]' \
-  --query "Instances[0].InstanceId" \
-  --output text \
-  --profile dev-deploy
+echo "$NEW_INSTANCE_ID" #<18>
 ```
+1. Runs the AMI lookup from the previous section and stores its output in the shell variable `AMI_ID`.
+2. Keeps only images Amazon publishes.
+3. Matches the standard AL2023 `x86_64` images.
+4. Drops images that are still being built or have been retired.
+5. Sorts by date and keeps only the newest image's ID (no name), so `AMI_ID` holds just the ID.
+6. Prints plain text, so `AMI_ID` holds `ami-...` without JSON quotes.
+7. Uses the `dev-deploy` credentials. The `)` closes the command substitution.
+8. Launches one new instance and stores its ID in the shell variable `NEW_INSTANCE_ID`.
+9. Boots it from the AMI stored in `AMI_ID`.
+10. Sets the instance size: 2 vCPUs and 1 GiB of memory.
+11. Installs the public half of our key pair, so our private key can log in.
+12. Attaches the same security group as the old instance (SSH on port 22).
+13. Attaches the role that lets the instance read the S3 bucket without access keys.
+14. Names the instance `dev-al2023`, so it's easy to spot in the console.
+15. Keeps only the new instance ID from the long JSON response.
+16. Prints plain text, so `NEW_INSTANCE_ID` holds `i-...` without JSON quotes.
+17. Uses the `dev-deploy` credentials. The `)` closes the command substitution.
+18. Prints the new instance ID, so we can note it.
 
-The `--query` trims the long JSON response down to the new instance ID. I'll use `NEW_INSTANCE_ID` for it below; substitute your own.
+Both variables last until we close the terminal. If we open a new one, we set `NEW_INSTANCE_ID` again with the ID that `echo` printed (for example, `NEW_INSTANCE_ID=i-0123456789abcdef0`).
 
 The instance starts in the `pending` state. Instead of checking again by hand, `aws ec2 wait` blocks until it's running, and then I look up its public IP address:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-aws ec2 wait instance-running \
-  --instance-ids NEW_INSTANCE_ID \
-  --profile dev-deploy
+aws ec2 wait instance-running \ #<1>
+  --instance-ids "$NEW_INSTANCE_ID" \ #<2>
+  --profile dev-deploy #<3>
 
-aws ec2 describe-instances \
-  --instance-ids NEW_INSTANCE_ID \
-  --query "Reservations[*].Instances[*].PublicIpAddress" \
-  --output text \
-  --profile dev-deploy
+aws ec2 describe-instances \ #<4>
+  --instance-ids "$NEW_INSTANCE_ID" \ #<5>
+  --query "Reservations[*].Instances[*].PublicIpAddress" \ #<6>
+  --output text \ #<7>
+  --profile dev-deploy #<8>
 ```
+1. Checks the instance every 15 seconds and returns once it's `running` (it gives up after 40 checks).
+2. Reads the instance ID stored in `NEW_INSTANCE_ID`.
+3. Uses the `dev-deploy` credentials.
+4. Returns the details for one or more instances.
+5. Limits the details to the new instance.
+6. Keeps only the public IP address. The response groups instances inside reservations (one per launch request), so the query steps through both.
+7. Prints the IP address as plain text.
+8. Uses the `dev-deploy` credentials.
 
 ## Logging into the new instance
 
@@ -258,6 +297,7 @@ The first connection asks me to confirm the host's fingerprint, because my machi
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
+Warning: Permanently added 'NEW_PUBLIC_IP_ADDRESS' (ED25519) to the list of known hosts.
    ,     #_
    ~\_  ####_        Amazon Linux 2023
   ~~  \_#####\
@@ -273,7 +313,7 @@ The first connection asks me to confirm the host's fingerprint, because my machi
 
 :::
 
-If `ssh` times out instead, the port 22 rule in `vetiver-sg` probably doesn't match my current IP address. The fix is in [Logging into the instance](install-apps.qmd#logging-into-the-instance).
+If `ssh` times out instead, the port 22 rule in `dev-sg` probably doesn't match my current IP address. The fix is in [Logging into the instance](install-apps.qmd#logging-into-the-instance).
 
 I can confirm the operating system and the glibc version that caused the original failure:
 
@@ -287,7 +327,7 @@ ldd --version | head -1
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-PRETTY_NAME="Amazon Linux 2023.12.20261112"
+PRETTY_NAME="Amazon Linux 2023.12.20261120"
 ldd (GNU libc) 2.34
 ```
 

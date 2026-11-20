@@ -28,7 +28,7 @@ This is the second part of lab 7. It assumes you've set up your AWS group, user,
 
 ## What is an EC2 instance?
 
-EC2 is a rentable Linux (or Windows) machine in AWS's data center. You get `root`/`sudo` access like any VM. AWS handles the physical hardware; we handle the OS, packages, and running our app (in this case, a `vetiver` model API).
+EC2 is a rentable Linux (or Windows) machine in AWS's data center. You get `root`/`sudo` access like any VM. AWS handles the physical hardware; we handle the OS, packages, and running our app (in this case, a model API).
 
 ```{mermaid}
 %%| fig-cap: ‘EC2 Instances’
@@ -107,14 +107,14 @@ Now we can create the key pair.
 #| code-fold: false
 # create EC2 key pair
 aws ec2 create-key-pair \ #<1>
-  --key-name vetiver-deploy-key \ #<2>
+  --key-name aws-dev \ #<2>
   --query 'KeyMaterial' \ #<3>
   --output text \ #<4>
-  --profile dev-deploy > ~/.ssh/vetiver-deploy-key.pem #<5>
+  --profile dev-deploy > ~/.ssh/aws-dev.pem #<5>
 ```
 
 1.  Calls AWS EC2 API to generate a new SSH key pair\
-2.  Names the key pair `vetiver-deploy-key`\
+2.  Names the key pair `aws-dev`\
 3.  Filters the JSON response to extract only the `KeyMaterial` field, which contains the actual private key text.
 4.  Formats the output as plain text instead of JSON\
 5.  Use existing credentials, then redirect to SSH `.pem` key output
@@ -134,7 +134,7 @@ co_box(
   contents = "
 
 1. `ec2 create-key-pair` will create both public and private keys; the public key is stored in AWS, and the private key is returned (once)   
-2. We set the `vetiver-deploy-key` name and reference it later when launching the EC2 instance (i.e., with `--key-name` on `run-instances`)         
+2. We set the `aws-dev` name and reference it later when launching the EC2 instance (i.e., with `--key-name` on `run-instances`)         
 3. Specifying the `--qyery` as `'KeyMaterial'` reduces the output (without this, we'd get the full JSON blob)             
 4. `output text` ensures the key is saved cleanly without quotes or escape characters     
 5. `--profile` uses the `dev-deploy` profile credentials to run the command, then redirects (`>`) the output into a `.pem` file in our SSH directory
@@ -147,7 +147,7 @@ The `.pem` file also needs special permissions:
 ```{bash}
 #| eval: false 
 #| code-fold: false
-chmod 400 ~/.ssh/vetiver-deploy-key.pem
+chmod 400 ~/.ssh/aws-dev.pem
 ```
 
 `chmod 400` means only we can view this file's contents. We can't even edit it (would need `chmod 600` for that), and no one else can read, write, or execute it. This key lets you SSH in later. **Treat the `.pem` file like a password.**
@@ -161,13 +161,13 @@ Now we're going to create a security group for the EC2 instance. A security grou
 #| code-fold: false
 # create EC2 security group
 aws ec2 create-security-group \#<1>
-  --group-name vetiver-sg \ #<2>
+  --group-name dev-sg \ #<2>
   --description "Allow SSH and API traffic" \ #<3>
   --profile dev-deploy #<4>
 ```
 
 1.  Creates a new security group, which acts as a virtual firewall for EC2 instances\
-2.  Names the security group `vetiver-sg`\
+2.  Names the security group `dev-sg`\
 3.  Adds a human-readable description explaining the group's purpose\
 4.  Uses the `dev-deploy` AWS credentials profile to run the command
 
@@ -186,7 +186,7 @@ co_box(
   contents = "
 
 1. `aws ec2 create-security-group` doesn't allow any traffic yet, it just creates an empty rule set  
-2. `vetiver-sg` is used later to reference the group when adding rules or launching instances.  
+2. `dev-sg` is used later to reference the group when adding rules or launching instances.  
 3. `--description` provides documentation (has no effect on actual firewall behavior)
 4. `--profile` determines which AWS account and permissions are used (in our case, `dev-deploy`)
 
@@ -199,8 +199,8 @@ This will return a JSON with the following:
 
 ```{verbatim}
 {
-    "GroupId": "sg-0884d49f913b38416",
-    "SecurityGroupArn": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/sg-0884d49f913b38416"
+    "GroupId": "sg-0e9755972fca797a2",
+    "SecurityGroupArn": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/sg-0e9755972fca797a2"
 }
 ```
 
@@ -212,9 +212,9 @@ The security group was created successfully! AWS handed back its ID and ARN so w
 
 The JSON response has two parts:
 
-* `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `vetiver-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
+* `GroupId` is the unique ID AWS assigned to our new security group. We'll use this ID (not the name `dev-sg`) in later commands, like attaching it to an EC2 instance or adding firewall rules.
 
-* `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`ACCOUNT_ID`), and the resource type/ID (`security-group/sg-0884d49f913b38416`), which is not something we need to memorize or protect as secret.
+* `SecurityGroupArn` is the full AWS resource identifier (ARN) for the new security group. It encodes the region (`us-east-1`), account number (`ACCOUNT_ID`), and the resource type/ID (`security-group/sg-0e9755972fca797a2`), which is not something we need to memorize or protect as secret.
 
 We can view the new security group in the **AWS Console** by searching for **Security Groups**:
 
@@ -247,14 +247,14 @@ Replace `OUR_IP` with the IP address returned above and run the command:
 #| code-fold: false
 # auth EC2 security group
 aws ec2 authorize-security-group-ingress \ #<1>
-  --group-name vetiver-sg \ #<2>
+  --group-name dev-sg \ #<2>
   --protocol tcp --port 22 \ #<3>
   --cidr OUR_IP/32 \ #<4>
   --profile dev-deploy #<5>
 ```
 
 1.  Adds an inbound (incoming traffic) rule to an existing security group\
-2.  Specifies which security group the new rule applies to, in this case `vetiver-sg`\
+2.  Specifies which security group the new rule applies to, in this case `dev-sg`\
 3.  Allows TCP traffic specifically on port 22\
 4.  Restricts access to a single IP address using CIDR notation\
 5.  Runs the command using the `dev-deploy` credentials profile
@@ -274,7 +274,7 @@ co_box(
   contents = "
   
 1. Without `authorize-security-group-ingress`, the security group blocks all traffic by default  
-2. ` --group-name vetiver-sg` links the rule to the firewall created earlier with `create-security-group`     
+2. ` --group-name dev-sg` links the rule to the firewall created earlier with `create-security-group`     
 3. Port 22 is the standard port used for SSH connections.  
 4. The `/32` means exactly one IP is allowed, no range.  
 5. `--profile dev-deploy` ensures the rule is added to the correct AWS account  
@@ -292,7 +292,7 @@ These commands should return something like the following:
     "SecurityGroupRules": [
         {
             "SecurityGroupRuleId": "sgr-016b1800a27252666",
-            "GroupId": "sg-0884d49f913b38416",
+            "GroupId": "sg-0e9755972fca797a2",
             "GroupOwnerId": "ACCOUNT_ID",
             "IsEgress": false,
             "IpProtocol": "tcp",
@@ -318,7 +318,7 @@ We successfully opened port 22 (SSH) so only our current IP can attempt to conne
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | `"SecurityGroupRuleId": "sgr-016b1800a27252666"`    | The unique ID AWS assigned to this specific rule. Useful if we ever want to modify or delete just this rule later.                                           |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| `"GroupId": "sg-0884d49f913b38416"`                 | Confirms which security group this rule belongs to, in this case, `vetiver-sg`.                                                                              |
+| `"GroupId": "sg-0e9755972fca797a2"`                 | Confirms which security group this rule belongs to, in this case, `dev-sg`.                                                                              |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | `"GroupOwnerId": "ACCOUNT_ID"`                      | Our AWS account number. Confirms the rule lives in our account.                                                                                              |
 +-----------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -377,7 +377,7 @@ Do **not** open the app's own port (`8000/tcp` for a typical Python app). If the
 )
 ```
 
-Since our end goal is pulling `vetiver` models from an S3 bucket onto the instance, we need the IAM role before launching the instance. Attaching an instance profile at launch is easier than attaching it later.
+Since our end goal is pulling models from an S3 bucket onto the instance, we need the IAM role before launching the instance. Attaching an instance profile at launch is easier than attaching it later.
 
 ## Creating an IAM Role for S3 Access
 
@@ -503,7 +503,7 @@ The role now exists as an *identity*, with the trust policy saying "*only EC2 ca
 
 #### Attach Permission Policy
 
-Next we need to grant the role read-only access to all S3 buckets, using an AWS-managed policy (predefined by AWS, not custom-written). This is what actually lets it fetch our `vetiver` model files.
+Next we need to grant the role read-only access to all S3 buckets, using an AWS-managed policy (predefined by AWS, not custom-written). This is what actually lets it fetch our model files.
 
 ```{bash}
 #| eval: false 
@@ -615,8 +615,8 @@ AMI_ID=$(aws ec2 describe-images \
 aws ec2 run-instances \
   --image-id "$AMI_ID" \
   --instance-type t3.micro \
-  --key-name vetiver-deploy-key \
-  --security-groups vetiver-sg \
+  --key-name aws-dev \
+  --security-groups dev-sg \
   --iam-instance-profile Name=ec2-s3-instance-profile \
   --profile dev-deploy
 ```
@@ -678,8 +678,8 @@ graph TD
     Role --"attached policy"--> C[/"AmazonS3ReadOnlyAccess"/]
     Role --> Prof("ec2-s3-instance-profile")
     Prof --> E["EC2 Instance:<br><strong>i-0069201f3688cec43</strong>"]
-    E --> F{{"Security Group:<br><strong>vetiver-sg</strong>"}}
-    E --> G("SSH Key:<br><strong>vetiver-deploy-key</strong>")
+    E --> F{{"Security Group:<br><strong>dev-sg</strong>"}}
+    E --> G("SSH Key:<br><strong>aws-dev</strong>")
     
 
     style Role fill:#1B2A41,stroke:#000000,stroke-width:1px,font-size:14px,text-align:center,font-family:monospace,color:#ffffff
@@ -693,4 +693,4 @@ graph TD
 
 This mirrors a GitHub Actions setup: scoped permissions, no long-lived secrets sitting around, minimal blast radius if compromised.
 
-In the next lab, we'll cover uploading the `vetiver` model data in an S3 bucket.
+In the next lab, we'll cover uploading the model data to an S3 bucket.
