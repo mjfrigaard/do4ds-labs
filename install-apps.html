@@ -768,20 +768,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from your local machine:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="dt">\</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0069201f3688cec43 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>A stopped instance gets a new public IP address when it starts again (unless it has an Elastic IP), so look up the current one:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0069201f3688cec43 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then connect with the private key from <a href="./aws-ssh-ec2.html">AWS Server Login</a>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/<span class="op">&lt;</span>your-key-file-name<span class="op">&gt;</span>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If <code>ssh</code> hangs and ends with <code>Connection timed out</code>, my own IP address has probably changed since I added the port 22 rule to <code>dev-sg</code>. Check the current address and add a rule for it:</p>
 <div class="cell">
@@ -792,26 +792,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--cidr</span> YOUR_IP/32 <span class="dt">\</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The Amazon Linux 2 banner and a <code>[ec2-user@ip-...]$</code> prompt mean I’m on the instance:</p>
+<p>The Amazon Linux 2023 banner and a <code>[ec2-user@ip-...]$</code> prompt mean I’m on the instance:</p>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Last login: Thu Nov 12 15:22:56 2026 from YOUR_IP</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Last login: Fri Nov 20 21:25:16 2026 from YOUR_IP</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2023</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  ~~  \_#####\</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  ~~     \###|       AL2 End of Life is 2026-06-30.</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  ~~     \###|</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ~~~         /    A newer version of Amazon Linux is available!</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ~~~         /</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      ~~._.   _/</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         _/ _/</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       _/m/'</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>[ec2-user@ip-xxx-xx-x-xxx ~]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="finding-your-applications" class="level2">
 <h2 class="anchored" data-anchor-id="finding-your-applications">Finding your applications</h2>
-<p>Installing an application and being able to <em>run</em> it are two different problems. A package manager like <code>yum</code> puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn’t check. That’s when a command I know is installed comes back as <code>command not found</code>.</p>
+<p>Installing an application and being able to <em>run</em> it are two different problems. A package manager like <code>dnf</code> puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn’t check. That’s when a command I know is installed comes back as <code>command not found</code>.</p>
 <section id="the-path-variable" class="level3">
 <h3 class="anchored" data-anchor-id="the-path-variable">The <code>PATH</code> variable</h3>
 <p><code>PATH</code> is an environment variable holding a colon separated list of directories. When I type a command, the shell walks that list from left to right and runs the first matching executable it finds. It never searches the whole filesystem.</p>
@@ -1042,7 +1042,7 @@ graph TD
 <p>EC2 instances don’t ship with current versions of R or Python, so this section installs both on the instance we’ve SSH’d into.</p>
 <section id="python-version" class="level3">
 <h3 class="anchored" data-anchor-id="python-version">Python version</h3>
-<p>The Python already on the instance belongs to the operating system. Amazon Linux 2 uses it for <code>yum</code> and other internal tooling, so upgrading it or installing packages into it with <code>sudo pip install</code> risks breaking the box itself.</p>
+<p>The Python already on the instance belongs to the operating system. AL2023 uses it for <code>dnf</code> and other internal tooling, so upgrading it or installing packages into it with <code>sudo pip install</code> risks breaking the box itself.</p>
 <p>The safer pattern is to install your own Python into <code>/opt</code>, leave the system copy alone, and create virtual environments from the <code>/opt</code> copy (the steps that build it are in <a href="#building-python-from-source">Building Python from source</a> below):</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/python/3.12.1/bin/python3.12</span> <span class="at">-m</span> venv ~/my-app/venv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1059,7 +1059,7 @@ graph TD
 <section id="r-version" class="level3">
 <h3 class="anchored" data-anchor-id="r-version">R version</h3>
 <p>R has no equivalent system dependency, so multiple versions can coexist in <code>/opt/R</code> without conflict. <a href="https://github.com/r-lib/rig"><code>rig</code></a>, the R Installation Manager, handles installing and switching between them.</p>
-<p><code>rig</code> isn’t in the Amazon Linux 2 repositories, so install it first. The portable Linux build is a tarball that unpacks into <code>/usr/local</code>, which puts <code>rig</code> in <code>/usr/local/bin</code> and on the <code>PATH</code> for every account:</p>
+<p><code>rig</code> isn’t in the AL2023 repositories, so install it first. The portable Linux build is a tarball that unpacks into <code>/usr/local</code>, which puts <code>rig</code> in <code>/usr/local/bin</code> and on the <code>PATH</code> for every account:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-Ls</span> https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz <span class="kw">|</span> <span class="fu">sudo</span> tar xz <span class="at">-C</span> /usr/local</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -1194,7 +1194,7 @@ Table&nbsp;2: rig versus rix
 <h3 class="anchored" data-anchor-id="system-libraries">System libraries</h3>
 <p>Both languages depend on system libraries that neither one installs for you. A package that compiles from source will fail with a missing header error until the matching development package is present:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install <span class="at">-y</span> libcurl-devel openssl-devel libxml2-devel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> libcurl-devel openssl-devel libxml2-devel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>These are the three that account for most failed installs of <code>curl</code>, <code>openssl</code>, and <code>xml2</code>, and every R or Python package that depends on them.</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
@@ -1210,7 +1210,7 @@ graph TD
     OptPy(["Your Python&lt;br/&gt;&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;isolated version&lt;/em&gt;"])
     Venv("Virtual Env&lt;br/&gt;&lt;strong&gt;~/my-app/venv&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;project packages&lt;/em&gt;")
 
-    SysPy --&gt;|"leave untouched"| SysTools("yum, AWS CLI,&lt;br/&gt;OS internal tools")
+    SysPy --&gt;|"leave untouched"| SysTools("dnf, AWS CLI,&lt;br/&gt;OS internal tools")
     OptPy --&gt;|"create venv from"| Venv
     Venv --&gt;|"install packages to"| Packages("&lt;strong&gt;pip install&lt;br/&gt;my-packages&lt;/strong&gt;")
 
@@ -1240,14 +1240,14 @@ graph TD
 </section>
 <section id="building-python-from-source" class="level3">
 <h3 class="anchored" data-anchor-id="building-python-from-source">Building Python from source</h3>
-<p>The packaged Python is sometimes too old for what you need to run. Amazon Linux 2 ships with 3.7:</p>
+<p>The packaged Python is sometimes too old for what you need to run. AL2023 ships with 3.9:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>Python 3.7.16</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>Python 3.9.25</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>That’s the copy <code>yum</code> depends on, so upgrading it in place is off the table. The fix is the <code>/opt</code> pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.</p>
+<p>That’s the copy <code>dnf</code> depends on, so upgrading it in place is off the table. The fix is the <code>/opt</code> pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1261,13 +1261,13 @@ graph TD
     Yes("Use it directly")
     Build("Build into&lt;br/&gt;&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;")
     Venv("&lt;strong&gt;/opt/myapp/.venv&lt;/strong&gt;")
-    Sys["&lt;strong&gt;/usr/bin/python3&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;3.7, owned by yum&lt;/em&gt;"]
+    Sys["&lt;strong&gt;/usr/bin/python3&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;3.9, owned by dnf&lt;/em&gt;"]
 
-    Check --"yes (AL2023, Ubuntu 22.04+)"--&gt; Yes
-    Check --"no (Amazon Linux 2)"--&gt; Build
+    Check --"yes (Ubuntu 24.04)"--&gt; Yes
+    Check --"no (AL2023)"--&gt; Build
     Yes --&gt; Venv
     Build --"&lt;em&gt;python3 -m venv&lt;/em&gt;"--&gt; Venv
-    Sys --"&lt;em&gt;leave for&lt;/em&gt;"--&gt; Yum("yum, OS tooling")
+    Sys --"&lt;em&gt;leave for&lt;/em&gt;"--&gt; Yum("dnf, OS tooling")
 
     style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
     style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
@@ -1283,10 +1283,10 @@ graph TD
 </div>
 <p>Install the compiler and the development headers first, plus a few that Python needs for <code>ssl</code>, <code>bz2</code>, and <code>ctypes</code> support:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum groupinstall <span class="at">-y</span> <span class="st">"Development Tools"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf groupinstall <span class="at">-y</span> <span class="st">"Development Tools"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install <span class="at">-y</span> openssl-devel bzip2-devel libffi-devel zlib-devel git</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> openssl-devel bzip2-devel libffi-devel zlib-devel git</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Download and unpack the source:</p>
 <div class="cell">
@@ -1342,23 +1342,18 @@ graph TD
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
-<p>The interpreter you just built has no SSL support, so pip can’t reach PyPI over HTTPS at all. The cause traces back to the <code>./configure</code> step: Amazon Linux 2’s default <code>openssl-devel</code> package is OpenSSL 1.0.2k, and Python 3.10 and newer require 1.1.1 or later to build the <code>_ssl</code> extension. Configure looked for a new enough OpenSSL, didn’t find one, and silently skipped the module rather than failing the build. <code>make altinstall</code> finished without complaint because none of the steps you ran so far touch SSL, so the problem doesn’t show up until pip tries to talk to the internet.</p>
-<p>AL2 ships that newer OpenSSL under a separate package, <code>openssl11</code>, but its <code>-devel</code> package can’t be installed alongside the old one: both own the same header path, <code>/usr/include/openssl/*.h</code>, so <code>yum</code> refuses with a conflict rather than letting them collide. The fix is to swap the devel package out, build, then swap it back, since Python only needs the headers at build time, not at runtime:</p>
+<p>The interpreter you just built has no SSL support, so pip can’t reach PyPI over HTTPS at all. The cause traces back to the <code>./configure</code> step: it looks for the OpenSSL headers from <code>openssl-devel</code>, and if they’re missing it silently skips the <code>_ssl</code> module instead of failing the build. <code>make altinstall</code> finishes without complaint, so the problem doesn’t show up until pip tries to talk to the internet.</p>
+<p>On AL2023, <code>openssl-devel</code> is OpenSSL 3, which Python 3.12 builds against without any extra flags. The usual cause is skipping the <code>dnf install</code> step above (or running <code>./configure</code> before it finished). Install the headers and rebuild:</p>
 <blockquote class="blockquote">
-<p><code>sudo yum remove -y openssl-devel</code></p>
-<p><code>sudo yum install -y openssl11-devel</code></p>
+<p><code>sudo dnf install -y openssl-devel</code></p>
 <p><code>cd /tmp/Python-3.12.1</code></p>
 <p><code>sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations</code></p>
 <p><code>sudo make altinstall</code></p>
 </blockquote>
-<p>Python’s configure script checks for <code>openssl11</code> via <code>pkg-config</code> before falling back to the system default, which is what makes this work without a <code>--with-openssl</code> flag. You don’t need to redownload the source or delete the existing <code>/opt/python/3.12.1</code> tree, <code>altinstall</code> overwrites in place.</p>
-<p>Confirm the module actually built this time before retrying the venv:</p>
+<p>You don’t need to redownload the source or delete the existing <code>/opt/python/3.12.1</code> tree; <code>altinstall</code> overwrites in place.</p>
+<p>Confirm the module built this time before retrying the venv:</p>
 <p><code>/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'</code></p>
-<p>That should print an OpenSSL 1.1.1 version string, not a traceback. Once it does, put the original devel package back so other builds on the box aren’t left pointing at <code>openssl11</code>:</p>
-<blockquote class="blockquote">
-<p><code>sudo yum remove -y openssl11-devel</code></p>
-<p><code>sudo yum install -y openssl-devel</code></p>
-</blockquote>
+<p>That should print an OpenSSL 3 version string, not a traceback.</p>
 </div>
 </div>
 </div>

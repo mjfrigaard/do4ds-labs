@@ -762,15 +762,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <blockquote class="blockquote">
 <p>“<em>What are two different ways to install Linux applications, and what are the commands?</em>”</p>
 </blockquote>
-<p>My instance is Amazon Linux 2, so the system package manager is <code>yum</code>, not Ubuntu’s <code>apt</code>:</p>
+<p>My instance is Amazon Linux 2023 (AL2023), so the system package manager is <code>dnf</code>, not Ubuntu’s <code>apt</code>:</p>
 <ul>
-<li><p><code>sudo yum install &lt;package&gt;</code> pulls a package (and its dependencies) from AL2’s configured repositories.</p>
+<li><p><code>sudo dnf install &lt;package&gt;</code> pulls a package (and its dependencies) from AL2023’s configured repositories.</p>
 <ul>
-<li><code>sudo yum update</code> keeps everything already installed current.</li>
+<li><code>sudo dnf upgrade</code> keeps everything already installed current.</li>
 </ul></li>
 <li><p>For software that isn’t in the repos, I download the package myself with <code>wget &lt;url&gt;</code> and install it directly:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum localinstall <span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install ./<span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> <span class="op">&lt;</span>package<span class="op">&gt;</span>.rpm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -782,7 +782,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>“<em>What does it mean to daemonize a Linux application? What programs and commands are used to do so?</em>”</p>
 </blockquote>
 <p>Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session, instead of a process that dies the moment I close my SSH connection.</p>
-<p>On AL2, <code>systemd</code> is the program that manages this, and <code>systemctl</code> is how I talk to it:</p>
+<p>On AL2023, <code>systemd</code> is the program that manages this, and <code>systemctl</code> is how I talk to it:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -869,7 +869,7 @@ graph TD
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
-<li><p>On Amazon Linux 2, <code>sudo yum install</code> pulls a package and its dependencies from the configured repositories. A downloaded <code>.rpm</code> installed with <code>yum localinstall</code> or <code>rpm -i</code> is my second choice, because it can’t lean on the repositories for dependencies.</p></li>
+<li><p>On AL2023, <code>sudo dnf install</code> pulls a package and its dependencies from the configured repositories. A downloaded <code>.rpm</code> installed with <code>dnf install ./&lt;package&gt;.rpm</code> or <code>rpm -i</code> is my second choice, because it can’t lean on the repositories for dependencies.</p></li>
 <li><p>Daemonizing hands the app to <code>systemd</code>: write a unit file in <code>/etc/systemd/system</code>, then run <code>systemctl daemon-reload</code> and <code>systemctl enable --now</code>. <code>User=</code>, an absolute <code>ExecStart</code> path, and <code>Restart=on-failure</code> do most of the work, because <code>systemd</code> runs the command with no shell.</p></li>
 <li><p><code>enable --now</code> only means <code>systemd</code> tried. I confirm with <code>systemctl status</code> (looking for <code>active (running)</code> and <code>enabled</code>) and read <code>journalctl -u &lt;name&gt;</code> when it fails.</p></li>
 <li><p>Nano shows its keybindings and exits with <code>Ctrl + X</code>; Vim opens silently in normal mode and exits without saving with <code>Esc</code>, then <code>:q!</code>. <code>chmod 600</code> makes a file like <code>secrets.txt</code> readable only by its owner.</p></li>
