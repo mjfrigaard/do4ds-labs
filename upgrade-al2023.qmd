@@ -289,7 +289,7 @@ The login is the same as before: same private key, same `ec2-user` account, new 
 ```{bash}
 #| eval: false
 #| code-fold: false
-ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@NEW_PUBLIC_IP_ADDRESS
+ssh -i ~/.ssh/aws-dev.pem ec2-user@NEW_PUBLIC_IP_ADDRESS
 ```
 
 The first connection asks me to confirm the host's fingerprint, because my machine has never seen this server. Type `yes`. The AL2023 banner confirms I'm on the new instance:
@@ -313,9 +313,9 @@ Warning: Permanently added 'NEW_PUBLIC_IP_ADDRESS' (ED25519) to the list of know
 
 :::
 
-If `ssh` times out instead, the port 22 rule in `dev-sg` probably doesn't match my current IP address. The fix is in [Logging into the instance](install-apps.qmd#logging-into-the-instance).
+If `ssh` times out instead, the port 22 rule in `dev-sg` probably doesn't match my current IP address. This fix is covered in the next chapter ([Logging into the instance](install-apps.qmd#logging-into-the-instance)).
 
-I can confirm the operating system and the glibc version that caused the original failure:
+I can confirm the operating system and the `glibc` version that caused the original failure:
 
 ```{bash}
 #| eval: false
@@ -337,19 +337,144 @@ ldd (GNU libc) 2.34
 
 Most of what this book puts on the instance comes from somewhere else: data from S3, code from GitHub, and software from installers. Anything I've changed by hand on the old instance is the exception. For me that's my `~/.bashrc` and a few scratch files.
 
-I copy them through my local machine with `scp`, which works over the same SSH connection. Run these from the local machine, not from either instance:
+I copy them through my local machine with `scp`, which works over the same SSH connection.
+
+`scp` (secure copy) needs nothing new: it uses the key we already log in with, the port 22 rule already in the security group, and it comes installed on macOS, Linux, Windows, and both instances. The file is encrypted on the way, just like an SSH session. Copying through the local machine also means the private key never has to go onto a server, which it would if one instance copied straight to the other.
+
+Both commands need two things: the private key and each instance's public IP address.
+
+The key is the `.pem` file that `create-key-pair` saved in [Stand up an EC2 instance](aws-ec2.qmd): `~/.ssh/aws-dev.pem`. We launched the new instance with the same key pair, so one file opens both instances.
+
+For the IP addresses, I list the running instances from the local machine:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-scp -i ~/.ssh/<your-key-file-name>.pem \
-  ec2-user@OLD_PUBLIC_IP_ADDRESS:~/.bashrc ./bashrc-al2
+# don't run this on either instances
+aws ec2 describe-instances \ #<1>
+  --filters "Name=instance-state-name,Values=running" \ #<2>
+  --query "Reservations[].Instances[].[InstanceId,PublicIpAddress,Tags[?Key=='Name']|[0].Value]" \ #<3>
+  --output text \ #<4>
+  --profile dev-deploy #<5>
+```
+1. Returns the details for every instance in the region.
+2. Keeps only instances that are running.
+3. Keeps the instance ID, the public IP address, and the `Name` tag of each one.
+4. Prints one instance per line as plain text.
+5. Uses the `dev-deploy` credentials.
 
-scp -i ~/.ssh/<your-key-file-name>.pem \
-  ./bashrc-al2 ec2-user@NEW_PUBLIC_IP_ADDRESS:~/bashrc-al2
+::: {style="font-style: italic;"}
+
+```{verbatim}
+i-0069201f3688cec43	OLD_PUBLIC_IP_ADDRESS	None
+i-0514a57a209efcf56	NEW_PUBLIC_IP_ADDRESS	dev-al2023
 ```
 
-I copy the old `.bashrc` under a different name on purpose. AL2023 ships its own `.bashrc`, so I compare the two and move over only the lines I added (like `PATH` changes), instead of overwriting the new file.
+:::
+
+The new instance has the `dev-al2023` tag we added at launch. The old one has no `Name` tag (`None`), and its ID matches the one from [Stand up an EC2 instance](aws-ec2.qmd). I store both addresses in shell variables, so the `scp` commands don't need editing:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+OLD_IP=OLD_PUBLIC_IP_ADDRESS
+NEW_IP=NEW_PUBLIC_IP_ADDRESS
+```
+
+Run these from the local machine, not from either instance. The first downloads `~/.bashrc` from the old instance and saves it locally as `bashrc-al2`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+scp -i ~/.ssh/aws-dev.pem \
+  ec2-user@"$OLD_IP":~/.bashrc ./bashrc-al2
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+.bashrc                         100%  274     1.9KB/s   00:00
+```
+
+:::
+
+The second uploads `bashrc-al2` to the home directory on the new instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+scp -i ~/.ssh/aws-dev.pem \
+  ./bashrc-al2 ec2-user@"$NEW_IP":~/bashrc-al2
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+bashrc-al2                      100%  274     3.8KB/s   00:00
+```
+
+:::
+
+Each `scp` prints the file name, the percent copied, the size in bytes, the transfer speed, and the time it took.
+
+If the first `scp` hangs and then fails like this, the old instance's security group doesn't allow my current IP address:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+ssh: connect to host OLD_PUBLIC_IP_ADDRESS port 22: Connection timed out
+scp: Connection closed
+```
+
+:::
+
+My home IP changes now and then, and each security group keeps its own port 22 rule. The new group has the current address because I just created it, but the old one still has the address from when I launched the old instance. The fix is the same as for `ssh`: replace the old address in the old security group (see [Logging into the instance](install-apps.qmd#logging-into-the-instance)).
+
+I copy the old `.bashrc` under a different name on purpose. AL2023 ships its own `.bashrc`, so I compare the two and move over only the lines I added (like `PATH` changes), instead of overwriting the new file. The comparison runs on the new instance, so I log in first:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/aws-dev.pem ec2-user@"$NEW_IP"
+diff ~/bashrc-al2 ~/.bashrc
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+7a8,14
+> # User specific environment
+> if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+> then
+>     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+> fi
+> export PATH
+>
+12c19,27
+< export PATH="/opt/python/3.12.1/bin:$PATH"
+---
+> if [ -d ~/.bashrc.d ]; then
+>     for rc in ~/.bashrc.d/*; do
+>         if [ -f "$rc" ]; then
+>             . "$rc"
+>         fi
+>     done
+> fi
+>
+> unset rc
+```
+
+:::
+
+Lines starting with `<` are only in the old file, and lines starting with `>` are only in the new one. The `>` lines are AL2023's defaults: it adds `~/.local/bin` and `~/bin` to `PATH`, and it loads every file in `~/.bashrc.d`. The only line I added on AL2 is the `/opt/python` `PATH` entry, and it points to software that isn't on the new instance (see below). So there's nothing to move over, and I delete the copy:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+rm ~/bashrc-al2
+```
+
+If I do have lines to keep, I put them in a file under `~/.bashrc.d` (for example, `~/.bashrc.d/paths.sh`) instead of editing `~/.bashrc`. The new `.bashrc` loads them, and my changes stay separate from AL2023's defaults.
 
 Don't copy software installed under `/opt` or `/usr/local`. It was built against AL2's libraries and may not run on AL2023. [Install Apps](install-apps.qmd) reinstalls it on the new instance.
 
@@ -377,6 +502,11 @@ Once the new instance has everything I need, the old one only costs money. Befor
 #| eval: false
 #| code-fold: false
 ls -la ~
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 ls /opt
 ```
 
@@ -406,7 +536,37 @@ aws ec2 terminate-instances \
   --profile dev-deploy
 ```
 
-The response shows the state changing from `running` to `shutting-down`. After a few minutes, `describe-instances` reports it as `terminated`.
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-0069201f3688cec43",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+```
+
+:::
+
+The response shows the state changing from `running` (code 16) to `shutting-down` (code 32). To wait until it's gone, `aws ec2 wait` works here too. It returns with no output once the instance is `terminated`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 wait instance-terminated \
+  --instance-ids i-0069201f3688cec43 \
+  --profile dev-deploy
+```
 
 The remaining chapters use the new instance ID wherever an instance ID appears. If you followed along, replace it with your own.
 

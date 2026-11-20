@@ -599,14 +599,14 @@ graph TD
 
 #### Launch EC2
 
-The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup. The first command looks up the newest Amazon Linux 2023 AMI, so the instance never starts from an outdated image (see [Upgrade to Amazon Linux 2023](upgrade-al2023.qmd)):
+The commands below launch the EC2 instance with the role (and instance profile) already attached. As soon as it boots, it can pull from S3 without any manual credential setup. The first command looks up the newest Amazon Linux 2 (AL2) AMI, so the instance starts from the latest AL2 build instead of an outdated image. AL2 reached end of life on 2026-06-30, but it's fine for the SSH, user, and shell work in Labs 7 through 9. Lab 10 replaces it with Amazon Linux 2023 (see [Upgrade to Amazon Linux 2023](upgrade-al2023.qmd)):
 
 ```{bash}
 #| eval: false 
 #| code-fold: false
 AMI_ID=$(aws ec2 describe-images \
   --owners amazon \
-  --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
+  --filters "Name=name,Values=amzn2-ami-kernel-5.10-hvm-2.0.*-x86_64-gp2" \
             "Name=state,Values=available" \
   --query "sort_by(Images, &CreationDate)[-1].ImageId" \
   --output text \

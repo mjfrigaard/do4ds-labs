@@ -30,7 +30,7 @@ Every command in this chapter runs on the EC2 instance, so the first step is get
 #| eval: false
 #| code-fold: false
 aws ec2 start-instances \
-  --instance-ids i-0069201f3688cec43 \
+  --instance-ids i-0514a57a209efcf56 \
   --profile dev-deploy
 ```
 
@@ -40,7 +40,7 @@ A stopped instance gets a new public IP address when it starts again (unless it 
 #| eval: false
 #| code-fold: false
 aws ec2 describe-instances \
-  --instance-ids i-0069201f3688cec43 \
+  --instance-ids i-0514a57a209efcf56 \
   --query "Reservations[*].Instances[*].PublicIpAddress" \
   --output text \
   --profile dev-deploy
@@ -51,7 +51,7 @@ Then connect with the private key from [AWS Server Login](aws-ssh-ec2.qmd):
 ```{bash}
 #| eval: false
 #| code-fold: false
-ssh -i ~/.ssh/<your-key-file-name>.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
+ssh -i ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
 ```
 
 If `ssh` hangs and ends with `Connection timed out`, my own IP address has probably changed since I added the port 22 rule to `dev-sg`. Check the current address and add a rule for it:
@@ -67,22 +67,22 @@ aws ec2 authorize-security-group-ingress \
   --profile dev-deploy
 ```
 
-The Amazon Linux 2 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance:
+The Amazon Linux 2023 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance:
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-Last login: Thu Nov 12 15:22:56 2026 from YOUR_IP
+Last login: Fri Nov 20 21:25:16 2026 from YOUR_IP
    ,     #_
-   ~\_  ####_        Amazon Linux 2
+   ~\_  ####_        Amazon Linux 2023
   ~~  \_#####\
-  ~~     \###|       AL2 End of Life is 2026-06-30.
-  ~~       \#/ ___
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
    ~~       V~' '->
-    ~~~         /    A newer version of Amazon Linux is available!
+    ~~~         /
       ~~._.   _/
-         _/ _/       Amazon Linux 2023, GA and supported until 2029-06-30.
-       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+         _/ _/
+       _/m/'
 
 [ec2-user@ip-xxx-xx-x-xxx ~]$
 ```
@@ -91,7 +91,7 @@ Last login: Thu Nov 12 15:22:56 2026 from YOUR_IP
 
 ## Finding your applications
 
-Installing an application and being able to *run* it are two different problems. A package manager like `yum` puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn't check. That's when a command I know is installed comes back as `command not found`.
+Installing an application and being able to *run* it are two different problems. A package manager like `dnf` puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn't check. That's when a command I know is installed comes back as `command not found`.
 
 ### The `PATH` variable
 
@@ -332,7 +332,7 @@ EC2 instances don't ship with current versions of R or Python, so this section i
 
 ### Python version
 
-The Python already on the instance belongs to the operating system. Amazon Linux 2 uses it for `yum` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
+The Python already on the instance belongs to the operating system. AL2023 uses it for `dnf` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
 
 The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy (the steps that build it are in [Building Python from source](#building-python-from-source) below):
 
@@ -362,7 +362,7 @@ deactivate
 
 R has no equivalent system dependency, so multiple versions can coexist in `/opt/R` without conflict. [`rig`](https://github.com/r-lib/rig), the R Installation Manager, handles installing and switching between them.
 
-`rig` isn't in the Amazon Linux 2 repositories, so install it first. The portable Linux build is a tarball that unpacks into `/usr/local`, which puts `rig` in `/usr/local/bin` and on the `PATH` for every account:
+`rig` isn't in the AL2023 repositories, so install it first. The portable Linux build is a tarball that unpacks into `/usr/local`, which puts `rig` in `/usr/local/bin` and on the `PATH` for every account:
 
 ```{bash}
 #| eval: false
@@ -554,7 +554,7 @@ Both languages depend on system libraries that neither one installs for you. A p
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo yum install -y libcurl-devel openssl-devel libxml2-devel
+sudo dnf install -y libcurl-devel openssl-devel libxml2-devel
 ```
 
 These are the three that account for most failed installs of `curl`, `openssl`, and `xml2`, and every R or Python package that depends on them.
@@ -570,7 +570,7 @@ graph TD
     OptPy(["Your Python<br/><strong>/opt/python/3.12.1</strong><br/><em>isolated version</em>"])
     Venv("Virtual Env<br/><strong>~/my-app/venv</strong><br/><em>project packages</em>")
 
-    SysPy -->|"leave untouched"| SysTools("yum, AWS CLI,<br/>OS internal tools")
+    SysPy -->|"leave untouched"| SysTools("dnf, AWS CLI,<br/>OS internal tools")
     OptPy -->|"create venv from"| Venv
     Venv -->|"install packages to"| Packages("<strong>pip install<br/>my-packages</strong>")
 
@@ -595,7 +595,7 @@ graph TD
 
 ### Building Python from source
 
-The packaged Python is sometimes too old for what you need to run. Amazon Linux 2 ships with 3.7:
+The packaged Python is sometimes too old for what you need to run. AL2023 ships with 3.9:
 
 ```{bash}
 #| eval: false
@@ -606,12 +606,12 @@ python3 --version
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-Python 3.7.16
+Python 3.9.25
 ```
 
 :::
 
-That's the copy `yum` depends on, so upgrading it in place is off the table. The fix is the `/opt` pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.
+That's the copy `dnf` depends on, so upgrading it in place is off the table. The fix is the `/opt` pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.
 
 ```{mermaid}
 %%| fig-cap: 'Which Python Runs the App'
@@ -624,13 +624,13 @@ graph TD
     Yes("Use it directly")
     Build("Build into<br/><strong>/opt/python/3.12.1</strong>")
     Venv("<strong>/opt/myapp/.venv</strong>")
-    Sys["<strong>/usr/bin/python3</strong><br/><em>3.7, owned by yum</em>"]
+    Sys["<strong>/usr/bin/python3</strong><br/><em>3.9, owned by dnf</em>"]
 
-    Check --"yes (AL2023, Ubuntu 22.04+)"--> Yes
-    Check --"no (Amazon Linux 2)"--> Build
+    Check --"yes (Ubuntu 24.04)"--> Yes
+    Check --"no (AL2023)"--> Build
     Yes --> Venv
     Build --"<em>python3 -m venv</em>"--> Venv
-    Sys --"<em>leave for</em>"--> Yum("yum, OS tooling")
+    Sys --"<em>leave for</em>"--> Yum("dnf, OS tooling")
 
     style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
     style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
@@ -645,13 +645,13 @@ Install the compiler and the development headers first, plus a few that Python n
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo yum groupinstall -y "Development Tools"
+sudo dnf groupinstall -y "Development Tools"
 ```
 
 ```{bash}
 #| eval: false
 #| code-fold: false
-sudo yum install -y openssl-devel bzip2-devel libffi-devel zlib-devel git
+sudo dnf install -y openssl-devel bzip2-devel libffi-devel zlib-devel git
 ```
 
 Download and unpack the source:
@@ -729,13 +729,11 @@ co_box(
   header = "pip fails with 'ssl module is not available'",
   fold = TRUE,
   contents = "
-The interpreter you just built has no SSL support, so pip can't reach PyPI over HTTPS at all. The cause traces back to the `./configure` step: Amazon Linux 2's default `openssl-devel` package is OpenSSL 1.0.2k, and Python 3.10 and newer require 1.1.1 or later to build the `_ssl` extension. Configure looked for a new enough OpenSSL, didn't find one, and silently skipped the module rather than failing the build. `make altinstall` finished without complaint because none of the steps you ran so far touch SSL, so the problem doesn't show up until pip tries to talk to the internet.
+The interpreter you just built has no SSL support, so pip can't reach PyPI over HTTPS at all. The cause traces back to the `./configure` step: it looks for the OpenSSL headers from `openssl-devel`, and if they're missing it silently skips the `_ssl` module instead of failing the build. `make altinstall` finishes without complaint, so the problem doesn't show up until pip tries to talk to the internet.
 
-AL2 ships that newer OpenSSL under a separate package, `openssl11`, but its `-devel` package can't be installed alongside the old one: both own the same header path, `/usr/include/openssl/*.h`, so `yum` refuses with a conflict rather than letting them collide. The fix is to swap the devel package out, build, then swap it back, since Python only needs the headers at build time, not at runtime:
+On AL2023, `openssl-devel` is OpenSSL 3, which Python 3.12 builds against without any extra flags. The usual cause is skipping the `dnf install` step above (or running `./configure` before it finished). Install the headers and rebuild:
 
-> `sudo yum remove -y openssl-devel`
->
-> `sudo yum install -y openssl11-devel`
+> `sudo dnf install -y openssl-devel`
 >
 > `cd /tmp/Python-3.12.1`
 >
@@ -743,17 +741,13 @@ AL2 ships that newer OpenSSL under a separate package, `openssl11`, but its `-de
 >
 > `sudo make altinstall`
 
-Python's configure script checks for `openssl11` via `pkg-config` before falling back to the system default, which is what makes this work without a `--with-openssl` flag. You don't need to redownload the source or delete the existing `/opt/python/3.12.1` tree, `altinstall` overwrites in place.
+You don't need to redownload the source or delete the existing `/opt/python/3.12.1` tree; `altinstall` overwrites in place.
 
-Confirm the module actually built this time before retrying the venv:
+Confirm the module built this time before retrying the venv:
 
 `/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'`
 
-That should print an OpenSSL 1.1.1 version string, not a traceback. Once it does, put the original devel package back so other builds on the box aren't left pointing at `openssl11`:
-
-> `sudo yum remove -y openssl11-devel`
->
-> `sudo yum install -y openssl-devel`
+That should print an OpenSSL 3 version string, not a traceback.
   "
 )
 ```

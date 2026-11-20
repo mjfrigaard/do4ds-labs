@@ -28,16 +28,16 @@ This lab covers installing Linux packages, daemonizing an application with `syst
 
 > "*What are two different ways to install Linux applications, and what are the commands?*"
 
-My instance is Amazon Linux 2, so the system package manager is `yum`, not Ubuntu's `apt`:
+My instance is Amazon Linux 2023 (AL2023), so the system package manager is `dnf`, not Ubuntu's `apt`:
 
-* `sudo yum install <package>` pulls a package (and its dependencies) from AL2's configured repositories.
-  * `sudo yum update` keeps everything already installed current.
+* `sudo dnf install <package>` pulls a package (and its dependencies) from AL2023's configured repositories.
+  * `sudo dnf upgrade` keeps everything already installed current.
 * For software that isn't in the repos, I download the package myself with `wget <url>` and install it directly: 
 
   ```{bash}
   #| eval: false
   #| code-fold: false
-  sudo yum localinstall <package>.rpm
+  sudo dnf install ./<package>.rpm
   # or
   sudo rpm -i <package>.rpm
   ```
@@ -48,7 +48,7 @@ My instance is Amazon Linux 2, so the system package manager is `yum`, not Ubunt
 
 Daemonizing an application means running it as a background service that starts on boot, restarts if it crashes, and keeps running independent of any login session, instead of a process that dies the moment I close my SSH connection.
 
-On AL2, `systemd` is the program that manages this, and `systemctl` is how I talk to it:
+On AL2023, `systemd` is the program that manages this, and `systemctl` is how I talk to it:
 
 ```{mermaid}
 %%| fig-cap: 'Daemonizing with systemd'
@@ -147,7 +147,7 @@ chmod 600 secrets.txt
 
 ## Recap
 
-1. On Amazon Linux 2, `sudo yum install` pulls a package and its dependencies from the configured repositories. A downloaded `.rpm` installed with `yum localinstall` or `rpm -i` is my second choice, because it can't lean on the repositories for dependencies.
+1. On AL2023, `sudo dnf install` pulls a package and its dependencies from the configured repositories. A downloaded `.rpm` installed with `dnf install ./<package>.rpm` or `rpm -i` is my second choice, because it can't lean on the repositories for dependencies.
 
 2. Daemonizing hands the app to `systemd`: write a unit file in `/etc/systemd/system`, then run `systemctl daemon-reload` and `systemctl enable --now`. `User=`, an absolute `ExecStart` path, and `Restart=on-failure` do most of the work, because `systemd` runs the command with no shell.
 
