@@ -22,7 +22,9 @@ co_box(
 )
 ```
 
-The instance I launched in [Stand up an EC2 instance](aws-ec2.qmd) runs Amazon Linux 2 (AL2). That was fine when the book we written, but it breaks down once I start installing language runtimes. This chapter replaces it with an Amazon Linux 2023 (AL2023) instance. I've opted to keep both versions because it's likely you'll have to perform an upgrade (i.e., we need to before any of the installs in [Install Apps](install-apps.qmd)).
+The instance I launched in [Stand up an EC2 instance](aws-ec2.qmd) runs Amazon Linux 2 (AL2). This worked fine when [do4ds](https://do4ds.com/) was written, but it started breaking down once I started installing language runtimes. 
+
+This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I've opted to keep both versions because it's likely you'll have to perform an upgrade (i.e., we need to before any of the installs in [Install Apps](install-apps.qmd)).
 
 ## Why upgrade?
 
@@ -39,7 +41,9 @@ The login banner already hints at the problem:
 
 :::
 
-AL2 stopped receiving updates on that date. The bigger issue for this book is its C library. AL2 ships `glibc` 2.26, and modern prebuilt binaries expect something newer. I discovered this when I tried to install R with `rig`:
+AL2 stopped receiving updates on that date, so upgrading before the 'End of Life' is obviously idea. The issue for the examples in the book is the C library it uses. 
+
+AL2 ships `glibc` 2.26, and modern prebuilt binaries expect something newer. I discovered this when I tried to install R with `rig`:
 
 ```{bash}
 #| eval: false
@@ -76,6 +80,31 @@ Each one makes the move cheaper now than later.
 ## How the upgrade works
 
 There's no in-place upgrade from AL2 to AL2023. AWS treats AL2023 as a new operating system, so the upgrade means launching a new instance and retiring the old one. The diagram below shows the order.
+
+```{r}
+#| label: co_box_in_place_upgrade
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.05",
+  header = "In-place upgrade?",
+  fold = TRUE,
+  contents = "
+An in-place upgrade updates the operating system on the running instance instead of replacing it. It fits when the upgrade stays within one major version:
+
+* On AL2, `sudo yum update` installs security patches and package updates.
+* On AL2023, `sudo dnf upgrade --releasever=latest` moves the instance to the newest AL2023 release.
+
+Some other distributions also support a major version upgrade in place (Ubuntu has `do-release-upgrade`). That's reasonable for an instance that's hard to rebuild, as long as we take an EBS snapshot first so we can roll back.
+
+Moving between major versions in place is riskier: every package, library, and service changes at once, and a failure can leave the instance unable to boot. AL2 to AL2023 isn't offered at all, so we replace the instance. A replacement also gives us a clean system and keeps the old instance as a fallback until the new one works.
+"
+)
+```
 
 ```{mermaid}
 %%| fig-cap: 'Replacing an AL2 instance with AL2023'
