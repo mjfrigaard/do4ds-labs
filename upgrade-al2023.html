@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-22">
+<meta name="dcterms.date" content="2026-11-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Upgrade to Amazon Linux 2023 – DO4DS: Lab Solutions</title>
@@ -73,7 +73,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./install-apps.html" rel="next">
+<link href="./app-depends.html" rel="next">
 <link href="./lab10.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -583,8 +583,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install Apps</em></span></a>
+  <a href="./app-depends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>App Dependencies</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -676,6 +676,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./ssh-config.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">SSH config</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
   </div>
 </li>
@@ -731,7 +736,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-22</p>
+      <p class="date">2026-11-23</p>
     </div>
   </div>
   
@@ -762,7 +767,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>The instance I launched in <a href="./aws-ec2.html">Stand up an EC2 instance</a> runs Amazon Linux 2 (AL2). This worked fine when <a href="https://do4ds.com/">do4ds</a> was written, but it started breaking down once I started installing language runtimes.</p>
-<p>This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I’ve opted to keep both versions because it’s likely you’ll have to perform an upgrade (i.e., we need to before any of the installs in <a href="./install-apps.html">Install Apps</a>).</p>
+<p>This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I’ve opted to keep both versions because it’s likely you’ll have to perform an upgrade (i.e., we need to before any of the installs in <a href="./app-depends.html">App Dependencies</a>).</p>
 <section id="why-upgrade" class="level2">
 <h2 class="anchored" data-anchor-id="why-upgrade">Why upgrade?</h2>
 <p>The login banner already hints at the problem:</p>
@@ -1129,7 +1134,7 @@ flowchart TD
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>       _/m/'</span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>[ec2-user@ip-xxx-xx-x-xxx ~]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>If <code>ssh</code> times out instead, the port 22 rule in <code>dev-sg</code> probably doesn’t match my current IP address. This fix is covered in the next chapter (<a href="./install-apps.html#logging-into-the-instance">Logging into the instance</a>).</p>
+<p>If <code>ssh</code> times out instead, the port 22 rule in <code>dev-sg</code> probably doesn’t match my current IP address. This fix is covered in the next chapter (<a href="./app-depends.html#logging-into-the-instance">Logging into the instance</a>).</p>
 <p>I can confirm the operating system and the <code>glibc</code> version that caused the original failure:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> PRETTY_NAME /etc/os-release</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1215,7 +1220,7 @@ flowchart TD
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ssh: connect to host OLD_PUBLIC_IP_ADDRESS port 22: Connection timed out</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>scp: Connection closed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>My home IP changes now and then, and each security group keeps its own port 22 rule. The new group has the current address because I just created it, but the old one still has the address from when I launched the old instance. The fix is the same as for <code>ssh</code>: replace the old address in the old security group (see <a href="./install-apps.html#logging-into-the-instance">Logging into the instance</a>).</p>
+<p>My home IP changes now and then, and each security group keeps its own port 22 rule. The new group has the current address because I just created it, but the old one still has the address from when I launched the old instance. The fix is the same as for <code>ssh</code>: replace the old address in the old security group (see <a href="./app-depends.html#logging-into-the-instance">Logging into the instance</a>).</p>
 <p>I copy the old <code>.bashrc</code> under a different name on purpose. AL2023 ships its own <code>.bashrc</code>, so I compare the two and move over only the lines I added (like <code>PATH</code> changes), instead of overwriting the new file. The comparison runs on the new instance, so I log in first:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@<span class="st">"</span><span class="va">$NEW_IP</span><span class="st">"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1250,7 +1255,7 @@ flowchart TD
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> ~/bashrc-al2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If I do have lines to keep, I put them in a file under <code>~/.bashrc.d</code> (for example, <code>~/.bashrc.d/paths.sh</code>) instead of editing <code>~/.bashrc</code>. The new <code>.bashrc</code> loads them, and my changes stay separate from AL2023’s defaults.</p>
-<p>Don’t copy software installed under <code>/opt</code> or <code>/usr/local</code>. It was built against AL2’s libraries and may not run on AL2023. <a href="./install-apps.html">Install Apps</a> reinstalls it on the new instance.</p>
+<p>Don’t copy software installed under <code>/opt</code> or <code>/usr/local</code>. It was built against AL2’s libraries and may not run on AL2023. <a href="./app-depends.html">App Dependencies</a> reinstalls it on the new instance.</p>
 </section>
 <section id="what-changes-on-al2023" class="level2">
 <h2 class="anchored" data-anchor-id="what-changes-on-al2023">What changes on AL2023</h2>
@@ -1376,7 +1381,7 @@ flowchart TD
 <li>Copied hand-edited files through the local machine, and left installed software behind.</li>
 <li>Terminated the old instance once nothing on it was needed.</li>
 </ol>
-<p>In the next chapter, <a href="./install-apps.html">Install Apps</a>, we install Python and R on the new instance.</p>
+<p>In the next chapter, <a href="./app-depends.html">App Dependencies</a>, we install Python and R on the new instance.</p>
 
 
 </section>
@@ -2050,8 +2055,8 @@ flowchart TD
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./install-apps.html" class="pagination-link" aria-label="<em>Install Apps</em>">
-        <span class="nav-page-text"><em>Install Apps</em></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./app-depends.html" class="pagination-link" aria-label="<em>App Dependencies</em>">
+        <span class="nav-page-text"><em>App Dependencies</em></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

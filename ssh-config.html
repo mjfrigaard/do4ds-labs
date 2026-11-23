@@ -6,10 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-22">
+<meta name="dcterms.date" content="2026-11-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
-<title>Install Apps – DO4DS: Lab Solutions</title>
+<title>Appendix B — SSH config – DO4DS: Lab Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -73,8 +73,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./install-real-app.html" rel="next">
-<link href="./upgrade-al2023.html" rel="prev">
+<link href="./httr2.html" rel="next">
+<link href="./glossary.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
@@ -115,10 +115,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
-<meta name="mermaid-theme" content="default">
-<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
-<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
-<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -300,7 +296,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab10.html"><strong>Lab 10: App Admin</strong></a></li><li class="breadcrumb-item"><a href="./install-apps.html"><em>Install Apps</em></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./glossary.html">Appendices</a></li><li class="breadcrumb-item"><a href="./ssh-config.html"><span class="chapter-title">SSH config</span></a></li></ol></nav>
         <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -580,8 +576,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./install-apps.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><em>Install Apps</em></span></a>
+  <a href="./app-depends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>App Dependencies</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -673,6 +669,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./ssh-config.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">SSH config</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
   </div>
 </li>
@@ -698,20 +699,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#logging-into-the-instance" id="toc-logging-into-the-instance" class="nav-link active" data-scroll-target="#logging-into-the-instance">Logging into the instance</a></li>
-  <li><a href="#finding-your-applications" id="toc-finding-your-applications" class="nav-link" data-scroll-target="#finding-your-applications">Finding your applications</a>
-  <ul>
-  <li><a href="#the-path-variable" id="toc-the-path-variable" class="nav-link" data-scroll-target="#the-path-variable">The <code>PATH</code> variable</a></li>
-  <li><a href="#symlinks-with-ln" id="toc-symlinks-with-ln" class="nav-link" data-scroll-target="#symlinks-with-ln">Symlinks with <code>ln</code></a></li>
-  </ul></li>
-  <li><a href="#where-do-applications-live" id="toc-where-do-applications-live" class="nav-link" data-scroll-target="#where-do-applications-live">Where do applications live?</a></li>
-  <li><a href="#language-versions" id="toc-language-versions" class="nav-link" data-scroll-target="#language-versions">Language versions</a>
-  <ul>
-  <li><a href="#python-version" id="toc-python-version" class="nav-link" data-scroll-target="#python-version">Python version</a></li>
-  <li><a href="#r-version" id="toc-r-version" class="nav-link" data-scroll-target="#r-version">R version</a></li>
-  <li><a href="#system-libraries" id="toc-system-libraries" class="nav-link" data-scroll-target="#system-libraries">System libraries</a></li>
-  <li><a href="#building-python-from-source" id="toc-building-python-from-source" class="nav-link" data-scroll-target="#building-python-from-source">Building Python from source</a></li>
-  </ul></li>
+  <li><a href="#creating-the-file" id="toc-creating-the-file" class="nav-link active" data-scroll-target="#creating-the-file">Creating the file</a></li>
+  <li><a href="#a-basic-entry" id="toc-a-basic-entry" class="nav-link" data-scroll-target="#a-basic-entry">A basic entry</a></li>
+  <li><a href="#forcing-a-single-key" id="toc-forcing-a-single-key" class="nav-link" data-scroll-target="#forcing-a-single-key">Forcing a single key</a></li>
+  <li><a href="#several-entries" id="toc-several-entries" class="nav-link" data-scroll-target="#several-entries">Several entries</a></li>
+  <li><a href="#when-the-ip-changes" id="toc-when-the-ip-changes" class="nav-link" data-scroll-target="#when-the-ip-changes">When the IP changes</a></li>
+  <li><a href="#checking-the-config" id="toc-checking-the-config" class="nav-link" data-scroll-target="#checking-the-config">Checking the config</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -720,9 +713,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <main class="content" id="quarto-document-content" tabindex="-1">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./lab10.html"><strong>Lab 10: App Admin</strong></a></li><li class="breadcrumb-item"><a href="./install-apps.html"><em>Install Apps</em></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./glossary.html">Appendices</a></li><li class="breadcrumb-item"><a href="./ssh-config.html"><span class="chapter-title">SSH config</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><em>Install Apps</em></h1>
+<h1 class="title">Appendix B — SSH config</h1>
 </div>
 
 
@@ -733,7 +726,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-22</p>
+      <p class="date">2026-11-23</p>
     </div>
   </div>
   
@@ -763,609 +756,172 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<section id="logging-into-the-instance" class="level2">
-<h2 class="anchored" data-anchor-id="logging-into-the-instance">Logging into the instance</h2>
-<p>Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from your local machine:</p>
+<p>Every connection in the book starts with a long <code>ssh</code> command: a key file, a user, an IP address, and sometimes a couple of <code>-o</code> options. SSH can read all of these from a file at <code>~/.ssh/config</code>, so the command shrinks to <code>ssh &lt;alias&gt;</code>. This appendix pulls together the SSH settings from <a href="./aws-ssh-ec2.html">AWS Server Login</a>, <a href="./manage-ssh-keys.html">Managing SSH Key Pairs</a>, and <a href="./linux-commands.html">Linux Commands</a> in one place.</p>
+<section id="creating-the-file" class="level2">
+<h2 class="anchored" data-anchor-id="creating-the-file">Creating the file</h2>
+<p>The config file lives on our local machine (not the EC2 instance). Create it if it doesn’t exist, then restrict it to our own account:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="dt">\</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">touch</span> ~/.ssh/config</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 ~/.ssh/config</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>A stopped instance gets a new public IP address when it starts again (unless it has an Elastic IP), so look up the current one:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Then connect with the private key from <a href="./aws-ssh-ec2.html">AWS Server Login</a>:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>If <code>ssh</code> hangs and ends with <code>Connection timed out</code>, my own IP address has probably changed since I added the port 22 rule to <code>dev-sg</code>. Check the current address and add a rule for it:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> https://checkip.amazonaws.com</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 authorize-security-group-ingress <span class="dt">\</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--group-name</span> dev-sg <span class="dt">\</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--protocol</span> tcp <span class="at">--port</span> 22 <span class="dt">\</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--cidr</span> YOUR_IP/32 <span class="dt">\</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>The Amazon Linux 2023 banner and a <code>[ec2-user@ip-...]$</code> prompt mean I’m on the instance:</p>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Last login: Fri Nov 20 21:25:16 2026 from YOUR_IP</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>   ,     #_</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>   ~\_  ####_        Amazon Linux 2023</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  ~~  \_#####\</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  ~~     \###|</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>   ~~       V~' '-&gt;</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ~~~         /</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      ~~._.   _/</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         _/ _/</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       _/m/'</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>[ec2-user@ip-xxx-xx-x-xxx ~]$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<p>SSH applies the same permission rules here as it does to keys (see <a href="./aws-ssh-ec2.html#ssh-directory-and-file-permissions">SSH directory and file permissions</a>). If <code>~/.ssh/config</code> is writable by other users, SSH refuses to read it and prints <code>Bad owner or permissions on ~/.ssh/config</code>.</p>
 </section>
-<section id="finding-your-applications" class="level2">
-<h2 class="anchored" data-anchor-id="finding-your-applications">Finding your applications</h2>
-<p>Installing an application and being able to <em>run</em> it are two different problems. A package manager like <code>dnf</code> puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell doesn’t check. That’s when a command I know is installed comes back as <code>command not found</code>.</p>
-<section id="the-path-variable" class="level3">
-<h3 class="anchored" data-anchor-id="the-path-variable">The <code>PATH</code> variable</h3>
-<p><code>PATH</code> is an environment variable holding a colon separated list of directories. When I type a command, the shell walks that list from left to right and runs the first matching executable it finds. It never searches the whole filesystem.</p>
-<p>Print it to see what the shell is actually checking:</p>
+<section id="a-basic-entry" class="level2">
+<h2 class="anchored" data-anchor-id="a-basic-entry">A basic entry</h2>
+<p>Each entry starts with a <code>Host</code> line followed by indented settings:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Host aws-dev</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/aws-dev.pem</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 29%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Setting</th>
+<th>Replaces</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Host</code></td>
+<td>(nothing)</td>
+<td>The alias we type after <code>ssh</code></td>
+</tr>
+<tr class="even">
+<td><code>HostName</code></td>
+<td><code>@YOUR_PUBLIC_IP_ADDRESS</code></td>
+<td>The public IP or Public DNS name of the instance</td>
+</tr>
+<tr class="odd">
+<td><code>User</code></td>
+<td><code>ec2-user@</code></td>
+<td>The login user for the AMI</td>
+</tr>
+<tr class="even">
+<td><code>IdentityFile</code></td>
+<td><code>-i ~/.ssh/aws-dev.pem</code></td>
+<td>The private key to present</td>
+</tr>
+</tbody>
+</table>
+<p>With the entry saved, these two commands do the same thing:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$PATH</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> aws-dev</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>To find out which copy wins, use <code>which</code>:</p>
+<p>The alias also works with <code>scp</code>, so copying files from <a href="./upgrade-al2023.html">Upgrade to Amazon Linux 2023</a> becomes <code>scp aws-dev:~/.bashrc ./bashrc-al2</code>.</p>
+</section>
+<section id="forcing-a-single-key" class="level2">
+<h2 class="anchored" data-anchor-id="forcing-a-single-key">Forcing a single key</h2>
+<p><code>IdentityFile</code> (like <code>-i</code>) only suggests a key. SSH still offers every key held by <code>ssh-agent</code>, and it offers them first. Two things can go wrong:</p>
+<ol type="1">
+<li><p>If the agent holds a key the server also accepts, that key wins and the key file is never tested.</p></li>
+<li><p>If the agent holds several keys the server doesn’t accept, the server stops listening after its limit (six attempts by default) and closes the connection with <code>Too many authentication failures</code> before our key gets a turn.</p></li>
+</ol>
+<p>On the command line we fixed this with two options (see <a href="./linux-commands.html">Linux Commands</a>):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem <span class="at">-o</span> IdentitiesOnly=yes <span class="at">-o</span> IdentityAgent=none ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>/usr/bin/python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>If a command isn’t found, the executable is almost always on the box, just not in one of those directories. Adding it is a matter of appending the directory to <code>PATH</code> in a startup file so the change survives a new login:</p>
-<p>Say we want to use Python 3.12.1:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tree</span> /opt/python/ <span class="at">-L</span> 2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>/opt/python/</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>└── 3.12.1</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    ├── bin</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    ├── include</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    ├── lib</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    └── share</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>5 directories, 0 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>We add the path to the binary using the following:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">'export PATH="/opt/python/3.12.1/bin:$PATH"'</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> ~/.bashrc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Putting the new directory first means it takes priority over anything with the same name further down the list.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>/usr/local/bin/python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell" data-fig-width="8" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-    Cmd(["shell command&lt;br/&gt;&lt;strong&gt;python3&lt;/strong&gt;"]) --&gt; Check1("Check&lt;br/&gt;&lt;strong&gt;/usr/local/bin&lt;/strong&gt;")
-    Check1 --&gt;|"not found"| Check2("Check&lt;br/&gt;&lt;strong&gt;/usr/bin&lt;/strong&gt;")
-    Check2 --&gt;|"found!"| Run("Run&lt;br/&gt;&lt;strong&gt;/usr/bin/python3&lt;/strong&gt;")
-    Check1 --&gt;|"found!"| Run2("Run&lt;br/&gt;&lt;strong&gt;/usr/local/bin/python3&lt;/strong&gt;&lt;br/&gt;(first match wins)")
-
-    style Cmd fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Check1 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
-    style Check2 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
-    style Run fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    style Run2 fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    
-</pre>
-</div>
-<p></p><figcaption> How PATH Search Works</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>In the config file, the same options become two more lines in the entry (written without the <code>=</code>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Host aws-dev</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/aws-dev.pem</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    IdentitiesOnly yes</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    IdentityAgent none</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><p><code>IdentitiesOnly yes</code> restricts SSH to the key named in <code>IdentityFile</code>.</p></li>
+<li><p><code>IdentityAgent none</code> turns off <code>ssh-agent</code> for this host, so no agent keys are offered.</p></li>
+</ul>
+</section>
+<section id="several-entries" class="level2">
+<h2 class="anchored" data-anchor-id="several-entries">Several entries</h2>
+<p>One file can hold an entry for each user and key we use. With the keys from <a href="./manage-ssh-keys.html">Managing SSH Key Pairs</a> and the <code>test-user</code> account from <a href="./linux-users.html">Linux Users</a>, the file on the System76 machine might look like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a># Recovery access with the AWS key pair</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Host aws-dev</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/aws-dev.pem</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    IdentitiesOnly yes</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    IdentityAgent none</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a># Routine access with our own key</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>Host my-ec2</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    User ec2-user</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/&lt;your-key-name&gt;</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    IdentitiesOnly yes</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a># Non-root user</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>Host my-ec2-test</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    HostName YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    User test-user</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    IdentityFile ~/.ssh/&lt;your-key-name&gt;</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    IdentitiesOnly yes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>On the MacBook, the same aliases point to the machine specific key (<code>IdentityFile ~/.ssh/&lt;your-key-name&gt;-macbook</code>). Private keys never leave the machine that made them; only the config entries look alike.</p>
+<p>The routine entries keep the agent on (no <code>IdentityAgent none</code>), which is useful when the key has a passphrase that the agent remembers. <code>IdentitiesOnly yes</code> still stops the agent from offering its other keys.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;">PATH is per user</span>
+<span class="screen-reader-only">Note</span>First match wins
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
-<p>Editing <code>~/.bashrc</code> only changes <code>PATH</code> for that one account. A service running under <code>systemd</code> doesn’t read it at all, and neither does a different user who logs in later. If an application has to be visible to everyone (and to services), a symlink into <code>/usr/local/bin</code> is more reliable than asking every account to edit a startup file.</p>
-</div>
+<p>SSH reads the file from top to bottom and keeps the first value it finds for each setting. A catch all <code>Host *</code> block for shared defaults belongs at the end of the file; placed at the top, it overrides every entry below it.</p>
 </div>
 </div>
 </div>
 </section>
-<section id="symlinks-with-ln" class="level3">
-<h3 class="anchored" data-anchor-id="symlinks-with-ln">Symlinks with <code>ln</code></h3>
-<p>A symlink is a pointer: a small file that redirects to a real one somewhere else. Rather than adding a new directory to everyone’s <code>PATH</code>, I create a link inside a directory that’s already there.</p>
-<p>The <code>-s</code> flag makes it symbolic, and the real path always comes first:</p>
+<section id="when-the-ip-changes" class="level2">
+<h2 class="anchored" data-anchor-id="when-the-ip-changes">When the IP changes</h2>
+<p>A stopped instance gets a new public IP when it starts (unless it has an Elastic IP), so <code>HostName</code> goes stale. Look up the new address from the local machine:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-s</span> /opt/python/3.12.1/bin/python3.12 /usr/local/bin/python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> YOUR_INSTANCE_ID <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Confirm the link points where you expect:</p>
+<p>Then edit the <code>HostName</code> line of each entry for that instance. That’s the only change; the aliases, users, and keys stay the same. The Public DNS name from <a href="./aws-ssh-ec2.html#using-the-public-dns">Using the Public DNS</a> works as a <code>HostName</code> too, but it encodes the IP, so it changes at the same time.</p>
+<p>Two other things go stale with a new IP:</p>
+<ul>
+<li><p>SSH asks to confirm the host key again, because <code>~/.ssh/known_hosts</code> stores keys by address (see <a href="./aws-ssh-ec2.html#host-key-verification">Host key verification</a>).</p></li>
+<li><p>If our own home IP changed, the port 22 rule in the security group no longer matches and <code>ssh</code> ends with <code>Connection timed out</code>. That’s a security group problem, not a config problem (see <a href="./aws-ssh-ec2.html#security-group-doesnt-allow-ssh-port-22">Security Group doesn’t allow SSH (port 22)</a>).</p></li>
+</ul>
+</section>
+<section id="checking-the-config" class="level2">
+<h2 class="anchored" data-anchor-id="checking-the-config">Checking the config</h2>
+<p><code>ssh -G</code> prints the settings SSH would use for an alias without connecting:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-l</span> /usr/local/bin/python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-G</span> aws-dev <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">'^(hostname|user|port|identityfile|identitiesonly|identityagent) '</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>lrwxrwxrwx 1 root root 33 Aug 21 14:02 /usr/local/bin/python3 -&gt; /opt/python/3.12.1/bin/python3.12</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell" data-fig-width="7" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-    User(["User types:&lt;br/&gt;&lt;code&gt;python3&lt;/code&gt;"])
-    Link("&lt;strong&gt;/usr/local/bin/python3&lt;/strong&gt;")
-    Points("&lt;strong&gt;/opt/python/3.12.1/&lt;br&gt;bin/python3.12&lt;/strong&gt;")
-    Real("&lt;strong&gt;Actual binary&lt;/strong&gt;")
-
-    User --"Shell finds symlink"--&gt; Link
-    Link --"Symlink points to"--&gt; Points
-    Points --"Real executable runs"--&gt; Real
-
-    style User fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Link fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style Points fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000
-    style Real fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-</pre>
-</div>
-<p></p><figcaption> Symlink Resolution</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-<p>The other reason I reach for <code>ln</code> is versioning. When a new version of R or Python goes into <code>/opt</code> alongside the old one, repointing a single symlink switches every user over, and repointing it back is the rollback.</p>
-</section>
-</section>
-<section id="where-do-applications-live" class="level2">
-<h2 class="anchored" data-anchor-id="where-do-applications-live">Where do applications live?</h2>
-<p>Linux spreads a single application across several directories by purpose, not by product. Knowing the convention is how I find a config file or a log without searching for it.</p>
-<div id="tbl-app-locations" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: Common application locations
-</figcaption>
-<div aria-describedby="tbl-app-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 35%">
-<col style="width: 64%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Location</th>
-<th style="text-align: left;">What lives there</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>/bin</code>, <code>/usr/bin</code></td>
-<td style="text-align: left;">Core system executables, managed by the package manager</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>/usr/local/bin</code></td>
-<td style="text-align: left;">Executables installed outside the package manager, plus symlinks</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>/opt</code></td>
-<td style="text-align: left;">Self contained third party software, one directory per version</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>/etc</code></td>
-<td style="text-align: left;">Configuration files</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>/var/log</code></td>
-<td style="text-align: left;">Log files</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<div class="cell" data-fig-width="7" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-    Root(["/"])
-    Bin("&lt;strong&gt;/bin&lt;/strong&gt; or&lt;br&gt;&lt;strong&gt;/usr/bin&lt;/strong&gt;")
-    Local("&lt;strong&gt;/usr/local/bin&lt;/strong&gt;")
-    Opt("&lt;strong&gt;/opt&lt;/strong&gt;")
-    OptPy("&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;")
-    OptR("&lt;strong&gt;/opt/R/4.6.1&lt;/strong&gt;")
-    Etc("&lt;strong&gt;/etc&lt;/strong&gt;")
-    Log("&lt;strong&gt;/var/log&lt;/strong&gt;")
-
-    Root --"&lt;em&gt;OS managed&lt;/em&gt;"--&gt; Bin
-    Root --"&lt;em&gt;symlinks here&lt;/em&gt;"--&gt; Local
-    Root --"&lt;em&gt;versions isolated&lt;/em&gt;"--&gt; Opt
-    Root --"&lt;em&gt;config files&lt;/em&gt;"--&gt; Etc
-    Root --"&lt;em&gt;log files&lt;/em&gt;"--&gt; Log
-    Opt --"&lt;em&gt;lib, bin, share&lt;/em&gt;"--&gt; OptPy
-    Opt --"&lt;em&gt;lib, bin, share&lt;/em&gt;"--&gt; OptR
-
-    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff,font-size:12px,font-family:monospace
-    style Bin fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
-    style Local fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
-    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-size:12px,font-family:monospace
-    style OptPy fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
-    style OptR fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
-    style Etc fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
-    style Log fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
-    
-</pre>
-</div>
-<p></p><figcaption> Application Filesystem Hierarchy</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-<p><code>/opt</code> is the important one for data science work. Installing there keeps a version fully contained in its own folder, so nothing overwrites anything the operating system depends on.</p>
-</section>
-<section id="language-versions" class="level2">
-<h2 class="anchored" data-anchor-id="language-versions">Language versions</h2>
-<p>EC2 instances don’t ship with current versions of R or Python, so this section installs both on the instance we’ve SSH’d into.</p>
-<section id="python-version" class="level3">
-<h3 class="anchored" data-anchor-id="python-version">Python version</h3>
-<p>The Python already on the instance belongs to the operating system. AL2023 uses it for <code>dnf</code> and other internal tooling, so upgrading it or installing packages into it with <code>sudo pip install</code> risks breaking the box itself.</p>
-<p>The safer pattern is to install your own Python into <code>/opt</code>, leave the system copy alone, and create virtual environments from the <code>/opt</code> copy (the steps that build it are in <a href="#building-python-from-source">Building Python from source</a> below):</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/python/3.12.1/bin/python3.12</span> <span class="at">-m</span> venv ~/my-app/venv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Activate the virtual environment:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> ~/my-app/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Deactivate the virtual environment with:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">deactivate</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
-<section id="r-version" class="level3">
-<h3 class="anchored" data-anchor-id="r-version">R version</h3>
-<p>R has no equivalent system dependency, so multiple versions can coexist in <code>/opt/R</code> without conflict. <a href="https://github.com/r-lib/rig"><code>rig</code></a>, the R Installation Manager, handles installing and switching between them.</p>
-<p><code>rig</code> isn’t in the AL2023 repositories, so install it first. The portable Linux build is a tarball that unpacks into <code>/usr/local</code>, which puts <code>rig</code> in <code>/usr/local/bin</code> and on the <code>PATH</code> for every account:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-Ls</span> https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz <span class="kw">|</span> <span class="fu">sudo</span> tar xz <span class="at">-C</span> /usr/local</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> rig <span class="kw">&amp;&amp;</span> <span class="ex">rig</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>/usr/local/bin/rig</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>RIG -- The R Installation Manager 0.11.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>On a Graviton (<code>arm64</code>) instance, swap <code>x86_64</code> for <code>aarch64</code> in the URL. With <code>rig</code> installed, add R and make it the default:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /usr/local/bin/rig add 4.6.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Set it as the default:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /usr/local/bin/rig default 4.6.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Confirm the install; the asterisk marks the default version:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rig</span> list</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>* 4.6.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Your output may look different; newer <code>rig</code> versions print a table with a header row and more columns.</p>
-<p><code>rig</code> is one way to get R. On an Ubuntu machine (a local workstation, or an Ubuntu AMI instead of Amazon Linux), CRAN publishes its own <code>apt</code> repository, which tracks the current release (R 4.6.1 as of this writing). Add CRAN’s signing key and repository, then install <code>r-base</code>:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update <span class="at">-qq</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Install the tools <code>add-apt-repository</code> and key handling depend on:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install <span class="at">--no-install-recommends</span> software-properties-common dirmngr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Add CRAN’s signing key:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> <span class="at">-qO-</span> https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc <span class="kw">|</span> <span class="dt">\</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sudo</span> tee <span class="at">-a</span> /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Add the CRAN repository for your Ubuntu release:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> add-apt-repository <span class="st">"deb https://cloud.r-project.org/bin/linux/ubuntu </span><span class="va">$(</span><span class="ex">lsb_release</span> <span class="at">-cs</span><span class="va">)</span><span class="st">-cran40/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Install R:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install <span class="at">--no-install-recommends</span> r-base</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><code>$(lsb_release -cs)</code> fills in the Ubuntu release codename. Pop!_OS is built on Ubuntu and reports the Ubuntu codename (<code>noble</code> on Pop!_OS 24.04), so the same commands work unchanged. CRAN currently builds for 26.04 (<code>resolute</code>), 24.04 (<code>noble</code>), and 22.04 (<code>jammy</code>).</p>
-<p>Confirm the version:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span> <span class="at">--version</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>R version 4.6.1 (2026-06-24) -- "Happy Hop"</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>This installs a single, system wide R under <code>/usr/lib/R</code> that <code>apt upgrade</code> keeps current. If you need several versions side by side, use <code>rig</code> instead; it works the same way on Ubuntu.</p>
-<p><code>rig</code> answers “<em>which R is installed on this box?</em>” It doesn’t pin the packages a project uses or the system libraries those packages compile against. <a href="https://docs.ropensci.org/rix/"><code>rix</code></a> covers that side. It writes a <code>default.nix</code> file describing a project’s R version, R packages, and system dependencies, and <a href="https://nixos.org/">Nix</a> builds that environment into <code>/nix/store</code>, isolated from both the system and anything <code>rig</code> installed.</p>
-<div id="tbl-rig-rix" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rig-rix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: rig versus rix
-</figcaption>
-<div aria-describedby="tbl-rig-rix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 26%">
-<col style="width: 30%">
-<col style="width: 43%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Tool</th>
-<th style="text-align: left;">Scope</th>
-<th style="text-align: left;">Lives in</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>rig</code></td>
-<td style="text-align: left;">R versions for the whole instance</td>
-<td style="text-align: left;"><code>/opt/R/&lt;version&gt;</code></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>rix</code> + Nix</td>
-<td style="text-align: left;">R, packages, and system libraries for one project</td>
-<td style="text-align: left;"><code>/nix/store</code>, described by <code>default.nix</code></td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<p>Install Nix with the Determinate Systems installer, which the <code>rix</code> docs recommend. The extra configuration adds the <code>rstats-on-nix</code> binary cache, so R packages download prebuilt instead of compiling on the instance:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--proto</span> <span class="st">'=https'</span> <span class="at">--tlsv1.2</span> <span class="at">-sSf</span> <span class="at">-L</span> https://install.determinate.systems/nix <span class="kw">|</span> <span class="dt">\</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sh</span> <span class="at">-s</span> <span class="at">--</span> install <span class="at">--no-confirm</span> <span class="at">--extra-conf</span> <span class="st">"</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="st">trusted-users = root </span><span class="va">$USER</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="st">substituters = https://cache.nixos.org https://rstats-on-nix.cachix.org</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="st">trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= rstats-on-nix.cachix.org-1:vdiiVgocg6WeJrODIqdprZRUrhi1JzhBnXv7aWI6+F0="</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Open a new shell so <code>nix-shell</code> and <code>nix-build</code> are on your <code>PATH</code>. The R that <code>rig</code> installed can generate the environment file, so install <code>rix</code> into it and describe the project:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/my-r-app <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/my-r-app</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'install.packages("rix", repos = "https://cloud.r-project.org")'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="st">rix::rix(</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="st">  r_ver = "4.6.1",</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="st">  r_pkgs = c("dplyr", "shiny"),</span></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="st">  system_pkgs = NULL,</span></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="st">  git_pkgs = NULL,</span></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="st">  ide = "none",</span></span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="st">  project_path = ".",</span></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="st">  overwrite = TRUE</span></span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="st">)'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><code>ide = "none"</code> fits a server with no editor attached. <code>rix()</code> writes <code>default.nix</code> and an <code>.Rprofile</code>; the <code>.Rprofile</code> keeps R inside the Nix environment from reading the library paths of the <code>rig</code> installed R.</p>
-<p>Build the environment, then enter it:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nix-build</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nix-shell</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Inside <code>nix-shell</code>, <code>R</code> and <code>Rscript</code> resolve to the Nix copy, not <code>/opt/R</code>:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> R</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'R.version.string'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><code>which R</code> should print a path under <code>/nix/store</code>. <code>exit</code> leaves the shell and puts the <code>rig</code> default back in front. Commit <code>default.nix</code> with the project and anyone running <code>nix-build</code> gets the same R, packages, and system libraries, which also sidesteps the <code>-devel</code> packages below for anything Nix provides.</p>
-</section>
-<section id="system-libraries" class="level3">
-<h3 class="anchored" data-anchor-id="system-libraries">System libraries</h3>
-<p>Both languages depend on system libraries that neither one installs for you. A package that compiles from source will fail with a missing header error until the matching development package is present:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> libcurl-devel openssl-devel libxml2-devel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>These are the three that account for most failed installs of <code>curl</code>, <code>openssl</code>, and <code>xml2</code>, and every R or Python package that depends on them.</p>
-<div class="cell" data-fig-width="8" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-    SysPy["System Python&lt;br/&gt;&lt;em&gt;owned by OS&lt;/em&gt;"]
-    OptPy(["Your Python&lt;br/&gt;&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;isolated version&lt;/em&gt;"])
-    Venv("Virtual Env&lt;br/&gt;&lt;strong&gt;~/my-app/venv&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;project packages&lt;/em&gt;")
-
-    SysPy --&gt;|"leave untouched"| SysTools("dnf, AWS CLI,&lt;br/&gt;OS internal tools")
-    OptPy --&gt;|"create venv from"| Venv
-    Venv --&gt;|"install packages to"| Packages("&lt;strong&gt;pip install&lt;br/&gt;my-packages&lt;/strong&gt;")
-
-    R["System R&lt;br/&gt;&lt;em&gt;usually absent&lt;/em&gt;"]
-    OptR("Multiple R versions&lt;br/&gt;&lt;strong&gt;/opt/R/4.6.1&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;/opt/R/4.3.2&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;rig switches&lt;/em&gt;")
-    Libs("System libraries&lt;br/&gt;&lt;strong&gt;libcurl-devel&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;openssl-devel&lt;/strong&gt;&lt;br/&gt;&lt;strong&gt;libxml2-devel&lt;/strong&gt;")
-
-    R --&gt;|"alternative"| OptR
-    OptR --&gt; Libs
-    Libs --&gt;|"required for"| RPackages("R packages&lt;br/&gt;from source")
-
-    style SysPy fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style OptPy fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    style Packages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style R fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style OptR fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
-    style Libs fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
-    style RPackages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style SysTools fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-</pre>
-</div>
-<p></p><figcaption> Language Runtime Installation Pattern</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-</section>
-<section id="building-python-from-source" class="level3">
-<h3 class="anchored" data-anchor-id="building-python-from-source">Building Python from source</h3>
-<p>The packaged Python is sometimes too old for what you need to run. AL2023 ships with 3.9:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>Python 3.9.25</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>That’s the copy <code>dnf</code> depends on, so upgrading it in place is off the table. The fix is the <code>/opt</code> pattern from above: build a second Python, install it into its own versioned directory, and leave the system one alone.</p>
-<div class="cell" data-fig-width="8" data-layout-align="center">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-
-<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
-
-graph TD
-    Check{"&lt;strong&gt;python3 --version&lt;/strong&gt;&lt;br/&gt;3.11 or newer?"}
-    Yes("Use it directly")
-    Build("Build into&lt;br/&gt;&lt;strong&gt;/opt/python/3.12.1&lt;/strong&gt;")
-    Venv("&lt;strong&gt;/opt/myapp/.venv&lt;/strong&gt;")
-    Sys["&lt;strong&gt;/usr/bin/python3&lt;/strong&gt;&lt;br/&gt;&lt;em&gt;3.9, owned by dnf&lt;/em&gt;"]
-
-    Check --"yes (Ubuntu 24.04)"--&gt; Yes
-    Check --"no (AL2023)"--&gt; Build
-    Yes --&gt; Venv
-    Build --"&lt;em&gt;python3 -m venv&lt;/em&gt;"--&gt; Venv
-    Sys --"&lt;em&gt;leave for&lt;/em&gt;"--&gt; Yum("dnf, OS tooling")
-
-    style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
-    style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
-    style Build fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
-    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
-    style Sys fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
-    style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
-</pre>
-</div>
-<p></p><figcaption> Which Python Runs the App</figcaption> </figure><p></p>
-</div>
-</div>
-</div>
-<p>Install the compiler and the development headers first, plus a few that Python needs for <code>ssl</code>, <code>bz2</code>, and <code>ctypes</code> support:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf groupinstall <span class="at">-y</span> <span class="st">"Development Tools"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> openssl-devel bzip2-devel libffi-devel zlib-devel git</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Download and unpack the source:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzf Python-3.12.1.tgz</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> Python-3.12.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Then configure it to land in <code>/opt</code>, and build:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ./configure <span class="at">--prefix</span><span class="op">=</span>/opt/python/3.12.1 <span class="at">--enable-optimizations</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make altinstall</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><code>--prefix</code> is what keeps the install self contained. <code>altinstall</code> is the flag that matters most: it installs <code>python3.12</code> without also writing a <code>python3</code> symlink that would shadow the system copy.</p>
-<p>Confirm you got what you asked for:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/python/3.12.1/bin/python3.12</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>Python 3.12.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.15em;">This takes a while</span>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
-<p><code>--enable-optimizations</code>, passed to <code>./configure</code> above, is what triples the compile time. It builds Python twice: once to produce an instrumented interpreter, then runs it against Python’s own test suite to record which code paths get hit most, then rebuilds using that profile data to optimize those paths (profile guided optimization, or PGO). It also turns on link time optimization (LTO). On a <code>t3.micro</code> the whole thing takes 20 to 30 minutes with the CPU pegged.</p>
-<p>‘Runtime speed’ here means how fast the finished interpreter executes Python code after it’s installed, not how long the build itself takes. PGO typically buys 10 to 20 percent on CPU bound benchmarks. A subprocess-heavy or I/O-bound app isn’t CPU bound, so that speedup is not something you’d notice in practice. Drop the flag (<code>sudo ./configure --prefix=/opt/python/3.12.1</code>) and the build finishes in a few minutes with a standard, unoptimized interpreter.</p>
-<p>If <code>make</code> dies partway through with an out of memory error, see <a href="./instance-size.html">Instance Size</a> for what that means and how to work around it on a small instance.</p>
-<p>More on the flag itself: <a href="https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations" class="uri">https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations</a></p>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-important no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span><span style="font-weight: bold; font-size: 1.15em;">pip fails with ‘ssl module is not available’</span>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
-<p>The interpreter you just built has no SSL support, so pip can’t reach PyPI over HTTPS at all. The cause traces back to the <code>./configure</code> step: it looks for the OpenSSL headers from <code>openssl-devel</code>, and if they’re missing it silently skips the <code>_ssl</code> module instead of failing the build. <code>make altinstall</code> finishes without complaint, so the problem doesn’t show up until pip tries to talk to the internet.</p>
-<p>On AL2023, <code>openssl-devel</code> is OpenSSL 3, which Python 3.12 builds against without any extra flags. The usual cause is skipping the <code>dnf install</code> step above (or running <code>./configure</code> before it finished). Install the headers and rebuild:</p>
-<blockquote class="blockquote">
-<p><code>sudo dnf install -y openssl-devel</code></p>
-<p><code>cd /tmp/Python-3.12.1</code></p>
-<p><code>sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations</code></p>
-<p><code>sudo make altinstall</code></p>
-</blockquote>
-<p>You don’t need to redownload the source or delete the existing <code>/opt/python/3.12.1</code> tree; <code>altinstall</code> overwrites in place.</p>
-<p>Confirm the module built this time before retrying the venv:</p>
-<p><code>/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'</code></p>
-<p>That should print an OpenSSL 3 version string, not a traceback.</p>
-</div>
-</div>
-</div>
-</div>
-</section>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>user ec2-user</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>hostname YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>port 22</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>identitiesonly yes</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>identityagent none</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>identityfile ~/.ssh/aws-dev.pem</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If a value is missing or wrong, the entry has a typo or an earlier block already set it. To watch the settings in use during a real connection, add <code>-v</code> (<code>ssh -v aws-dev</code>); the debug lines show the config file being read and each key SSH offers.</p>
 </section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
-<li><p><code>PATH</code> decides what the shell can find, and <code>which</code> tells you which copy is winning. A <code>command not found</code> error usually means a directory is missing from the list, not that the software is missing.</p></li>
-<li><p>Install language runtimes into <code>/opt</code> and symlink them into <code>/usr/local/bin</code>. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.</p></li>
-<li><p>When the packaged interpreter is too old, build your own into <code>/opt</code> with <code>make altinstall</code> rather than touching the system copy. <a href="./install-real-app.html">Installing a Real Application</a> applies the same pattern to a full app.</p></li>
+<li><p><code>~/.ssh/config</code> lives on the local machine, needs <code>600</code> permissions, and turns a long <code>ssh</code> command into <code>ssh &lt;alias&gt;</code>.</p></li>
+<li><p><code>IdentitiesOnly yes</code> and <code>IdentityAgent none</code> make SSH use only the key in <code>IdentityFile</code>, which prevents <code>Too many authentication failures</code>.</p></li>
+<li><p>One entry per user and key keeps recovery (<code>.pem</code>) and routine access separate.</p></li>
+<li><p>When the instance gets a new IP, update <code>HostName</code>; nothing else in the entry changes.</p></li>
 </ol>
 
 
@@ -2035,13 +1591,13 @@ graph TD
   </script>
 <nav class="page-navigation" aria-label="Page">
   <div class="nav-page nav-page-previous">
-      <a href="./upgrade-al2023.html" class="pagination-link" aria-label="<em>Upgrade to Amazon Linux 2023</em>">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Upgrade to Amazon Linux 2023</em></span>
+      <a href="./glossary.html" class="pagination-link" aria-label="Glossary of terms">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Glossary of terms</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./install-real-app.html" class="pagination-link" aria-label="<em>Installing a Real Application</em>">
-        <span class="nav-page-text"><em>Installing a Real Application</em></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./httr2.html" class="pagination-link" aria-label="More `httr2` functions">
+        <span class="nav-page-text"><span class="chapter-title">More <code>httr2</code> functions</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-22">
+<meta name="dcterms.date" content="2026-11-23">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Installing a Real Application – DO4DS: Lab Solutions</title>
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./lab11.html" rel="next">
-<link href="./install-apps.html" rel="prev">
+<link href="./app-depends.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
@@ -580,8 +580,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./install-apps.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><em>Install Apps</em></span></a>
+  <a href="./app-depends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><em>App Dependencies</em></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -673,6 +673,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./ssh-config.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">SSH config</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./httr2.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">More <code>httr2</code> functions</span></a>
   </div>
 </li>
@@ -725,7 +730,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-22</p>
+      <p class="date">2026-11-23</p>
     </div>
   </div>
   
@@ -739,7 +744,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="logging-into-the-instance" class="level2">
 <h2 class="anchored" data-anchor-id="logging-into-the-instance">Logging into the instance</h2>
-<p>The install runs on the same EC2 instance as <a href="./install-apps.html">Install Apps</a>. Start it (if it’s stopped), look up its current public IP address, and connect:</p>
+<p>The install runs on the same EC2 instance as <a href="./app-depends.html">App Dependencies</a>. Start it (if it’s stopped), look up its current public IP address, and connect:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="dt">\</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
@@ -751,22 +756,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>If the connection times out, follow the security group fix in <a href="./install-apps.html#logging-into-the-instance">Logging into the instance</a>.</p>
+<p>If the connection times out, follow the security group fix in <a href="./app-depends.html#logging-into-the-instance">Logging into the instance</a>.</p>
 </section>
 <section id="installing-into-opt" class="level2">
 <h2 class="anchored" data-anchor-id="installing-into-opt">Installing into /opt</h2>
-<p>Third party software follows the same convention as the interpreter in <a href="./install-apps.html">Install Apps</a>: its own directory tree under <code>/opt</code>, not scattered across the filesystem. Here’s what that looks like for <code>baseball-trajectory</code>, a Shiny for Python app (<a href="https://github.com/mjfrigaard/baseball-trajectory">source</a>) that plots a player’s career arc from the MLB Stats API:</p>
+<p>Third party software follows the same convention as the interpreter in <a href="./app-depends.html">App Dependencies</a>: its own directory tree under <code>/opt</code>, not scattered across the filesystem. Here’s what that looks like for <code>baseball-trajectory</code>, a Shiny for Python app (<a href="https://github.com/mjfrigaard/baseball-trajectory">source</a>) that plots a player’s career arc from the MLB Stats API:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Create the virtual environment from the <code>/opt</code> Python (built in <a href="./install-apps.html#building-python-from-source">Building Python from source</a>), not the system one, then install the package and its dependencies into it:</p>
+<p>Create the virtual environment from the <code>/opt</code> Python (built in <a href="./app-depends.html#building-python-from-source">Building Python from source</a>), not the system one, then install the package and its dependencies into it:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/baseball-trajectory/.venv</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/baseball-trajectory/.venv/bin/pip install <span class="at">-e</span> .</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This pulls the app’s dependencies from PyPI, so the instance needs outbound internet access. If the instance is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.</p>
-<p>The install spreads across three locations, and each one follows the convention from <a href="./install-apps.html#where-do-applications-live">Where do applications live?</a> rather than piling everything into one folder:</p>
+<p>The install spreads across three locations, and each one follows the convention from <a href="./app-depends.html#where-do-applications-live">Where do applications live?</a> rather than piling everything into one folder:</p>
 <div id="tbl-baseball-trajectory-locations" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-baseball-trajectory-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1677,8 +1682,8 @@ graph TD
   </script>
 <nav class="page-navigation" aria-label="Page">
   <div class="nav-page nav-page-previous">
-      <a href="./install-apps.html" class="pagination-link" aria-label="<em>Install Apps</em>">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>Install Apps</em></span>
+      <a href="./app-depends.html" class="pagination-link" aria-label="<em>App Dependencies</em>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><em>App Dependencies</em></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
