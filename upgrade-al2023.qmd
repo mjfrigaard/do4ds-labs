@@ -24,7 +24,7 @@ co_box(
 
 The instance I launched in [Stand up an EC2 instance](aws-ec2.qmd) runs Amazon Linux 2 (AL2). This worked fine when [do4ds](https://do4ds.com/) was written, but it started breaking down once I started installing language runtimes. 
 
-This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I've opted to keep both versions because it's likely you'll have to perform an upgrade (i.e., we need to before any of the installs in [Install Apps](install-apps.qmd)).
+This new chapter replaces the AL2 with an Amazon Linux 2023 (AL2023) instance. I've opted to keep both versions because it's likely you'll have to perform an upgrade (i.e., we need to before any of the installs in [App Dependencies](app-depends.qmd)).
 
 ## Why upgrade?
 
@@ -313,7 +313,7 @@ Warning: Permanently added 'NEW_PUBLIC_IP_ADDRESS' (ED25519) to the list of know
 
 :::
 
-If `ssh` times out instead, the port 22 rule in `dev-sg` probably doesn't match my current IP address. This fix is covered in the next chapter ([Logging into the instance](install-apps.qmd#logging-into-the-instance)).
+If `ssh` times out instead, the port 22 rule in `dev-sg` probably doesn't match my current IP address. This fix is covered in the next chapter ([Logging into the instance](app-depends.qmd#logging-into-the-instance)).
 
 I can confirm the operating system and the `glibc` version that caused the original failure:
 
@@ -440,7 +440,7 @@ scp: Connection closed
 
 :::
 
-My home IP changes now and then, and each security group keeps its own port 22 rule. The new group has the current address because I just created it, but the old one still has the address from when I launched the old instance. The fix is the same as for `ssh`: replace the old address in the old security group (see [Logging into the instance](install-apps.qmd#logging-into-the-instance)).
+My home IP changes now and then, and each security group keeps its own port 22 rule. The new group has the current address because I just created it, but the old one still has the address from when I launched the old instance. The fix is the same as for `ssh`: replace the old address in the old security group (see [Logging into the instance](app-depends.qmd#logging-into-the-instance)).
 
 I copy the old `.bashrc` under a different name on purpose. AL2023 ships its own `.bashrc`, so I compare the two and move over only the lines I added (like `PATH` changes), instead of overwriting the new file. The comparison runs on the new instance, so I log in first:
 
@@ -493,7 +493,7 @@ rm ~/bashrc-al2
 
 If I do have lines to keep, I put them in a file under `~/.bashrc.d` (for example, `~/.bashrc.d/paths.sh`) instead of editing `~/.bashrc`. The new `.bashrc` loads them, and my changes stay separate from AL2023's defaults.
 
-Don't copy software installed under `/opt` or `/usr/local`. It was built against AL2's libraries and may not run on AL2023. [Install Apps](install-apps.qmd) reinstalls it on the new instance.
+Don't copy software installed under `/opt` or `/usr/local`. It was built against AL2's libraries and may not run on AL2023. [App Dependencies](app-depends.qmd) reinstalls it on the new instance.
 
 ## What changes on AL2023
 
@@ -597,4 +597,4 @@ AL2 reached end of life on 2026-06-30, and its glibc 2.26 is too old for modern 
 4. Copied hand-edited files through the local machine, and left installed software behind.
 5. Terminated the old instance once nothing on it was needed.
 
-In the next chapter, [Install Apps](install-apps.qmd), we install Python and R on the new instance.
+In the next chapter, [App Dependencies](app-depends.qmd), we install Python and R on the new instance.

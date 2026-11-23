@@ -1,0 +1,193 @@
+# SSH config
+
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default",
+  hsize = "1.25",
+  size = "1.00",
+  header = "Caution",
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
+Every connection in the book starts with a long `ssh` command: a key file, a user, an IP address, and sometimes a couple of `-o` options. SSH can read all of these from a file at `~/.ssh/config`, so the command shrinks to `ssh <alias>`. This appendix pulls together the SSH settings from [AWS Server Login](aws-ssh-ec2.qmd), [Managing SSH Key Pairs](manage-ssh-keys.qmd), and [Linux Commands](linux-commands.qmd) in one place.
+
+## Creating the file
+
+The config file lives on our local machine (not the EC2 instance). Create it if it doesn't exist, then restrict it to our own account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+touch ~/.ssh/config
+chmod 600 ~/.ssh/config
+```
+
+SSH applies the same permission rules here as it does to keys (see [SSH directory and file permissions](aws-ssh-ec2.qmd#ssh-directory-and-file-permissions)). If `~/.ssh/config` is writable by other users, SSH refuses to read it and prints `Bad owner or permissions on ~/.ssh/config`.
+
+## A basic entry
+
+Each entry starts with a `Host` line followed by indented settings:
+
+```{verbatim}
+Host aws-dev
+    HostName YOUR_PUBLIC_IP_ADDRESS
+    User ec2-user
+    IdentityFile ~/.ssh/aws-dev.pem
+```
+
+| Setting        | Replaces                  | Meaning                                         |
+| -------------- | ------------------------- | ----------------------------------------------- |
+| `Host`         | (nothing)                 | The alias we type after `ssh`                   |
+| `HostName`     | `@YOUR_PUBLIC_IP_ADDRESS` | The public IP or Public DNS name of the instance |
+| `User`         | `ec2-user@`               | The login user for the AMI                      |
+| `IdentityFile` | `-i ~/.ssh/aws-dev.pem`   | The private key to present                      |
+
+With the entry saved, these two commands do the same thing:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
+ssh aws-dev
+```
+
+The alias also works with `scp`, so copying files from [Upgrade to Amazon Linux 2023](upgrade-al2023.qmd) becomes `scp aws-dev:~/.bashrc ./bashrc-al2`.
+
+## Forcing a single key
+
+`IdentityFile` (like `-i`) only suggests a key. SSH still offers every key held by `ssh-agent`, and it offers them first. Two things can go wrong:
+
+1. If the agent holds a key the server also accepts, that key wins and the key file is never tested.
+
+2. If the agent holds several keys the server doesn't accept, the server stops listening after its limit (six attempts by default) and closes the connection with `Too many authentication failures` before our key gets a turn.
+
+On the command line we fixed this with two options (see [Linux Commands](linux-commands.qmd)):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/aws-dev.pem -o IdentitiesOnly=yes -o IdentityAgent=none ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+In the config file, the same options become two more lines in the entry (written without the `=`):
+
+```{verbatim}
+Host aws-dev
+    HostName YOUR_PUBLIC_IP_ADDRESS
+    User ec2-user
+    IdentityFile ~/.ssh/aws-dev.pem
+    IdentitiesOnly yes
+    IdentityAgent none
+```
+
+* `IdentitiesOnly yes` restricts SSH to the key named in `IdentityFile`.
+
+* `IdentityAgent none` turns off `ssh-agent` for this host, so no agent keys are offered.
+
+## Several entries
+
+One file can hold an entry for each user and key we use. With the keys from [Managing SSH Key Pairs](manage-ssh-keys.qmd) and the `test-user` account from [Linux Users](linux-users.qmd), the file on the System76 machine might look like this:
+
+```{verbatim}
+# Recovery access with the AWS key pair
+Host aws-dev
+    HostName YOUR_PUBLIC_IP_ADDRESS
+    User ec2-user
+    IdentityFile ~/.ssh/aws-dev.pem
+    IdentitiesOnly yes
+    IdentityAgent none
+
+# Routine access with our own key
+Host my-ec2
+    HostName YOUR_PUBLIC_IP_ADDRESS
+    User ec2-user
+    IdentityFile ~/.ssh/<your-key-name>
+    IdentitiesOnly yes
+
+# Non-root user
+Host my-ec2-test
+    HostName YOUR_PUBLIC_IP_ADDRESS
+    User test-user
+    IdentityFile ~/.ssh/<your-key-name>
+    IdentitiesOnly yes
+```
+
+On the MacBook, the same aliases point to the machine specific key (`IdentityFile ~/.ssh/<your-key-name>-macbook`). Private keys never leave the machine that made them; only the config entries look alike.
+
+The routine entries keep the agent on (no `IdentityAgent none`), which is useful when the key has a passphrase that the agent remembers. `IdentitiesOnly yes` still stops the agent from offering its other keys.
+
+::: {.callout-note collapse="true" title="First match wins"}
+
+SSH reads the file from top to bottom and keeps the first value it finds for each setting. A catch all `Host *` block for shared defaults belongs at the end of the file; placed at the top, it overrides every entry below it.
+
+:::
+
+## When the IP changes
+
+A stopped instance gets a new public IP when it starts (unless it has an Elastic IP), so `HostName` goes stale. Look up the new address from the local machine:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 describe-instances \
+  --instance-ids YOUR_INSTANCE_ID \
+  --query "Reservations[*].Instances[*].PublicIpAddress" \
+  --output text \
+  --profile dev-deploy
+```
+
+Then edit the `HostName` line of each entry for that instance. That's the only change; the aliases, users, and keys stay the same. The Public DNS name from [Using the Public DNS](aws-ssh-ec2.qmd#using-the-public-dns) works as a `HostName` too, but it encodes the IP, so it changes at the same time.
+
+Two other things go stale with a new IP:
+
+* SSH asks to confirm the host key again, because `~/.ssh/known_hosts` stores keys by address (see [Host key verification](aws-ssh-ec2.qmd#host-key-verification)).
+
+* If our own home IP changed, the port 22 rule in the security group no longer matches and `ssh` ends with `Connection timed out`. That's a security group problem, not a config problem (see [Security Group doesn't allow SSH (port 22)](aws-ssh-ec2.qmd#security-group-doesnt-allow-ssh-port-22)).
+
+## Checking the config
+
+`ssh -G` prints the settings SSH would use for an alias without connecting:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -G aws-dev | grep -E '^(hostname|user|port|identityfile|identitiesonly|identityagent) '
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+user ec2-user
+hostname YOUR_PUBLIC_IP_ADDRESS
+port 22
+identitiesonly yes
+identityagent none
+identityfile ~/.ssh/aws-dev.pem
+```
+
+:::
+
+If a value is missing or wrong, the entry has a typo or an earlier block already set it. To watch the settings in use during a real connection, add `-v` (`ssh -v aws-dev`); the debug lines show the config file being read and each key SSH offers.
+
+## Recap
+
+1. `~/.ssh/config` lives on the local machine, needs `600` permissions, and turns a long `ssh` command into `ssh <alias>`.
+
+2. `IdentitiesOnly yes` and `IdentityAgent none` make SSH use only the key in `IdentityFile`, which prevents `Too many authentication failures`.
+
+3. One entry per user and key keeps recovery (`.pem`) and routine access separate.
+
+4. When the instance gets a new IP, update `HostName`; nothing else in the entry changes.

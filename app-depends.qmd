@@ -1,0 +1,1182 @@
+# <em>App Dependencies</em> {.unnumbered}
+
+```{r}
+#| label: common
+#| include: false
+source("_common.R")
+```
+
+```{r}
+#| label: co_box_rev
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "o",
+  look = "default",
+  hsize = "1.25",
+  size = "1.00",
+  header = "Caution",
+  fold = FALSE,
+  contents = "This section is being revised. Thank you for your patience."
+)
+```
+
+## Logging into the instance
+
+Every command in this chapter runs on the EC2 instance, so the first step is getting a shell there. If the instance was stopped, start it from your local machine:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 start-instances \
+  --instance-ids i-0514a57a209efcf56 \
+  --profile dev-deploy
+```
+
+A stopped instance gets a new public IP address when it starts again (unless it has an Elastic IP), so look up the current one:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+aws ec2 describe-instances \
+  --instance-ids i-0514a57a209efcf56 \
+  --query "Reservations[*].Instances[*].PublicIpAddress" \
+  --output text \
+  --profile dev-deploy
+```
+
+Then connect with the private key from [AWS Server Login](aws-ssh-ec2.qmd):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ssh -i ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+```{r}
+#| label: co_box_ssh_agent
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "Too many authentication failures",
+  fold = TRUE,
+  contents = "
+If `ssh-agent` holds other keys, SSH offers them before `aws-dev.pem` and the server can reject the connection after six attempts. Adding `-o IdentitiesOnly=yes -o IdentityAgent=none` makes SSH use only the key given by `-i` (see [Linux Commands](linux-commands.qmd)). To avoid typing these options every time, put them in a `~/.ssh/config` entry and connect with an alias (see [SSH config](ssh-config.qmd)).
+  "
+)
+```
+
+If `ssh` hangs and ends with `Connection timed out`, my own IP address has probably changed since I added the port 22 rule to `dev-sg`. Check the current address and add a rule for it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -s https://checkip.amazonaws.com
+aws ec2 authorize-security-group-ingress \
+  --group-name dev-sg \
+  --protocol tcp --port 22 \
+  --cidr YOUR_IP/32 \
+  --profile dev-deploy
+```
+
+The Amazon Linux 2023 banner and a `[ec2-user@ip-...]$` prompt mean I'm on the instance:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Fri Nov 20 21:16:58 2026 from YOUR_IP
+[ec2-user@ip-xxx-xx-x-xxx ~]$
+```
+
+:::
+
+## Building Python from source
+
+The packaged Python is sometimes too old for what you need to run. AL2023 ships with 3.9:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+python3 --version
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Python 3.9.25
+```
+
+:::
+
+That's the copy `dnf` depends on, so upgrading it in place is off the table. The fix is to build a second Python, install it into its own versioned directory under `/opt`, and leave the system one alone. [Where do language installations live?](#where-do-language-installations-live) explains why `/opt` is the right place.
+
+```{mermaid}
+%%| fig-cap: 'Which Python Runs the App'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace', "fontSize":"12px"}}}%%
+
+graph TD
+    Check{"<strong>python3 --version</strong><br/>3.11 or newer?"}
+    Yes("Use it directly")
+    Build("Build into<br/><strong>/opt/python/3.12.1</strong>")
+    Venv("<strong>/opt/myapp/.venv</strong>")
+    Sys["<strong>/usr/bin/python3</strong><br/><em>3.9, owned by dnf</em>"]
+
+    Check --"yes (Ubuntu 24.04)"--> Yes
+    Check --"no (AL2023)"--> Build
+    Yes --> Venv
+    Build --"<em>python3 -m venv</em>"--> Venv
+    Sys --"<em>leave for</em>"--> Yum("dnf, OS tooling")
+
+    style Check fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Yes fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff
+    style Build fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff,font-family:monospace
+    style Sys fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Yum fill:#666,stroke:#999,stroke-width:1px,color:#fff
+```
+
+### Installing the build tools
+
+The `Development Tools` group installs the compiler (`gcc`), `make`, and the other tools a source build needs:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo dnf groupinstall -y "Development Tools"
+```
+
+`dnf` lists each package as it installs, then ends with:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Complete!
+```
+
+:::
+
+Python also needs a few development headers for its `ssl`, `bz2`, and `ctypes` modules:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo dnf install -y openssl-devel bzip2-devel libffi-devel zlib-devel git
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Complete!
+```
+
+:::
+
+### Downloading the source
+
+Next, download the Python 3.12.1 source code with `wget`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+wget https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz
+```
+
+`wget` prints the HTTP request and the server's response. `200 OK` means the download worked:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+--2026-11-23 16:30:01--  https://www.python.org/ftp/python/3.12.1/Python-3.12.1.tgz
+Resolving www.python.org (www.python.org)... 151.101.0.223, 151.101.64.223, 151.101.128.223, ...
+Connecting to www.python.org (www.python.org)|151.101.0.223|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 27053241 (26M) [application/octet-stream]
+Saving to: ‘Python-3.12.1.tgz’
+
+Python-3.12.1.tgz              100%[==================================================>]  25.80M  71.7MB/s    in 0.4s
+
+2026-11-23 16:30:01 (71.7 MB/s) - ‘Python-3.12.1.tgz’ saved [27053241/27053241]
+```
+
+:::
+
+The download is a compressed archive (`.tgz`). Extract it with `tar`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+tar xzf Python-3.12.1.tgz
+```
+
+`tar` prints nothing when it succeeds. It leaves a new `Python-3.12.1` folder next to the archive, so move into it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+cd Python-3.12.1
+```
+
+### Configuring and compiling
+
+`./configure` checks the instance for compilers and libraries, then writes a `Makefile` for the build. The `--prefix` option tells it where the finished Python goes:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+checking ...
+configure: ...
+config.status: ...
+```
+
+:::
+
+Finally, `make altinstall` compiles Python and installs it into `/opt/python/3.12.1`. On a `t3.micro` this step takes 20 to 30 minutes (see the note below):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo make altinstall
+```
+
+```{r}
+#| label: co_box_build_time
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "This takes a while",
+  fold = TRUE,
+  contents = "
+`--enable-optimizations`, passed to `./configure` above, is what triples the compile time. It builds Python twice: once to produce an instrumented interpreter, then runs it against Python's own test suite to record which code paths get hit most, then rebuilds using that profile data to optimize those paths (profile guided optimization, or PGO). It also turns on link time optimization (LTO). On a `t3.micro` the whole thing takes 20 to 30 minutes with the CPU pegged.
+
+'Runtime speed' here means how fast the finished interpreter executes Python code after it's installed, not how long the build itself takes. PGO typically buys 10 to 20 percent on CPU bound benchmarks. A subprocess-heavy or I/O-bound app isn't CPU bound, so that speedup is not something you'd notice in practice. Drop the flag (`sudo ./configure --prefix=/opt/python/3.12.1`) and the build finishes in a few minutes with a standard, unoptimized interpreter.
+
+If `make` dies partway through with an out of memory error, see [Instance Size](instance-size.qmd) for what that means and how to work around it on a small instance.
+
+More on the flag itself: <https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations>
+  "
+)
+```
+
+The output scrolls for a long time. In the last lines, `make` creates the manual page directories, then runs `ensurepip` to install `pip` into the new Python. It ends with two warnings:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Creating directory /opt/python/3.12.1/share/man
+Creating directory /opt/python/3.12.1/share/man/man1
+/usr/bin/install -c -m 644 ./Misc/python.man \
+    /opt/python/3.12.1/share/man/man1/python3.12.1
+if test "xupgrade" != "xno"  ; then \
+    case upgrade in \
+        upgrade) ensurepip="--altinstall --upgrade" ;; \
+        install|*) ensurepip="--altinstall" ;; \
+    esac; \
+     ./python -E -m ensurepip \
+        $ensurepip --root=/ ; \
+fi
+Looking in links: /tmp/tmp2ltxc2r9
+Processing /tmp/tmp2ltxc2r9/pip-23.2.1-py3-none-any.whl
+Installing collected packages: pip
+  WARNING: The script pip3.12 is installed in '/opt/python/3.12.1/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed pip-23.2.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+```
+
+:::
+
+`Successfully installed pip-23.2.1` means the build worked, and neither warning is a problem here:
+
+* `not on PATH`: the shell doesn't look in `/opt/python/3.12.1/bin` yet. [Finding your language installations](#finding-your-language-installations) below adds it.
+
+* `Running pip as the 'root' user`: `sudo make` runs the whole build as `root`, so `pip` installed itself as `root` too. It went into `/opt/python/3.12.1`, not the system Python, so `dnf` is unaffected. The advice still applies to everything after this: install packages into a virtual environment, never with `sudo pip`.
+
+* the `--prefix` command we use with `sudo ./configure` keeps the install self contained. `altinstall` installs `python3.12` without also writing a `python3` symlink that would shadow the system copy.
+
+Confirm you got what you asked for:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/python/3.12.1/bin/python3.12 --version
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Python 3.12.1
+```
+
+:::
+
+Then confirm the `ssl` module was built. `pip` needs it to download packages from PyPI over HTTPS:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+OpenSSL 3.5.8 25 Aug 2026
+```
+
+:::
+
+
+```{r}
+#| label: co_box_no_ssl
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "r",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "pip fails with 'ssl module is not available'",
+  fold = TRUE,
+  contents = "
+The interpreter you just built has no SSL support, so pip can't reach PyPI over HTTPS at all. The cause traces back to the `./configure` step: it looks for the OpenSSL headers from `openssl-devel`, and if they're missing it silently skips the `_ssl` module instead of failing the build. `make altinstall` finishes without complaint, so the problem doesn't show up until pip tries to talk to the internet.
+
+On AL2023, `openssl-devel` is OpenSSL 3, which Python 3.12 builds against without any extra flags. The usual cause is skipping the `dnf install` step above (or running `./configure` before it finished). Install the headers and rebuild:
+
+> `sudo dnf install -y openssl-devel`
+>
+> `cd ~/Python-3.12.1`
+>
+> `sudo ./configure --prefix=/opt/python/3.12.1 --enable-optimizations`
+>
+> `sudo make altinstall`
+
+You don't need to redownload the source or delete the existing `/opt/python/3.12.1` tree; `altinstall` overwrites in place.
+
+Confirm the module built this time before retrying the venv:
+
+`/opt/python/3.12.1/bin/python3.12 -c 'import ssl; print(ssl.OPENSSL_VERSION)'`
+
+That should print an OpenSSL 3 version string, not a traceback.
+  "
+)
+```
+
+## Finding your language installations
+
+Installing a language and being able to *run* it are two different problems. A package manager like `dnf` puts binaries somewhere the shell already knows to look, but anything I install by hand usually lands somewhere the shell won't see. That's when commands I know are installed come back as `command not found`.
+
+### The `PATH` variable
+
+`PATH` is an environment variable holding a colon separated list of directories. When I type a command, the shell walks that list from left to right and runs the first matching executable it finds. It never searches the whole filesystem.
+
+Print it to see what the shell is actually checking:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+echo $PATH
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/home/ec2-user/.local/bin:/home/ec2-user/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin
+```
+
+:::
+
+To find out which copy wins, use `which`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/bin/python3
+```
+
+:::
+
+If a command isn't found, the executable is almost always on the box, just not in one of those directories. Adding it is a matter of appending the directory to `PATH` in a startup file so the change survives a new login:
+
+Say we want to use Python 3.12.1: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+tree /opt/python/ -L 2
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/opt/python/
+└── 3.12.1
+    ├── bin
+    ├── include
+    ├── lib
+    └── share
+
+5 directories, 0 files
+```
+
+:::
+
+We add the path to the binary using the following:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+echo 'export PATH="/opt/python/3.12.1/bin:$PATH"' >> ~/.bashrc
+```
+
+
+```{bash}
+#| eval: false
+#| code-fold: false
+source ~/.bashrc
+```
+
+Print `PATH` again to confirm the new directory is at the front of the list:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+echo $PATH
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/opt/python/3.12.1/bin:/home/ec2-user/.local/bin:/home/ec2-user/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin
+```
+
+:::
+
+Putting the new directory first means it takes priority over anything with the same name further down the list. But `which python3` still finds the system copy:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/bin/python3
+```
+
+:::
+
+That's `altinstall` doing its job. It installed `python3.12` into `/opt/python/3.12.1/bin`, but not a `python3`, so the shell finds no `python3` there and keeps searching until it reaches `/usr/bin`. Ask for the versioned name instead:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3.12
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/opt/python/3.12.1/bin/python3.12
+```
+
+:::
+
+```{mermaid}
+%%| fig-cap: 'How PATH Search Works'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Cmd(["shell command<br/><strong>python3</strong>"]) --> Check1("Check<br/><strong>/usr/local/bin</strong>")
+    Check1 -->|"not found"| Check2("Check<br/><strong>/usr/bin</strong>")
+    Check2 -->|"found!"| Run("Run<br/><strong>/usr/bin/python3</strong>")
+    Check1 -->|"found!"| Run2("Run<br/><strong>/usr/local/bin/python3</strong><br/>(first match wins)")
+
+    style Cmd fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Check1 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Check2 fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style Run fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Run2 fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    
+```
+
+```{r}
+#| label: co_box_path_scope
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "PATH is per user",
+  fold = TRUE,
+  contents = "
+Editing `~/.bashrc` only changes `PATH` for that one account. A service running under `systemd` doesn't read it at all, and neither does a different user who logs in later. If an interpreter has to be visible to everyone (and to services), a symlink into `/usr/local/bin` is more reliable than asking every account to edit a startup file.
+  "
+)
+```
+
+### Symlinks with `ln`
+
+A symlink is a pointer: a small file that redirects to a real one somewhere else. Rather than adding a new directory to everyone's `PATH`, I create a link inside a directory that's already there.
+
+The `-s` flag makes it symbolic, and the real path always comes first:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo ln -s /opt/python/3.12.1/bin/python3.12 /usr/local/bin/python3
+```
+
+Confirm the link points where you expect:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ls -l /usr/local/bin/python3
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+lrwxrwxrwx. 1 root root 33 Nov 23 17:46 /usr/local/bin/python3 -> /opt/python/3.12.1/bin/python3.12
+```
+
+:::
+
+The `l` at the start marks a link, and the trailing `.` means the file carries an SELinux label (AL2023 enables SELinux). Now `which python3` stops at `/usr/local/bin`, which comes before `/usr/bin` in `PATH`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which python3
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/local/bin/python3
+```
+
+:::
+
+`dnf` is unaffected: its scripts call `/usr/bin/python3` by full path, so they never search `PATH`.
+
+```{mermaid}
+%%| fig-cap: 'Symlink Resolution'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    User(["User types:<br/><code>python3</code>"])
+    Link("<strong>/usr/local/bin/python3</strong>")
+    Points("<strong>/opt/python/3.12.1/<br>bin/python3.12</strong>")
+    Real("<strong>Actual binary</strong>")
+
+    User --"Shell finds symlink"--> Link
+    Link --"Symlink points to"--> Points
+    Points --"Real executable runs"--> Real
+
+    style User fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style Link fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style Points fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000
+    style Real fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+The other reason I reach for `ln` is versioning. When a new version of R or Python goes into `/opt` alongside the old one, repointing a single symlink switches every user over, and repointing it back is the rollback.
+
+## Where do language installations live?
+
+Linux spreads a single installation across several directories by purpose, not by product. Knowing the convention is how I find a config file or a log without searching for it.
+
+| Location | What lives there |
+|:---------|:-----------------|
+| `/bin`, `/usr/bin` | Core system executables, managed by the package manager |
+| `/usr/local/bin` | Executables installed outside the package manager, plus symlinks |
+| `/opt` | Self contained third party software, one directory per version |
+| `/etc` | Configuration files |
+| `/var/log` | Log files |
+
+: Common installation locations {#tbl-app-locations}
+
+```{mermaid}
+%%| fig-cap: 'Installation Filesystem Hierarchy'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    Root(["/"])
+    Bin("<strong>/bin</strong> or<br><strong>/usr/bin</strong>")
+    Local("<strong>/usr/local/bin</strong>")
+    Opt("<strong>/opt</strong>")
+    OptPy("<strong>/opt/python/3.12.1</strong>")
+    OptR("<strong>/opt/R/4.6.1</strong>")
+    Etc("<strong>/etc</strong>")
+    Log("<strong>/var/log</strong>")
+
+    Root --"<em>OS managed</em>"--> Bin
+    Root --"<em>symlinks here</em>"--> Local
+    Root --"<em>versions isolated</em>"--> Opt
+    Root --"<em>config files</em>"--> Etc
+    Root --"<em>log files</em>"--> Log
+    Opt --"<em>lib, bin, share</em>"--> OptPy
+    Opt --"<em>lib, bin, share</em>"--> OptR
+
+    style Root fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff,font-size:12px,font-family:monospace
+    style Bin fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Local fill:#5b8c5a,stroke:#fff,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Opt fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000,font-size:12px,font-family:monospace
+    style OptPy fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
+    style OptR fill:#e8a33d,stroke:#000,stroke-width:1px,color:#000,font-size:12px,font-family:monospace
+    style Etc fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    style Log fill:#666,stroke:#999,stroke-width:1px,color:#fff,font-size:12px,font-family:monospace
+    
+```
+
+`/opt` is the important one for data science work. Installing there keeps a version fully contained in its own folder, so nothing overwrites anything the operating system depends on.
+
+## Language versions
+
+EC2 instances don't ship with current versions of R or Python, so this section installs both on the instance we've SSH'd into.
+
+### Python version
+
+The Python already on the instance belongs to the operating system. AL2023 uses it for `dnf` and other internal tooling, so upgrading it or installing packages into it with `sudo pip install` risks breaking the box itself.
+
+The safer pattern is to install your own Python into `/opt`, leave the system copy alone, and create virtual environments from the `/opt` copy (the steps that build it are in [Building Python from source](#building-python-from-source) above):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+/opt/python/3.12.1/bin/python3.12 -m venv ~/my-app/venv
+```
+
+Activate the virtual environment:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+source ~/my-app/venv/bin/activate
+```
+
+The prompt gains a `(venv)` prefix. Inside the environment, plain `python` is the 3.12.1 copy:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+python --version
+which python
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Python 3.12.1
+~/my-app/venv/bin/python
+```
+
+:::
+
+Deactivate the virtual environment with: 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+deactivate
+```
+
+#### Using `uv`
+
+[`uv`](https://docs.astral.sh/uv/) is a Python package and project manager. It replaces `python -m venv`, `pip`, and `pip-tools` with one command, and it records exact package versions in a lock file. It also installs packages much faster than `pip`.
+
+`uv` is a single binary. The install script puts it in `~/.local/bin`, which is already on `PATH` for `ec2-user`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+downloading uv 0.13.9 x86_64-unknown-linux-gnu
+installing to /home/ec2-user/.local/bin
+  uv
+  uvx
+everything's installed!
+```
+
+:::
+
+Confirm the install:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+uv --version
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+uv 0.13.9 (x86_64-unknown-linux-gnu)
+```
+
+:::
+
+`uv` searches `PATH` for an interpreter. `uv python find` shows which one it would use for 3.12:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+uv python find 3.12
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/opt/python/3.12.1/bin/python3.12
+```
+
+:::
+
+`uv` prefers the versioned `python3.12` in `/opt` over the system 3.9, so the build above is what it will use.
+
+Create a project with `uv init`. The `--python` option pins the project to the `/opt` interpreter:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+uv init --python /opt/python/3.12.1/bin/python3.12 ~/uv-app
+cd ~/uv-app
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Initialized project `uv-app` at `/home/ec2-user/uv-app`
+```
+
+:::
+
+`uv init` writes a `pyproject.toml`, a `.python-version` file, and a starter `main.py`. Add a package with `uv add`. It creates the `.venv` on first use, installs the package, and records it in `pyproject.toml` and `uv.lock`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+uv add requests
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Using CPython 3.12.1 interpreter at: /opt/python/3.12.1/bin/python3.12
+Creating virtual environment at: .venv
+Resolved 6 packages in 221ms
+      Built uv-app @ file:///home/ec2-user/uv-app
+Prepared 6 packages in 64ms
+Installed 6 packages in 87ms
+ + certifi==2026.11.20
+ + charset-normalizer==3.5.3
+ + idna==3.20
+ + requests==2.34.2
+ + urllib3==2.8.0
+ + uv-app==0.1.0 (from file:///home/ec2-user/uv-app)
+```
+
+:::
+
+`requests` brought four dependencies with it, and `uv` installed the project itself (`uv-app`) into the environment too.
+
+`uv run` runs a command inside the project's environment, so there's no `source .venv/bin/activate` step:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+uv run python --version
+uv run python -c 'import requests; print(requests.__version__)'
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Python 3.12.1
+2.34.2
+```
+
+:::
+
+On another machine (or after deleting `.venv`), `uv sync` rebuilds the environment from `uv.lock` with the same versions.
+
+```{r}
+#| label: co_box_uv_python
+#| echo: false
+#| results: asis
+#| eval: true
+co_box(
+  color = "b",
+  look = "default",
+  hsize = "1.15",
+  size = "1.00",
+  header = "uv can install Python too",
+  fold = TRUE,
+  contents = "
+`uv python install 3.12` downloads a prebuilt interpreter into `~/.local/share/uv/python` in a few seconds, which skips the 20 to 30 minute source build. The trade off is that the interpreter belongs to one user and lives in a hidden directory, not in `/opt` where every account and service can find it. For a shared server, the `/opt` build is easier to reason about; for a personal project, `uv python install` is the faster route.
+  "
+)
+```
+
+### R version
+
+R has no equivalent system dependency, so multiple versions can coexist in `/opt/R` without conflict. [`rig`](https://github.com/r-lib/rig), the R Installation Manager, handles installing and switching between them.
+
+`rig` isn't in the AL2023 repositories, so install it first. The portable Linux build is a tarball that unpacks into `/usr/local`, which puts `rig` in `/usr/local/bin` and on the `PATH` for every account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl -Ls https://github.com/r-lib/rig/releases/download/latest/rig-linux-x86_64-latest.tar.gz | sudo tar xz -C /usr/local
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which rig && rig --version
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+/usr/local/bin/rig
+RIG -- The R Installation Manager 0.11.1
+```
+
+:::
+
+On a Graviton (`arm64`) instance, swap `x86_64` for `aarch64` in the URL. With `rig` installed, add R and make it the default:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo /usr/local/bin/rig add 4.6.1
+```
+
+`rig` downloads a prebuilt R package for RHEL 9 (AL2023 is close enough to RHEL 9 to use it) and hands it to `dnf`, which pulls in about 40 system libraries R needs. The output is long; the start and end look like this:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+▶ Downloading https://cdn.posit.co/r/rhel-9/pkgs/R-4.6.1-1-1.x86_64.rpm -> /tmp/rig-0/R-4.6.1-1-1.x86_64.rpm
+▶ Running "dnf install -y /tmp/rig-0/R-4.6.1-1-1.x86_64.rpm"
+> Dependencies resolved.
+> ================================================================================
+>  Package                     Arch   Version                  Repository    Size
+> ================================================================================
+> Installing:
+>  R-4.6.1                     x86_64 1-1                      @commandline  69 M
+> Installing dependencies:
+>  brotli                      x86_64 1.1.0-1.amzn2023.0.2     amazonlinux   20 k
+...
+> Transaction Summary
+> ================================================================================
+> Install  41 Packages
+...
+> Complete!
+▶ Adding /usr/local/bin/R-4.6.1 -> /opt/R/4.6.1/bin/R
+▶ Installing pak for R 4.6.1 (if not installed yet)
+> Installing package into ‘/home/ec2-user/R/x86_64-pc-linux-gnu-library/4.6’
+...
+> * installing *binary* package ‘pak’ ...
+> * DONE (pak)
+```
+
+:::
+
+Three lines matter. `Complete!` means `dnf` installed R into `/opt/R/4.6.1`. `Adding /usr/local/bin/R-4.6.1` is a versioned symlink, the same `/usr/local/bin` pattern we used for Python. The last step installs [`pak`](https://pak.r-lib.org/), a fast package installer, into our user library.
+
+Set it as the default:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo /usr/local/bin/rig default 4.6.1
+```
+
+Confirm the install; the asterisk marks the default version:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+rig list
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+* name   version  aliases
+------------------------------------------
+* 4.6.1
+```
+
+:::
+
+The default version is what plain `R` and `Rscript` run:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+R --version | head -1
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+R version 4.6.1 (2026-06-24) -- "Happy Hop"
+```
+
+:::
+
+`rig` is one way to get R. On an Ubuntu machine (a local workstation, or an Ubuntu AMI instead of Amazon Linux), CRAN publishes its own `apt` repository, which tracks the current release (R 4.6.1 as of this writing). Add CRAN's signing key and repository, then install `r-base`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt update -qq
+```
+
+Install the tools `add-apt-repository` and key handling depend on:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt install --no-install-recommends software-properties-common dirmngr
+```
+
+Add CRAN's signing key:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
+  sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+```
+
+Add the CRAN repository for your Ubuntu release:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+```
+
+Install R:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo apt install --no-install-recommends r-base
+```
+
+`$(lsb_release -cs)` fills in the Ubuntu release codename. Pop!_OS is built on Ubuntu and reports the Ubuntu codename (`noble` on Pop!_OS 24.04), so the same commands work unchanged. CRAN currently builds for 26.04 (`resolute`), 24.04 (`noble`), and 22.04 (`jammy`).
+
+Confirm the version:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+R --version | head -1
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+R version 4.6.1 (2026-06-24) -- "Happy Hop"
+```
+
+:::
+
+This installs a single, system wide R under `/usr/lib/R` that `apt upgrade` keeps current. If you need several versions side by side, use `rig` instead; it works the same way on Ubuntu.
+
+`rig` answers "*which R is installed on this box?*" It doesn't pin the packages a project uses or the system libraries those packages compile against. [`rix`](https://docs.ropensci.org/rix/) covers that side. It writes a `default.nix` file describing a project's R version, R packages, and system dependencies, and [Nix](https://nixos.org/) builds that environment into `/nix/store`, isolated from both the system and anything `rig` installed.
+
+| Tool | Scope | Lives in |
+|:-----|:------|:---------|
+| `rig` | R versions for the whole instance | `/opt/R/<version>` |
+| `rix` + Nix | R, packages, and system libraries for one project | `/nix/store`, described by `default.nix` |
+
+: rig versus rix {#tbl-rig-rix}
+
+Install Nix with the Determinate Systems installer, which the `rix` docs recommend. The extra configuration adds the `rstats-on-nix` binary cache, so R packages download prebuilt instead of compiling on the instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
+  sh -s -- install --no-confirm --extra-conf "
+trusted-users = root $USER
+substituters = https://cache.nixos.org https://rstats-on-nix.cachix.org
+trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= rstats-on-nix.cachix.org-1:vdiiVgocg6WeJrODIqdprZRUrhi1JzhBnXv7aWI6+F0="
+```
+
+Open a new shell so `nix-shell` and `nix-build` are on your `PATH`. The R that `rig` installed can generate the environment file, so install `rix` into it and describe the project:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+mkdir -p ~/my-r-app && cd ~/my-r-app
+Rscript -e 'install.packages("rix", repos = "https://cloud.r-project.org")'
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+Rscript -e '
+rix::rix(
+  r_ver = "4.6.1",
+  r_pkgs = c("dplyr", "shiny"),
+  system_pkgs = NULL,
+  git_pkgs = NULL,
+  ide = "none",
+  project_path = ".",
+  overwrite = TRUE
+)'
+```
+
+`ide = "none"` fits a server with no editor attached. `rix()` writes `default.nix` and an `.Rprofile`; the `.Rprofile` keeps R inside the Nix environment from reading the library paths of the `rig` installed R.
+
+Build the environment, then enter it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+nix-build
+nix-shell
+```
+
+Inside `nix-shell`, `R` and `Rscript` resolve to the Nix copy, not `/opt/R`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+which R
+Rscript -e 'R.version.string'
+```
+
+`which R` should print a path under `/nix/store`. `exit` leaves the shell and puts the `rig` default back in front. Commit `default.nix` with the project and anyone running `nix-build` gets the same R, packages, and system libraries, which also sidesteps the `-devel` packages below for anything Nix provides.
+
+### System libraries
+
+Both languages depend on system libraries that neither one installs for you. A package that compiles from source will fail with a missing header error until the matching development package is present:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo dnf install -y libcurl-devel openssl-devel libxml2-devel
+```
+
+Two of the three are already on the instance: the Python build installed `openssl-devel`, and `rig add` pulled in `libcurl-devel` as an R dependency. `dnf` skips them and installs only `libxml2-devel`:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Package libcurl-devel-8.21.0-5.amzn2023.0.5.x86_64 is already installed.
+Package openssl-devel-1:3.5.8-1.amzn2023.0.4.x86_64 is already installed.
+Dependencies resolved.
+...
+Installed:
+  libxml2-devel-2.10.4-1.amzn2023.0.22.x86_64
+
+Complete!
+```
+
+:::
+
+Running the command anyway is harmless, and it documents what the server needs in case it's rebuilt in a different order.
+
+These are the three that account for most failed installs of `curl`, `openssl`, and `xml2`, and every R or Python package that depends on them.
+
+```{mermaid}
+%%| fig-cap: 'Language Runtime Installation Pattern'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+graph TD
+    SysPy["System Python<br/><em>owned by OS</em>"]
+    OptPy(["Your Python<br/><strong>/opt/python/3.12.1</strong><br/><em>isolated version</em>"])
+    Venv("Virtual Env<br/><strong>~/my-app/venv</strong><br/><em>project packages</em>")
+
+    SysPy -->|"leave untouched"| SysTools("dnf, AWS CLI,<br/>OS internal tools")
+    OptPy -->|"create venv from"| Venv
+    Venv -->|"install packages to"| Packages("<strong>pip install<br/>my-packages</strong>")
+
+    R["System R<br/><em>usually absent</em>"]
+    OptR("Multiple R versions<br/><strong>/opt/R/4.6.1</strong><br/><strong>/opt/R/4.3.2</strong><br/><em>rig switches</em>")
+    Libs("System libraries<br/><strong>libcurl-devel</strong><br/><strong>openssl-devel</strong><br/><strong>libxml2-devel</strong>")
+
+    R -->|"alternative"| OptR
+    OptR --> Libs
+    Libs -->|"required for"| RPackages("R packages<br/>from source")
+
+    style SysPy fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style OptPy fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Venv fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Packages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style R fill:#d2562b,stroke:#fff,stroke-width:2px,color:#fff
+    style OptR fill:#5b8c5a,stroke:#fff,stroke-width:2px,color:#fff
+    style Libs fill:#e8a33d,stroke:#000,stroke-width:2px,color:#000
+    style RPackages fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+    style SysTools fill:#2a6f77,stroke:#fff,stroke-width:1px,color:#fff
+```
+
+## Recap
+
+1. `PATH` decides what the shell can find, and `which` tells you which copy is winning. A `command not found` error usually means a directory is missing from the list, not that the software is missing.
+
+2. Install language runtimes into `/opt` and symlink them into `/usr/local/bin`. That keeps the system Python untouched, makes the version visible to every account and service, and turns a version change into a one line edit.
+
+3. When the packaged interpreter is too old, build your own into `/opt` with `make altinstall` rather than touching the system copy. [Installing a Real Application](install-real-app.qmd) applies the same pattern to a full app.
