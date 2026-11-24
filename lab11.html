@@ -28,6 +28,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -51,8 +86,8 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-0c98fa3b0421302c98115ef14aeba7fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-62715e386a36d0e96e8874aaa0753d08.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-2459dba02bc2ed79e3c432382f9c8883.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -80,7 +115,40 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -659,8 +727,14 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1">
@@ -709,8 +783,295 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>This lab covers the three resources that decide how big a server needs to be: CPU, RAM, and storage. It also covers when a GPU is worth paying for and how to scale up when a server runs short. Along the way, a few commands show how much of each resource a server is using. The examples come from the <code>t3.micro</code> we’ve been running since <a href="./lab07.html">Lab 7</a>. It has already hit some of these limits in <a href="./instance-size.html">Instance Size</a> and <a href="./install-real-app.html">Installing a Real Application</a>.</p>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<blockquote class="blockquote">
+<p>“<em>Think about the scenarios below. Which part of your computer would you want to upgrade to solve the problem?</em>”</p>
+<p>“1. <em>You try to load a <code>.csv</code> file into <code>{pandas}</code> in Python. It churns for a while and then crashes.</em>”</p>
+</blockquote>
+<p>RAM. <code>{pandas}</code> loads the whole file into memory, and transformations make temporary copies on top of that. When the data doesn’t fit, the session crashes instead of slowing down. <strong>The chapter’s rule of thumb is to have at least three times as much RAM as the largest dataset</strong>:</p>
+<p><span class="math display">\[\text{Amount of RAM} \ge 3 \times \text{max amount of data}\]</span></p>
+<p>Before buying more, it’s worth asking whether the whole file needs to be in memory at once. Reading only some columns, or switching to a database or Parquet file, can load far less.</p>
+<p>With a 400 MB file as an example, the 3x rule already asks for more memory than a <code>t3.micro</code> has:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'xyChart': {'plotColorPalette': '#2A6F77'}}}}%%
+
+xychart-beta
+    title "Loading a 400 MB CSV on a t3.micro"
+    x-axis ["CSV on disk", "RAM needed (3x)", "t3.micro RAM"]
+    y-axis "Gigabytes" 0 --&gt; 1.5
+    bar [0.4, 1.2, 1.0]
+</pre>
+</div>
+<p></p><figcaption> RAM Needed for a 400 MB CSV (illustrative)</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“2. <em>You go to build a new ML model on your data. You’d like to re-train the model once a day, but training this model takes 26 hours on your laptop.</em>”</p>
+</blockquote>
+<p>Compute. A 26 hour job can’t run once a day no matter how much RAM or storage the machine has. If the model is highly parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. <strong>GPUs are expensive, and the code has to be told to use one. The chapter’s advice is to try faster CPU cores first.</strong></p>
+<p>The order to try things in looks like this:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Job(["&lt;strong&gt;Training takes 26 hours&lt;/strong&gt;"])
+    Fast("Faster CPU cores&lt;br/&gt;&lt;em&gt;C family instance&lt;/em&gt;")
+    Check{"Fits in a day?"}
+    Par{"Highly parallel model?&lt;br/&gt;&lt;em&gt;deep learning, trees&lt;/em&gt;"}
+    GPU("GPU instance&lt;br/&gt;&lt;em&gt;P family, set in the code&lt;/em&gt;")
+    Done(["&lt;strong&gt;Retrain daily&lt;/strong&gt;"])
+    Rethink("Rethink the job&lt;br/&gt;&lt;em&gt;less data, fewer features&lt;/em&gt;")
+
+    Job --&gt; Fast --&gt; Check
+    Check --"yes"--&gt; Done
+    Check --"no"--&gt; Par
+    Par --"yes"--&gt; GPU --&gt; Done
+    Par --"no"--&gt; Rethink
+
+    style Job fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style Fast fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Check fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style Par fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style GPU fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff
+    style Rethink fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Done fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> Speeding Up a Training Job</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“3. <em>You design a visualization using the <code>{matplotlib}</code> package and want to create one version of the visualization for each US state. You could do it in a loop, but it would be faster to parallelize the plot creation. Right now, you’re running on a <code>t2.small</code> with 1 CPU.</em>”</p>
+</blockquote>
+<p>More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. <strong>A GPU doesn’t help here because <code>{matplotlib}</code> draws on the CPU.</strong></p>
+<p>Assume each plot takes one minute. With the same total work, four cores finish in about a quarter of the time:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'taskBkgColor':'#2A6F77', 'taskBorderColor':'#2A6F77', 'taskTextColor':'#ffffff', 'taskTextLightColor':'#ffffff', 'taskTextOutsideColor':'#E8A33D', 'sectionBkgColor':'#E8E8E8', 'altSectionBkgColor':'#F5F5F5', 'gridColor':'#999999'}}}%%
+
+gantt
+    title 50 plots, one core vs. four
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section 1 core
+    1 to 13     :a1, 00:00, 13m
+    14 to 26    :a2, after a1, 13m
+    27 to 38    :a3, after a2, 12m
+    39 to 50    :a4, after a3, 12m
+    section 4 cores
+    1 to 13     :b1, 00:00, 13m
+    14 to 26    :b2, 00:00, 13m
+    27 to 38    :b3, 00:00, 12m
+    39 to 50    :b4, 00:00, 12m
+</pre>
+</div>
+<p></p><figcaption> One Core vs.&nbsp;Four Cores (illustrative)</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“<em>Draw a mind map of the following: CPU, RAM, Storage, Operations Per Second, Parallel Operations, GPU, Machine Learning.</em>”</p>
+</blockquote>
+<p>The chapter’s analogy is a factory that does addition problems. The CPU is the assembly line, RAM is the space next to the line where work waits, and storage is the warehouse next door. The mind map groups the other terms under the resource they describe:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+mindmap
+  root((Server resources))
+    CPU
+      Few fast cores
+      Operations Per Second
+    GPU
+      Many slow cores
+      Parallel Operations
+        Machine Learning
+    RAM
+      Data being worked on
+      Wiped on restart
+    Storage
+      Saved files and packages
+      Slow but permanent
+</pre>
+</div>
+<p></p><figcaption> Server Resources Mind Map</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“<em>What are the architectural differences between a CPU and a GPU? Why does this make a GPU particularly good for Machine Learning?</em>”</p>
+</blockquote>
+<p>A CPU has a handful of fast cores, usually 4 to 16 on a laptop. A GPU has hundreds or thousands of slow ones: 700 to 4,000 on a mid range card, each running at 1 to 10 percent of a CPU core’s speed. The CPU is built to finish one problem quickly. The GPU is built to work on thousands of small problems at once.</p>
+<p>Training most machine learning models is that kind of work. The same arithmetic repeats over many rows, weights, or trees, and each piece is independent of the others. When work splits that way, the number of cores matters more than the speed of any one core. A GPU can then train in hours what a CPU trains in days.</p>
+<p>Work that runs one step at a time gets nothing from a GPU. Most everyday R and Python works that way, which is why fewer, faster CPU cores suit it better.</p>
+<p>Placing each chip by core count and core speed shows why they suit different work:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'quadrant1Fill':'#1B2A41', 'quadrant2Fill':'#2A6F77', 'quadrant3Fill':'#1B2A41', 'quadrant4Fill':'#5B8C5A', 'quadrant1TextFill':'#ffffff', 'quadrant2TextFill':'#ffffff', 'quadrant3TextFill':'#ffffff', 'quadrant4TextFill':'#ffffff', 'quadrantPointFill':'#E8A33D', 'quadrantPointTextFill':'#ffffff', 'quadrantInternalBorderStrokeFill':'#ffffff', 'quadrantExternalBorderStrokeFill':'#999999'}}}%%
+
+quadrantChart
+    title Core count vs. core speed
+    x-axis Few cores --&gt; Many cores
+    y-axis Slow cores --&gt; Fast cores
+    quadrant-1 Many and fast
+    quadrant-2 CPU territory
+    quadrant-3 Few and slow
+    quadrant-4 GPU territory
+    t3.micro CPU: [0.12, 0.62]
+    Laptop CPU: [0.15, 0.82]
+    Mid range GPU: [0.85, 0.18]
+</pre>
+</div>
+<p></p><figcaption> CPU vs.&nbsp;GPU Cores</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“<em>How would you do the following?</em>”</p>
+<p>“1. <em>Find all running JupyterHub processes that belong to the user <code>alexkgold</code>.</em>”</p>
+</blockquote>
+<p><code>ps aux</code> lists every process with its owner, and <code>grep</code> narrows it down:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> aux <span class="kw">|</span> <span class="fu">grep</span> jupyterhub <span class="kw">|</span> <span class="fu">grep</span> alexkgold</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Each <code>|</code> passes one command’s output to the next, and each <code>grep</code> keeps fewer lines:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant ps as ps aux
+    participant g1 as grep jupyterhub
+    participant g2 as grep alexkgold
+    participant T as Terminal
+    ps-&gt;&gt;g1: every process, one per line
+    g1-&gt;&gt;g2: only lines mentioning jupyterhub
+    g2-&gt;&gt;T: jupyterhub lines owned by alexkgold
+    Note over ps,T: each | hands one command's output to the next
+</pre>
+</div>
+<p></p><figcaption> Filtering ps aux with grep</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p><code>ps -u alexkgold</code> lists only that user’s processes, so <code>ps -u alexkgold | grep jupyterhub</code> gets to the same place. Our instance doesn’t run JupyterHub, but the same pattern finds the app from <a href="./install-real-app.html">Installing a Real Application</a>, which runs as its service account:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> <span class="at">-u</span> baseball-trajectory <span class="at">-o</span> pid,%cpu,%mem,cmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If one of these processes is running away with the CPU, its PID goes to <code>kill</code>. For a <code>systemd</code> service, <code>sudo systemctl restart</code> is the better tool.</p>
+<blockquote class="blockquote">
+<p>“2. <em>Find the different disks attached to your server and see how full each one is.</em>”</p>
+</blockquote>
+<p><code>lsblk</code> lists the disks and partitions, and <code>df -h</code> shows how full each mounted filesystem is:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lsblk</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">df</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>On an EC2 instance the root EBS volume usually shows up as <code>nvme0n1</code>, mounted at <code>/</code>. <code>-h</code> prints sizes in K, M, and G instead of blocks.</p>
+<p><code>lsblk</code> shows the whole tree, including partitions that aren’t mounted; <code>df -h</code> reports only the mounted ones. On an AL2023 instance the tree usually looks like this:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+block-beta
+    columns 3
+    disk["nvme0n1: EBS root volume"]:3
+    space:3
+    p1["partition: nvme0n1p1"] p127["partition: nvme0n1p127"] p128["partition: nvme0n1p128"]
+    m1["mounted at /"] b1["BIOS boot, not mounted"] m128["mounted at /boot/efi"]
+    disk --&gt; p1
+    disk --&gt; p127
+    disk --&gt; p128
+    style disk fill:#1B2A41,stroke:#fff,color:#fff
+    style m1 fill:#2A6F77,stroke:#fff,color:#fff
+    style m128 fill:#2A6F77,stroke:#fff,color:#fff
+    style b1 fill:#666,stroke:#999,color:#fff
+</pre>
+</div>
+<p></p><figcaption> What lsblk and df -h Show</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“3. <em>Find the biggest files in each user’s home directory.</em>”</p>
+</blockquote>
+<p><code>du</code> measures sizes, <code>sort -rh</code> puts the biggest first, and <code>head</code> keeps the top of the list. Home directories belong to other users, so this needs <code>sudo</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> du <span class="at">-ah</span> /home <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 20</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-a</code> includes files, not just directories. To get a short list per user instead of one combined list, loop over the home directories:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> /home/<span class="pp">*</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">"== </span><span class="va">$d</span><span class="st">"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sudo</span> du <span class="at">-ah</span> <span class="st">"</span><span class="va">$d</span><span class="st">"</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 5</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Each stage of the pipeline narrows the list:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Home[("&lt;strong&gt;/home&lt;/strong&gt;")]
+    Du("&lt;code&gt;sudo du -ah&lt;/code&gt;&lt;br/&gt;&lt;em&gt;size of every file and folder&lt;/em&gt;")
+    Sort("&lt;code&gt;sort -rh&lt;/code&gt;&lt;br/&gt;&lt;em&gt;biggest first, reads K, M, G&lt;/em&gt;")
+    Head("&lt;code&gt;head -n 20&lt;/code&gt;&lt;br/&gt;&lt;em&gt;keep the top 20&lt;/em&gt;")
+    Out[/"Top 20 files and folders"/]
+
+    Home --&gt; Du --&gt; Sort --&gt; Head --&gt; Out
+
+    style Home fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Du fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Sort fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Head fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Out fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+</pre>
+</div>
+<p></p><figcaption> Finding the Biggest Files</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script>
