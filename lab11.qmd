@@ -21,3 +21,274 @@ co_box(
   contents = "This section is being revised. Thank you for your patience."
 )
 ```
+
+This lab covers the three resources that decide how big a server needs to be: CPU, RAM, and storage. It also covers when a GPU is worth paying for and how to scale up when a server runs short. Along the way, a few commands show how much of each resource a server is using. The examples come from the `t3.micro` we've been running since [Lab 7](lab07.qmd). It has already hit some of these limits in [Instance Size](instance-size.qmd) and [Installing a Real Application](install-real-app.qmd).
+
+## Comprehension questions
+
+> "*Think about the scenarios below. Which part of your computer would you want to upgrade to solve the problem?*"
+>
+> "1. *You try to load a `.csv` file into `{pandas}` in Python. It churns for a while and then crashes.*"
+
+RAM. `{pandas}` loads the whole file into memory, and transformations make temporary copies on top of that. When the data doesn't fit, the session crashes instead of slowing down. **The chapter's rule of thumb is to have at least three times as much RAM as the largest dataset**:
+
+$$\text{Amount of RAM} \ge 3 \times \text{max amount of data}$$
+
+Before buying more, it's worth asking whether the whole file needs to be in memory at once. Reading only some columns, or switching to a database or Parquet file, can load far less.
+
+With a 400 MB file as an example, the 3x rule already asks for more memory than a `t3.micro` has:
+
+```{mermaid}
+%%| fig-cap: 'RAM Needed for a 400 MB CSV (illustrative)'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'xyChart': {'plotColorPalette': '#2A6F77'}}}}%%
+
+xychart-beta
+    title "Loading a 400 MB CSV on a t3.micro"
+    x-axis ["CSV on disk", "RAM needed (3x)", "t3.micro RAM"]
+    y-axis "Gigabytes" 0 --> 1.5
+    bar [0.4, 1.2, 1.0]
+```
+
+> "2. *You go to build a new ML model on your data. You'd like to re-train the model once a day, but training this model takes 26 hours on your laptop.*"
+
+Compute. A 26 hour job can't run once a day no matter how much RAM or storage the machine has. If the model is highly parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. **GPUs are expensive, and the code has to be told to use one. The chapter's advice is to try faster CPU cores first.**
+
+The order to try things in looks like this:
+
+```{mermaid}
+%%| fig-cap: 'Speeding Up a Training Job'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Job(["<strong>Training takes 26 hours</strong>"])
+    Fast("Faster CPU cores<br/><em>C family instance</em>")
+    Check{"Fits in a day?"}
+    Par{"Highly parallel model?<br/><em>deep learning, trees</em>"}
+    GPU("GPU instance<br/><em>P family, set in the code</em>")
+    Done(["<strong>Retrain daily</strong>"])
+    Rethink("Rethink the job<br/><em>less data, fewer features</em>")
+
+    Job --> Fast --> Check
+    Check --"yes"--> Done
+    Check --"no"--> Par
+    Par --"yes"--> GPU --> Done
+    Par --"no"--> Rethink
+
+    style Job fill:#D2562B,stroke:#fff,stroke-width:2px,color:#fff
+    style Fast fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Check fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style Par fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style GPU fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff
+    style Rethink fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Done fill:#1B2A41,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+> "3. *You design a visualization using the `{matplotlib}` package and want to create one version of the visualization for each US state. You could do it in a loop, but it would be faster to parallelize the plot creation. Right now, you're running on a `t2.small` with 1 CPU.*"
+
+More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. **A GPU doesn't help here because `{matplotlib}` draws on the CPU.**
+
+Assume each plot takes one minute. With the same total work, four cores finish in about a quarter of the time:
+
+```{mermaid}
+%%| fig-cap: 'One Core vs. Four Cores (illustrative)'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'taskBkgColor':'#2A6F77', 'taskBorderColor':'#2A6F77', 'taskTextColor':'#ffffff', 'taskTextLightColor':'#ffffff', 'taskTextOutsideColor':'#E8A33D', 'sectionBkgColor':'#E8E8E8', 'altSectionBkgColor':'#F5F5F5', 'gridColor':'#999999'}}}%%
+
+gantt
+    title 50 plots, one core vs. four
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section 1 core
+    1 to 13     :a1, 00:00, 13m
+    14 to 26    :a2, after a1, 13m
+    27 to 38    :a3, after a2, 12m
+    39 to 50    :a4, after a3, 12m
+    section 4 cores
+    1 to 13     :b1, 00:00, 13m
+    14 to 26    :b2, 00:00, 13m
+    27 to 38    :b3, 00:00, 12m
+    39 to 50    :b4, 00:00, 12m
+```
+
+> "*Draw a mind map of the following: CPU, RAM, Storage, Operations Per Second, Parallel Operations, GPU, Machine Learning.*"
+
+The chapter's analogy is a factory that does addition problems. The CPU is the assembly line, RAM is the space next to the line where work waits, and storage is the warehouse next door. The mind map groups the other terms under the resource they describe:
+
+```{mermaid}
+%%| fig-cap: 'Server Resources Mind Map'
+%%| fig-width: 8.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+mindmap
+  root((Server resources))
+    CPU
+      Few fast cores
+      Operations Per Second
+    GPU
+      Many slow cores
+      Parallel Operations
+        Machine Learning
+    RAM
+      Data being worked on
+      Wiped on restart
+    Storage
+      Saved files and packages
+      Slow but permanent
+```
+
+> "*What are the architectural differences between a CPU and a GPU? Why does this make a GPU particularly good for Machine Learning?*"
+
+A CPU has a handful of fast cores, usually 4 to 16 on a laptop. A GPU has hundreds or thousands of slow ones: 700 to 4,000 on a mid range card, each running at 1 to 10 percent of a CPU core's speed. The CPU is built to finish one problem quickly. The GPU is built to work on thousands of small problems at once.
+
+Training most machine learning models is that kind of work. The same arithmetic repeats over many rows, weights, or trees, and each piece is independent of the others. When work splits that way, the number of cores matters more than the speed of any one core. A GPU can then train in hours what a CPU trains in days.
+
+Work that runs one step at a time gets nothing from a GPU. Most everyday R and Python works that way, which is why fewer, faster CPU cores suit it better.
+
+Placing each chip by core count and core speed shows why they suit different work:
+
+```{mermaid}
+%%| fig-cap: 'CPU vs. GPU Cores'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'quadrant1Fill':'#1B2A41', 'quadrant2Fill':'#2A6F77', 'quadrant3Fill':'#1B2A41', 'quadrant4Fill':'#5B8C5A', 'quadrant1TextFill':'#ffffff', 'quadrant2TextFill':'#ffffff', 'quadrant3TextFill':'#ffffff', 'quadrant4TextFill':'#ffffff', 'quadrantPointFill':'#E8A33D', 'quadrantPointTextFill':'#ffffff', 'quadrantInternalBorderStrokeFill':'#ffffff', 'quadrantExternalBorderStrokeFill':'#999999'}}}%%
+
+quadrantChart
+    title Core count vs. core speed
+    x-axis Few cores --> Many cores
+    y-axis Slow cores --> Fast cores
+    quadrant-1 Many and fast
+    quadrant-2 CPU territory
+    quadrant-3 Few and slow
+    quadrant-4 GPU territory
+    t3.micro CPU: [0.12, 0.62]
+    Laptop CPU: [0.15, 0.82]
+    Mid range GPU: [0.85, 0.18]
+```
+
+> "*How would you do the following?*"
+>
+> "1. *Find all running JupyterHub processes that belong to the user `alexkgold`.*"
+
+`ps aux` lists every process with its owner, and `grep` narrows it down:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ps aux | grep jupyterhub | grep alexkgold
+```
+
+Each `|` passes one command's output to the next, and each `grep` keeps fewer lines:
+
+```{mermaid}
+%%| fig-cap: 'Filtering ps aux with grep'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant ps as ps aux
+    participant g1 as grep jupyterhub
+    participant g2 as grep alexkgold
+    participant T as Terminal
+    ps->>g1: every process, one per line
+    g1->>g2: only lines mentioning jupyterhub
+    g2->>T: jupyterhub lines owned by alexkgold
+    Note over ps,T: each | hands one command's output to the next
+```
+
+`ps -u alexkgold` lists only that user's processes, so `ps -u alexkgold | grep jupyterhub` gets to the same place. Our instance doesn't run JupyterHub, but the same pattern finds the app from [Installing a Real Application](install-real-app.qmd), which runs as its service account:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+ps -u baseball-trajectory -o pid,%cpu,%mem,cmd
+```
+
+If one of these processes is running away with the CPU, its PID goes to `kill`. For a `systemd` service, `sudo systemctl restart` is the better tool.
+
+> "2. *Find the different disks attached to your server and see how full each one is.*"
+
+`lsblk` lists the disks and partitions, and `df -h` shows how full each mounted filesystem is:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+lsblk
+df -h
+```
+
+On an EC2 instance the root EBS volume usually shows up as `nvme0n1`, mounted at `/`. `-h` prints sizes in K, M, and G instead of blocks.
+
+`lsblk` shows the whole tree, including partitions that aren't mounted; `df -h` reports only the mounted ones. On an AL2023 instance the tree usually looks like this:
+
+```{mermaid}
+%%| fig-cap: 'What lsblk and df -h Show'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+block-beta
+    columns 3
+    disk["nvme0n1: EBS root volume"]:3
+    space:3
+    p1["partition: nvme0n1p1"] p127["partition: nvme0n1p127"] p128["partition: nvme0n1p128"]
+    m1["mounted at /"] b1["BIOS boot, not mounted"] m128["mounted at /boot/efi"]
+    disk --> p1
+    disk --> p127
+    disk --> p128
+    style disk fill:#1B2A41,stroke:#fff,color:#fff
+    style m1 fill:#2A6F77,stroke:#fff,color:#fff
+    style m128 fill:#2A6F77,stroke:#fff,color:#fff
+    style b1 fill:#666,stroke:#999,color:#fff
+```
+
+> "3. *Find the biggest files in each user's home directory.*"
+
+`du` measures sizes, `sort -rh` puts the biggest first, and `head` keeps the top of the list. Home directories belong to other users, so this needs `sudo`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+sudo du -ah /home | sort -rh | head -n 20
+```
+
+`-a` includes files, not just directories. To get a short list per user instead of one combined list, loop over the home directories:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+for d in /home/*; do
+  echo "== $d"
+  sudo du -ah "$d" | sort -rh | head -n 5
+done
+```
+
+Each stage of the pipeline narrows the list:
+
+```{mermaid}
+%%| fig-cap: 'Finding the Biggest Files'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Home[("<strong>/home</strong>")]
+    Du("<code>sudo du -ah</code><br/><em>size of every file and folder</em>")
+    Sort("<code>sort -rh</code><br/><em>biggest first, reads K, M, G</em>")
+    Head("<code>head -n 20</code><br/><em>keep the top 20</em>")
+    Out[/"Top 20 files and folders"/]
+
+    Home --> Du --> Sort --> Head --> Out
+
+    style Home fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style Du fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Sort fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Head fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Out fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+```
