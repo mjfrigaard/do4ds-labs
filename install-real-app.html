@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-23">
+<meta name="dcterms.date" content="2026-11-24">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Installing a Real Application – DO4DS: Lab Solutions</title>
@@ -86,8 +86,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-2cd56c54ac2b1c9374323032ec9505e0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-e0be35caa9df24c2eb2b2041b8f6e518.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-0c98fa3b0421302c98115ef14aeba7fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -703,11 +706,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#logging-into-the-instance" id="toc-logging-into-the-instance" class="nav-link active" data-scroll-target="#logging-into-the-instance">Logging into the instance</a></li>
-  <li><a href="#installing-into-opt" id="toc-installing-into-opt" class="nav-link" data-scroll-target="#installing-into-opt">Installing into /opt</a></li>
+  <li><a href="#logging-into-the-instance" id="toc-logging-into-the-instance" class="nav-link active" data-scroll-target="#logging-into-the-instance">Logging into the instance</a>
+  <ul>
+  <li><a href="#start-the-instance" id="toc-start-the-instance" class="nav-link" data-scroll-target="#start-the-instance">Start the instance</a></li>
+  <li><a href="#look-up-the-public-ip" id="toc-look-up-the-public-ip" class="nav-link" data-scroll-target="#look-up-the-public-ip">Look up the public IP</a></li>
+  <li><a href="#connect" id="toc-connect" class="nav-link" data-scroll-target="#connect">Connect</a></li>
+  </ul></li>
+  <li><a href="#installing-into-opt" id="toc-installing-into-opt" class="nav-link" data-scroll-target="#installing-into-opt">Installing into <code>/opt</code></a>
+  <ul>
+  <li><a href="#creating-the-virtual-environment" id="toc-creating-the-virtual-environment" class="nav-link" data-scroll-target="#creating-the-virtual-environment">Creating the virtual environment</a></li>
+  <li><a href="#where-everything-will-live" id="toc-where-everything-will-live" class="nav-link" data-scroll-target="#where-everything-will-live">Where everything will live</a></li>
+  <li><a href="#testing-the-app-by-hand" id="toc-testing-the-app-by-hand" class="nav-link" data-scroll-target="#testing-the-app-by-hand">Testing the app by hand</a></li>
+  </ul></li>
   <li><a href="#daemonizing-with-systemd" id="toc-daemonizing-with-systemd" class="nav-link" data-scroll-target="#daemonizing-with-systemd">Daemonizing with <code>systemd</code></a>
   <ul>
+  <li><a href="#the-service-account" id="toc-the-service-account" class="nav-link" data-scroll-target="#the-service-account">The service account</a></li>
+  <li><a href="#the-unit-file" id="toc-the-unit-file" class="nav-link" data-scroll-target="#the-unit-file">The unit file</a>
+  <ul class="collapse">
+  <li><a href="#what-the-unit-file-does" id="toc-what-the-unit-file-does" class="nav-link" data-scroll-target="#what-the-unit-file-does">What the unit file does</a></li>
+  </ul></li>
+  <li><a href="#editing-the-file-with-vim" id="toc-editing-the-file-with-vim" class="nav-link" data-scroll-target="#editing-the-file-with-vim">Editing the file with <code>vim</code></a></li>
+  <li><a href="#start-the-service" id="toc-start-the-service" class="nav-link" data-scroll-target="#start-the-service">Start the service</a></li>
   <li><a href="#confirming-it-actually-came-up" id="toc-confirming-it-actually-came-up" class="nav-link" data-scroll-target="#confirming-it-actually-came-up">Confirming it actually came up</a></li>
+  <li><a href="#fixing-the-matplotlib-cache-warning" id="toc-fixing-the-matplotlib-cache-warning" class="nav-link" data-scroll-target="#fixing-the-matplotlib-cache-warning">Fixing the Matplotlib cache warning</a></li>
   </ul></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
@@ -730,7 +751,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-23</p>
+      <p class="date">2026-11-24</p>
     </div>
   </div>
   
@@ -742,36 +763,140 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span><span style="font-weight: bold; font-size: 1.25em;">Caution</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
+<p>This section is being revised. Thank you for your patience.</p>
+</div>
+</div>
+</div>
+</div>
 <section id="logging-into-the-instance" class="level2">
 <h2 class="anchored" data-anchor-id="logging-into-the-instance">Logging into the instance</h2>
-<p>The install runs on the same EC2 instance as <a href="./app-depends.html">App Dependencies</a>. Start it (if it’s stopped), look up its current public IP address, and connect:</p>
+<p>The install runs on the same AL2023 instance we set up in <a href="./app-depends.html">App Dependencies</a>, which already has Python 3.12.1 in <code>/opt</code>. Every command in this section runs on our local machine.</p>
+<section id="start-the-instance" class="level3">
+<h3 class="anchored" data-anchor-id="start-the-instance">Start the instance</h3>
+<p>If the instance was stopped, start it:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="dt">\</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>If the connection times out, follow the security group fix in <a href="./app-depends.html#logging-into-the-instance">Logging into the instance</a>.</p>
+<p><code>aws ec2 wait instance-running</code> returns once the instance is up, so the next command doesn’t race it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 wait instance-running <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="look-up-the-public-ip" class="level3">
+<h3 class="anchored" data-anchor-id="look-up-the-public-ip">Look up the public IP</h3>
+<p>A stopped instance gets a new public IP address every time it starts, so look it up again:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 describe-instances <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-ids</span> i-0514a57a209efcf56 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">"Reservations[*].Instances[*].PublicIpAddress"</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="connect" class="level3">
+<h3 class="anchored" data-anchor-id="connect">Connect</h3>
+<p>Connect as <code>ec2-user</code> with the <code>aws-dev</code> key:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/aws-dev.pem <span class="at">-o</span> IdentitiesOnly=yes <span class="at">-o</span> IdentityAgent=none ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The two <code>-o</code> options stop <code>ssh-agent</code> from offering other keys first, which can end in <code>Too many authentication failures</code>. With an entry in <code>~/.ssh/config</code> (see <a href="./ssh-config.html">SSH config</a>), the same connection is <code>ssh aws-dev</code>; update its <code>HostName</code> line with the new IP first.</p>
+<p>The Amazon Linux 2023 banner and a <code>[ec2-user@ip-...]$</code> prompt mean we’re on the instance. Two things can go wrong:</p>
+<ul>
+<li><p><code>Connection timed out</code>: our home IP changed, so the port 22 rule in <code>dev-sg</code> no longer matches. The fix is in <a href="./app-depends.html#logging-into-the-instance">Logging into the instance</a>.</p></li>
+<li><p>A fingerprint prompt: <code>known_hosts</code> stores host keys by address, and the address is new. Type <code>yes</code> (see <a href="./aws-ssh-ec2.html#host-key-verification">Host key verification</a>).</p></li>
+<li><p><code>REMOTE HOST IDENTIFICATION HAS CHANGED</code>: AWS gave us an address that <code>known_hosts</code> already has for a different server. Remove the old entry with <code>ssh-keygen -R YOUR_PUBLIC_IP_ADDRESS</code> and connect again.</p></li>
+</ul>
+</section>
 </section>
 <section id="installing-into-opt" class="level2">
-<h2 class="anchored" data-anchor-id="installing-into-opt">Installing into /opt</h2>
-<p>Third party software follows the same convention as the interpreter in <a href="./app-depends.html">App Dependencies</a>: its own directory tree under <code>/opt</code>, not scattered across the filesystem. Here’s what that looks like for <code>baseball-trajectory</code>, a Shiny for Python app (<a href="https://github.com/mjfrigaard/baseball-trajectory">source</a>) that plots a player’s career arc from the MLB Stats API:</p>
+<h2 class="anchored" data-anchor-id="installing-into-opt">Installing into <code>/opt</code></h2>
+<p>Third party software follows the same convention as the Python and R interpreters in <a href="./app-depends.html">App Dependencies</a>. These are typically installed in their own directory tree under <code>/opt</code>, not scattered across the filesystem.</p>
+<p>Here’s what that looks like for <code>baseball-trajectory</code>, a Shiny for Python app (<a href="https://github.com/mjfrigaard/baseball-trajectory">source</a>) that plots a player’s career arc from the MLB Stats API:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> git clone https://github.com/mjfrigaard/baseball-trajectory.git /opt/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Create the virtual environment from the <code>/opt</code> Python (built in <a href="./app-depends.html#building-python-from-source">Building Python from source</a>), not the system one, then install the package and its dependencies into it:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Cloning into '/opt/baseball-trajectory'...</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>remote: Enumerating objects: 161, done.</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>remote: Counting objects: 100% (161/161), done.</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>remote: Compressing objects: 100% (80/80), done.</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>remote: Total 161 (delta 77), reused 153 (delta 69), pack-reused 0 (from 0)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>Receiving objects: 100% (161/161), 1.59 MiB | 36.89 MiB/s, done.</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>Resolving deltas: 100% (77/77), done.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>git</code> is already installed on the instance (we set it up with the Python build in <a href="./app-depends.html">App Dependencies</a>). The clone needs <code>sudo</code> because <code>/opt</code> is owned by <code>root</code>.</p>
+<p>Then move into the new folder:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/baseball-trajectory/.venv</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/baseball-trajectory/.venv/bin/pip install <span class="at">-e</span> .</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>This pulls the app’s dependencies from PyPI, so the instance needs outbound internet access. If the instance is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.</p>
-<p>The install spreads across three locations, and each one follows the convention from <a href="./app-depends.html#where-do-applications-live">Where do applications live?</a> rather than piling everything into one folder:</p>
+<section id="creating-the-virtual-environment" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-virtual-environment">Creating the virtual environment</h3>
+<p>Next, create a virtual environment from the <code>/opt</code> Python, not the system one (see <a href="./app-depends.html#building-python-from-source">Building Python from source</a>). Then install the package and its dependencies into it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/baseball-trajectory/.venv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/baseball-trajectory/.venv/bin/pip install <span class="at">-e</span> .</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>pip</code> builds the package, then resolves and downloads about 65 dependencies (<code>shiny</code>, <code>polars</code>, <code>numpy</code>, <code>scipy</code>, <code>matplotlib</code>, and everything they need). The output is long; it ends like this:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Building wheels for collected packages: baseball-trajectory</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  Building editable for baseball-trajectory (pyproject.toml) ... done</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  Created wheel for baseball-trajectory: filename=baseball_trajectory-0.1.0-py3-none-any.whl size=6333 sha256=...</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>Successfully built baseball-trajectory</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>Installing collected packages: zipp, wrapt, websockets, wcwidth, urllib3, ...</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>Successfully installed Babel-2.18.0 ... baseball-trajectory-0.1.0 ... shiny-1.9.0 ... statsmodels-0.15.0 ...</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>[notice] A new release of pip is available: 23.2.1 -&gt; 26.3</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>[notice] To update, run: /opt/baseball-trajectory/.venv/bin/python3.12 -m pip install --upgrade pip</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><p><code>Successfully installed</code> lists every package, including <code>baseball-trajectory-0.1.0</code> itself.</p></li>
+<li><p>The <code>[notice]</code> lines are informational: the <code>venv</code> copied <code>pip</code> 23.2.1 from the <code>/opt</code> Python.</p></li>
+</ul>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><span style="font-weight: bold; font-size: 1.25em;"><code>pip</code> vs.&nbsp;<code>make altinstall</code></span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
+<p>Unlike the <code>make altinstall</code> step, there’s no warning about running <code>pip</code> as <code>root</code>, because this <code>pip</code> installs into a virtual environment rather than a system Python.</p>
+</div>
+</div>
+</div>
+</div>
+<p><code>pip install</code> pulls the app’s dependencies from PyPI, so the instance needs outbound internet access. If the instance is in a private subnet, verify the NAT gateway path works before you run this rather than after it hangs.</p>
+</section>
+<section id="where-everything-will-live" class="level3">
+<h3 class="anchored" data-anchor-id="where-everything-will-live">Where everything will live</h3>
+<p>The install spreads across four locations, and each one follows the convention from <a href="./app-depends.html#where-do-language-installations-live">Where do language installations live?</a> rather than throwing everything into one folder:</p>
 <div id="tbl-baseball-trajectory-locations" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-baseball-trajectory-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -779,10 +904,6 @@ Table&nbsp;1: Where a system install of baseball-trajectory puts things
 </figcaption>
 <div aria-describedby="tbl-baseball-trajectory-locations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
-<colgroup>
-<col style="width: 35%">
-<col style="width: 64%">
-</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Location</th>
@@ -801,6 +922,10 @@ Table&nbsp;1: Where a system install of baseball-trajectory puts things
 <tr class="odd">
 <td style="text-align: left;"><code>journald</code></td>
 <td style="text-align: left;">Application stdout and stderr, read with <code>journalctl -u baseball-trajectory</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>/var/cache/baseball-trajectory</code></td>
+<td style="text-align: left;">Matplotlib’s font cache, created by <code>systemd</code> (see <a href="#fixing-the-matplotlib-cache-warning">Fixing the Matplotlib cache warning</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -841,16 +966,52 @@ graph TD
 </div>
 </div>
 </div>
-<p>Notice what’s missing: there’s no <code>/var/lib</code> entry. <code>baseball-trajectory</code> keeps nothing on disk. Rosters and career stats are fetched from <code>https://statsapi.mlb.com</code> and cached in memory, so a restart simply starts with an empty cache. That also means outbound HTTPS isn’t just an install time requirement; the running app needs it on every new player lookup.</p>
+<p>Notice what’s missing: there’s no <code>/var/lib</code> entry. That’s because <code>baseball-trajectory</code> keeps no state on disk; the only thing it writes is a disposable Matplotlib cache. Rosters and career stats are fetched from <code>https://statsapi.mlb.com</code> and cached in memory, so a restart simply starts with an empty cache.</p>
+<p>That also means outbound HTTPS isn’t only an install time requirement. The running app needs it for every new player lookup, so the network path out of the instance has to stay open (the diagram in the next section shows it).</p>
+</section>
+<section id="testing-the-app-by-hand" class="level3">
+<h3 class="anchored" data-anchor-id="testing-the-app-by-hand">Testing the app by hand</h3>
 <p>Before handing it to <code>systemd</code>, confirm the console script starts from the venv:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/baseball-trajectory/.venv/bin/baseball-trajectory</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/baseball-trajectory/.venv/bin/baseball-trajectory</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>It binds to <code>127.0.0.1:8000</code>, so from a second SSH session <code>curl -I http://127.0.0.1:8000</code> should return <code>200 OK</code>.</p>
+<p>The app runs in the foreground and holds the terminal:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>INFO:     Started server process [206812]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>INFO:     Waiting for application startup.</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>INFO:     Application startup complete.</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>It binds to <code>127.0.0.1:8000</code>, so it’s only reachable from the instance itself. Open a second terminal, connect with the same <code>ssh</code> command, and request the landing page headers:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>HTTP/1.1 200 OK</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>date: Tue, 24 Nov 2026 04:59:23 GMT</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>server: uvicorn</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>content-length: 9743</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>content-type: text/html; charset=utf-8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-I</code> sends a <code>HEAD</code> request, which asks for the headers only. The first terminal logs the request as it arrives:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>INFO:     127.0.0.1:41640 - "HEAD / HTTP/1.1" 200 OK</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Stop the app with <kbd>Ctrl</kbd>+<kbd>C</kbd> in the first terminal before moving on. Left running, it holds port <code>8000</code> and the <code>systemd</code> service below fails with <code>Address already in use</code>.</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>^C</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>INFO:     Shutting down</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>INFO:     Waiting for application shutdown.</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>INFO:     Application shutdown complete.</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>INFO:     Finished server process [206812]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
 </section>
 <section id="daemonizing-with-systemd" class="level2">
 <h2 class="anchored" data-anchor-id="daemonizing-with-systemd">Daemonizing with <code>systemd</code></h2>
-<p>Now we turn <code>baseball-trajectory</code> into the kind of service described in <a href="./lab10.html">Lab 10</a>, running under the service account from <a href="./linux-users.html">Linux Users</a>. Started by hand from an SSH session, it dies the moment that session closes. When the app runs as a service, <code>systemd</code> starts it on boot, restarts it after a crash, and collects its output. In front of the app, nginx terminates TLS; <a href="./configure-ssl.html">Configure SSL</a> covers that setup.</p>
+<p>Next we’re going to turn <code>baseball-trajectory</code> into the kind of service described in <a href="./lab10.html">Lab 10</a>, running under the service account from <a href="./linux-users.html">Linux Users</a>.</p>
+<p>Started by hand from an SSH session, it dies the moment that session closes. When the app runs as a service, <code>systemd</code> starts it on boot, restarts it after a crash, and collects its output.</p>
+<p>In front of the app, nginx terminates TLS (we’ll cover this in the <a href="./configure-ssl.html">Configure SSL</a> chapter).</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -890,72 +1051,345 @@ graph TD
 </div>
 </div>
 <p>Notice the one outbound arrow: the security group and any NAT path have to allow outbound HTTPS to the MLB Stats API.</p>
-<p>Create the unit file:</p>
+<section id="the-service-account" class="level3">
+<h3 class="anchored" data-anchor-id="the-service-account">The service account</h3>
+<p>The unit file runs the app as <code>baseball-trajectory</code>, the service account from <a href="./linux-users.html#creating-a-dedicated-service-account">Creating a dedicated service account</a>. Accounts live on the instance, so the AL2023 instance from <a href="./upgrade-al2023.html">Upgrade to Amazon Linux 2023</a> doesn’t have it yet. Check first:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/baseball-trajectory.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span> baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>id: ‘baseball-trajectory’: no such user</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Create it with no login shell, in the system UID range:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> useradd <span class="at">-r</span> <span class="at">-s</span> /sbin/nologin baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>useradd</code> prints nothing when it succeeds, so run <code>id</code> again:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span> baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>uid=993(baseball-trajectory) gid=993(baseball-trajectory) groups=993(baseball-trajectory)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A UID below 1000 confirms <code>-r</code> put it in the system range.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span><span style="font-weight: bold; font-size: 1.15em;">User vs.&nbsp;Service Accounts</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div style="font-size: 1.05em; color: var(--callout-body-color, #282b2d);">
+<p>A user account belongs to a person; a service account belongs to a program. The same <code>useradd</code> command makes both, and the flags decide which one you get:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">User account (<code>test-user</code>)</th>
+<th style="text-align: left;">Service account (<code>baseball-trajectory</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Created with</td>
+<td style="text-align: left;"><code>sudo useradd test-user</code></td>
+<td style="text-align: left;"><code>sudo useradd -r -s /sbin/nologin baseball-trajectory</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">UID range</td>
+<td style="text-align: left;">1000 and up</td>
+<td style="text-align: left;">Below 1000 (<code>-r</code>)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Login shell</td>
+<td style="text-align: left;"><code>/bin/bash</code></td>
+<td style="text-align: left;"><code>/sbin/nologin</code>, so logins are rejected</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Password and SSH key</td>
+<td style="text-align: left;">Added after creation</td>
+<td style="text-align: left;">None</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Home directory</td>
+<td style="text-align: left;">Created</td>
+<td style="text-align: left;">Not created</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>sudo</code> rights</td>
+<td style="text-align: left;">Once added to the <code>wheel</code> group</td>
+<td style="text-align: left;">None</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Owns</td>
+<td style="text-align: left;">Its own files</td>
+<td style="text-align: left;">Only what its program writes (here, a cache folder)</td>
+</tr>
+</tbody>
+</table>
+<p>The service account can run the app, but nobody can log in as a service account. This is safer, because if the app is ever compromised, the attacker inherits an account that can’t open a shell, can’t use <code>sudo</code>, and can’t rewrite the code under <code>/opt</code>, which stays owned by <code>root</code>.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-unit-file" class="level3">
+<h3 class="anchored" data-anchor-id="the-unit-file">The unit file</h3>
+<p>Create the unit file with <code>vim</code> (the steps for editing it are below):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/baseball-trajectory.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>And give it this content:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>[Unit]</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Description=baseball-trajectory</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>After=network.target</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>[Service]</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>Type=simple</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>User=baseball-trajectory</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/opt/baseball-trajectory</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>RestartSec=5</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>[Install]</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>WantedBy=multi-user.target</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-15"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="1">1</button><span id="annotated-cell-15-1" class="code-annotation-target"><a href="#annotated-cell-15-1" aria-hidden="true" tabindex="-1"></a>[Unit]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="2">2</button><span id="annotated-cell-15-2" class="code-annotation-target"><a href="#annotated-cell-15-2" aria-hidden="true" tabindex="-1"></a>Description=baseball-trajectory</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="3">3</button><span id="annotated-cell-15-3" class="code-annotation-target"><a href="#annotated-cell-15-3" aria-hidden="true" tabindex="-1"></a>After=network.target</span>
+<span id="annotated-cell-15-4"><a href="#annotated-cell-15-4" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="4">4</button><span id="annotated-cell-15-5" class="code-annotation-target"><a href="#annotated-cell-15-5" aria-hidden="true" tabindex="-1"></a>[Service]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="5">5</button><span id="annotated-cell-15-6" class="code-annotation-target"><a href="#annotated-cell-15-6" aria-hidden="true" tabindex="-1"></a>Type=simple</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="6">6</button><span id="annotated-cell-15-7" class="code-annotation-target"><a href="#annotated-cell-15-7" aria-hidden="true" tabindex="-1"></a>User=baseball-trajectory</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="7">7</button><span id="annotated-cell-15-8" class="code-annotation-target"><a href="#annotated-cell-15-8" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/opt/baseball-trajectory</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="8">8</button><span id="annotated-cell-15-9" class="code-annotation-target"><a href="#annotated-cell-15-9" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="9">9</button><span id="annotated-cell-15-10" class="code-annotation-target"><a href="#annotated-cell-15-10" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="10">10</button><span id="annotated-cell-15-11" class="code-annotation-target"><a href="#annotated-cell-15-11" aria-hidden="true" tabindex="-1"></a>RestartSec=5</span>
+<span id="annotated-cell-15-12"><a href="#annotated-cell-15-12" aria-hidden="true" tabindex="-1"></a></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="11">11</button><span id="annotated-cell-15-13" class="code-annotation-target"><a href="#annotated-cell-15-13" aria-hidden="true" tabindex="-1"></a>[Install]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-15" data-target-annotation="12">12</button><span id="annotated-cell-15-14" class="code-annotation-target"><a href="#annotated-cell-15-14" aria-hidden="true" tabindex="-1"></a>WantedBy=multi-user.target</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-15" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="1" data-code-annotation="1">What the unit is and when it starts.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="2" data-code-annotation="2">Name shown by <code>systemctl status</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="3" data-code-annotation="3">Start after networking is up.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="5" data-code-annotation="4">How to run the process.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="6" data-code-annotation="5">The <code>ExecStart</code> process is the service.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="6">6</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="7" data-code-annotation="6">Run as the service account, not <code>root</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="7">7</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="8" data-code-annotation="7">Directory the process starts in.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="8">8</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="9" data-code-annotation="8">Absolute path into the venv; loopback only.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="9">9</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="10" data-code-annotation="9">Restart after a crash.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="10">10</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="11" data-code-annotation="10">Wait 5 seconds between restarts.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="11">11</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="13" data-code-annotation="11">What <code>enable</code> hooks into.</span>
+</dd>
+<dt data-target-cell="annotated-cell-15" data-target-annotation="12">12</dt>
+<dd>
+<span data-code-cell="annotated-cell-15" data-code-lines="14" data-code-annotation="12">Start at a normal boot.</span>
+</dd>
+</dl>
+<section id="what-the-unit-file-does" class="level4">
+<h4 class="anchored" data-anchor-id="what-the-unit-file-does">What the unit file does</h4>
 <p>Three directives and one argument control how the service runs: <code>User</code>, <code>ExecStart</code> (and its <code>--host</code> argument), and <code>Restart</code>.</p>
-<p><code>User=baseball-trajectory</code> runs the process as the service account from <a href="./linux-users.html">Linux Users</a>, not <code>root</code>. The app only serves requests and calls an external API, so that account needs no extra privilege at all.</p>
-<p><code>ExecStart</code> uses the absolute path into the venv. There’s no shell involved, no <code>PATH</code> to search, and no activation step. If this path is wrong the unit fails instantly, and it’s the most common cause of a failed first start.</p>
-<p><code>--host 127.0.0.1</code> binds the app to loopback only. Change it to <code>0.0.0.0</code> and the app is reachable from the internet without TLS and without the proxy, which is exactly what we don’t want.</p>
-<p><code>Restart=on-failure</code> with <code>RestartSec=5</code> brings the app back after a crash, waiting five seconds between attempts so a fast crash loop doesn’t spin the CPU.</p>
+<ol type="1">
+<li><code>User=baseball-trajectory</code> runs the process as the service account from <a href="./linux-users.html">Linux Users</a>, not <code>root</code>. The app only serves requests and calls an external API, so that account needs no extra privilege at all.<br>
+</li>
+<li><code>ExecStart</code> uses the absolute path into the venv. There’s no shell involved, no <code>PATH</code> to search, and no activation step. If this path is wrong the unit fails instantly, and it’s the most common cause of a failed first start.
+<ul>
+<li><code>--host 127.0.0.1</code> binds the app to loopback only. Change it to <code>0.0.0.0</code> and the app is reachable from the internet without TLS and without the proxy, which is exactly what we don’t want.<br>
+</li>
+</ul></li>
+<li><code>Restart=on-failure</code> with <code>RestartSec=5</code> brings the app back after a crash, waiting five seconds between attempts so a fast crash loop doesn’t spin the CPU.</li>
+</ol>
+</section>
+</section>
+<section id="editing-the-file-with-vim" class="level3">
+<h3 class="anchored" data-anchor-id="editing-the-file-with-vim">Editing the file with <code>vim</code></h3>
+<p><code>vim</code> is already on AL2023 (<code>which vim</code> prints <code>/usr/bin/vim</code>). You don’t have to know much <code>vim</code> to write a unit file, but it helps to know that it has modes. It opens in <strong>Normal</strong> mode, where every key is a command, not text. <strong>Insert</strong> mode is where typing puts characters in the file. Most <code>vim</code> confusion comes from typing in the wrong mode.</p>
+<p><code>sudo vim</code> opens the new, empty file. The cursor sits on the first line, each <code>~</code> marks a line past the end of the file, and the bottom line shows the file name and <code>[New]</code>:</p>
+<p><a href="img/install-real-app-vim-new-file.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="img/install-real-app-vim-new-file.png" class="img-fluid" style="width:100.0%" alt="vim showing an empty file with the status line /etc/systemd/system/baseball-trajectory.service [New]"></a></p>
+<p>From there:</p>
+<ol type="1">
+<li><p>Press <kbd>i</kbd> to switch to <strong>Insert</strong> mode. The bottom line changes to <code>-- INSERT --</code>.</p>
+<p><a href="img/install-real-app-vim-insert.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="img/install-real-app-vim-insert.png" class="img-fluid" style="width:100.0%" alt="vim in Insert mode with -- INSERT -- on the bottom line"></a></p></li>
+<li><p>Paste the unit file from above. In most Linux terminals that’s <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> (on macOS it’s <kbd>Cmd</kbd>+<kbd>V</kbd>). Typing it works too.</p></li>
+<li><p>Press <kbd>Esc</kbd> to return to <strong>Normal</strong> mode. <code>-- INSERT --</code> disappears.</p>
+<p><a href="img/install-real-app-vim-normal.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="img/install-real-app-vim-normal.png" class="img-fluid" style="width:100.0%" alt="vim in Normal mode showing the pasted unit file with syntax highlighting"></a></p>
+<p><code>vim</code> colors the keys and values because it recognizes a <code>systemd</code> unit file. If the bottom line says <code>Type :qa! and press &lt;Enter&gt; to abandon all changes and exit Vim</code>, you pressed <kbd>Ctrl</kbd>+<kbd>C</kbd> in <strong>Normal</strong> mode. It’s only a hint (<em>nothing was lost, so carry on with step 4</em>).</p></li>
+<li><p>Type <code>:wq</code> and press <kbd>Enter</kbd>. The colon opens a command line at the bottom of the screen; <code>w</code> writes the file and <code>q</code> quits.</p>
+<p><a href="img/install-real-app-vim-wq.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="img/install-real-app-vim-wq.png" class="img-fluid" style="width:100.0%" alt="vim with :wq typed on the command line at the bottom of the screen"></a></p></li>
+</ol>
+<p>If the pasted lines come out indented in a staircase, <code>vim</code> auto-indented the paste. Press <kbd>Esc</kbd>, type <code>:q!</code> and <kbd>Enter</kbd> to quit without saving, then reopen the file and run <code>:set paste</code> before pressing <kbd>i</kbd>.</p>
+<p>A few more keys cover most mistakes:</p>
+<div id="tbl-vim-keys" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vim-keys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Common <code>vim</code> keys
+</figcaption>
+<div aria-describedby="tbl-vim-keys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Keys (Normal mode)</th>
+<th style="text-align: left;">What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>:q!</code></td>
+<td style="text-align: left;">Quit without saving</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>:w</code></td>
+<td style="text-align: left;">Save and keep editing</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>u</code></td>
+<td style="text-align: left;">Undo the last change</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>dd</code></td>
+<td style="text-align: left;">Delete the current line</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>x</code></td>
+<td style="text-align: left;">Delete the character under the cursor</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>gg</code> / <code>G</code></td>
+<td style="text-align: left;">Jump to the first / last line</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Two messages are worth knowing ahead of time:</p>
+<ul>
+<li><code>E212: Can't open file for writing</code>: <code>vim</code> was started without <code>sudo</code>, and only <code>root</code> can write to <code>/etc/systemd/system</code>.
+<ul>
+<li><strong>Fix</strong>: Quit with <code>:q!</code> and rerun <code>sudo vim</code>.</li>
+</ul></li>
+<li><code>E325: ATTENTION ... Found a swap file</code>: an earlier <code>vim</code> session on this file didn’t exit cleanly (often a dropped SSH connection).
+<ul>
+<li><strong>Fix</strong>: Press <kbd>E</kbd> to edit anyway, or <kbd>D</kbd> to delete the old swap file if <code>vim</code> offers it.</li>
+</ul></li>
+</ul>
+<p>Back at the shell prompt, print the file to confirm it saved:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cat /etc/systemd/system/baseball-trajectory.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The output should match the unit file above, line for line. <code>nano</code> is also installed and shows its key commands at the bottom of the screen (<kbd>Ctrl</kbd>+<kbd>O</kbd> saves, <kbd>Ctrl</kbd>+<kbd>X</kbd> exits), so <code>sudo nano</code> works as well.</p>
+</section>
+<section id="start-the-service" class="level3">
+<h3 class="anchored" data-anchor-id="start-the-service">Start the service</h3>
 <p>Load the new file and start the service:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code>daemon-reload</code> tells <code>systemd</code> to reread the unit files on disk. <code>enable</code> registers the unit to start on boot, and <code>--now</code> starts it immediately so you don’t have to run <code>start</code> separately.</p>
+<p><code>daemon-reload</code> tells <code>systemd</code> to reread the unit files on disk.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>Created symlink /etc/systemd/system/multi-user.target.wants/baseball-trajectory.service → /etc/systemd/system/baseball-trajectory.service.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><code>enable</code> registers the unit to start on boot.<br>
+</li>
+<li><code>--now</code> starts it immediately so we don’t have to run <code>start</code> separately.<br>
+</li>
+<li>The symlink is what “enabled” means on disk:
+<ul>
+<li>the unit’s <code>WantedBy=multi-user.target</code> line tells <code>systemd</code> to link it into <code>multi-user.target.wants/</code>.<br>
+</li>
+<li>Everything linked here starts when the instance boots.<br>
+</li>
+<li><code>disable</code> removes the link.</li>
+</ul></li>
+</ul>
+</section>
 <section id="confirming-it-actually-came-up" class="level3">
 <h3 class="anchored" data-anchor-id="confirming-it-actually-came-up">Confirming it actually came up</h3>
 <p>Never trust <code>enable --now</code> to mean the app is running. It means <code>systemd</code> tried.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status baseball-trajectory <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>● baseball-trajectory.service - baseball-trajectory</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>   Loaded: loaded (/etc/systemd/system/baseball-trajectory.service; enabled; vendor preset: disabled)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>   Active: active (running) since Sat 2026-09-05 18:22:41 UTC; 12s ago</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a> Main PID: 4812 (python3.12)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>   CGroup: /system.slice/baseball-trajectory.service</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>           └─4812 /opt/baseball-trajectory/.venv/bin/python3.12 /opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:41 ip-172-31-24-9 systemd[1]: Started baseball-trajectory.</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Started server process [4812]</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>Sep 05 18:22:42 ip-172-31-24-9 shiny[4812]: INFO:     Uvicorn running on http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Two things to read here. <code>Active: active (running)</code> is the state, and <code>enabled</code> in the <code>Loaded:</code> line is the confirmation it will come back after a reboot. A unit can be running and not enabled, which works fine until the instance restarts.</p>
+<p><a href="img/install-real-app-systemctl-status.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="img/install-real-app-systemctl-status.png" class="img-fluid" style="width:100.0%" alt="systemctl status showing baseball-trajectory.service loaded, enabled, and active (running)"></a></p>
+<p>Two things to read here:</p>
+<ol type="1">
+<li><code>Active: active (running)</code> is the state, and<br>
+</li>
+<li><code>enabled</code> in the <code>Loaded:</code> line is the confirmation it will come back after a reboot</li>
+</ol>
+<p>A unit can be running and not enabled, which works fine until the instance restarts.</p>
+<p>Also worth noting:</p>
+<ul>
+<li><code>preset: disabled</code> only means the operating system wouldn’t enable this unit on its own (our <code>enable</code> overrides it).<br>
+</li>
+<li><code>Memory: 182.3M</code> is worth a glance on a <code>t3.micro</code>, which has 1 GB in total (see <a href="./instance-size.html">Instance Size</a>).</li>
+</ul>
 <p>Then confirm something is actually listening, from the instance itself:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1:8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>HTTP/1.1 200 OK</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>date: Sat, 05 Sep 2026 18:23:10 GMT</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>server: uvicorn</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>content-type: text/html; charset=utf-8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>HTTP/1.1 200 OK</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>date: Tue, 24 Nov 2026 06:01:13 GMT</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>server: uvicorn</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>content-length: 9819</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>content-type: text/html; charset=utf-8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>A <code>200</code> means the landing page rendered. A redirect is fine too. Connection refused means the process died between <code>status</code> and <code>curl</code>, and the journal will say why:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> baseball-trajectory <span class="at">-n</span> 50 <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> baseball-trajectory <span class="at">-n</span> 50 <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code>-u</code> filters to this unit, <code>-n 50</code> limits it to the last 50 lines, and <code>--no-pager</code> dumps it straight to the terminal instead of opening <code>less</code>. When you want to watch a start attempt live, <code>journalctl -u baseball-trajectory -f</code> follows the log the same way <code>tail -f</code> does.</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:37 ip-xxx-xx-xx-xx.ec2.internal systemd[1]: Started baseball-trajectory.service - baseball-trajectory.</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:39 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: mkdir -p failed for path /home/baseball-trajectory/.config/matplotlib: [Errno 13] Permission denied: '/home/baseball-trajectory'</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:39 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: Matplotlib created a temporary cache directory at /tmp/matplotlib-ldz8gu0b because there was an issue with the default path (/home/baseball-trajectory/.config/matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:40 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Started server process [208804]</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:40 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Waiting for application startup.</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:40 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Application startup complete.</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>Nov 24 05:53:40 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>Nov 24 06:01:13 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     127.0.0.1:34292 - "HEAD / HTTP/1.1" 200 OK</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><code>-u</code> filters to this unit<br>
+</li>
+<li><code>-n 50</code> limits it to the last 50 lines, and<br>
+</li>
+<li><code>--no-pager</code> dumps it straight to the terminal instead of opening <code>less</code></li>
+</ul>
+<p>When we want to watch a start attempt live, <code>journalctl -u baseball-trajectory -f</code> follows the log the same way <code>tail -f</code> does.</p>
 <div class="callout callout-style-default callout-caution no-icon callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -964,7 +1398,7 @@ graph TD
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
 <p>Four failures account for almost every bad first start, and each has a distinct signature in <code>journalctl -u baseball-trajectory</code>:</p>
@@ -1004,15 +1438,82 @@ graph TD
 </div>
 </div>
 </section>
+<section id="fixing-the-matplotlib-cache-warning" class="level3">
+<h3 class="anchored" data-anchor-id="fixing-the-matplotlib-cache-warning">Fixing the Matplotlib cache warning</h3>
+<p>The service is running, but the second and third lines of the journal show a problem: <strong>Matplotlib stores its font cache and settings in <code>~/.config/matplotlib</code>, and for the service account that’s <code>/home/baseball-trajectory</code>.</strong> <code>useradd -r</code> never created that folder (see “User vs.&nbsp;Service Accounts” above), so <code>mkdir</code> fails with <code>Permission denied</code>.</p>
+<p>Matplotlib recovers by creating a new folder in <code>/tmp</code> on every start, which is why the app still works. The cost is a rebuilt font cache on each restart and the same warning in the journal every time. The warning also names the fix: set <code>MPLCONFIGDIR</code> to a folder the service account can write to.</p>
+<p><code>systemd</code> can create that folder for us. Open the unit file again:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/baseball-trajectory.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Add two lines to the end of the <code>[Service]</code> section (move the cursor to the <code>RestartSec=5</code> line, press <kbd>o</kbd> to open a new line below it in <strong>Insert</strong> mode, type the lines, then <kbd>Esc</kbd> and <code>:wq</code>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-23"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-23-1"><a href="#annotated-cell-23-1" aria-hidden="true" tabindex="-1"></a>[Service]</span>
+<span id="annotated-cell-23-2"><a href="#annotated-cell-23-2" aria-hidden="true" tabindex="-1"></a>Type=simple</span>
+<span id="annotated-cell-23-3"><a href="#annotated-cell-23-3" aria-hidden="true" tabindex="-1"></a>User=baseball-trajectory</span>
+<span id="annotated-cell-23-4"><a href="#annotated-cell-23-4" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/opt/baseball-trajectory</span>
+<span id="annotated-cell-23-5"><a href="#annotated-cell-23-5" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000</span>
+<span id="annotated-cell-23-6"><a href="#annotated-cell-23-6" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
+<span id="annotated-cell-23-7"><a href="#annotated-cell-23-7" aria-hidden="true" tabindex="-1"></a>RestartSec=5</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="1">1</button><span id="annotated-cell-23-8" class="code-annotation-target"><a href="#annotated-cell-23-8" aria-hidden="true" tabindex="-1"></a>CacheDirectory=baseball-trajectory</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="2">2</button><span id="annotated-cell-23-9" class="code-annotation-target"><a href="#annotated-cell-23-9" aria-hidden="true" tabindex="-1"></a>Environment=MPLCONFIGDIR=/var/cache/baseball-trajectory</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-23" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="8" data-code-annotation="1"><code>CacheDirectory=baseball-trajectory</code> tells <code>systemd</code> to create <code>/var/cache/baseball-trajectory</code> before the service starts, owned by the <code>User=</code> account.</span>
+</dd>
+<dt data-target-cell="annotated-cell-23" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="9" data-code-annotation="2"><code>Environment=MPLCONFIGDIR=...</code> sets the variable for the app’s process only, so Matplotlib writes there instead of the missing home folder.</span>
+</dd>
+</dl>
+<p>With both lines typed, still in <strong>Insert</strong> mode, the unit file looks like this:</p>
+<p><a href="img/install-real-app-vim-cache-dir.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="img/install-real-app-vim-cache-dir.png" class="img-fluid" style="width:100.0%" alt="vim in Insert mode showing CacheDirectory and Environment=MPLCONFIGDIR added to the Service section"></a></p>
+<p>Press <kbd>Esc</kbd>, then type <code>:wq</code> and press <kbd>Enter</kbd> to save:</p>
+<p><a href="img/install-real-app-vim-cache-dir-wq.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="img/install-real-app-vim-cache-dir-wq.png" class="img-fluid" style="width:100.0%" alt="vim with :wq typed on the command line after adding the two new lines"></a></p>
+<p>This keeps the service account’s shape intact. It still has no home folder and owns nothing under <code>/opt</code>; it owns only its cache.</p>
+<p>Reload the unit files and restart the service so it picks up the change:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl restart baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We’ll confirm <code>systemd</code> created the folder with the right owner:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-ld</span> /var/cache/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>drwxr-xr-x. 2 baseball-trajectory baseball-trajectory 35 Nov 24 06:33 /var/cache/baseball-trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The service account owns the folder, which <code>systemd</code> created on the restart.</p>
+<p>Finally, we’ll check the journal again. The <code>mkdir -p failed</code> and <code>MPLCONFIGDIR</code> lines should be gone from the new start:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> baseball-trajectory <span class="at">-n</span> 10 <span class="at">--no-pager</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Application shutdown complete.</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal shiny[208804]: INFO:     Finished server process [208804]</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal systemd[1]: baseball-trajectory.service: Deactivated successfully.</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal systemd[1]: Stopped baseball-trajectory.service - baseball-trajectory.</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal systemd[1]: baseball-trajectory.service: Consumed 7.281s CPU time.</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:20 ip-xxx-xx-xx-xx.ec2.internal systemd[1]: Started baseball-trajectory.service - baseball-trajectory.</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:24 ip-xxx-xx-xx-xx.ec2.internal shiny[210169]: INFO:     Started server process [210169]</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:24 ip-xxx-xx-xx-xx.ec2.internal shiny[210169]: INFO:     Waiting for application startup.</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:24 ip-xxx-xx-xx-xx.ec2.internal shiny[210169]: INFO:     Application startup complete.</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>Nov 24 06:33:24 ip-xxx-xx-xx-xx.ec2.internal shiny[210169]: INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The old process (<code>208804</code>) shut down cleanly, and the new one (<code>210169</code>) started with no <code>mkdir -p failed</code> or <code>MPLCONFIGDIR</code> warning between <code>Started</code> and <code>Started server process</code>.</p>
+</section>
 </section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
 <li><p>A third party app gets its own tree under <code>/opt</code>: the source and a virtual environment built from the <code>/opt</code> Python, never the system copy.</p></li>
-<li><p>The install spreads across three locations by purpose: the app under <code>/opt</code>, the unit file under <code>/etc/systemd/system</code>, and logs in <code>journald</code>. <code>baseball-trajectory</code> keeps no state on disk, so it has no <code>/var/lib</code> entry, but it needs outbound HTTPS at install time and at runtime.</p></li>
+<li><p>The install spreads across four locations by purpose: the app under <code>/opt</code>, the unit file under <code>/etc/systemd/system</code>, logs in <code>journald</code>, and a cache under <code>/var/cache</code>. <code>baseball-trajectory</code> keeps no state on disk, so it has no <code>/var/lib</code> entry, but it needs outbound HTTPS at install time and at runtime.</p></li>
 <li><p>Confirm the console script starts from the venv and answers on <code>127.0.0.1:8000</code> before handing it to <code>systemd</code>.</p></li>
 <li><p>The <code>baseball-trajectory</code> unit runs as its own service account (<code>User=</code>), starts from an absolute <code>ExecStart</code> path into the venv, binds to <code>127.0.0.1</code> so only nginx can reach it, and restarts on failure.</p></li>
-<li><p>After <code>systemctl enable --now</code>, confirm with <code>systemctl status</code> (<code>active (running)</code> and <code>enabled</code>) and <code>curl -I http://127.0.0.1:8000</code>, and read <code>journalctl -u baseball-trajectory</code> when either one fails.</p></li>
+<li><p>After <code>systemctl enable --now</code>, confirm with <code>systemctl status</code> (<code>active (running)</code> and <code>enabled</code>) and <code>curl -I http://127.0.0.1:8000</code>, and read <code>journalctl -u baseball-trajectory</code> even when both look fine. Warnings like Matplotlib’s missing home folder only show up there.</p></li>
+<li><p>A service account has no home folder, so anything the app expects to write under <code>~</code> needs a folder of its own. <code>CacheDirectory=</code> creates one with the right owner, and <code>Environment=</code> points the app at it.</p></li>
 </ol>
 
 
@@ -1693,6 +2194,38 @@ graph TD
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
