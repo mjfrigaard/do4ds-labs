@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-24">
+<meta name="dcterms.date" content="2026-11-25">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 11: Server Resources and Scaling – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-62715e386a36d0e96e8874aaa0753d08.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-2459dba02bc2ed79e3c432382f9c8883.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -732,7 +732,17 @@ window.Quarto = {
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#how-computers-work-for-data-science" id="toc-how-computers-work-for-data-science" class="nav-link active" data-scroll-target="#how-computers-work-for-data-science">How computers work (for data science)</a>
+  <ul>
+  <li><a href="#the-cpu" id="toc-the-cpu" class="nav-link" data-scroll-target="#the-cpu">The CPU</a></li>
+  <li><a href="#cores" id="toc-cores" class="nav-link" data-scroll-target="#cores">Cores</a></li>
+  <li><a href="#ram" id="toc-ram" class="nav-link" data-scroll-target="#ram">RAM</a></li>
+  <li><a href="#storage" id="toc-storage" class="nav-link" data-scroll-target="#storage">Storage</a></li>
+  <li><a href="#gpus" id="toc-gpus" class="nav-link" data-scroll-target="#gpus">GPUs</a></li>
+  <li><a href="#how-the-parts-work-together" id="toc-how-the-parts-work-together" class="nav-link" data-scroll-target="#how-the-parts-work-together">How the parts work together</a></li>
+  </ul></li>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
     </div>
@@ -753,7 +763,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-24</p>
+      <p class="date">2026-11-25</p>
     </div>
   </div>
   
@@ -783,7 +793,305 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>This lab covers the three resources that decide how big a server needs to be: CPU, RAM, and storage. It also covers when a GPU is worth paying for and how to scale up when a server runs short. Along the way, a few commands show how much of each resource a server is using. The examples come from the <code>t3.micro</code> we’ve been running since <a href="./lab07.html">Lab 7</a>. It has already hit some of these limits in <a href="./instance-size.html">Instance Size</a> and <a href="./install-real-app.html">Installing a Real Application</a>.</p>
+<p>How big does a server need to be? Three resources decide: CPU, RAM, and storage, plus a GPU for some modeling work. The examples come from the <code>t3.micro</code> we’ve been running since <a href="./lab07.html">Lab 7</a>; scaling it up when it runs short is covered in <a href="./instance-size.html">Instance Size</a>.</p>
+<section id="how-computers-work-for-data-science" class="level2">
+<h2 class="anchored" data-anchor-id="how-computers-work-for-data-science">How computers work (for data science)</h2>
+<p>Each comprehension question below asks which part of a computer we’d upgrade to fix a problem. To answer them, it helps to know what each part does. The chapter explains the parts from a system administrator’s point of view. The sections below add the R and Python side, with links to Wikipedia for more depth.</p>
+<section id="the-cpu" class="level3">
+<h3 class="anchored" data-anchor-id="the-cpu">The CPU</h3>
+<p>The <a href="https://en.wikipedia.org/wiki/Central_processing_unit">central processing unit (CPU)</a> is the part of the computer that runs your code. Every program, from a Python script to the operating system, is a long list of small instructions. The CPU works through that list in a cycle:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'lineColor':'#999999', 'transitionColor':'#999999'}}}%%
+
+stateDiagram-v2
+    Fetch: Fetch the next instruction from RAM
+    Execute: Execute the instruction
+    Store: Store the result
+    [*] --&gt; Fetch
+    Fetch --&gt; Execute
+    Execute --&gt; Store
+    Store --&gt; Fetch
+</pre>
+</div>
+<p></p><figcaption> The CPU Instruction Cycle</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Each trip around this cycle takes a tiny fraction of a second. The number of cycles per second is the clock speed, measured in gigahertz (GHz). A 3 GHz CPU runs about three billion cycles each second. A higher clock speed means each step of your code finishes sooner.</p>
+<p>R and Python add a layer between our code and the CPU. Both are interpreted languages, so each line we write turns into many CPU instructions while it runs. Vectorized functions skip most of that work by handing the whole job to compiled C code. The two versions below give the same answer. On my laptop, with a vector of 10 million numbers, the vectorized one runs about 90 times faster in both R and Python:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="fl">1e7</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># loop: the interpreter handles every element</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>total <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) total <span class="ot">&lt;-</span> total <span class="sc">+</span> x[i]</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># vectorized: one call to compiled code</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>total <span class="ot">&lt;-</span> <span class="fu">sum</span>(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.random.rand(<span class="dv">10_000_000</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># loop: the interpreter handles every element</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> value <span class="kw">in</span> x:</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    total <span class="op">+=</span> value</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># vectorized: one call to compiled code</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> x.<span class="bu">sum</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Before paying for a faster CPU, it’s worth looking for loops like these. Rewriting a loop takes a few minutes; a bigger instance costs money every hour it runs.</p>
+</section>
+<section id="cores" class="level3">
+<h3 class="anchored" data-anchor-id="cores">Cores</h3>
+<p>A core is a complete processing unit inside the CPU. A CPU with more than one core is a <a href="https://en.wikipedia.org/wiki/Multi-core_processor">multi-core processor</a>. Each core runs its own list of instructions, so a four core CPU can work on four tasks at once. Extra cores only help when the work splits into independent pieces:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Job(["One job"])
+    Split{"Can the job split into&lt;br&gt;independent pieces?"}
+    subgraph Many["&lt;strong&gt;Four cores&lt;/strong&gt;"]
+        C1("Core 1")
+        C2("Core 2")
+        C3("Core 3")
+        C4("Core 4")
+    end
+    One("One core does all the work&lt;br&gt;while the others sit idle")
+    Join(["Combine the results"])
+    Job --&gt; Split
+    Split --&gt;|"Yes"| C1 &amp; C2 &amp; C3 &amp; C4
+    C1 &amp; C2 &amp; C3 &amp; C4 --&gt; Join
+    Split --&gt;|"No"| One
+</pre>
+</div>
+<p></p><figcaption> Splitting a Job Across Cores</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Most R and Python code runs on a single core unless we tell it otherwise (with packages like <a href="https://future.futureverse.org/"><code>{future}</code> in R</a> or <a href="https://docs.python.org/3/library/multiprocessing.html"><code>multiprocessing</code> in Python</a>). <strong>If each step depends on the result of the step before it, the extra cores have nothing to do. This is why faster cores often help more than more cores.</strong></p>
+<p>We can check how many cores R and Python can see:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>parallel<span class="sc">::</span><span class="fu">detectCores</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>os.cpu_count()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Both return 2 on the <code>t3.micro</code>, but that count is threads, not cores. AWS sells virtual CPUs (vCPUs), and each vCPU is one hardware thread. The <code>t3.micro</code> has one physical core running two threads, so it shows up as 2 vCPUs.</p>
+<p>Some modeling packages use every core without being asked. In R, <a href="https://imbs-hl.github.io/ranger/"><code>{ranger}</code></a> grows random forest trees on all available cores by default. In Python, <a href="https://scikit-learn.org/stable/index.html"><code>scikit-learn</code></a> models with an <code>n_jobs</code> argument use every core when we set <code>n_jobs=-1</code>.</p>
+<p>Parallel work has a RAM cost, too. Each worker process usually gets its own copy of the data, so four workers can need close to four times the memory of one.</p>
+</section>
+<section id="ram" class="level3">
+<h3 class="anchored" data-anchor-id="ram">RAM</h3>
+<p><a href="https://en.wikipedia.org/wiki/Random-access_memory">Random access memory (RAM)</a> holds the data and code the CPU is using right now. RAM is like the top of a desk: everything on it is within arm’s reach, but the space is limited. RAM is fast because the CPU can read any location in it directly. It’s also temporary, so everything in RAM disappears when the computer turns off.</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Load(["Load a dataset"])
+    Fit{"Does it fit&lt;br&gt;in RAM?"}
+    Work("The analysis runs")
+    Crash(["The session crashes"])
+    Load --&gt; Fit
+    Fit --&gt;|"Yes"| Work
+    Fit --&gt;|"No"| Crash
+</pre>
+</div>
+<p></p><figcaption> Loading Data into RAM</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>When we load a dataset in R or Python, the whole thing is copied into RAM. If it doesn’t fit, the session doesn’t just slow down; it crashes. RAM is usually the first resource a data science workload runs out of. The <code>t3.micro</code> we’ve been using has only 1 GB.</p>
+<p>A dataset can take up much more room in RAM than it does on disk. Text columns are the usual cause, along with the temporary copies R and Python make while transforming data. We can measure how much memory an object is using with <a href="https://lobstr.r-lib.org/reference/obj_size.html"><code>lobstr::obj_size()</code></a> or <a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.memory_usage.html"><code>df.memory_usage()</code></a>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(penguins)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df.memory_usage(deep<span class="op">=</span><span class="va">True</span>).<span class="bu">sum</span>()  <span class="co"># bytes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Comparing these numbers to the file size on disk shows how close a dataset is to the limit. The rule of thumb in the first comprehension question leaves room for this gap.</p>
+</section>
+<section id="storage" class="level3">
+<h3 class="anchored" data-anchor-id="storage">Storage</h3>
+<p><a href="https://en.wikipedia.org/wiki/Computer_data_storage">Storage</a> (a hard drive or solid state drive) keeps files for the long term. If RAM is the desk, storage is the filing cabinet across the room. It holds far more, and it keeps everything when the power is off. The trade off is speed: reading from even a fast solid state drive takes about a thousand times longer than reading from RAM.</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    subgraph Proc["&lt;strong&gt;Runs the code&lt;/strong&gt;"]
+        Cpu("CPU")
+    end
+    subgraph Mem["&lt;strong&gt;Fast, small, temporary&lt;/strong&gt;"]
+        Ram[("RAM")]
+    end
+    subgraph Disk["&lt;strong&gt;Slower, large, permanent&lt;/strong&gt;"]
+        Store[("Storage")]
+    end
+    Proc &lt;--&gt; Mem &lt;--&gt; Disk
+</pre>
+</div>
+<p></p><figcaption> Speed and Size Trade Off</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Because storage is slower, the computer copies data into RAM before the CPU works on it. On an EC2 instance, storage is an <a href="https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html">Elastic Block Store (EBS)</a> volume attached to the server. We can make the volume bigger without changing the instance type.</p>
+<p>Data science projects fill storage faster than we might expect. Package libraries, virtual environments, saved models, and data files all live there. A single deep learning package like <a href="https://pytorch.org/">PyTorch</a> can take up several gigabytes on its own. We can see how much room the <code>renv</code> and <code>uv</code> package caches are using with <code>du</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">du</span> <span class="at">-sh</span> ~/.cache/R ~/.cache/uv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>File format matters, too. A <a href="https://en.wikipedia.org/wiki/Apache_Parquet">Parquet</a> file is usually much smaller than the same data saved as a CSV. <a href="https://arrow.apache.org/docs/r/">R (<code>{arrow}</code>)</a> and <a href="https://arrow.apache.org/docs/python/">Python (<code>pyarrow</code>)</a> also read it faster, because the data is compressed and stored by column.</p>
+</section>
+<section id="gpus" class="level3">
+<h3 class="anchored" data-anchor-id="gpus">GPUs</h3>
+<p>A <a href="https://en.wikipedia.org/wiki/Graphics_processing_unit">graphics processing unit (GPU)</a> is a processor built from thousands of small, simple cores. GPUs were designed to draw graphics, which means running the same calculation on millions of pixels at once. Training a deep learning model involves the same kind of math (large matrix multiplications). A GPU’s thousands of cores can finish that work in hours instead of days.</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    subgraph Cpu["&lt;strong&gt;CPU: a few strong cores&lt;/strong&gt;"]
+        direction LR
+        c1("core") ~~~ c2("core") ~~~ c3("core") ~~~ c4("core")
+    end
+    subgraph Gpu["&lt;strong&gt;GPU: many small cores&lt;/strong&gt;"]
+        direction LR
+        g0("core") ~~~ g1("core") ~~~ g2("core") ~~~ g3("core") ~~~ g4("core") ~~~ g5("core")
+        g6("core") ~~~ g7("core") ~~~ g8("core") ~~~ g9("core") ~~~ g10("core") ~~~ g11("core")
+        g12("core") ~~~ g13("core") ~~~ g14("core") ~~~ g15("core") ~~~ g16("core") ~~~ g17("core")
+    end
+    Cpu ~~~ Gpu
+    classDef big font-size:18px
+    classDef small font-size:12px
+    class c1,c2,c3,c4 big
+    class g0,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17 small
+</pre>
+</div>
+<p></p><figcaption> CPU and GPU Cores</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>GPUs come with three catches:</p>
+<ol type="1">
+<li>They’re expensive.</li>
+<li>Our code has to be written (or configured) to use one.</li>
+<li>Code that runs one step at a time gets nothing from a GPU.</li>
+</ol>
+<p>Most of the data science toolkit never touches a GPU. <a href="https://dplyr.tidyverse.org/"><code>{dplyr}</code></a>, <a href="https://pandas.pydata.org/"><code>{pandas}</code></a>, and most of <a href="https://www.tidymodels.org/"><code>{tidymodels}</code></a> and <a href="https://scikit-learn.org/stable/"><code>scikit-learn</code></a> run on the CPU. GPUs matter for deep learning frameworks like <a href="https://pytorch.org/">PyTorch</a> and <a href="https://www.tensorflow.org/">TensorFlow</a> (and their R interfaces, <a href="https://torch.mlverse.org/"><code>{torch}</code></a> and <a href="https://keras3.posit.co/"><code>{keras3}</code></a>), and for a few model libraries like <a href="https://xgboost.readthedocs.io/">XGBoost</a>. In each case we check that the GPU is visible, then move the work onto it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-8"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-8-1"><a href="#annotated-cell-8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="1">1</button><span id="annotated-cell-8-2" class="code-annotation-target"><a href="#annotated-cell-8-2" aria-hidden="true" tabindex="-1"></a>torch.cuda.is_available()</span>
+<span id="annotated-cell-8-3"><a href="#annotated-cell-8-3" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> <span class="st">"cuda"</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">"cpu"</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-8" data-target-annotation="2">2</button><span id="annotated-cell-8-4" class="code-annotation-target"><a href="#annotated-cell-8-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> model.to(device)</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-8" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="2" data-code-annotation="1"><code>True</code> if <code>PyTorch</code> can see a GPU</span>
+</dd>
+<dt data-target-cell="annotated-cell-8" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-8" data-code-lines="4" data-code-annotation="2">Move the model’s weights onto the GPU</span>
+</dd>
+</dl>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-9"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-2" class="code-annotation-target"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cuda_is_available</span>()</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-9" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-9" data-code-lines="2" data-code-annotation="1"><code>TRUE</code> if <code>torch</code> can see a GPU</span>
+</dd>
+</dl>
+</div>
+</div>
+<p>A GPU also has its <a href="https://en.wikipedia.org/wiki/Video_random-access_memory">own memory (VRAM)</a>, separate from the server’s RAM. The model and each batch of data have to fit in VRAM, which brings back the same “does it fit?” question from the RAM section.</p>
+</section>
+<section id="how-the-parts-work-together" class="level3">
+<h3 class="anchored" data-anchor-id="how-the-parts-work-together">How the parts work together</h3>
+<p>The diagram below follows data through a typical analysis:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant S as Storage
+    participant R as RAM
+    participant C as CPU or GPU
+    S-&gt;&gt;R: Loads the data
+    R-&gt;&gt;C: Reads the data
+    C-&gt;&gt;C: Runs the computation
+    C-&gt;&gt;R: Writes the results
+    R-&gt;&gt;S: Saves the results
+</pre>
+</div>
+<p></p><figcaption> How the Parts Work Together</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Data starts in storage, gets copied into RAM, and is processed by the CPU (or GPU). The results go back into RAM, and we save them to storage when we want to keep them. Each comprehension question below describes a bottleneck at one of these steps.</p>
+<p>In a typical R or Python script, each step maps to a familiar function call:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>R</th>
+<th>Python</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Storage to RAM</td>
+<td><code>readr::read_csv()</code></td>
+<td><code>pd.read_csv()</code></td>
+</tr>
+<tr class="even">
+<td>CPU work</td>
+<td><code>dplyr::mutate()</code>, <code>lm()</code></td>
+<td><code>df.assign()</code>, <code>model.fit()</code></td>
+</tr>
+<tr class="odd">
+<td>RAM to storage</td>
+<td><code>arrow::write_parquet()</code>, <code>saveRDS()</code></td>
+<td><code>df.to_parquet()</code>, <code>joblib.dump()</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 <section id="comprehension-questions" class="level2">
 <h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
 <blockquote class="blockquote">
@@ -816,7 +1124,7 @@ xychart-beta
 <blockquote class="blockquote">
 <p>“2. <em>You go to build a new ML model on your data. You’d like to re-train the model once a day, but training this model takes 26 hours on your laptop.</em>”</p>
 </blockquote>
-<p>Compute. A 26 hour job can’t run once a day no matter how much RAM or storage the machine has. If the model is highly parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. <strong>GPUs are expensive, and the code has to be told to use one. The chapter’s advice is to try faster CPU cores first.</strong></p>
+<p>A faster CPU (or a GPU). A 26 hour job can’t run once a day no matter how much RAM or storage the machine has. If the model is parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. The chapter’s advice is to try faster CPU cores first.</p>
 <p>The order to try things in looks like this:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -857,7 +1165,7 @@ flowchart TD
 <blockquote class="blockquote">
 <p>“3. <em>You design a visualization using the <code>{matplotlib}</code> package and want to create one version of the visualization for each US state. You could do it in a loop, but it would be faster to parallelize the plot creation. Right now, you’re running on a <code>t2.small</code> with 1 CPU.</em>”</p>
 </blockquote>
-<p>More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. <strong>A GPU doesn’t help here because <code>{matplotlib}</code> draws on the CPU.</strong></p>
+<p>More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. A GPU doesn’t help here because <code>{matplotlib}</code> draws on the CPU.</p>
 <p>Assume each plot takes one minute. With the same total work, four cores finish in about a quarter of the time:</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
@@ -925,7 +1233,7 @@ mindmap
 </blockquote>
 <p>A CPU has a handful of fast cores, usually 4 to 16 on a laptop. A GPU has hundreds or thousands of slow ones: 700 to 4,000 on a mid range card, each running at 1 to 10 percent of a CPU core’s speed. The CPU is built to finish one problem quickly. The GPU is built to work on thousands of small problems at once.</p>
 <p>Training most machine learning models is that kind of work. The same arithmetic repeats over many rows, weights, or trees, and each piece is independent of the others. When work splits that way, the number of cores matters more than the speed of any one core. A GPU can then train in hours what a CPU trains in days.</p>
-<p>Work that runs one step at a time gets nothing from a GPU. Most everyday R and Python works that way, which is why fewer, faster CPU cores suit it better.</p>
+<p>Step by step R and Python code is the opposite case, so it runs better on fewer, faster CPU cores.</p>
 <p>Placing each chip by core count and core speed shows why they suit different work:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -958,7 +1266,7 @@ quadrantChart
 </blockquote>
 <p><code>ps aux</code> lists every process with its owner, and <code>grep</code> narrows it down:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> aux <span class="kw">|</span> <span class="fu">grep</span> jupyterhub <span class="kw">|</span> <span class="fu">grep</span> alexkgold</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> aux <span class="kw">|</span> <span class="fu">grep</span> jupyterhub <span class="kw">|</span> <span class="fu">grep</span> alexkgold</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Each <code>|</code> passes one command’s output to the next, and each <code>grep</code> keeps fewer lines:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
@@ -969,15 +1277,18 @@ quadrantChart
 
 <pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
 
-sequenceDiagram
-    participant ps as ps aux
-    participant g1 as grep jupyterhub
-    participant g2 as grep alexkgold
-    participant T as Terminal
-    ps-&gt;&gt;g1: every process, one per line
-    g1-&gt;&gt;g2: only lines mentioning jupyterhub
-    g2-&gt;&gt;T: jupyterhub lines owned by alexkgold
-    Note over ps,T: each | hands one command's output to the next
+flowchart TD
+    Ps("&lt;code&gt;ps aux&lt;/code&gt;&lt;br/&gt;&lt;em&gt;every process, one per line&lt;/em&gt;")
+    G1("&lt;code&gt;grep jupyterhub&lt;/code&gt;&lt;br/&gt;&lt;em&gt;only lines mentioning jupyterhub&lt;/em&gt;")
+    G2("&lt;code&gt;grep alexkgold&lt;/code&gt;&lt;br/&gt;&lt;em&gt;only lines owned by alexkgold&lt;/em&gt;")
+    Out[/"JupyterHub processes owned by alexkgold"/]
+
+    Ps --&gt;|"pipe"| G1 --&gt;|"pipe"| G2 --&gt; Out
+
+    style Ps fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style G1 fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style G2 fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Out fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
 </pre>
 </div>
 <p></p><figcaption> Filtering ps aux with grep</figcaption> </figure><p></p>
@@ -986,7 +1297,7 @@ sequenceDiagram
 </div>
 <p><code>ps -u alexkgold</code> lists only that user’s processes, so <code>ps -u alexkgold | grep jupyterhub</code> gets to the same place. Our instance doesn’t run JupyterHub, but the same pattern finds the app from <a href="./install-real-app.html">Installing a Real Application</a>, which runs as its service account:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> <span class="at">-u</span> baseball-trajectory <span class="at">-o</span> pid,%cpu,%mem,cmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ps</span> <span class="at">-u</span> baseball-trajectory <span class="at">-o</span> pid,%cpu,%mem,cmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If one of these processes is running away with the CPU, its PID goes to <code>kill</code>. For a <code>systemd</code> service, <code>sudo systemctl restart</code> is the better tool.</p>
 <blockquote class="blockquote">
@@ -994,8 +1305,8 @@ sequenceDiagram
 </blockquote>
 <p><code>lsblk</code> lists the disks and partitions, and <code>df -h</code> shows how full each mounted filesystem is:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lsblk</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">df</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lsblk</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">df</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>On an EC2 instance the root EBS volume usually shows up as <code>nvme0n1</code>, mounted at <code>/</code>. <code>-h</code> prints sizes in K, M, and G instead of blocks.</p>
 <p><code>lsblk</code> shows the whole tree, including partitions that aren’t mounted; <code>df -h</code> reports only the mounted ones. On an AL2023 instance the tree usually looks like this:</p>
@@ -1031,14 +1342,14 @@ block-beta
 </blockquote>
 <p><code>du</code> measures sizes, <code>sort -rh</code> puts the biggest first, and <code>head</code> keeps the top of the list. Home directories belong to other users, so this needs <code>sudo</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> du <span class="at">-ah</span> /home <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 20</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> du <span class="at">-ah</span> /home <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 20</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><code>-a</code> includes files, not just directories. To get a short list per user instead of one combined list, loop over the home directories:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> /home/<span class="pp">*</span><span class="kw">;</span> <span class="cf">do</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">"== </span><span class="va">$d</span><span class="st">"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sudo</span> du <span class="at">-ah</span> <span class="st">"</span><span class="va">$d</span><span class="st">"</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 5</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> /home/<span class="pp">*</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">"== </span><span class="va">$d</span><span class="st">"</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sudo</span> du <span class="at">-ah</span> <span class="st">"</span><span class="va">$d</span><span class="st">"</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-rh</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 5</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Each stage of the pipeline narrows the list:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
@@ -1069,6 +1380,15 @@ flowchart TD
 </div>
 </div>
 </div>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>CPU speed, core count, RAM, and storage each limit a different kind of work. A GPU helps only with parallel work that the code is told to send to it.</p></li>
+<li><p>RAM runs out first for most data science work. Data takes more room in memory than on disk, so plan for about three times the largest dataset.</p></li>
+<li><p>Extra cores help only when a job splits into independent pieces, and most R and Python code has to be told to use them.</p></li>
+<li><p><code>ps</code>, <code>lsblk</code>, <code>df -h</code>, and <code>du</code> show what a server is running and where its storage went. Resizing the instance is covered in <a href="./instance-size.html">Instance Size</a>.</p></li>
+</ol>
 
 
 </section>

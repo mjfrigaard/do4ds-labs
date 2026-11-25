@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-24">
+<meta name="dcterms.date" content="2026-11-25">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Appendix B — SSH config – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-62715e386a36d0e96e8874aaa0753d08.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-2459dba02bc2ed79e3c432382f9c8883.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -703,7 +703,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#a-basic-entry" id="toc-a-basic-entry" class="nav-link" data-scroll-target="#a-basic-entry">A basic entry</a></li>
   <li><a href="#forcing-a-single-key" id="toc-forcing-a-single-key" class="nav-link" data-scroll-target="#forcing-a-single-key">Forcing a single key</a></li>
   <li><a href="#several-entries" id="toc-several-entries" class="nav-link" data-scroll-target="#several-entries">Several entries</a></li>
-  <li><a href="#when-the-ip-changes" id="toc-when-the-ip-changes" class="nav-link" data-scroll-target="#when-the-ip-changes">When the IP changes</a></li>
+  <li><a href="#when-the-ip-changes" id="toc-when-the-ip-changes" class="nav-link" data-scroll-target="#when-the-ip-changes">When the IP changes</a>
+  <ul>
+  <li><a href="#looking-up-the-ip-automatically" id="toc-looking-up-the-ip-automatically" class="nav-link" data-scroll-target="#looking-up-the-ip-automatically">Looking up the IP automatically</a></li>
+  </ul></li>
   <li><a href="#checking-the-config" id="toc-checking-the-config" class="nav-link" data-scroll-target="#checking-the-config">Checking the config</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
@@ -726,7 +729,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-24</p>
+      <p class="date">2026-11-25</p>
     </div>
   </div>
   
@@ -898,20 +901,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>SSH asks to confirm the host key again, because <code>~/.ssh/known_hosts</code> stores keys by address (see <a href="./aws-ssh-ec2.html#host-key-verification">Host key verification</a>).</p></li>
 <li><p>If our own home IP changed, the port 22 rule in the security group no longer matches and <code>ssh</code> ends with <code>Connection timed out</code>. That’s a security group problem, not a config problem (see <a href="./aws-ssh-ec2.html#security-group-doesnt-allow-ssh-port-22">Security Group doesn’t allow SSH (port 22)</a>).</p></li>
 </ul>
+<p>Only a stop followed by a start changes the IP. Rebooting from inside the instance (<code>sudo reboot</code>) keeps the same address.</p>
+<section id="looking-up-the-ip-automatically" class="level3">
+<h3 class="anchored" data-anchor-id="looking-up-the-ip-automatically">Looking up the IP automatically</h3>
+<p>Editing <code>HostName</code> after every start gets old fast. Instead, a small shell function can look up the current IP and hand it to <code>ssh</code>, which makes the <code>HostName</code> line in the config irrelevant. The function below goes in <code>~/.bashrc</code> (or <code>~/.zshrc</code> on macOS, where zsh is the default shell):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">awsdev()</span> <span class="kw">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">local</span> <span class="va">ip</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">ip</span><span class="op">=</span><span class="va">$(</span><span class="ex">aws</span> ec2 describe-instances <span class="at">--profile</span> dev-deploy <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--instance-ids</span> YOUR_INSTANCE_ID <span class="dt">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--query</span> <span class="st">'Reservations[].Instances[].PublicIpAddress'</span> <span class="dt">\</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output</span> text<span class="va">)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ssh</span> <span class="at">-o</span> HostName=<span class="st">"</span><span class="va">${ip}</span><span class="st">"</span> aws-dev <span class="st">"</span><span class="va">$@</span><span class="st">"</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-o HostName=</code> overrides the value in the <code>aws-dev</code> entry, so the user, key, and <code>IdentitiesOnly</code> settings still come from <code>~/.ssh/config</code>. <code>"$@"</code> passes any extra arguments along to <code>ssh</code>. After reloading the shell (<code>source ~/.bashrc</code>), <code>awsdev</code> connects at whatever IP the instance has now, and <code>awsdev -v</code> shows the debug output.</p>
+<p>The function needs a running instance. If the instance is stopped, the lookup returns <code>None</code> and <code>ssh</code> fails, so start the instance first.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What about an Elastic IP?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>An <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html">Elastic IP</a> keeps the same public address across stops and starts, so <code>HostName</code> never changes. It isn’t free: AWS <a href="https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/">charges for every public IPv4 address</a> (about $0.005 per hour), and an Elastic IP is billed even while the instance is stopped. For a lab instance that sits stopped most of the time, the function above does the same job for nothing.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 <section id="checking-the-config" class="level2">
 <h2 class="anchored" data-anchor-id="checking-the-config">Checking the config</h2>
 <p><code>ssh -G</code> prints the settings SSH would use for an alias without connecting:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-G</span> aws-dev <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">'^(hostname|user|port|identityfile|identitiesonly|identityagent) '</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-G</span> aws-dev <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">'^(hostname|user|port|identityfile|identitiesonly|identityagent) '</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>user ec2-user</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>hostname YOUR_PUBLIC_IP_ADDRESS</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>port 22</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>identitiesonly yes</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>identityagent none</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>identityfile ~/.ssh/aws-dev.pem</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>user ec2-user</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>hostname YOUR_PUBLIC_IP_ADDRESS</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>port 22</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>identitiesonly yes</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>identityagent none</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>identityfile ~/.ssh/aws-dev.pem</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If a value is missing or wrong, the entry has a typo or an earlier block already set it. To watch the settings in use during a real connection, add <code>-v</code> (<code>ssh -v aws-dev</code>); the debug lines show the config file being read and each key SSH offers.</p>
 </section>
@@ -921,7 +957,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><code>~/.ssh/config</code> lives on the local machine, needs <code>600</code> permissions, and turns a long <code>ssh</code> command into <code>ssh &lt;alias&gt;</code>.</p></li>
 <li><p><code>IdentitiesOnly yes</code> and <code>IdentityAgent none</code> make SSH use only the key in <code>IdentityFile</code>, which prevents <code>Too many authentication failures</code>.</p></li>
 <li><p>One entry per user and key keeps recovery (<code>.pem</code>) and routine access separate.</p></li>
-<li><p>When the instance gets a new IP, update <code>HostName</code>; nothing else in the entry changes.</p></li>
+<li><p>When the instance gets a new IP, update <code>HostName</code> (nothing else in the entry changes), or let a shell function like <code>awsdev()</code> look up the IP for us.</p></li>
 </ol>
 
 
