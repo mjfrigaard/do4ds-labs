@@ -22,7 +22,274 @@ co_box(
 )
 ```
 
-This lab covers the three resources that decide how big a server needs to be: CPU, RAM, and storage. It also covers when a GPU is worth paying for and how to scale up when a server runs short. Along the way, a few commands show how much of each resource a server is using. The examples come from the `t3.micro` we've been running since [Lab 7](lab07.qmd). It has already hit some of these limits in [Instance Size](instance-size.qmd) and [Installing a Real Application](install-real-app.qmd).
+How big does a server need to be? Three resources decide: CPU, RAM, and storage, plus a GPU for some modeling work. The examples come from the `t3.micro` we've been running since [Lab 7](lab07.qmd); scaling it up when it runs short is covered in [Instance Size](instance-size.qmd).
+
+## How computers work (for data science)
+
+Each comprehension question below asks which part of a computer we'd upgrade to fix a problem. To answer them, it helps to know what each part does. The chapter explains the parts from a system administrator's point of view. The sections below add the R and Python side, with links to Wikipedia for more depth.
+
+### The CPU
+
+The [central processing unit (CPU)](https://en.wikipedia.org/wiki/Central_processing_unit) is the part of the computer that runs your code. Every program, from a Python script to the operating system, is a long list of small instructions. The CPU works through that list in a cycle:
+
+```{mermaid}
+%%| fig-cap: 'The CPU Instruction Cycle'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px', 'lineColor':'#999999', 'transitionColor':'#999999'}}}%%
+
+stateDiagram-v2
+    Fetch: Fetch the next instruction from RAM
+    Execute: Execute the instruction
+    Store: Store the result
+    [*] --> Fetch
+    Fetch --> Execute
+    Execute --> Store
+    Store --> Fetch
+```
+
+Each trip around this cycle takes a tiny fraction of a second. The number of cycles per second is the clock speed, measured in gigahertz (GHz). A 3 GHz CPU runs about three billion cycles each second. A higher clock speed means each step of your code finishes sooner.
+
+R and Python add a layer between our code and the CPU. Both are interpreted languages, so each line we write turns into many CPU instructions while it runs. Vectorized functions skip most of that work by handing the whole job to compiled C code. The two versions below give the same answer. On my laptop, with a vector of 10 million numbers, the vectorized one runs about 90 times faster in both R and Python:
+
+```{r}
+#| eval: false
+#| code-fold: false
+x <- runif(1e7)
+# loop: the interpreter handles every element
+total <- 0
+for (i in seq_along(x)) total <- total + x[i]
+# vectorized: one call to compiled code
+total <- sum(x)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+import numpy as np
+x = np.random.rand(10_000_000)
+# loop: the interpreter handles every element
+total = 0.0
+for value in x:
+    total += value
+# vectorized: one call to compiled code
+total = x.sum()
+```
+
+Before paying for a faster CPU, it's worth looking for loops like these. Rewriting a loop takes a few minutes; a bigger instance costs money every hour it runs.
+
+### Cores
+
+A core is a complete processing unit inside the CPU. A CPU with more than one core is a [multi-core processor](https://en.wikipedia.org/wiki/Multi-core_processor). Each core runs its own list of instructions, so a four core CPU can work on four tasks at once. Extra cores only help when the work splits into independent pieces:
+
+```{mermaid}
+%%| fig-cap: 'Splitting a Job Across Cores'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Job(["One job"])
+    Split{"Can the job split into<br>independent pieces?"}
+    subgraph Many["<strong>Four cores</strong>"]
+        C1("Core 1")
+        C2("Core 2")
+        C3("Core 3")
+        C4("Core 4")
+    end
+    One("One core does all the work<br>while the others sit idle")
+    Join(["Combine the results"])
+    Job --> Split
+    Split -->|"Yes"| C1 & C2 & C3 & C4
+    C1 & C2 & C3 & C4 --> Join
+    Split -->|"No"| One
+```
+
+Most R and Python code runs on a single core unless we tell it otherwise (with packages like [`{future}` in R](https://future.futureverse.org/) or [`multiprocessing` in Python](https://docs.python.org/3/library/multiprocessing.html)). **If each step depends on the result of the step before it, the extra cores have nothing to do. This is why faster cores often help more than more cores.**
+
+We can check how many cores R and Python can see:
+
+```{r}
+#| eval: false
+#| code-fold: false
+parallel::detectCores()
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+import os
+os.cpu_count()
+```
+
+Both return 2 on the `t3.micro`, but that count is threads, not cores. AWS sells virtual CPUs (vCPUs), and each vCPU is one hardware thread. The `t3.micro` has one physical core running two threads, so it shows up as 2 vCPUs. 
+
+Some modeling packages use every core without being asked. In R, [`{ranger}`](https://imbs-hl.github.io/ranger/) grows random forest trees on all available cores by default. In Python, [`scikit-learn`](https://scikit-learn.org/stable/index.html) models with an `n_jobs` argument use every core when we set `n_jobs=-1`.
+
+Parallel work has a RAM cost, too. Each worker process usually gets its own copy of the data, so four workers can need close to four times the memory of one.
+
+### RAM
+
+[Random access memory (RAM)](https://en.wikipedia.org/wiki/Random-access_memory) holds the data and code the CPU is using right now. RAM is like the top of a desk: everything on it is within arm's reach, but the space is limited. RAM is fast because the CPU can read any location in it directly. It's also temporary, so everything in RAM disappears when the computer turns off.
+
+```{mermaid}
+%%| fig-cap: 'Loading Data into RAM'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Load(["Load a dataset"])
+    Fit{"Does it fit<br>in RAM?"}
+    Work("The analysis runs")
+    Crash(["The session crashes"])
+    Load --> Fit
+    Fit -->|"Yes"| Work
+    Fit -->|"No"| Crash
+```
+
+When we load a dataset in R or Python, the whole thing is copied into RAM. If it doesn't fit, the session doesn't just slow down; it crashes. RAM is usually the first resource a data science workload runs out of. The `t3.micro` we've been using has only 1 GB.
+
+A dataset can take up much more room in RAM than it does on disk. Text columns are the usual cause, along with the temporary copies R and Python make while transforming data. We can measure how much memory an object is using with [`lobstr::obj_size()`](https://lobstr.r-lib.org/reference/obj_size.html) or [`df.memory_usage()`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.memory_usage.html):
+
+```{r}
+#| eval: false
+#| code-fold: false
+lobstr::obj_size(penguins)
+```
+
+```{python}
+#| eval: false
+#| code-fold: false
+df.memory_usage(deep=True).sum()  # bytes
+```
+
+Comparing these numbers to the file size on disk shows how close a dataset is to the limit. The rule of thumb in the first comprehension question leaves room for this gap.
+
+### Storage
+
+[Storage](https://en.wikipedia.org/wiki/Computer_data_storage) (a hard drive or solid state drive) keeps files for the long term. If RAM is the desk, storage is the filing cabinet across the room. It holds far more, and it keeps everything when the power is off. The trade off is speed: reading from even a fast solid state drive takes about a thousand times longer than reading from RAM.
+
+```{mermaid}
+%%| fig-cap: 'Speed and Size Trade Off'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    subgraph Proc["<strong>Runs the code</strong>"]
+        Cpu("CPU")
+    end
+    subgraph Mem["<strong>Fast, small, temporary</strong>"]
+        Ram[("RAM")]
+    end
+    subgraph Disk["<strong>Slower, large, permanent</strong>"]
+        Store[("Storage")]
+    end
+    Proc <--> Mem <--> Disk
+```
+
+Because storage is slower, the computer copies data into RAM before the CPU works on it. On an EC2 instance, storage is an [Elastic Block Store (EBS)](https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html) volume attached to the server. We can make the volume bigger without changing the instance type.
+
+Data science projects fill storage faster than we might expect. Package libraries, virtual environments, saved models, and data files all live there. A single deep learning package like [PyTorch](https://pytorch.org/) can take up several gigabytes on its own. We can see how much room the `renv` and `uv` package caches are using with `du`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+du -sh ~/.cache/R ~/.cache/uv
+```
+
+File format matters, too. A [Parquet](https://en.wikipedia.org/wiki/Apache_Parquet) file is usually much smaller than the same data saved as a CSV. [R (`{arrow}`)](https://arrow.apache.org/docs/r/) and [Python (`pyarrow`)](https://arrow.apache.org/docs/python/) also read it faster, because the data is compressed and stored by column.
+
+### GPUs
+
+A [graphics processing unit (GPU)](https://en.wikipedia.org/wiki/Graphics_processing_unit) is a processor built from thousands of small, simple cores. GPUs were designed to draw graphics, which means running the same calculation on millions of pixels at once. Training a deep learning model involves the same kind of math (large matrix multiplications). A GPU's thousands of cores can finish that work in hours instead of days.
+
+```{mermaid}
+%%| fig-cap: 'CPU and GPU Cores'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    subgraph Cpu["<strong>CPU: a few strong cores</strong>"]
+        direction LR
+        c1("core") ~~~ c2("core") ~~~ c3("core") ~~~ c4("core")
+    end
+    subgraph Gpu["<strong>GPU: many small cores</strong>"]
+        direction LR
+        g0("core") ~~~ g1("core") ~~~ g2("core") ~~~ g3("core") ~~~ g4("core") ~~~ g5("core")
+        g6("core") ~~~ g7("core") ~~~ g8("core") ~~~ g9("core") ~~~ g10("core") ~~~ g11("core")
+        g12("core") ~~~ g13("core") ~~~ g14("core") ~~~ g15("core") ~~~ g16("core") ~~~ g17("core")
+    end
+    Cpu ~~~ Gpu
+    classDef big font-size:18px
+    classDef small font-size:12px
+    class c1,c2,c3,c4 big
+    class g0,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17 small
+```
+
+GPUs come with three catches:
+
+1. They're expensive.
+2. Our code has to be written (or configured) to use one.
+3. Code that runs one step at a time gets nothing from a GPU.
+
+Most of the data science toolkit never touches a GPU. [`{dplyr}`](https://dplyr.tidyverse.org/), [`{pandas}`](https://pandas.pydata.org/), and most of [`{tidymodels}`](https://www.tidymodels.org/) and [`scikit-learn`](https://scikit-learn.org/stable/) run on the CPU. GPUs matter for deep learning frameworks like [PyTorch](https://pytorch.org/) and [TensorFlow](https://www.tensorflow.org/) (and their R interfaces, [`{torch}`](https://torch.mlverse.org/) and [`{keras3}`](https://keras3.posit.co/)), and for a few model libraries like [XGBoost](https://xgboost.readthedocs.io/). In each case we check that the GPU is visible, then move the work onto it:
+
+```{python}
+#| eval: false
+#| code-fold: false
+import torch
+torch.cuda.is_available()  #<1>
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = model.to(device)   #<2>
+```
+1. `True` if `PyTorch` can see a GPU
+2. Move the model's weights onto the GPU
+
+
+```{r}
+#| eval: false
+#| code-fold: false
+library(torch)
+cuda_is_available()  #<1>
+```
+1. `TRUE` if `torch` can see a GPU
+
+A GPU also has its [own memory (VRAM)](https://en.wikipedia.org/wiki/Video_random-access_memory), separate from the server's RAM. The model and each batch of data have to fit in VRAM, which brings back the same "does it fit?" question from the RAM section.
+
+### How the parts work together
+
+The diagram below follows data through a typical analysis:
+
+```{mermaid}
+%%| fig-cap: 'How the Parts Work Together'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant S as Storage
+    participant R as RAM
+    participant C as CPU or GPU
+    S->>R: Loads the data
+    R->>C: Reads the data
+    C->>C: Runs the computation
+    C->>R: Writes the results
+    R->>S: Saves the results
+```
+
+Data starts in storage, gets copied into RAM, and is processed by the CPU (or GPU). The results go back into RAM, and we save them to storage when we want to keep them. Each comprehension question below describes a bottleneck at one of these steps.
+
+In a typical R or Python script, each step maps to a familiar function call:
+
+| Step | R | Python |
+|---|---|---|
+| Storage to RAM | `readr::read_csv()` | `pd.read_csv()` |
+| CPU work | `dplyr::mutate()`, `lm()` | `df.assign()`, `model.fit()` |
+| RAM to storage | `arrow::write_parquet()`, `saveRDS()` | `df.to_parquet()`, `joblib.dump()` |
 
 ## Comprehension questions
 
@@ -53,7 +320,7 @@ xychart-beta
 
 > "2. *You go to build a new ML model on your data. You'd like to re-train the model once a day, but training this model takes 26 hours on your laptop.*"
 
-Compute. A 26 hour job can't run once a day no matter how much RAM or storage the machine has. If the model is highly parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. **GPUs are expensive, and the code has to be told to use one. The chapter's advice is to try faster CPU cores first.**
+A faster CPU (or a GPU). A 26 hour job can't run once a day no matter how much RAM or storage the machine has. If the model is parallel (deep learning or tree based models like XGBoost), a GPU is the upgrade that turns days into hours. The chapter's advice is to try faster CPU cores first.
 
 The order to try things in looks like this:
 
@@ -89,7 +356,7 @@ flowchart TD
 
 > "3. *You design a visualization using the `{matplotlib}` package and want to create one version of the visualization for each US state. You could do it in a loop, but it would be faster to parallelize the plot creation. Right now, you're running on a `t2.small` with 1 CPU.*"
 
-More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. **A GPU doesn't help here because `{matplotlib}` draws on the CPU.**
+More CPU cores. Parallelizing means running several plots at the same time, one per core, and a single core can only run one at a time. Fifty plots on one core is still a loop. A GPU doesn't help here because `{matplotlib}` draws on the CPU.
 
 Assume each plot takes one minute. With the same total work, four cores finish in about a quarter of the time:
 
@@ -148,7 +415,7 @@ A CPU has a handful of fast cores, usually 4 to 16 on a laptop. A GPU has hundre
 
 Training most machine learning models is that kind of work. The same arithmetic repeats over many rows, weights, or trees, and each piece is independent of the others. When work splits that way, the number of cores matters more than the speed of any one core. A GPU can then train in hours what a CPU trains in days.
 
-Work that runs one step at a time gets nothing from a GPU. Most everyday R and Python works that way, which is why fewer, faster CPU cores suit it better.
+Step by step R and Python code is the opposite case, so it runs better on fewer, faster CPU cores.
 
 Placing each chip by core count and core speed shows why they suit different work:
 
@@ -191,15 +458,18 @@ Each `|` passes one command's output to the next, and each `grep` keeps fewer li
 %%| fig-align: 'center'
 %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
 
-sequenceDiagram
-    participant ps as ps aux
-    participant g1 as grep jupyterhub
-    participant g2 as grep alexkgold
-    participant T as Terminal
-    ps->>g1: every process, one per line
-    g1->>g2: only lines mentioning jupyterhub
-    g2->>T: jupyterhub lines owned by alexkgold
-    Note over ps,T: each | hands one command's output to the next
+flowchart TD
+    Ps("<code>ps aux</code><br/><em>every process, one per line</em>")
+    G1("<code>grep jupyterhub</code><br/><em>only lines mentioning jupyterhub</em>")
+    G2("<code>grep alexkgold</code><br/><em>only lines owned by alexkgold</em>")
+    Out[/"JupyterHub processes owned by alexkgold"/]
+
+    Ps -->|"pipe"| G1 -->|"pipe"| G2 --> Out
+
+    style Ps fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style G1 fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style G2 fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Out fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
 ```
 
 `ps -u alexkgold` lists only that user's processes, so `ps -u alexkgold | grep jupyterhub` gets to the same place. Our instance doesn't run JupyterHub, but the same pattern finds the app from [Installing a Real Application](install-real-app.qmd), which runs as its service account:
@@ -292,3 +562,13 @@ flowchart TD
     style Head fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
     style Out fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
 ```
+
+## Recap
+
+1. CPU speed, core count, RAM, and storage each limit a different kind of work. A GPU helps only with parallel work that the code is told to send to it.
+
+2. RAM runs out first for most data science work. Data takes more room in memory than on disk, so plan for about three times the largest dataset.
+
+3. Extra cores help only when a job splits into independent pieces, and most R and Python code has to be told to use them.
+
+4. `ps`, `lsblk`, `df -h`, and `du` show what a server is running and where its storage went. Resizing the instance is covered in [Instance Size](instance-size.qmd).

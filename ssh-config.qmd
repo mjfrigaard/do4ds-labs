@@ -157,6 +157,36 @@ Two other things go stale with a new IP:
 
 * If our own home IP changed, the port 22 rule in the security group no longer matches and `ssh` ends with `Connection timed out`. That's a security group problem, not a config problem (see [Security Group doesn't allow SSH (port 22)](aws-ssh-ec2.qmd#security-group-doesnt-allow-ssh-port-22)).
 
+Only a stop followed by a start changes the IP. Rebooting from inside the instance (`sudo reboot`) keeps the same address.
+
+### Looking up the IP automatically
+
+Editing `HostName` after every start gets old fast. Instead, a small shell function can look up the current IP and hand it to `ssh`, which makes the `HostName` line in the config irrelevant. The function below goes in `~/.bashrc` (or `~/.zshrc` on macOS, where zsh is the default shell):
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+awsdev() {
+  local ip
+  ip=$(aws ec2 describe-instances --profile dev-deploy \
+    --instance-ids YOUR_INSTANCE_ID \
+    --query 'Reservations[].Instances[].PublicIpAddress' \
+    --output text)
+  ssh -o HostName="${ip}" aws-dev "$@"
+}
+```
+
+`-o HostName=` overrides the value in the `aws-dev` entry, so the user, key, and `IdentitiesOnly` settings still come from `~/.ssh/config`. `"$@"` passes any extra arguments along to `ssh`. After reloading the shell (`source ~/.bashrc`), `awsdev` connects at whatever IP the instance has now, and `awsdev -v` shows the debug output.
+
+The function needs a running instance. If the instance is stopped, the lookup returns `None` and `ssh` fails, so start the instance first.
+
+::: {.callout-note collapse="true" title="What about an Elastic IP?"}
+
+An [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html) keeps the same public address across stops and starts, so `HostName` never changes. It isn't free: AWS [charges for every public IPv4 address](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/) (about $0.005 per hour), and an Elastic IP is billed even while the instance is stopped. For a lab instance that sits stopped most of the time, the function above does the same job for nothing.
+
+:::
+
 ## Checking the config
 
 `ssh -G` prints the settings SSH would use for an alias without connecting:
@@ -190,4 +220,4 @@ If a value is missing or wrong, the entry has a typo or an earlier block already
 
 3. One entry per user and key keeps recovery (`.pem`) and routine access separate.
 
-4. When the instance gets a new IP, update `HostName`; nothing else in the entry changes.
+4. When the instance gets a new IP, update `HostName` (nothing else in the entry changes), or let a shell function like `awsdev()` look up the IP for us.

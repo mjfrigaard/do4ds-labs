@@ -22,14 +22,58 @@ co_box(
 )
 ```
 
+The `t3.micro` we've used since [Lab 7](lab07.qmd) has 1 GiB of RAM and an 8 GiB disk. What can we do when one of them runs short? [Lab 11](lab11.qmd) showed that memory usually runs out first, so we'll try both fixes on the real instance: swap space for a one time build, and a larger instance type. 
+
+```{mermaid}
+%%| fig-cap: 'Two Fixes for Running Short of Memory'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Short(["Memory runs short"])
+    Once{"One time job?<br/><em>a build, a compile</em>"}
+    Swap("Add swap space<br/><em>same instance type</em><br/><em>slower, gone after reboot</em>")
+    Size("Change the instance type<br/><em>stop, resize, start</em><br/><em>new IP, costs more per hour</em>")
+    Done(["Job finishes"])
+
+    Short --> Once
+    Once -->|"Yes"| Swap
+    Once -->|"No, ongoing"| Size
+    Swap --> Done
+    Size --> Done
+```
+
+Then we'll grow the disk, which turns out to be a separate change from the instance type.
+
+```{mermaid}
+%%| fig-cap: 'Instance Type and Storage Change Separately'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    subgraph Type["<strong>Instance type</strong>"]
+        Micro("t3.micro<br/><em>2 vCPUs, 1 GiB RAM</em>")
+        Small("t3.small<br/><em>2 vCPUs, 2 GiB RAM</em>")
+        Micro -->|"stop, modify, start"| Small
+    end
+    subgraph Vol["<strong>EBS volume</strong>"]
+        Eight[("8 GiB")]
+        Sixteen[("16 GiB")]
+        Eight -->|"modify-volume, growpart,<br/>xfs_growfs (no stop)"| Sixteen
+    end
+    Type -.-|"attached to"| Vol
+```
+
 ## When a build runs out of memory
 
 Compiling anything from source, not just Python (see [App Dependencies](app-depends.qmd)), is memory hungry in a way normal application workloads aren't. `t3.micro` gives you 1 GB of RAM, and a `make` step that dies partway through with an out of memory error is that limit, not a broken source tree.
 
 There are two ways around the limit, and each trades off differently:
 
-* Size up temporarily: stop the instance, change the instance type to something with more RAM, start it back up, run the build, then size back down. This costs a few minutes of downtime and a little more spend for the duration, but nothing about the build itself changes.
-* Add swap: swap space lets the kernel page memory out to disk instead of killing the process, so the build finishes on the original instance type. It's slower under memory pressure than real RAM would be, but for a one time build that's a fine trade, and it avoids touching the instance's configuration at all.
+* Add swap (one time jobs): swap space lets the kernel page memory out to disk instead of killing the process, so the build finishes on the original instance type. It's slower under memory pressure than real RAM would be, but for a one time build that's a fine trade, and it avoids touching the instance's configuration at all.
+* Change the instance type (ongoing needs): stop the instance, change the type to one with more RAM, and start it back up. This costs a few minutes of downtime, a new public IP, and more spend for every hour it runs, so it fits work that keeps needing the memory (an app or a model that runs every day). For a one time build, we can still size up temporarily and size back down afterward.
 
 To add swap, create a 2 GB file, restrict it to `root`, format it as swap, and turn it on:
 
@@ -37,8 +81,34 @@ To add swap, create a 2 GB file, restrict it to `root`, format it as swap, and t
 #| eval: false
 #| code-fold: false
 sudo fallocate -l 2G /swapfile
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo chmod 600 /swapfile
+```
+
+Only `mkswap` prints anything; the other three commands are silent when they succeed:
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo mkswap /swapfile
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Setting up swapspace version 1, size = 2 GiB (2147479552 bytes)
+no label, UUID=df81d2e4-e6cb-4eec-8ac4-7583eef1a0e6
+```
+
+:::
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo swapon /swapfile
 ```
 
@@ -50,13 +120,447 @@ We can confirm the kernel is using it with `free -h`. The `Swap:` row should now
 free -h
 ```
 
+::: {style="font-style: italic;"}
+
+```{verbatim}
+               total        used        free      shared  buff/cache   available
+Mem:           911Mi       327Mi       153Mi        69Mi       431Mi       372Mi
+Swap:          2.0Gi          0B       2.0Gi
+```
+
+:::
+
 The swap file only lasts until the next reboot. After the build finishes, I turn it off and remove the file:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
 sudo swapoff /swapfile
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
 sudo rm /swapfile
 ```
 
+Running `free -h` again confirms the `Swap:` row is back to zero:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+free -h
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+               total        used        free      shared  buff/cache   available
+Mem:           911Mi       330Mi       151Mi        69Mi       430Mi       369Mi
+Swap:             0B          0B          0B
+```
+
+:::
+
 Either way, this is a build-time problem, not a runtime one. Once the compiled artifact exists, running it day to day doesn't need the extra headroom.
+
+## Step 1: Confirm the current server size
+
+Before changing anything, we record what the `t3.micro` has now. Log in to the instance (see [SSH config](ssh-config.qmd) for the `awsdev` shortcut) and check the CPU, memory, and root volume:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)'
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+CPU(s):                                  2
+Model name:                              Intel(R) Xeon(R) Platinum 8259CL CPU @ 2.50GHz
+Thread(s) per core:                      2
+Core(s) per socket:                      1
+Socket(s):                               1
+```
+
+:::
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+nproc
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+2
+```
+
+:::
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+free -h
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+               total        used        free      shared  buff/cache   available
+Mem:           911Mi       322Mi       160Mi        69Mi       429Mi       377Mi
+Swap:             0B          0B          0B
+```
+
+:::
+
+The `t3.micro` is sold with 1 GiB of RAM, but `free -h` reports 911Mi because the kernel reserves some memory before it starts counting. Only about 377Mi is `available` for anything new we start.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+df -h /
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1  8.0G  4.9G  3.1G  62% /
+```
+
+:::
+
+`lscpu` separates threads from cores. AWS counts each hardware thread as a vCPU, so `CPU(s)` and `nproc` report 2 even though the `t3.micro` has one physical core (see [Cores](lab11.qmd#cores) in Lab 11).
+
+## Step 2: Change the instance type and bring it back
+
+The instance type can only change while the instance is stopped. The commands below run on our local machine, not on the instance. First we look up the instance ID by the instance's `Name` tag (`dev-al2023`, from [Upgrade to Amazon Linux 2023](upgrade-al2023.qmd)) and store it in a shell variable:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+INSTANCE_ID=$(aws ec2 describe-instances --profile dev-deploy \
+  --filters Name=tag:Name,Values=dev-al2023 \
+  --query 'Reservations[].Instances[].InstanceId' \
+  --output text)
+echo "$INSTANCE_ID"
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+i-0514a57a209efcf56
+```
+
+:::
+
+`echo` should print a single ID that starts with `i-`. If it prints nothing, check the tag name in the EC2 console. The variable lasts until the terminal closes, and Step 4 and "Sizing back down" use it too. Next we stop the instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+`stop-instances` prints the state change (`running` to `stopping`). `wait instance-stopped` prints nothing; it just returns once the instance has fully stopped:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "StoppingInstances": [
+        {
+            "InstanceId": "i-0514a57a209efcf56",
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+```
+
+:::
+
+With the instance stopped, we change the type to `t3.small` (2 vCPUs, 2 GiB of RAM) and start it again:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+aws ec2 modify-instance-attribute --instance-id "$INSTANCE_ID" \
+  --instance-type '{"Value": "t3.small"}' --profile dev-deploy
+aws ec2 start-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+`modify-instance-attribute` and `wait instance-running` print nothing when they succeed. `start-instances` shows the instance moving from `stopped` to `pending`:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "StartingInstances": [
+        {
+            "InstanceId": "i-0514a57a209efcf56",
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+```
+
+:::
+
+The instance gets a new public IP when it starts, so `HostName` in `~/.ssh/config` is now stale. `awsdev` looks up the new address for us.
+
+A larger type costs more for every hour it runs. To go back, we repeat these commands with `t3.micro` once we're done.
+
+## Step 3: Confirm the new server size
+
+Back on the instance, we run the same checks as Step 1:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)'
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+CPU(s):                                  2
+Model name:                              Intel(R) Xeon(R) Platinum 8259CL CPU @ 2.50GHz
+Thread(s) per core:                      2
+Core(s) per socket:                      1
+Socket(s):                               1
+```
+
+:::
+
+The CPU is identical: the same Xeon model, one core, and two threads. A `t3.small` has the same 2 vCPUs as a `t3.micro`.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+nproc
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+2
+```
+
+:::
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+free -h
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+               total        used        free      shared  buff/cache   available
+Mem:           1.9Gi       319Mi       1.1Gi       0.0Ki       456Mi       1.4Gi
+Swap:             0B          0B          0B
+```
+
+:::
+
+Memory is the only thing that changed. Total RAM went from 911Mi to 1.9Gi, and `available` went from 377Mi to 1.4Gi, nearly four times the room for new work.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+df -h /
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1  8.0G  4.9G  3.1G  62% /
+```
+
+:::
+
+The root volume is unchanged (8.0G, 62% used), because storage lives on the EBS volume, not the instance type.
+
+## Step 4: Upgrade storage (maybe)
+
+Changing the instance type doesn't change storage. The root EBS volume is separate from the instance, so it keeps its size (and its data) through Step 2. If `df -h /` shows the disk filling up, we can grow the volume without stopping the instance. First we find the volume's ID and current size:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+aws ec2 describe-volumes --profile dev-deploy \
+  --filters Name=attachment.instance-id,Values="$INSTANCE_ID" \
+  --query 'Volumes[].[VolumeId,Size]' --output text
+```
+
+The root volume is 8 GiB:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+vol-0ff94e05e8e4fbf44   8
+```
+
+:::
+
+Then we set the new size in GiB. A volume can grow but never shrink, and each GiB adds to the monthly bill:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+aws ec2 modify-volume --volume-id YOUR_VOLUME_ID --size 16 --profile dev-deploy
+```
+
+`modify-volume` returns right away with the change in the `modifying` state. The type (`gp3`), IOPS, and throughput stay the same; only the size goes from 8 to 16:
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+    "VolumeModification": {
+        "VolumeId": "vol-0ff94e05e8e4fbf44",
+        "ModificationState": "modifying",
+        "TargetSize": 16,
+        "TargetIops": 3000,
+        "TargetVolumeType": "gp3",
+        "TargetThroughput": 125,
+        "TargetMultiAttachEnabled": false,
+        "OriginalSize": 8,
+        "OriginalIops": 3000,
+        "OriginalVolumeType": "gp3",
+        "OriginalThroughput": 125,
+        "OriginalMultiAttachEnabled": false,
+        "Progress": 0,
+        "StartTime": "2026-11-25T08:47:45+00:00"
+    }
+}
+```
+
+:::
+
+On the instance, the partition and the filesystem still use the old size. `growpart` extends the root partition, and `xfs_growfs` extends the XFS filesystem that AL2023 uses on `/`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+sudo growpart /dev/nvme0n1 1
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+CHANGED: partition=1 start=24576 old: size=16752607 end=16777183 new: size=33529823 end=33554399
+```
+
+:::
+
+`growpart` reports the partition's new size in 512 byte sectors: about 16 GiB, up from 8. If it prints `NOCHANGE` instead, the volume change hasn't reached the instance yet; wait a minute and run it again.
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+sudo xfs_growfs -d /
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+meta-data=/dev/nvme0n1p1         isize=512    agcount=2, agsize=1047040 blks
+         =                       sectsz=4096  attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=0
+         =                       exchange=0
+data     =                       bsize=4096   blocks=2094075, imaxpct=25
+         =                       sunit=128    swidth=128 blks
+naming   =version 2              bsize=16384  ascii-ci=0, ftype=1, parent=0
+log      =internal log           bsize=4096   blocks=16384, version=2
+         =                       sectsz=4096  sunit=4 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+data blocks changed from 2094075 to 4191227
+```
+
+:::
+
+The last line is the one that matters: the filesystem now has twice as many 4 KiB blocks. `df -h` confirms it:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+df -h /
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   16G  5.0G   12G  31% /
+```
+
+:::
+
+The root filesystem went from 8.0G (62% used) to 16G (31% used), and the instance never stopped.
+
+## Sizing back down
+
+A bigger instance costs more for every hour it runs, so once the extra memory has done its job we go back to `t3.micro`. The commands below run from our local machine and use the `INSTANCE_ID` shell variable from Step 2. If the terminal has closed since then, rerun the lookup from Step 2 first. Then we repeat the Step 2 commands with the original type:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --profile dev-deploy
+aws ec2 modify-instance-attribute --instance-id "$INSTANCE_ID" \
+  --instance-type '{"Value": "t3.micro"}' --profile dev-deploy
+aws ec2 start-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+The larger EBS volume from Step 4 stays at its new size; only the instance type changes.
+
+## Recap
+
+1. Swap space lets a memory hungry, one time job (like compiling from source) finish on a small instance. It's slower than RAM, and the swap file only lasts until the next reboot.
+
+2. Changing the instance type takes a stop and a start, and the instance comes back with a new public IP. Going from `t3.micro` to `t3.small` raised RAM from 911Mi to 1.9Gi; the CPU stayed at 2 vCPUs (one core, two threads).
+
+3. Storage belongs to the EBS volume, not the instance type. The volume can grow while the instance runs (`modify-volume`, `growpart`, `xfs_growfs`), but it can never shrink.
+
+4. A larger instance type costs more for every hour it runs, so we size back down when the work is done. A larger volume costs more every month, whether the instance runs or not.
