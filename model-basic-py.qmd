@@ -1,6 +1,6 @@
 # <em>Modeling in Python</em> {#sec-model-basic-py}
 
-The `model-basic-py.qmd` file creates a model using Python's `palmerpenguins`, `numpy`, `pandas`, and `scikit-learn` libraries. 
+The first of Lab 1's two Quarto documents, `model-basic-py.qmd`, fits a linear regression model with Python's `palmerpenguins`, `pandas`, and `scikit-learn` libraries. 
 
 <details>
   <summary><strong>View model-basic-py.qmd</strong></summary>
@@ -8,7 +8,7 @@ The `model-basic-py.qmd` file creates a model using Python's `palmerpenguins`, `
 <br>
   
 ```{r}
-#| label: print-eda-basic-qmd
+#| label: print-model-basic-py-qmd
 #| echo: false
 library(readr)
 readr::read_lines("_labs/lab01/model-basic-py.qmd") |> 
@@ -25,22 +25,20 @@ Because this book renders with knitr, I've added the `reticulate` code below to 
 #| message: false 
 #| warning: false
 library(reticulate)
-use_virtualenv("myenv", required = TRUE)
 virtualenv_install(
   envname = "myenv", 
   packages = c("palmerpenguins", "pandas", "numpy", 
                "scikit-learn", "jupyter"))
+use_virtualenv("myenv", required = TRUE)
 ```
 
-The first Python chunk imports the `penguins` data, `get_dummies()` from `pandas`, `numpy`, and the `scikit-learn` modules for the model:
+The first Python chunk imports the `penguins` module from `palmerpenguins`, `get_dummies()` from `pandas`, and `LinearRegression` from `scikit-learn` for the model:
 
 ```{python}
 #| eval: true
 from palmerpenguins import penguins
 from pandas import get_dummies
-import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn import preprocessing
 ```
 
 Next, we load the penguins data, drop the rows with missing values, and view the first three rows:
@@ -74,11 +72,11 @@ print(f"Coefficients {model.coef_}")
 
 ## Recap
 
-1. Running Python inside this Quarto book relies on `reticulate`: `use_virtualenv()` points to the `myenv` environment, and `virtualenv_install()` installs `palmerpenguins`, `pandas`, `numpy`, `scikit-learn`, and `jupyter` into it.
+1. Running Python inside this Quarto book relies on `reticulate`: `virtualenv_install()` installs `palmerpenguins`, `pandas`, `numpy`, `scikit-learn`, and `jupyter` into the `myenv` environment, and `use_virtualenv()` points to it.
 
 2. The model predicts `body_mass_g` from `bill_length_mm`, `species`, and `sex` with `LinearRegression()`. `get_dummies()` with `drop_first = True` converts the categorical columns into indicator columns, so female Adelie penguins are the baseline.
 
-3. The R² of about 0.86 means these three variables explain most of the variation in body mass. Holding the other variables constant, each extra millimeter of bill length adds roughly 33 grams, Gentoo penguins are about 1,095 grams heavier than Adelie (Chinstrap are about 299 grams lighter), and males are about 547 grams heavier than females.
+3. The R² of about 0.86 means these three variables explain most of the variation in body mass. Holding the other variables constant, each extra millimeter of bill length adds roughly 33 grams. Gentoo penguins are about 1,095 grams heavier than Adelie (Chinstrap are about 299 grams lighter), and males are about 547 grams heavier than females.
 
 Next, [EDA in R](eda-basic.qmd) explores the same `palmerpenguins` data with `dplyr` and `ggplot2`.
 
