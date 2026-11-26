@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-25">
+<meta name="dcterms.date" content="2026-11-26">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Modeling in Python – DO4DS: Lab Solutions</title>
@@ -720,7 +720,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-25</p>
+      <p class="date">2026-11-26</p>
     </div>
   </div>
   
@@ -732,7 +732,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The <code>model-basic-py.qmd</code> file creates a model using Python’s <code>palmerpenguins</code>, <code>numpy</code>, <code>pandas</code>, and <code>scikit-learn</code> libraries.</p>
+<p>The first of Lab 1’s two Quarto documents, <code>model-basic-py.qmd</code>, fits a linear regression model with Python’s <code>palmerpenguins</code>, <code>pandas</code>, and <code>scikit-learn</code> libraries.</p>
 <details>
 <summary>
 <strong>View model-basic-py.qmd</strong>
@@ -786,19 +786,17 @@ print(f"Coefficients {model.coef_}")
 <p>Because this book renders with knitr, I’ve added the <code>reticulate</code> code below to supply the Python environment for the chunks that follow.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"jupyter"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"jupyter"</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The first Python chunk imports the <code>penguins</code> data, <code>get_dummies()</code> from <code>pandas</code>, <code>numpy</code>, and the <code>scikit-learn</code> modules for the model:</p>
+<p>The first Python chunk imports the <code>penguins</code> module from <code>palmerpenguins</code>, <code>get_dummies()</code> from <code>pandas</code>, and <code>LinearRegression</code> from <code>scikit-learn</code> for the model:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> palmerpenguins <span class="im">import</span> penguins</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pandas <span class="im">import</span> get_dummies</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> preprocessing</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Next, we load the penguins data, drop the rows with missing values, and view the first three rows:</p>
 <div class="cell">
@@ -844,9 +842,9 @@ print(f"Coefficients {model.coef_}")
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
-<li><p>Running Python inside this Quarto book relies on <code>reticulate</code>: <code>use_virtualenv()</code> points to the <code>myenv</code> environment, and <code>virtualenv_install()</code> installs <code>palmerpenguins</code>, <code>pandas</code>, <code>numpy</code>, <code>scikit-learn</code>, and <code>jupyter</code> into it.</p></li>
+<li><p>Running Python inside this Quarto book relies on <code>reticulate</code>: <code>virtualenv_install()</code> installs <code>palmerpenguins</code>, <code>pandas</code>, <code>numpy</code>, <code>scikit-learn</code>, and <code>jupyter</code> into the <code>myenv</code> environment, and <code>use_virtualenv()</code> points to it.</p></li>
 <li><p>The model predicts <code>body_mass_g</code> from <code>bill_length_mm</code>, <code>species</code>, and <code>sex</code> with <code>LinearRegression()</code>. <code>get_dummies()</code> with <code>drop_first = True</code> converts the categorical columns into indicator columns, so female Adelie penguins are the baseline.</p></li>
-<li><p>The R² of about 0.86 means these three variables explain most of the variation in body mass. Holding the other variables constant, each extra millimeter of bill length adds roughly 33 grams, Gentoo penguins are about 1,095 grams heavier than Adelie (Chinstrap are about 299 grams lighter), and males are about 547 grams heavier than females.</p></li>
+<li><p>The R² of about 0.86 means these three variables explain most of the variation in body mass. Holding the other variables constant, each extra millimeter of bill length adds roughly 33 grams. Gentoo penguins are about 1,095 grams heavier than Adelie (Chinstrap are about 299 grams lighter), and males are about 547 grams heavier than females.</p></li>
 </ol>
 <p>Next, <a href="./eda-basic.html">EDA in R</a> explores the same <code>palmerpenguins</code> data with <code>dplyr</code> and <code>ggplot2</code>.</p>
 

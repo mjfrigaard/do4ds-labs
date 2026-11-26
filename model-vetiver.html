@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-25">
+<meta name="dcterms.date" content="2026-11-26">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python model API with vetiver – DO4DS: Lab Solutions</title>
@@ -726,7 +726,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-25</p>
+      <p class="date">2026-11-26</p>
     </div>
   </div>
   
@@ -779,12 +779,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-3" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-3" data-code-lines="1" data-code-annotation="1">Load the data for the <code>duckdb</code><br>
+<span data-code-cell="annotated-cell-3" data-code-lines="1" data-code-annotation="1">Load the data for <code>duckdb</code><br>
 </span>
 </dd>
 <dt data-target-cell="annotated-cell-3" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-3" data-code-lines="3" data-code-annotation="2">Create the <code>penguins</code> table in db</span>
+<span data-code-cell="annotated-cell-3" data-code-lines="3" data-code-annotation="2">Create the <code>penguins</code> table from the <code>penguins_data</code> DataFrame</span>
 </dd>
 </dl>
 </div>
@@ -809,13 +809,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Columns </span><span class="sc">{</span>X<span class="sc">.</span>columns<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Coefficients </span><span class="sc">{</span>model<span class="sc">.</span>coef_<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>The output should match the model in <a href="./model-basic-py.html">Modeling in Python</a>:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>R^2 0.8555368759537614</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Intercept 2169.2697209393996</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Columns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'],</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      dtype='str')</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>Coefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="turn-into-vetiver-model" class="level2">
 <h2 class="anchored" data-anchor-id="turn-into-vetiver-model">Turn into Vetiver Model</h2>
 <p><code>VetiverModel()</code> wraps the fitted model with its name and prototype data (<code>X</code>).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> VetiverModel(model, model_name<span class="op">=</span><span class="st">'penguin_model'</span>, prototype_data<span class="op">=</span>X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverModel</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> VetiverModel(model, model_name<span class="op">=</span><span class="st">'penguin_model'</span>, prototype_data<span class="op">=</span>X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="save-to-board" class="level2">
@@ -832,17 +840,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-7" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-7" data-code-lines="4" data-code-annotation="1">Use the current working directory</span>
+<span data-code-cell="annotated-cell-7" data-code-lines="4" data-code-annotation="1">Create the board in a <code>models/</code> folder under the current working directory</span>
 </dd>
 </dl>
 </div>
 </div>
+<p>After the pin is written, <code>models/penguin_model/</code> holds a timestamped version folder with <code>data.txt</code> and <code>penguin_model.joblib</code> (see <a href="./lab02.html">Lab 2</a> for the full tree).</p>
 </section>
 <section id="turn-model-into-api" class="level2">
 <h2 class="anchored" data-anchor-id="turn-model-into-api">Turn model into API</h2>
+<p>Finally, <code>VetiverAPI()</code> wraps <code>v</code> in a FastAPI app.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vetiver <span class="im">import</span> VetiverAPI</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> VetiverAPI(v, check_prototype <span class="op">=</span> <span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="recap" class="level2">
@@ -850,7 +860,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li><p>The <code>model-vetiver.qmd</code> file adds <code>load_penguins()</code> so the data exists before we query <code>duckdb</code>. The <code>penguins</code> table is created from that DataFrame, then read back with <code>fetchdf()</code> and <code>dropna()</code>.</p></li>
 <li><p>The fitted <code>LinearRegression()</code> becomes a <code>VetiverModel()</code> named <code>penguin_model</code>, and <code>vetiver_pin_write()</code> saves it to a <code>board_folder()</code> in <code>./models</code>. Setting <code>allow_pickle_read=True</code> lets the board read the pickled <code>scikit-learn</code> model back.</p></li>
-<li><p>The last step, <code>VetiverAPI(v, check_prototype = True)</code>, turns the pinned model into an API object that checks incoming data against the prototype.</p></li>
+<li><p>The last step, <code>VetiverAPI(v, check_prototype = True)</code>, turns the <code>VetiverModel</code> (<code>v</code>) into an API object that checks incoming data against the prototype.</p></li>
 </ol>
 <p>Next, <a href="./model-vetiver-r.html">R processing layer</a> repeats these steps in R.</p>
 <p>The original code from lab 2 is below:</p>

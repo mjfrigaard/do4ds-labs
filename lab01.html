@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-25">
+<meta name="dcterms.date" content="2026-11-26">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 1: Environments as Code – DO4DS: Lab Solutions</title>
@@ -703,12 +703,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#project-oriented-workflows" id="toc-project-oriented-workflows" class="nav-link active" data-scroll-target="#project-oriented-workflows">Project-oriented workflows</a></li>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#project-oriented-workflows" id="toc-project-oriented-workflows" class="nav-link" data-scroll-target="#project-oriented-workflows">Project-oriented workflows</a></li>
   <li><a href="#virtual-environments" id="toc-virtual-environments" class="nav-link" data-scroll-target="#virtual-environments">Virtual environments</a>
   <ul>
-  <li><a href="#renv" id="toc-renv" class="nav-link" data-scroll-target="#renv"><code>renv</code></a></li>
+  <li><a href="#renv" id="toc-renv" class="nav-link" data-scroll-target="#renv"><code>renv</code></a>
+  <ul class="collapse">
+  <li><a href="#the-renv-eda-basic-project" id="toc-the-renv-eda-basic-project" class="nav-link" data-scroll-target="#the-renv-eda-basic-project">The <code>renv-eda-basic</code> project</a></li>
+  </ul></li>
   <li><a href="#venv" id="toc-venv" class="nav-link" data-scroll-target="#venv"><code>venv</code></a>
   <ul class="collapse">
+  <li><a href="#the-venv-model-basic-py-project" id="toc-the-venv-model-basic-py-project" class="nav-link" data-scroll-target="#the-venv-model-basic-py-project">The <code>venv-model-basic-py</code> project</a></li>
   <li><a href="#rendering-with-python" id="toc-rendering-with-python" class="nav-link" data-scroll-target="#rendering-with-python">Rendering with Python</a></li>
   </ul></li>
   </ul></li>
@@ -733,7 +738,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-25</p>
+      <p class="date">2026-11-26</p>
     </div>
   </div>
   
@@ -745,12 +750,87 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This lab shows how to create isolated, reproducible package environments with <code>renv</code> (R) and <code>venv</code> (Python), which every lab that follows depends on. The <a href="https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab01">first lab</a> includes two Quarto documents:</p>
+<p>This lab shows how to create isolated, reproducible package environments with <code>renv</code> (R) and <code>venv</code> (Python), which every lab that follows depends on. The <a href="https://do4ds.com/chapters/sec1/1-1-env-as-code.html#lab1">first lab</a> includes two Quarto documents:</p>
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>_labs/lab01/</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>├── eda-basic.qmd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>└── model-basic-py.qmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<blockquote class="blockquote">
+<p>“<em>Why does difficulty increase as the level of required reproducibility increase for a data science project. In your day-to-day work, what’s the hardest reproducibility challenge?</em>”</p>
+</blockquote>
+<p>Each layer of the environment we need to reproduce adds work, and the work grows faster than the payoff. Packages are cheap to capture: <code>renv.lock</code> or <code>requirements.txt</code> records them, and one command restores them. The system layer is harder, because a lockfile can record the R version but can’t install it or the operating system underneath it. At the far end, some regulated industries have to rerun an analysis exactly a decade later, which means keeping the physical hardware running. That’s why the chapter calls a completely reproducible environment “a fool’s errand.”</p>
+<p>The hardest challenge I’ve run into is in the system layer. It’s impossible to know what system requirements developers might need (for both Python and R), and you might not have the level of control you want on the server.</p>
+<blockquote class="blockquote">
+<p>“<em>There’s a table of the layers of the data science environment above. It names six items across three layers. Draw a mental map of the relationships between these six items. Pay particular attention to why the higher layers depend on the lower ones.</em>”</p>
+</blockquote>
+<p>Each item is built for, or runs on, the item below it, so a change at the bottom reaches everything above it:</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+flowchart TD
+    subgraph PkgLayer ["&lt;strong&gt;Packages&lt;/strong&gt;"]
+        Pkgs("R + Python&lt;br&gt;packages")
+    end
+
+    subgraph SysLayer ["&lt;strong&gt;System&lt;/strong&gt;"]
+        Lang("R + Python&lt;br&gt;versions")
+        Libs("system&lt;br&gt;libraries")
+        OS("operating&lt;br&gt;system")
+    end
+
+    subgraph HwLayer ["&lt;strong&gt;Hardware&lt;/strong&gt;"]
+        VHw("virtual&lt;br&gt;hardware")
+        PHw("physical&lt;br&gt;hardware")
+    end
+
+    Pkgs --&gt;|"built for"| Lang
+    Pkgs --&gt;|"link to"| Libs
+    Lang --&gt;|"compiled for"| OS
+    Libs --&gt;|"compiled for"| OS
+    OS --&gt;|"runs on"| HwLayer
+    VHw --&gt;|"runs on"| PHw
+
+    style Pkgs fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Lang fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style Libs fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style OS fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style VHw fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PHw fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style PkgLayer fill:#fbf7ec,stroke:#D2562B,color:#1B2A41
+    style SysLayer fill:#fbf7ec,stroke:#2A6F77,color:#1B2A41
+    style HwLayer fill:#fbf7ec,stroke:#485466,color:#1B2A41
+</pre>
+</div>
+<p></p><figcaption> Layers of the data science environment</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Packages are built for a specific language version and operating system, and many of them link to system libraries (<code>{sf}</code> needs GDAL, for example). The R and Python interpreters and the system libraries are compiled for the operating system. The operating system runs on virtual hardware (an EC2 instance), and the virtual hardware runs on physical servers in a data center. Also, having old system libraries on the operating system can be enough to block R installations.</p>
+<blockquote class="blockquote">
+<p>“<em>What are the two key attributes of environments as code? Why do you need both of them? Are there cases where you might only care about one?</em>”</p>
+</blockquote>
+<p>Isolation and portability. The package environment is isolated, so other work on the same machine can’t disrupt it, and it can be captured and moved to another machine. These are the first two takeaways in <a href="#project-oriented-workflows">Project-oriented workflows</a> below.</p>
+<p>Each one protects something different. Isolation keeps the project working when I update a package for another project. Capturing the environment lets a colleague, a server, or me in six months rebuild it.</p>
+<p>Sometimes one is enough. A throwaway analysis I’ll delete next week needs isolation but not a lockfile. Inside a container, the container already provides the isolation, so the lockfile is the part I still need.</p>
+<blockquote class="blockquote">
+<p>“<em>Draw a mental map of the relationships between the following: package repository, package library, package, project-level-library, .libPaths() (R) or sys.path (Python), lockfile.</em>”</p>
+</blockquote>
+<p>The <code>renv</code> and <code>venv</code> diagrams below map these items. A package repository (CRAN or PyPI) holds the current and archived versions of each package. Installing a package puts one version in a package library, which holds at most one version of each package. Libraries can be system, user, or project level, and a project-level library holds one project’s packages.</p>
+<p><code>.libPaths()</code> (R) and <code>sys.path</code> (Python) list the libraries in search order. Activating <code>renv</code> or <code>venv</code> puts the project-level library first. The lockfile (<code>renv.lock</code> or <code>requirements.txt</code>) records each package and its version, so we can rebuild the library from the repository.</p>
+<blockquote class="blockquote">
+<p>“<em>Why is it a bad idea to share package libraries? What’s the best way to collaborate with a colleague using an environment as code? What commands will you run in R or Python to save a package environment and restore it later?</em>”</p>
+</blockquote>
+<p>Package installs are specific to the operating system and language version, so a library built on my laptop might not work on a colleague’s machine. Package files are also large. It’s much easier to share a lockfile instead: keep <code>renv.lock</code> or <code>requirements.txt</code> in Git, and each machine installs its own packages from it.</p>
+<p>In R, <code>renv::snapshot()</code> saves the environment and <code>renv::restore()</code> restores it. In Python, <code>python3 -m pip freeze &gt; requirements.txt</code> saves it and <code>python3 -m pip install -r requirements.txt</code> restores it.</p>
+</section>
 <section id="project-oriented-workflows" class="level2">
 <h2 class="anchored" data-anchor-id="project-oriented-workflows">Project-oriented workflows</h2>
 <p>Key takeaways:</p>
@@ -775,10 +855,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"tidyverse"</span>, <span class="st">"shiny"</span>, <span class="st">"ggplot2"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 <li><p>Snapshot the state of the environment and package versions in the lock file (<code>renv.lock</code>)</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>To deactivate the environment, restart R or close the session <code>renv</code> projects are automatically reactivated the time a project is opened. Restore the environment on a new system with:</p>
+<li><p>To deactivate the environment, close the R session. <code>renv</code> projects are automatically reactivated the next time the project is opened. Restore the environment on a new system with:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ol>
-<p>To demonstrate how to use <code>renv</code>, I’ve copied the <code>eda-basic.qmd</code> file into it’s own ‘project’ folder (<code>renv-eda-basic</code>):</p>
+<section id="the-renv-eda-basic-project" class="level4">
+<h4 class="anchored" data-anchor-id="the-renv-eda-basic-project">The <code>renv-eda-basic</code> project</h4>
+<p>To demonstrate how to use <code>renv</code>, I’ve copied the <code>eda-basic.qmd</code> file into its own project folder (<code>renv-eda-basic</code>):</p>
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>_labs/lab01/renv-eda-basic/</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>└── eda-basic.qmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -791,12 +873,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>_labs/lab01/renv-eda-basic/</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>├── .Rprofile</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>├── eda-basic.qmd</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>├── renv/</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>├── renv-eda-basic.Rproj</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>└── renv.lock</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>├── eda-basic.qmd</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>├── renv</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>│   ├── .gitignore</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>│   ├── activate.R</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>│   └── settings.json</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>├── renv-eda-basic.Rproj</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>└── renv.lock</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code>renv::init()</code> will also create <code>renv-eda-basic.Rproj</code>, which helps enforce project-oriented workflows (but these are specific to RStudio).</p>
+<p>The <code>renv-eda-basic.Rproj</code> file comes from RStudio, not <code>renv::init()</code>. It helps enforce project-oriented workflows (but <code>.Rproj</code> files are specific to RStudio).</p>
 <p>To install the packages, we can use <code>install.packages()</code> or <code>pak::pak()</code> for more flexible installations:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"pak"</span>)</span>
@@ -815,7 +901,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-1" class="callout-1-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
 <div style="font-size: 1.00em; color: var(--callout-body-color, #282b2d);">
-<p><code>renv::install()</code> uses cached packages when available. Otherwise, it installs the latest version from CRAN.</p>
+<p>In an <code>renv</code> project, <code>install.packages()</code> calls <code>renv::install()</code>, which uses cached packages when available. Otherwise, it installs the latest version from CRAN.</p>
 </div>
 </div>
 </div>
@@ -861,7 +947,7 @@ flowchart TD
     end
     
     %% Connections with function labels
-    SysLib --&gt;|"&lt;strong&gt;init()&lt;strong&gt;"| ProjLib
+    SysLib --&gt;|"&lt;strong&gt;init()&lt;/strong&gt;"| ProjLib
     
     CRAN --&gt;|"&lt;strong&gt;install()&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;update()&lt;/strong&gt;"| RenvCache
     RenvCache --&gt;|"renv"| ProjLib
@@ -888,6 +974,7 @@ flowchart TD
 </div>
 </div>
 </section>
+</section>
 <section id="venv" class="level3">
 <h3 class="anchored" data-anchor-id="venv"><code>venv</code></h3>
 <p>Read the <a href="https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment">documentation on Python virtual environments</a> and using <a href="https://quarto.org/docs/projects/virtual-environments.html#using-venv">venv with Quarto</a>.</p>
@@ -906,6 +993,8 @@ flowchart TD
 <li><p>Restoring environment</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ol>
+<section id="the-venv-model-basic-py-project" class="level4">
+<h4 class="anchored" data-anchor-id="the-venv-model-basic-py-project">The <code>venv-model-basic-py</code> project</h4>
 <p>Use the <strong>Terminal</strong> to navigate to the <code>venv-model-basic-py</code> folder and create the Python virtual environment:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .venv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -932,7 +1021,7 @@ flowchart TD
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">.venv</span><span class="kw">)</span> <span class="ex">Bash@MacBook</span> venv-model-basic-py$</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Now we can install required Python packages (we include <code>jupyter</code> for interactive outputs)</p>
+<p>Now we can install the required Python packages (we include <code>jupyter</code> for interactive outputs):</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install palmerpenguins pandas numpy scikit-learn jupyter</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -974,7 +1063,7 @@ flowchart TD
     %% Connections with function labels
     SysPython --&gt;|"&lt;strong&gt;python -m venv&lt;/strong&gt;"| VirtEnv
     
-    PyPI --&gt;|"&lt;strong&gt;pip install&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pip upgrade&lt;/strong&gt;"| PipCache
+    PyPI --&gt;|"&lt;strong&gt;pip install&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pip install -U&lt;/strong&gt;"| PipCache
     PipCache --&gt;|"pip"| VirtEnv
     
     VirtEnv &lt;---&gt;|"&lt;strong&gt;pip list&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;pip show&lt;/strong&gt;"| Requirements
@@ -999,27 +1088,25 @@ flowchart TD
 </div>
 </div>
 </div>
+</section>
 <section id="rendering-with-python" class="level4">
 <h4 class="anchored" data-anchor-id="rendering-with-python">Rendering with Python</h4>
 <p>To render, use the following in the <strong>Terminal</strong>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> preview model-basic-py.qmd <span class="at">--no-browser</span> <span class="at">--no-watch-inputs</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>To tell Quarto to use the virtual environment, we can place the following in the <code>model-basic-py.qmd</code> file:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">execute</span><span class="kw">:</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">python</span><span class="kw">:</span><span class="at"> .venv/bin/python</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Or we can set the Python interpreter with the <strong>Terminal</strong>:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<p>Quarto uses the first Python on the <code>PATH</code>, so rendering with the virtual environment active uses <code>.venv</code>. Or we can set the Python interpreter with the <code>QUARTO_PYTHON</code> environment variable in the <strong>Terminal</strong>:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> use python .venv/bin/python3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">QUARTO_PYTHON</span><span class="op">=</span><span class="st">"</span><span class="va">${PWD}</span><span class="st">/.venv/bin/python3"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If you’re working inside <strong>RStudio or Posit Workbench</strong>, consider letting <code>reticulate</code> manage the Python environment:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"jupyter"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">use_virtualenv</span>(<span class="st">"myenv"</span>, <span class="at">required =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">virtualenv_install</span>(</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">"myenv"</span>, </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"palmerpenguins"</span>, <span class="st">"pandas"</span>, <span class="st">"numpy"</span>, </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"scikit-learn"</span>, <span class="st">"jupyter"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This ensures RStudio uses a known-good Python environment.</p>
 <p>Now, if we open the <code>model-basic-py.qmd</code> file in RStudio and click the <strong>Render</strong> button in the toolbar we should see the rendered output.</p>
@@ -1031,7 +1118,7 @@ flowchart TD
 <ol type="1">
 <li><p>Each project gets its own isolated, transferable package environment. In R, <code>renv::init()</code> creates the project library and <code>renv.lock</code>, <code>renv::snapshot()</code> records the package versions, and <code>renv::restore()</code> reinstalls them on another machine.</p></li>
 <li><p>In Python, <code>python3 -m venv .venv</code> creates the environment and <code>source .venv/bin/activate</code> turns it on. <code>pip freeze &gt; requirements.txt</code> captures the installed packages, and <code>pip install -r requirements.txt</code> restores them.</p></li>
-<li><p>Quarto has to be told which Python interpreter to use. We can add <code>python: .venv/bin/python</code> under <code>execute:</code> in the document’s YAML, run <code>quarto use python .venv/bin/python3</code> in the Terminal, or let <code>reticulate</code> manage the environment inside RStudio.</p></li>
+<li><p>Quarto has to be told which Python interpreter to use. We can render with the virtual environment active, set <code>QUARTO_PYTHON</code> to <code>.venv/bin/python3</code> in the Terminal, or let <code>reticulate</code> manage the environment inside RStudio.</p></li>
 </ol>
 <p>Next, <a href="./model-basic-py.html">Modeling in Python</a> walks through the code in <code>model-basic-py.qmd</code>.</p>
 
