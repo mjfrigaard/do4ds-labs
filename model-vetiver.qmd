@@ -63,8 +63,8 @@ con.close()
 
 df.head(3)
 ```
-1. Load the data for the `duckdb`   
-2. Create the `penguins` table in db    
+1. Load the data for `duckdb`   
+2. Create the `penguins` table from the `penguins_data` DataFrame    
 
 ## Define Model and Fit
 
@@ -90,6 +90,20 @@ print(f"Columns {X.columns}")
 print(f"Coefficients {model.coef_}")
 ```
 
+The output should match the model in [Modeling in Python](model-basic-py.qmd):
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+R^2 0.8555368759537614
+Intercept 2169.2697209393996
+Columns Index(['bill_length_mm', 'species_Chinstrap', 'species_Gentoo', 'sex_male'],
+      dtype='str')
+Coefficients [  32.53688677 -298.76553447 1094.86739145  547.36692408]
+```
+
+:::
+
 ## Turn into Vetiver Model
 
 `VetiverModel()` wraps the fitted model with its name and prototype data (`X`).
@@ -113,9 +127,13 @@ model_board = board_folder("./models", allow_pickle_read=True) #<1>
 
 vetiver_pin_write(model_board, v)
 ```
-1. Use the current working directory    
+1. Create the board in a `models/` folder under the current working directory    
+
+After the pin is written, `models/penguin_model/` holds a timestamped version folder with `data.txt` and `penguin_model.joblib` (see [Lab 2](lab02.qmd) for the full tree).
 
 ## Turn model into API
+
+Finally, `VetiverAPI()` wraps `v` in a FastAPI app.
 
 ```{python}
 #| eval: false
@@ -129,7 +147,7 @@ app = VetiverAPI(v, check_prototype = True)
 
 2. The fitted `LinearRegression()` becomes a `VetiverModel()` named `penguin_model`, and `vetiver_pin_write()` saves it to a `board_folder()` in `./models`. Setting `allow_pickle_read=True` lets the board read the pickled `scikit-learn` model back.
 
-3. The last step, `VetiverAPI(v, check_prototype = True)`, turns the pinned model into an API object that checks incoming data against the prototype.
+3. The last step, `VetiverAPI(v, check_prototype = True)`, turns the `VetiverModel` (`v`) into an API object that checks incoming data against the prototype.
 
 Next, [R processing layer](model-vetiver-r.qmd) repeats these steps in R.
 

@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-This document translates the contents of lab 2 in R. The source Quarto document can be found in [`_labs/lab02/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/R/model-vetiver-r.qmd).
+This chapter repeats the Lab 2 steps from [`model-vetiver.qmd`](model-vetiver.qmd) in R. The source Quarto document can be found in [`_labs/lab02/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/R/model-vetiver-r.qmd).
 
 ```{r}
 #| collapse: true
@@ -63,7 +63,7 @@ duckdb_register(con, "penguins_data", penguins_data)
 dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data")
 ```
 
-We then drop missing rows and disconnect from the database:
+We then read the `penguins` table back with `dbGetQuery()`, drop missing rows with `na.omit()`, and disconnect from the database:
 
 ```{r}
 #| eval: false
@@ -73,16 +73,31 @@ df <- dbGetQuery(con, "SELECT * FROM penguins") |>
 dbDisconnect(con)
 ```
 
-View top rows of `df`:
+We can confirm the data loaded by viewing the top rows of `df`:
 
 ```{r}
 #| eval: false
 head(df, 3)
 ```
 
+::: {style="font-style: italic;"}
+
+```{verbatim}
+  species    island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g
+1  Adelie Torgersen           39.1          18.7               181        3750
+2  Adelie Torgersen           39.5          17.4               186        3800
+3  Adelie Torgersen           40.3          18.0               195        3250
+     sex year
+1   male 2007
+2 female 2007
+3 female 2007
+```
+
+:::
+
 ## Define Model and Fit
 
-Create dummy variables (one-hot encoding) and fit linear regression model.
+Next, we create dummy variables (one-hot encoding) for `species` and `sex` and fit a linear regression model that predicts `body_mass_g`:
 
 ```{r}
 #| eval: false
@@ -120,6 +135,19 @@ cat("Columns:", paste(column_names, collapse = ", "), "\n")
 cat("Coefficients:", paste(coefficients, collapse = ", "), "\n")
 ```
 
+The output should match the Python model in [`model-vetiver.qmd`](model-vetiver.qmd):
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+R^2: 0.8555369
+Intercept: 2169.27
+Columns: bill_length_mm, species_Chinstrap, species_Gentoo, sex_male
+Coefficients: 32.5368867712031, -298.765534465279, 1094.86739144898, 547.36692407721
+```
+
+:::
+
 ## Turn into Vetiver Model
 
 `vetiver_model()` wraps the fitted `lm()` object into a deployable `vetiver` model named `penguin_model`:
@@ -132,6 +160,8 @@ v <- vetiver_model(model, model_name = "penguin_model")
 ```
 
 ## Save to Board
+
+`board_folder()` creates a `pins` board in a local `models/` folder, and `vetiver_pin_write()` writes `v` to it:
 
 ```{r}
 #| eval: false
@@ -148,7 +178,7 @@ fs::dir_tree("_labs/lab02/R/models/")
 
 ## Turn model into API
 
-Unlike Python, we'll need to create a plumber router from `plumber::pr()` to pass to the `vetiver_api()` (along with the deployable `vetiver_model()` object). 
+Unlike Python, R needs a `plumber` router (the object that holds an API's endpoints) from `plumber::pr()`. We pipe the router into `vetiver_api()` along with the deployable `vetiver_model()` object:
 
 ```{r}
 #| eval: false
@@ -158,7 +188,7 @@ app <- pr() |>
 
 ## Recap
 
-1. Getting the data into `duckdb` from R takes one extra step: `duckdb_register()` exposes the `penguins` data frame to the connection before `CREATE OR REPLACE TABLE` builds the table. `na.omit()` then drops the missing rows (Python used `dropna()`).
+1. Getting the data into `duckdb` from R takes one extra step: `duckdb_register()` exposes the `penguins_data` data frame to the connection before `CREATE OR REPLACE TABLE` builds the table. `na.omit()` then drops the missing rows (Python used `dropna()`).
 
 2. `fastDummies::dummy_cols()` with `remove_first_dummy = TRUE` replaces `get_dummies(drop_first = True)`, and `lm()` replaces `LinearRegression()`. The model information comes from `summary(model)$r.squared` and `coef()` instead of the `scikit-learn` attributes.
 
