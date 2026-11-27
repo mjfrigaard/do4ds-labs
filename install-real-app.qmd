@@ -753,6 +753,52 @@ Nov 24 06:33:24 ip-xxx-xx-xx-xx.ec2.internal shiny[210169]: INFO:     Uvicorn ru
 
 The old process (`208804`) shut down cleanly, and the new one (`210169`) started with no `mkdir -p failed` or `MPLCONFIGDIR` warning between `Started` and `Started server process`.
 
+## Viewing the app
+
+`curl -I` proves the app answers, but we still haven't seen it. The app listens on `127.0.0.1`, and the security group only opens port `22`, so a browser on our local machine can't reach it directly. An SSH tunnel gets around both without opening a port. SSH forwards a port on our local machine through the connection we already use, to a port on the instance:
+
+```{mermaid}
+%%| fig-cap: 'An SSH Tunnel to the App'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant B as Browser
+    participant L as ssh<br/>local :8000
+    participant S as sshd<br/>instance :22
+    participant A as app<br/>127.0.0.1:8000
+    B->>L: GET localhost:8000
+    L->>S: SSH tunnel
+    S->>A: GET /
+    A-->>S: 200 OK
+    S-->>L: SSH tunnel
+    L-->>B: the app
+```
+
+Run this from our local machine, not the instance:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
+ssh -N -L 8000:127.0.0.1:8000 \
+  -i ~/.ssh/aws-dev.pem -o IdentitiesOnly=yes -o IdentityAgent=none \
+  ec2-user@YOUR_PUBLIC_IP_ADDRESS
+```
+
+`-L 8000:127.0.0.1:8000` reads as local port `8000`, sent to `127.0.0.1:8000` as seen from the instance. `-N` tells SSH not to open a shell, so the terminal sits quietly while the tunnel is open. With the `aws-dev` entry from [SSH config](ssh-config.qmd), the same command is `ssh -N -L 8000:127.0.0.1:8000 aws-dev`. If something on our local machine already uses `8000`, pick another local port (`-L 8001:127.0.0.1:8000`) and use it in the browser.
+
+<!-- OUTPUT: none expected; note any prompt or error -->
+
+Now open `http://localhost:8000` in a browser:
+
+<!-- SCREENSHOT: baseball-trajectory in the browser through the tunnel -->
+
+<!-- OUTPUT: the journal line for the request, if shown -->
+
+The tunnel only works for whoever holds the SSH key, and it closes with <kbd>Ctrl</kbd>+<kbd>C</kbd>. That's fine for checking our own work. Giving other people access takes a proxy, which [Accessibility](accessibility.qmd) sets up with `nginx`.
+
 ## Recap
 
 1. A third party app gets its own tree under `/opt`: the source and a virtual environment built from the `/opt` Python, never the system copy.
@@ -766,3 +812,5 @@ The old process (`208804`) shut down cleanly, and the new one (`210169`) started
 5. After `systemctl enable --now`, confirm with `systemctl status` (`active (running)` and `enabled`) and `curl -I http://127.0.0.1:8000`, and read `journalctl -u baseball-trajectory` even when both look fine. Warnings like Matplotlib's missing home folder only show up there.
 
 6. A service account has no home folder, so anything the app expects to write under `~` needs a folder of its own. `CacheDirectory=` creates one with the right owner, and `Environment=` points the app at it.
+
+7. An SSH tunnel (`ssh -N -L 8000:127.0.0.1:8000`) shows the app in our own browser without opening a port. Other people reach it through `nginx`, set up in [Accessibility](accessibility.qmd).

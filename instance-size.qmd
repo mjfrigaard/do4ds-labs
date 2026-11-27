@@ -334,7 +334,7 @@ aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --profile dev-deploy
 
 The instance gets a new public IP when it starts, so `HostName` in `~/.ssh/config` is now stale. `awsdev` looks up the new address for us.
 
-A larger type costs more for every hour it runs. To go back, we repeat these commands with `t3.micro` once we're done.
+A larger type costs more for every hour it runs. We keep the `t3.small` anyway, for reasons covered in [Staying on a `t3.small`](#staying-on-a-t3.small).
 
 ## Step 3: Confirm the new server size
 
@@ -537,19 +537,65 @@ Filesystem      Size  Used Avail Use% Mounted on
 
 The root filesystem went from 8.0G (62% used) to 16G (31% used), and the instance never stopped.
 
-## Sizing back down
+## Staying on a `t3.small`
 
-A bigger instance costs more for every hour it runs, so once the extra memory has done its job we go back to `t3.micro`. The commands below run from our local machine and use the `INSTANCE_ID` shell variable from Step 2. If the terminal has closed since then, rerun the lookup from Step 2 first. Then we repeat the Step 2 commands with the original type:
+Should we go back to the `t3.micro` now? Not for this book. The labs ahead add services to the same instance, and each one stays in memory the whole time it runs:
+
+```{mermaid}
+%%| fig-cap: 'Services on the Instance, Lab by Lab'
+%%| fig-width: 7.0
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'16px', 'lineColor':'#999999', 'cScale0':'#5B8C5A', 'cScale1':'#2A6F77', 'cScale2':'#1B2A41', 'cScaleLabel0':'#ffffff', 'cScaleLabel1':'#ffffff', 'cScaleLabel2':'#ffffff'}}}%%
+
+timeline
+    Lab 10 : baseball-trajectory
+    Lab 12 : nginx
+           : RStudio Server
+           : JupyterHub
+    Lab 14 : nginx adds HTTPS
+```
+
+Step 1 showed only 377Mi `available` on the `t3.micro` with just `baseball-trajectory` running. [Accessibility](accessibility.qmd) adds RStudio Server and JupyterHub, and every user who signs in starts an R or Python session of their own. Swap won't cover that, because the services run all day, not once. This is the ongoing need from the first diagram, and the instance type is the fix for it.
+
+A `t3.small` costs twice as much per hour as a `t3.micro`. A stopped instance costs nothing for its hours (the EBS volume still bills), so stopping it between sessions saves more than sizing down.
+
+### Sizing back down later
+
+When the instance only runs `baseball-trajectory` again, we can go back to a `t3.micro`. The commands below run from our local machine and use the `INSTANCE_ID` shell variable from Step 2. If the terminal has closed since then, rerun the lookup from Step 2 first. Then we repeat the Step 2 commands with the original type:
 
 ```{bash}
 #| eval: false
 #| code-fold: false
 #| echo: true
 aws ec2 stop-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
 aws ec2 wait instance-stopped --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
 aws ec2 modify-instance-attribute --instance-id "$INSTANCE_ID" \
   --instance-type '{"Value": "t3.micro"}' --profile dev-deploy
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
 aws ec2 start-instances --instance-ids "$INSTANCE_ID" --profile dev-deploy
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+#| echo: true
 aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --profile dev-deploy
 ```
 
@@ -563,4 +609,4 @@ The larger EBS volume from Step 4 stays at its new size; only the instance type 
 
 3. Storage belongs to the EBS volume, not the instance type. The volume can grow while the instance runs (`modify-volume`, `growpart`, `xfs_growfs`), but it can never shrink.
 
-4. A larger instance type costs more for every hour it runs, so we size back down when the work is done. A larger volume costs more every month, whether the instance runs or not.
+4. We stay on the `t3.small` because the labs ahead keep RStudio Server and JupyterHub running next to the app. It costs twice as much per hour, so stopping the instance between sessions matters more than its size. A larger volume costs more every month, whether the instance runs or not.
