@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 3: Databases and APIs – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -715,11 +715,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#python-apis" id="toc-python-apis" class="nav-link" data-scroll-target="#python-apis">Python APIs</a></li>
   <li><a href="#r-apis" id="toc-r-apis" class="nav-link" data-scroll-target="#r-apis">R APIs</a></li>
   </ul></li>
-  <li><a href="#previously-in-lab-2" id="toc-previously-in-lab-2" class="nav-link" data-scroll-target="#previously-in-lab-2">Previously, in lab 2</a></li>
   </ul></li>
+  <li><a href="#previously-in-lab-2" id="toc-previously-in-lab-2" class="nav-link" data-scroll-target="#previously-in-lab-2">Previously, in Lab 2</a></li>
   <li><a href="#python-shiny-app" id="toc-python-shiny-app" class="nav-link" data-scroll-target="#python-shiny-app"><strong>Python Shiny App</strong></a>
   <ul>
-  <li><a href="#sec-model-db" id="toc-sec-model-db" class="nav-link" data-scroll-target="#sec-model-db">Model EDA</a></li>
+  <li><a href="#sec-model-db" id="toc-sec-model-db" class="nav-link" data-scroll-target="#sec-model-db">Model</a></li>
   <li><a href="#sec-app-api-py" id="toc-sec-app-api-py" class="nav-link" data-scroll-target="#sec-app-api-py">Original app file</a>
   <ul class="collapse">
   <li><a href="#ui" id="toc-ui" class="nav-link" data-scroll-target="#ui">UI</a></li>
@@ -758,7 +758,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -770,17 +770,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In the previous labs, we built a Python model API with <a href="https://rstudio.github.io/vetiver-python/stable/"><code>vetiver</code></a> (I also repeated this <a href="https://rstudio.github.io/vetiver-r/">lab in R</a>). This lab continues with accessing databases and using APIs.</p>
-<p>The original files in <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab3"><code>_labs/lab03</code></a> are below:</p>
+<p>In the previous lab, we wrapped a Python model in an API with <a href="https://rstudio.github.io/vetiver-python/stable/"><code>vetiver</code></a> (I also repeated this <a href="./model-vetiver-r.html">lab in R</a>). This lab continues with accessing databases and using APIs. The DO4DS <a href="https://do4ds.com/chapters/sec1/1-3-data-access.html#lab-use-a-database-and-an-api">third lab</a> moves the <code>penguins</code> data into a <code>duckdb</code> database and builds Shiny apps that send requests to the model API.</p>
+<p>The original files in the DO4DS <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab3"><code>_labs/lab3</code></a> folder are below:</p>
 <div style="font-style: italic;">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-19"><pre class="sourceCode bash code-annotation-code code-with-copy code-annotated"><code class="sourceCode bash"><button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="1">1</button><span id="annotated-cell-19-1" class="code-annotation-target"><a href="#annotated-cell-19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.py</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="2">2</button><span id="annotated-cell-19-2" class="code-annotation-target"><a href="#annotated-cell-19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.R</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="3">3</button><span id="annotated-cell-19-3" class="code-annotation-target"><a href="#annotated-cell-19-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> eda-db.qmd</span>
-<span id="annotated-cell-19-4"><a href="#annotated-cell-19-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> model-db.qmd</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="4">4</button><span id="annotated-cell-19-5" class="code-annotation-target"><a href="#annotated-cell-19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> py-data-load.py</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="5">5</button><span id="annotated-cell-19-6" class="code-annotation-target"><a href="#annotated-cell-19-6" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> r-data-load.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-annotation">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-19"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="1">1</button><span id="annotated-cell-19-1" class="code-annotation-target"><a href="#annotated-cell-19-1" aria-hidden="true" tabindex="-1"></a>├── app-api.py</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="2">2</button><span id="annotated-cell-19-2" class="code-annotation-target"><a href="#annotated-cell-19-2" aria-hidden="true" tabindex="-1"></a>├── app-api.R</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="3">3</button><span id="annotated-cell-19-3" class="code-annotation-target"><a href="#annotated-cell-19-3" aria-hidden="true" tabindex="-1"></a>├── eda-db.qmd</span>
+<span id="annotated-cell-19-4"><a href="#annotated-cell-19-4" aria-hidden="true" tabindex="-1"></a>├── model-db.qmd</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="4">4</button><span id="annotated-cell-19-5" class="code-annotation-target"><a href="#annotated-cell-19-5" aria-hidden="true" tabindex="-1"></a>├── py-data-load.py</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-19" data-target-annotation="5">5</button><span id="annotated-cell-19-6" class="code-annotation-target"><a href="#annotated-cell-19-6" aria-hidden="true" tabindex="-1"></a>└── r-data-load.R</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-19" data-target-annotation="1">1</dt>
 <dd>
@@ -805,18 +803,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </dd>
 </dl>
 </div>
-</div>
-</div>
 <section id="comprehension-questions" class="level2">
 <h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
 <section id="databases" class="level3">
 <h3 class="anchored" data-anchor-id="databases">Databases</h3>
 <blockquote class="blockquote">
-<p><strong><em>1. Draw two mental maps for connecting to a database, one using a database driver (in a Python or R package) vs.&nbsp;an ODBC or JDBC driver. You should (at a minimum) include the nodes: database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.</em></strong></p>
+<p>“<em>Draw two mental maps for connecting to a database, one using a database driver in a Python or R package vs.&nbsp;an ODBC or JDBC driver. You should (at a minimum) include the nodes database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.</em>”</p>
 </blockquote>
 <section id="python-and-databases" class="level4">
 <h4 class="anchored" data-anchor-id="python-and-databases">Python and databases</h4>
-<p>In Python, there is a large database ecosystem (i.e., many driver options). <a href="https://www.sqlalchemy.org/">SQLAlchemy</a> adds ORM support and can bypass the DB-API standard when needed.</p>
+<p>In Python, there is a large database ecosystem (i.e., many driver options). Most of these packages follow the DB-API 2.0 standard. <a href="https://www.sqlalchemy.org/">SQLAlchemy</a> sits on top of them and generates the SQL for us, with an ORM if we want one.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -827,12 +823,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 graph TB
     subgraph PyApp["Python App"]
-        PyCode(["&lt;strong&gt;app-api.py&lt;/strong&gt;"])
+        PyCode(["&lt;strong&gt;model-db.qmd&lt;/strong&gt;"])
     end
 
     
     subgraph PyPkg["&lt;strong&gt;Python Packages&lt;/strong&gt;"]
-        DBPkg("DB Package&lt;br&gt;&lt;strong&gt;psycopg2&lt;/strong&gt;, &lt;strong&gt;pymysql&lt;/strong&gt;, &lt;strong&gt;sqlite3&lt;/strong&gt;")
+        DBPkg("DB Package&lt;br&gt;&lt;strong&gt;psycopg2&lt;/strong&gt;, &lt;strong&gt;duckdb&lt;/strong&gt;")
         ODBCPkg("ODBC Package&lt;br&gt;&lt;strong&gt;pyodbc&lt;/strong&gt;")
         JDBCPkg("JDBC Package&lt;br&gt;&lt;strong&gt;jaydebeapi&lt;/strong&gt;")
     end
@@ -912,22 +908,22 @@ graph TB
 
 graph TB
     subgraph RApp["&lt;strong&gt;R App&lt;/strong&gt;"]
-        A(["&lt;strong&gt;app-api.R&lt;/strong&gt;"])
+        A(["&lt;strong&gt;eda-db.qmd&lt;/strong&gt;"])
     end
 
     
+    subgraph DBI["&lt;strong&gt;R Standard Interface&lt;/strong&gt;"]
+        E("DBI&lt;br&gt;Database Interface")
+    end
+
     subgraph RPkgs["&lt;strong&gt;R Packages&lt;/strong&gt;"]
-        B("DB Packages&lt;br&gt;&lt;strong&gt;RPostgres&lt;/strong&gt;, &lt;strong&gt;RMySQL&lt;/strong&gt;, &lt;strong&gt;RSQLite&lt;/strong&gt;")
+        B("DB Packages&lt;br&gt;&lt;strong&gt;RPostgres&lt;/strong&gt;, &lt;strong&gt;RMariaDB&lt;/strong&gt;, &lt;strong&gt;duckdb&lt;/strong&gt;")
         C("ODBC Package&lt;br&gt;&lt;strong&gt;odbc&lt;/strong&gt;")
         D("JDBC Package&lt;br&gt;&lt;strong&gt;RJDBC&lt;/strong&gt;")
     end
 
     %%% Tints of #35605a
     
-    subgraph DBI["&lt;strong&gt;R Standard Interface&lt;/strong&gt;"]
-        E("DBI&lt;br&gt;Database Interface")
-    end
-
     %% Tints of #6b818c
 
     
@@ -951,24 +947,22 @@ graph TB
 
     
     %% All paths go through DBI
-    A --&gt; B
-    A --&gt; C  
-    A --&gt; D
-    B --&gt; E
-    C --&gt; E
-    D --&gt; E
+    A --&gt; E
+    E --&gt; B
+    E --&gt; C
+    E --&gt; D
     
     %% Direct pathway (bypasses system layer)
-    E --&gt; F
+    B --&gt; F
     F --"bypasses system layer"--&gt; K
     
     %% ODBC pathway  
-    E --&gt; G
+    C --&gt; G
     G --&gt; I
     I --&gt; K
     
     %% JDBC pathway
-    E --&gt; H
+    D --&gt; H
     H --&gt; J
     J --&gt; K
     style RApp fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
@@ -1053,9 +1047,9 @@ graph LR
 <section id="apis" class="level3">
 <h3 class="anchored" data-anchor-id="apis">APIs</h3>
 <blockquote class="blockquote">
-<p><strong><em>2. Draw a mental map for using an API from R and Python. You should (at a minimum) include nodes for <code>{requests}</code>/<code>{httr2}</code>, request, HTTP verb/request method, headers, query parameters, body, JSON, response, and response code.</em></strong></p>
+<p>“<em>Draw a mental map for using an API from R or Python. You should (at a minimum) include nodes for <code>{requests}</code>/<code>{httr2}</code>, request, HTTP verb/request method, headers, query parameters, body, JSON, response, and response code.</em>”</p>
 </blockquote>
-<p>In general, APIs are like the digital ‘plumbing’ that makes connections between modern software ecosystems possible.</p>
+<p>In general, APIs are like the digital plumbing that makes connections between modern software ecosystems possible.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1123,7 +1117,7 @@ graph LR
         I2 --&gt; J2("HTTP Response")
         J2 --&gt; K2("&lt;strong&gt;response.status_code&lt;/strong&gt;&lt;br&gt;200, 404, 500, etc.")
         J2 --&gt; L2("&lt;strong&gt;response.headers&lt;/strong&gt;&lt;br&gt;Response metadata")
-        J2 --&gt; M2("&lt;strong&gt;response.json&lt;/strong&gt;&lt;br&gt;JSON parsing")
+        J2 --&gt; M2("&lt;strong&gt;response.json()&lt;/strong&gt;&lt;br&gt;JSON parsing")
         K2 --&gt; N2("&lt;strong&gt;Python Response Object&lt;/strong&gt;")
         L2 --&gt; N2
         M2 --&gt; N2
@@ -1169,11 +1163,11 @@ graph LR
         C1 --&gt; E1("&lt;strong&gt;req_headers()&lt;/strong&gt;&lt;br&gt;Content-Type, Auth, etc.")
         C1 --&gt; F1("&lt;strong&gt;req_url_query()&lt;/strong&gt;&lt;br&gt;?param=value&amp;key=data")
         C1 --&gt; G1("&lt;strong&gt;req_body_json()&lt;/strong&gt;&lt;br&gt;Request payload")
-        D1 --&gt; H1("HTTP Request")
-        E1 --&gt; H1
-        F1 --&gt; H1
-        G1 --&gt; H1
-        H1 --&gt; I1["API Server"]
+        D1 --&gt; P1("&lt;strong&gt;req_perform()&lt;/strong&gt;&lt;br&gt;HTTP Request")
+        E1 --&gt; P1
+        F1 --&gt; P1
+        G1 --&gt; P1
+        P1 --&gt; I1["API Server"]
         I1 --&gt; J1("HTTP Response")
         J1 --&gt; K1("&lt;strong&gt;resp_status()&lt;/strong&gt;&lt;br&gt;200, 404, 500, etc.")
         J1 --&gt; L1("&lt;strong&gt;resp_headers()&lt;/strong&gt;&lt;br&gt;Response metadata")
@@ -1190,7 +1184,7 @@ graph LR
     style E1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style F1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style G1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style H1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style P1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
     style I1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style J1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style K1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -1205,34 +1199,32 @@ graph LR
 </div>
 </div>
 <blockquote class="blockquote">
-<p><strong><em>3. How can environment variables be used to keep secrets secure in your code?</em></strong></p>
+<p>“<em>How can environment variables be used to keep secrets secure in your code?</em>”</p>
 </blockquote>
 <p>Environment variables keep secrets (API keys, database passwords) out of the code itself. In R, we store them in a <code>.Renviron</code> file and read them with <code>Sys.getenv()</code>; in Python, we store them in a <code>.env</code> file (loaded with <code>python-dotenv</code>) and read them with <code>os.environ</code>. Both files go in <code>.gitignore</code>, so the secrets never end up in version control.</p>
 </section>
 </section>
-<section id="previously-in-lab-2" class="level3">
-<h3 class="anchored" data-anchor-id="previously-in-lab-2">Previously, in lab 2</h3>
+</section>
+<section id="previously-in-lab-2" class="level2">
+<h2 class="anchored" data-anchor-id="previously-in-lab-2">Previously, in Lab 2</h2>
 <p>We previously turned our Python <code>scikit-learn</code> model into a <code>VetiverModel()</code>, saved it to a <code>pins</code> board, and then created a <code>VetiverAPI()</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <ul>
-<li>In R, we created a linear model (with <code>lm()</code> and <code>fastDummies</code>), converted it to a <code>vetiver_model()</code>, put it in a <code>board_folder()</code>, ‘pinned’ it with <code>vetiver_pin_write()</code>, then converted it into an API with <code>plumber::pr()</code> and <code>vetiver_api()</code>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li>In R, we created a linear model (with <code>lm()</code> and <code>fastDummies</code>) and converted it to a <code>vetiver_model()</code>. Then we pinned it to a <code>board_folder()</code> with <code>vetiver_pin_write()</code> and converted it into an API with <code>plumber::pr()</code> and <code>vetiver_api()</code>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
 </ul>
-<p>The sections below cover how to create and communicate with APIs. I’ve split each lab into separate <code>Python/</code> and <code>R/</code> folders (and included RStudio project files).</p>
-</section>
+<p>The sections below walk through the original lab files. The chapters that follow create the APIs and send requests to them from the apps. For those chapters, I’ve split the lab into separate <code>Python/</code> and <code>R/</code> folders (and included RStudio project files).</p>
 </section>
 <section id="python-shiny-app" class="level2">
 <h2 class="anchored" data-anchor-id="python-shiny-app"><strong>Python Shiny App</strong></h2>
 <p>The original Python App files can be found in the <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/"><code>_labs/lab03/</code> folder</a>.</p>
 <div style="font-style: italic;">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">_labs/lab03/</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.py</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> model-db.qmd</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span>  py-data-load.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>_labs/lab03/</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>├── app-api.py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>├── model-db.qmd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>└── py-data-load.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="sec-model-db" class="level3">
-<h3 class="anchored" data-anchor-id="sec-model-db">Model EDA</h3>
-<p>The <a href="_labs/lab03/model-db.qmd">model-db.qmd</a> file contains the EDA from <a href="./lab01.html">lab 1</a>.</p>
+<h3 class="anchored" data-anchor-id="sec-model-db">Model</h3>
+<p>The <a href="_labs/lab03/model-db.qmd">model-db.qmd</a> file contains the model from <a href="./model-basic-py.html">Lab 1</a>, with the data read from <code>duckdb</code>.</p>
 <p>It begins by importing <code>duckdb</code>, <code>pandas</code>, <code>numpy</code>, and <code>scikit-learn</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> duckdb</span>
@@ -1266,7 +1258,7 @@ graph LR
 </section>
 <section id="sec-app-api-py" class="level3">
 <h3 class="anchored" data-anchor-id="sec-app-api-py">Original app file</h3>
-<p><code>app-api.py</code> creates an Python Shiny application that calls the <code>vetiver</code> API.</p>
+<p><code>app-api.py</code> creates a Python Shiny application that calls the <code>vetiver</code> API.</p>
 <section id="ui" class="level4">
 <h4 class="anchored" data-anchor-id="ui">UI</h4>
 <div class="cell">
@@ -1348,16 +1340,14 @@ graph LR
 <h2 class="anchored" data-anchor-id="r-shiny-app"><strong>R Shiny App</strong></h2>
 <p>The R App API files can be found in the <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/"><code>_labs/lab03/</code> folder</a>.</p>
 <div style="font-style: italic;">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">_labs/lab03/</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> app-api.R</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> eda-db.qmd</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> r-data-load.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>_labs/lab03/</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>├── app-api.R</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>├── eda-db.qmd</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>└── r-data-load.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="sec-eda-db.qmd" class="level3">
 <h3 class="anchored" data-anchor-id="sec-eda-db.qmd">Model EDA</h3>
-<p>The <a href="_labs/lab03/eda-db.qmd"><code>eda-db.qmd</code></a> file has the EDA R code from lab 1.</p>
+<p>The <a href="_labs/lab03/eda-db.qmd"><code>eda-db.qmd</code></a> file has the EDA R code from <a href="./eda-basic.html">Lab 1</a>. The code below comes from my version in <a href="_labs/lab03/R/eda-db.qmd"><code>R/eda-db.qmd</code></a>.</p>
 <p>It begins by loading the libraries:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI) <span class="co"># add this</span></span>
@@ -1367,7 +1357,7 @@ graph LR
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dbplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The code below creates a connection to the database, but needs to be changed slightly so the <code>penguins</code> data is registered with <code>duckdb</code> (before the queries can be run).</p>
+<p>The original file reads the <code>penguins</code> table with <code>dplyr::tbl()</code>, so <code>r-data-load.R</code> has to run first. My version below registers the <code>penguins</code> data with <code>duckdb</code> and creates the table before the queries run.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load penguins data first</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>penguins_data <span class="ot">&lt;-</span> palmerpenguins<span class="sc">::</span>penguins</span>
@@ -1383,7 +1373,7 @@ graph LR
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co"># create df </span></span>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM penguins"</span>) <span class="sc">|&gt;</span> <span class="fu">na.omit</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The table below displays the means of the measurements (body mass, flipper length, and bill length/depth) by species and sex:</p>
+<p>The code below creates a table of the means of the measurements (body mass, flipper length, and bill length/depth) by species and sex:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(species, sex) <span class="sc">%&gt;%</span></span>
@@ -1396,7 +1386,7 @@ graph LR
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">collect</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The graph displays the best-fit linear relationship between <code>bill_length_mm</code> and <code>body_mass_g</code> by <code>species</code>:</p>
+<p>The code below plots the best-fit linear relationship between <code>bill_length_mm</code> and <code>body_mass_g</code> by <code>species</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(</span>
@@ -1516,9 +1506,9 @@ graph LR
 <ol type="1">
 <li><p>Native database packages (like <code>psycopg2</code> or <code>RPostgres</code>) connect through their driver straight to the database and bypass the system layer. ODBC and JDBC connections route through a system ODBC manager or a Java runtime. In R, every path converges on <code>DBI</code>, while Python offers several competing packages built on the DB API 2.0 standard.</p></li>
 <li><p>An API request bundles an HTTP method, headers, query parameters, and a JSON body; the response returns a status code, headers, and JSON. Python builds these with <code>requests</code>, and R builds them with <code>httr2</code> functions like <code>req_body_json()</code> and <code>resp_body_json()</code>.</p></li>
-<li><p>Both Shiny apps convert the bill length, species, and sex inputs into the dummy columns the model expects, send them to the <code>vetiver</code> API at <code>http://127.0.0.1:8080/predict</code>, and display the returned prediction. The Python app uses <code>requests.post()</code>, and the R app pipes <code>httr2::request()</code> into <code>req_body_json()</code> and <code>req_perform()</code>.</p></li>
+<li><p>Both Shiny apps convert the bill length, species, and sex inputs into dummy columns and send them to the <code>vetiver</code> API at <code>http://127.0.0.1:8080/predict</code>. The Python app uses <code>requests.post()</code>, and the R app pipes <code>httr2::request()</code> into <code>req_body_json()</code> and <code>req_perform()</code>. Neither original request matches what the API expects. The Python app sends <code>sex_Male</code> (the model expects <code>sex_male</code>), and the R app sends a list instead of a data frame.</p></li>
 </ol>
-<p>Next, <a href="./py-app-api.html">Python App &amp; API</a> connects the Python Shiny app to the <code>vetiver</code> API from lab 2.</p>
+<p>Next, <a href="./py-app-api.html">Python App &amp; API</a> connects the Python Shiny app to the <code>vetiver</code> API from Lab 2.</p>
 
 
 </section>
@@ -1526,7 +1516,7 @@ graph LR
 <hr>
 <ol>
 <li id="fn1"><p>This can be found in <a href="https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/model-vetiver/model-vetiver.qmd">/_labs/lab02/model-vetiver/model-vetiver.qmd</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>This can be found in <a href="https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02/R/model-vetiver-r.qmd"><code>_labs/lab02/R/model-vetiver-r.qmd</code></a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>This can be found in <a href="https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/R/model-vetiver-r.qmd"><code>_labs/lab02/R/model-vetiver-r.qmd</code></a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 12: Computer Networks – DO4DS: Lab Solutions</title>
@@ -27,6 +27,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -51,8 +86,8 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -80,6 +115,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -659,8 +698,15 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#comprehension-questions" id="toc-comprehension-questions" class="nav-link active" data-scroll-target="#comprehension-questions">Comprehension questions</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1">
@@ -679,7 +725,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -709,8 +755,191 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>How does a request typed into a browser find the right program on a server? Every service on our instance listens on its own port, and the security group only lets port 22 through. This lab answers the chapter’s questions about URLs, ports, and proxies. The hands on part, putting RStudio Server and JupyterHub behind one <code>nginx</code> proxy on port 80, is in <a href="./accessibility.html">Accessibility</a>.</p>
+<section id="comprehension-questions" class="level2">
+<h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
+<blockquote class="blockquote">
+<p>“1. <em>What are the four parts of a URL, and what does each one do?</em>”</p>
+</blockquote>
+<p>A URL has a protocol, a domain, a port, and a path. The protocol says what kind of traffic it is, and the domain says which server. The port picks a service on that server, and the path picks the resource it returns:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'16px'}}}%%
+
+block-beta
+    columns 4
+    P["https://"] D["example.com"] Po[":443"] Pa["/jupyter"]
+    Pl["protocol&lt;br/&gt;what kind of traffic"] Dl["domain&lt;br/&gt;which server"] Pol["port&lt;br/&gt;which service"] Pal["path&lt;br/&gt;which resource"]
+
+    style P fill:#2A6F77,stroke:#fff,color:#fff
+    style D fill:#1B2A41,stroke:#fff,color:#fff
+    style Po fill:#D2562B,stroke:#fff,color:#fff
+    style Pa fill:#5B8C5A,stroke:#fff,color:#fff
+</pre>
+</div>
+<p></p><figcaption> The Four Parts of a URL</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The port is usually hidden. Browsers fill in <code>80</code> for <code>http://</code> and <code>443</code> for <code>https://</code>, so <code>https://example.com/jupyter</code> and <code>https://example.com:443/jupyter</code> are the same address. A port only shows up in the URL when the service listens somewhere else, like <code>http://127.0.0.1:8000</code> for <code>baseball-trajectory</code> in <a href="./install-real-app.html">Installing a Real Application</a>.</p>
+<p>The domain is a name for an IP address. DNS turns the name into the address, which is covered in <a href="./lab13.html">Lab 13</a>.</p>
+<blockquote class="blockquote">
+<p>“2. <em>When you configure a service on a server, how do you get it onto the right port?</em>”</p>
+</blockquote>
+<p>The service picks its port, not the operating system. Each one reads the port from its own configuration, so the fix is always to change that setting and restart the service:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Default port</th>
+<th>Where the port is set</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>RStudio Server</td>
+<td><code>8787</code></td>
+<td><code>www-port</code> in <code>/etc/rstudio/rserver.conf</code></td>
+</tr>
+<tr class="even">
+<td>JupyterHub</td>
+<td><code>8000</code></td>
+<td><code>c.JupyterHub.bind_url</code> in <code>jupyterhub_config.py</code></td>
+</tr>
+<tr class="odd">
+<td><code>baseball-trajectory</code></td>
+<td><code>8000</code></td>
+<td><code>--port</code> in the unit file’s <code>ExecStart</code> line</td>
+</tr>
+<tr class="even">
+<td><code>nginx</code></td>
+<td><code>80</code></td>
+<td><code>listen</code> in a <code>server</code> block</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>baseball-trajectory</code> unit file from <a href="./lab10.html">Lab 10</a> shows the pattern. The port (and the address it binds to) is an argument on the command that starts the app:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/baseball-trajectory/.venv/bin/shiny run baseball_trajectory.app:app --host 127.0.0.1 --port 8000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Two services can’t share a port on the same address. JupyterHub and <code>baseball-trajectory</code> both default to <code>8000</code>, so one of them has to move before both can run on our instance.</p>
+<p>Once a service is listening, <code>ss</code> (the replacement for <code>netstat</code> on AL2023) confirms which port it holds:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ss <span class="at">-tlnp</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Getting a service onto the right port is only half the job. The security group still blocks every port except <code>22</code>, so traffic from outside never reaches it. The usual answer is to open one port (<code>80</code> or <code>443</code>) for a proxy and let the proxy forward each path to the right internal port.</p>
+<blockquote class="blockquote">
+<p>“3. <em>Draw a mind map of accessing a resource in a browser. Include URL, domain, IP address, port, path, 80, 443, 8000, proxy, server, HTTP, HTTPS, status code, and protocol.</em>”</p>
+</blockquote>
+<p>The mind map groups the terms under the part of the URL they belong to, plus the server side that answers the request:</p>
+<div class="cell" data-fig-width="8" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+mindmap
+  root((URL))
+    Protocol
+      HTTP
+        80
+      HTTPS
+        443
+    Domain
+      IP address
+    Port
+      80
+      443
+      8000
+    Path
+    Server
+      Proxy
+        Forwards path to port
+      Status code
+        200 OK
+</pre>
+</div>
+<p></p><figcaption> Accessing a Resource Mind Map</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>“<em>a. A Shiny app at <code>http://my-shiny.com</code>, with Shiny Server on port 80.</em>”</p>
+</blockquote>
+<p>The URL has no port, so the browser uses <code>80</code> for <code>http://</code>. Shiny Server listens on <code>80</code> itself, so no proxy is needed. The path is <code>/</code>, and Shiny Server returns the app with a <code>200</code> status code:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant B as Browser
+    participant DNS
+    participant S as Shiny Server :80
+    B-&gt;&gt;DNS: my-shiny.com?
+    DNS--&gt;&gt;B: IP address
+    B-&gt;&gt;S: HTTP GET / (port 80)
+    S--&gt;&gt;B: 200 OK, the app
+</pre>
+</div>
+<p></p><figcaption> Shiny Server on Port 80</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>The security group needs <code>80</code> open for this to work, and the traffic isn’t encrypted.</p>
+<blockquote class="blockquote">
+<p>“<em>b. JupyterHub at <code>https://example.com/jupyter</code>, with JupyterHub on port 8000.</em>”</p>
+</blockquote>
+<p>The browser uses <code>443</code> for <code>https://</code>, but JupyterHub listens on <code>8000</code>. A proxy closes the gap. It listens on <code>443</code>, handles the TLS encryption, and forwards anything under <code>/jupyter</code> to <code>8000</code>. JupyterHub also has to know it lives at <code>/jupyter</code>, or the links it writes into its pages point at <code>/</code> and break:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant B as Browser
+    participant DNS
+    participant N as nginx :443
+    participant J as JupyterHub :8000
+    B-&gt;&gt;DNS: example.com?
+    DNS--&gt;&gt;B: IP address
+    B-&gt;&gt;N: HTTPS GET /jupyter (port 443)
+    N-&gt;&gt;J: HTTP GET /jupyter (port 8000)
+    J--&gt;&gt;N: 200 OK
+    N--&gt;&gt;B: 200 OK, encrypted
+</pre>
+</div>
+<p></p><figcaption> JupyterHub Behind a Proxy</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Only <code>443</code> is open in the security group. Port <code>8000</code> stays closed, so JupyterHub is reachable only through the proxy. <a href="./accessibility.html">Accessibility</a> builds the port <code>80</code> version of this setup, and <a href="./configure-ssl.html">Configure SSL</a> adds <code>443</code>.</p>
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>A URL names a protocol, a domain, a port, and a path. Browsers fill in <code>80</code> or <code>443</code> when the port is missing.</p></li>
+<li><p>Each service reads its port from its own configuration, and no two services can hold the same port. <code>sudo ss -tlnp</code> shows which service holds which port.</p></li>
+<li><p>The security group decides which ports outside traffic can reach. A proxy lets one open port serve several services, each on its own path.</p></li>
+</ol>
 
 
+</section>
 
 </main> <!-- /main -->
 <script>

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Python App &amp; API – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -710,7 +710,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#api" id="toc-api" class="nav-link" data-scroll-target="#api">API</a>
   <ul>
   <li><a href="#libraries-warnings-and-environment-variables" id="toc-libraries-warnings-and-environment-variables" class="nav-link" data-scroll-target="#libraries-warnings-and-environment-variables">Libraries, warnings, and environment variables</a></li>
-  <li><a href="#read-pinned-model" id="toc-read-pinned-model" class="nav-link" data-scroll-target="#read-pinned-model">Read ‘pinned’ model</a></li>
+  <li><a href="#read-pinned-model" id="toc-read-pinned-model" class="nav-link" data-scroll-target="#read-pinned-model">Read pinned model</a></li>
   <li><a href="#model-schema" id="toc-model-schema" class="nav-link" data-scroll-target="#model-schema">Model schema</a></li>
   <li><a href="#create-prototype-data" id="toc-create-prototype-data" class="nav-link" data-scroll-target="#create-prototype-data">Create <code>prototype</code> data</a></li>
   <li><a href="#inspect-prototype_data" id="toc-inspect-prototype_data" class="nav-link" data-scroll-target="#inspect-prototype_data">Inspect <code>prototype_data</code></a></li>
@@ -768,7 +768,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -795,7 +795,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="set-up" class="level2">
 <h2 class="anchored" data-anchor-id="set-up">Set up</h2>
-<p>In this lab, I’ll be using Positron to develop the Vetiver API amd Shiny for Python app. I’m still new to programming in Python, so it took a bit longer to get the Vetiver API and Shiny app working together.</p>
+<p>In this lab, I’ll be using Positron to develop the Vetiver API and Shiny for Python app. I’m still new to programming in Python, so it took a bit longer to get the Vetiver API and Shiny app working together.</p>
 <p>Below are a few pointers to help you avoid making some of the mistakes I made:</p>
 <ol type="1">
 <li>Set up the API and app in different folders<br>
@@ -830,7 +830,7 @@ graph TD
     style RunApi stroke-width:1px, rx:20, ry:20, font-size:16px
     
    subgraph Browse["&lt;strong&gt;Browser&lt;/strong&gt;"]
-        Http(["`Got to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;code&gt;/docs&lt;/code&gt;"--&gt; Docs("API Docs")
+        Http(["`Go to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;code&gt;/docs&lt;/code&gt;"--&gt; Docs("API Docs")
         Http --"&lt;code&gt;/ping&lt;/code&gt;"--&gt; Health("&lt;strong&gt;Health Check&lt;/strong&gt;")
         Http --"&lt;code&gt;/metadata&lt;/code&gt;"--&gt; Info("&lt;strong&gt;Model Info&lt;/strong&gt;")
         Docs &amp; Health &amp; Info --&gt; FastAPI
@@ -856,8 +856,8 @@ graph TD
 </div>
 <section id="libraries-warnings-and-environment-variables" class="level3">
 <h3 class="anchored" data-anchor-id="libraries-warnings-and-environment-variables">Libraries, warnings, and environment variables</h3>
-<p>First, we’ll import <code>warnings</code> use <code>warnings.filterwarnings()</code> to silence the SSL compatibility warnings between LibreSSL (macOS) and <code>urllib3</code> (this is probably specific to my machine).</p>
-<p>Then we’ll include <code>os.environ['PINS_ALLOW_PICKLE_READ'] = '1'</code> to set an environment variable that allows reading <code>pickle</code>/<code>joblib</code> files (this is like a ‘security override’).</p>
+<p>First, we’ll import <code>warnings</code> and use <code>warnings.filterwarnings()</code> to silence the SSL compatibility warnings between LibreSSL (macOS) and <code>urllib3</code> (this is probably specific to my machine).</p>
+<p>Then we’ll include <code>os.environ['PINS_ALLOW_PICKLE_READ'] = '1'</code> to set an environment variable that allows reading <code>pickle</code>/<code>joblib</code> files (it overrides a security default in <code>pins</code>).</p>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -874,11 +874,11 @@ graph TD
 <p><br></p>
 <p><strong><em>In the previous lab we set the <code>allow_pickle_read</code> to <code>True</code> when we created the <code>board_folder</code>, and now we’re specifying an environment variable (<code>['PINS_ALLOW_PICKLE_READ'] = '1'</code>).</em></strong></p>
 <p><strong><em>Why?</em></strong></p>
-<p><a href="https://docs.python.org/3/library/pickle.html">Pickle</a> is Python’s way of saving complex objects to files (it can save almost ANY Python object - functions, classes, even entire programs). But this also means <code>pickle</code> can save malicious code.</p>
-<p>Because of this, the Python <code>pins</code> package blocks <code>pickle</code> files. However, the R <code>vetiver</code> package saves files in the <code>pickle</code>/<code>joblib</code> format (for cross-language compatibility).</p>
+<p><a href="https://docs.python.org/3/library/pickle.html">Pickle</a> is Python’s way of saving complex objects to files (it can save almost ANY Python object: functions, classes, even entire programs). But this also means <code>pickle</code> can save malicious code.</p>
+<p>Because of this, the Python <code>pins</code> package blocks <code>pickle</code> files. However, Python <code>vetiver</code> pins <code>scikit-learn</code> models as <code>joblib</code> files, and <code>joblib</code> uses <code>pickle</code> under the hood.</p>
 <p>We can use the code below because we know the file came from our previous lab (i.e., a trusted source).</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># our model in lab 2</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="st">'./my_models'</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> board_folder(<span class="st">'./models'</span>, allow_pickle_read<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># reading from a known (trusted) source in lab 3</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">'PINS_ALLOW_PICKLE_READ'</span>] <span class="op">=</span> <span class="st">'1'</span>  <span class="co"># For development</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -886,7 +886,7 @@ graph TD
 </div>
 </div>
 </div>
-<p>Third, we’ll also add <code>uvicorn</code> and <code>pandas</code> to the core libraries for ML serving, and model storage.</p>
+<p>Third, we’ll import <code>vetiver</code> and <code>pins</code> for the model, <code>uvicorn</code> to run the server, and <code>pandas</code> to build the prototype data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -902,9 +902,9 @@ graph TD
 </div>
 </section>
 <section id="read-pinned-model" class="level3">
-<h3 class="anchored" data-anchor-id="read-pinned-model">Read ‘pinned’ model</h3>
-<p><a href="https://rstudio.github.io/pins-python/reference/board_folder.html#pins.board_folder"><code>pins.board_folder()</code></a> creates a connection to the file-based model registry from lab 2. It will locate the specific model version (using the timestamp-based folders).</p>
-<p><a href="https://rstudio.github.io/pins-python/reference/pin_read.html#pins.boards.BaseBoard.pin_read"><code>model_board.pin_read()</code></a> deserializes the <code>joblib</code> file back into a live Python object and returns the raw <code>scikit-learn</code> model (NOT a vetiver object yet).</p>
+<h3 class="anchored" data-anchor-id="read-pinned-model">Read pinned model</h3>
+<p><a href="https://rstudio.github.io/pins-python/reference/board_folder.html#pins.board_folder"><code>pins.board_folder()</code></a> creates a connection to the file-based model registry from lab 2.</p>
+<p><a href="https://rstudio.github.io/pins-python/reference/pin_read.html#pins.boards.BaseBoard.pin_read"><code>model_board.pin_read()</code></a> reads the latest version (the newest timestamp folder). It deserializes the <code>joblib</code> file back into a live Python object and returns the raw <code>scikit-learn</code> model (NOT a vetiver object yet).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-2"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-1" class="code-annotation-target"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a>model_board <span class="op">=</span> pins.board_folder(<span class="st">"../../../lab02/model-vetiver/models/"</span>)</span>
 <span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -957,7 +957,7 @@ graph TD
 </section>
 <section id="create-prototype-data" class="level3">
 <h3 class="anchored" data-anchor-id="create-prototype-data">Create <code>prototype</code> data</h3>
-<p>Now we’ll create <code>prototype_data</code> with <code>pandas.DataFrame()</code> and the fill it in the with realistic example values:</p>
+<p>Now we’ll create <code>prototype_data</code> with <code>pandas.DataFrame()</code> and fill it in with realistic example values:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-4"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... continued from above...</span></span>
 <span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a>    </span>
@@ -999,7 +999,7 @@ graph TD
 </dl>
 </div>
 </div>
-<p>However, if our model <em>doesn’t</em> have the <code>feature_names_in_</code>, we’ll create a ‘best guess’ <code>prototype_data</code> (based on what we know about the <code>penguins</code> dataset).</p>
+<p>However, if our model <em>doesn’t</em> have the <code>feature_names_in_</code>, we’ll create a best guess <code>prototype_data</code> (based on what we know about the <code>penguins</code> dataset).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-5"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-5-1"><a href="#annotated-cell-5-1" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... continued from above...</span></span>
 <span id="annotated-cell-5-2"><a href="#annotated-cell-5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
@@ -1014,7 +1014,7 @@ graph TD
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-5" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-5" data-code-lines="4,9" data-code-annotation="1">original R model structure</span>
+<span data-code-cell="annotated-cell-5" data-code-lines="4,9" data-code-annotation="1">same columns as the lab 2 model</span>
 </dd>
 </dl>
 </div>
@@ -1042,7 +1042,7 @@ graph TD
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Sample data:</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>   bill_length_mm  species_Chinstrap  species_Gentoo  sex_male</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>0            45.0                0.0               1         1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>0            45.0                  0               1         1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The <code>prototype_data</code> can be used for API input validation and documentation.</p>
 </section>
@@ -1062,7 +1062,7 @@ graph TD
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>:-] Created VetiverModel: &lt;class 'vetiver.vetiver_model.VetiverModel'&gt;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Recall that <code>vetiver.VetiverModel()</code> wraps the raw model with MLOps metadata and adds the input validation schema based on <code>prototype_data</code>. Now we have a standardized API and prediction interface.</p>
+<p>Recall that <code>vetiver.VetiverModel()</code> wraps the raw model with MLOps metadata and adds the input validation schema based on <code>prototype_data</code>. Now we have a standard prediction interface, and the API comes next.</p>
 </section>
 <section id="create-api" class="level3">
 <h3 class="anchored" data-anchor-id="create-api">Create API</h3>
@@ -1098,7 +1098,7 @@ graph TD
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>FastAPI app type: &lt;class 'fastapi.applications.FastAPI'&gt;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The diagram below gives an overview of how the <code>VetivierModel()</code> is converted into an API, then the <code>FastAPI</code> web application is extracted.</p>
+<p>The diagram below gives an overview of how the <code>VetiverModel()</code> is converted into an API, then the <code>FastAPI</code> web application is extracted.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1114,9 +1114,11 @@ graph TB
     FastAPI --&gt; Post("&lt;strong&gt;POST /predict&lt;/strong&gt;")
     FastAPI --&gt; GetPing("&lt;strong&gt;GET /ping&lt;/strong&gt;") 
     FastAPI --&gt; GetMeta("&lt;strong&gt;GET /metadata&lt;/strong&gt;")
+    FastAPI --&gt; GetProto("&lt;strong&gt;GET /prototype&lt;/strong&gt;")
     FastAPI --&gt; GetDocs("&lt;strong&gt;GET /docs&lt;/strong&gt;")
-    
+
     CheckProt("&lt;strong&gt;check_prototype=True&lt;/strong&gt;") --&gt; Input("&lt;strong&gt;Enable Input&lt;br&gt;Validation&lt;/strong&gt;")
+    Input -.-&gt; Post
     
     VApiCon --"creates"--&gt; VApiObj("&lt;strong&gt;VetiverAPI&lt;br&gt;object&lt;/strong&gt;")
     VApiObj --"with"--&gt; AppAttr("&lt;strong&gt;.app attribute&lt;/strong&gt;")
@@ -1132,6 +1134,7 @@ graph TB
     style Post fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
     style GetPing fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
     style GetMeta fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style GetProto fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
     style GetDocs fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
 
     style VApiObj fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -1161,27 +1164,27 @@ graph TB
 </section>
 <section id="launch-the-api" class="level2">
 <h2 class="anchored" data-anchor-id="launch-the-api">Launch the API</h2>
-<p>In a new Terminal, run the following:</p>
+<p>In a new Terminal, move into the API folder, activate its virtual environment, and run the script. The relative path to the lab 2 board only works from this folder:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> mod-api.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> _labs/lab03/Python/api</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .env/bin/activate</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> mod-api.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>In the console, you’ll see the following:</p>
+<p>After the prototype output we saw above, the last lines in the Terminal should look like this:</p>
 <div style="font-style: italic;">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">:-]</span> Created VetiverModel: <span class="op">&lt;</span>class <span class="st">'vetiver.vetiver_model.VetiverModel'</span><span class="op">&gt;</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="ex">FastAPI</span> app type: <span class="op">&lt;</span>class <span class="st">'fastapi.applications.FastAPI'</span><span class="op">&gt;</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ex">:-]</span> Starting Penguin Model API...</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="ex">:-]</span> API Documentation: http://127.0.0.1:8080/docs</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="ex">:-]</span> Health Check: http://127.0.0.1:8080/ping</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="ex">:-]</span> Model Info: http://127.0.0.1:8080/metadata</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Started server process <span class="pp">[</span><span class="ss">74880</span><span class="pp">]</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Waiting for application startup.</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     VetiverAPI starting...</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Application startup complete.</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Uvicorn running on http://127.0.0.1:8080 <span class="er">(</span><span class="ex">Press</span> CTRL+C to quit<span class="kw">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>:-] Created VetiverModel: &lt;class 'vetiver.vetiver_model.VetiverModel'&gt;</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>FastAPI app type: &lt;class 'fastapi.applications.FastAPI'&gt;</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>:-] Starting Penguin Model API...</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>:-] API Documentation: http://127.0.0.1:8080/docs</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>:-] Health Check: http://127.0.0.1:8080/ping</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>:-] Model Info: http://127.0.0.1:8080/metadata</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>INFO:     Started server process [74880]</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>INFO:     Waiting for application startup.</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>INFO:     VetiverAPI starting...</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>INFO:     Application startup complete.</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
-<p>FastAPI generates interactive docs at <code>/docs</code>. The Vetiver landing page at <code>/</code> shows the model card we’ll reference while building the app.</p>
+<p>FastAPI generates interactive docs at <code>/docs</code>. Vetiver adds a second docs page at <code>/</code>, which we’ll reference while building the app.</p>
 <section id="fastapi-interface" class="level3">
 <h3 class="anchored" data-anchor-id="fastapi-interface">FastAPI Interface</h3>
 <p>If you click on the link for the API Documentation (<a href="http://127.0.0.1:8080/docs" class="uri">http://127.0.0.1:8080/docs</a>), you’ll see the following:</p>
@@ -1219,13 +1222,13 @@ graph TB
 <td><strong>GET <code>/ping</code></strong></td>
 <td>Health check</td>
 <td>Verify API is running</td>
-<td><strong>Returns</strong>: Simple OK status</td>
+<td><strong>Returns</strong>: <code>{"ping":"pong"}</code></td>
 <td>Connection validation before predictions</td>
 </tr>
 <tr class="even">
 <td><strong>GET <code>/metadata</code></strong></td>
 <td>Model info</td>
-<td>Get model details, version, training info</td>
+<td>Get version, packages, Python version</td>
 <td><strong>Returns</strong>: Model metadata</td>
 <td>Display model info to users, debugging</td>
 </tr>
@@ -1246,7 +1249,7 @@ graph TB
 </tr>
 </tbody>
 </table>
-<p>The bottom three sections of the FastAPI UI shows the <strong>Schema Information</strong>:</p>
+<p>The bottom three sections of the FastAPI UI show the <strong>Schema Information</strong>:</p>
 <ul>
 <li><strong>HTTPValidationError</strong>: What error responses look like<br>
 </li>
@@ -1257,7 +1260,7 @@ graph TB
 </section>
 <section id="vetiver-interface" class="level3">
 <h3 class="anchored" data-anchor-id="vetiver-interface">Vetiver Interface</h3>
-<p>The Vetiver UI (at <code>http://127.0.0.1:8080/</code>) is the model card landing page generated by <code>VetiverAPI</code>.</p>
+<p>The Vetiver UI (at <code>http://127.0.0.1:8080/</code>) redirects to <code>/__docs__</code>, a <a href="https://rapidocweb.com/">RapiDoc</a> page generated by <code>VetiverAPI</code>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
@@ -1268,7 +1271,7 @@ graph TB
 <figcaption>VetiverModel Docs</figcaption>
 </figure>
 </div>
-<p>It shows the deployed model’s identity and input contract rather than the raw HTTP endpoint list:</p>
+<p>It reads the same <code>openapi.json</code> as the FastAPI page, so it lists the same endpoints, but it puts the model’s name and description at the top:</p>
 <table class="caption-top table">
 <caption>Vetiver Interface Sections</caption>
 <colgroup>
@@ -1287,44 +1290,32 @@ graph TB
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Model Name</strong></td>
-<td>Deployed model ID</td>
-<td><code>penguin_model</code></td>
+<td><strong>Title</strong></td>
+<td>Model name</td>
+<td><code>penguin_model model API</code> with the <code>vetiver</code> version (<code>0.2.6</code>)</td>
 <td>Confirm the correct model is loaded</td>
 </tr>
 <tr class="even">
-<td><strong>Model Type</strong></td>
-<td>ML framework class</td>
-<td><code>sklearn.linear_model.LinearRegression</code></td>
+<td><strong>Description</strong></td>
+<td>Model class</td>
+<td><code>A scikit-learn LinearRegression model</code></td>
 <td>Verify the model class matches training</td>
 </tr>
 <tr class="odd">
-<td><strong>Prototype</strong></td>
-<td>Input schema</td>
-<td>Column names and types: <code>bill_length_mm</code>, <code>species_Chinstrap</code>, <code>species_Gentoo</code>, <code>sex_male</code></td>
-<td>Validate the app sends the correct fields and data types</td>
+<td><strong>API Server</strong></td>
+<td>Base URL</td>
+<td><code>http://127.0.0.1:8080</code></td>
+<td>Confirm which server <strong>TRY</strong> calls</td>
 </tr>
 <tr class="even">
-<td><strong>API Documentation</strong> link</td>
-<td>Route to Swagger</td>
-<td>Link to <code>/docs</code></td>
-<td>Open the interactive FastAPI UI</td>
-</tr>
-<tr class="odd">
-<td><strong>Health check</strong> link</td>
-<td>Route to ping</td>
-<td>Link to <code>/ping</code></td>
-<td>Confirm API is live before making calls</td>
-</tr>
-<tr class="even">
-<td><strong>Model metadata</strong> link</td>
-<td>Route to metadata</td>
-<td>Link to <code>/metadata</code></td>
-<td>Inspect version, packages, Python info</td>
+<td><strong>General</strong></td>
+<td>Endpoint list</td>
+<td>Ping, Get Metadata, Get Prototype, and Predict, each with a <strong>TRY</strong> button</td>
+<td>Read each endpoint’s parameters and responses, then send a test request</td>
 </tr>
 </tbody>
 </table>
-<p>The key difference between the two UIs: the <code>Vetiver</code> page documents <em>what the model is</em> (identity, prototype, links); the <code>FastAPI /docs</code> page documents <em>how to call it</em> (HTTP verbs, request bodies, response schemas).</p>
+<p>The two UIs differ in layout, not content. The <code>Vetiver</code> page shows each endpoint’s docstring with a <strong>TRY</strong> button below it. The <code>FastAPI /docs</code> page folds the same endpoints into one row each and lists the schemas at the bottom.</p>
 </section>
 </section>
 <section id="test-the-api" class="level2">
@@ -1353,7 +1344,7 @@ graph TD
     end
 
     subgraph Browse["&lt;strong&gt;Browser&lt;/strong&gt;"]
-        Http(["`Got to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;strong&gt;/docs&lt;/strong&gt;"--&gt; Docs("API Docs")
+        Http(["`Go to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;strong&gt;/docs&lt;/strong&gt;"--&gt; Docs("API Docs")
         Http --"&lt;strong&gt;/ping&lt;/strong&gt;"--&gt; Health("Health Check")
         Http --"&lt;strong&gt;/metadata&lt;/strong&gt;"--&gt; Info("Model Info")
         Docs &amp; Health &amp; Info --&gt; FastAPI
@@ -1390,7 +1381,9 @@ graph TD
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8080/ping</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Expected response:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="er">'ping'</span><span class="fu">:</span> <span class="er">'pong'</span><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>{"ping":"pong"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="model-metadata" class="level3">
 <h3 class="anchored" data-anchor-id="model-metadata">Model metadata</h3>
@@ -1398,14 +1391,10 @@ graph TD
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8080/metadata</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Expected response:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"user"</span><span class="fu">:{},</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span><span class="kw">null</span><span class="fu">,</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"url"</span><span class="fu">:</span><span class="kw">null</span><span class="fu">,</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"required_pkgs"</span><span class="fu">:</span><span class="ot">[</span><span class="st">"scikit-learn"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"python_version"</span><span class="fu">:</span><span class="ot">[</span><span class="dv">3</span><span class="ot">,</span><span class="dv">9</span><span class="ot">,</span><span class="dv">6</span><span class="ot">,</span><span class="st">"final"</span><span class="ot">,</span><span class="dv">0</span><span class="ot">]</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Expected response (<code>python_version</code> shows the Python in the API’s virtual environment):</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>{"user":{},"version":null,"url":null,"required_pkgs":["scikit-learn"],"python_version":[3,12,3,"final",0]}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="prediction-requests" class="level3">
 <h3 class="anchored" data-anchor-id="prediction-requests">Prediction requests</h3>
@@ -1430,12 +1419,14 @@ graph TD
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="st">  }]'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Expected response:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">"predict"</span><span class="fu">:</span><span class="ot">[</span><span class="fl">4180.796549720755</span><span class="ot">]</span><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>{"predict":[4180.796549720755]}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 </section>
 <section id="app" class="level2">
 <h2 class="anchored" data-anchor-id="app">App</h2>
-<p>Now that we’ve confirmed our API is running, we can launch our Shiny (for Python) app from it’s own Terminal (or RStudio/Positron session).</p>
+<p>Now that we’ve confirmed our API is running, we can launch our Shiny (for Python) app from its own Terminal (or RStudio/Positron session).</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1467,7 +1458,7 @@ graph TD
     end
 
     subgraph Browse["&lt;strong&gt;Browser&lt;/strong&gt;"]
-        Http(["`Got to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;strong&gt;/docs&lt;/strong&gt;"--&gt; Docs("API Docs")
+        Http(["`Go to &lt;strong&gt;http://&lt;/strong&gt;&lt;strong&gt;127.0.0.1:8080/&lt;/strong&gt;`"]) --"&lt;strong&gt;/docs&lt;/strong&gt;"--&gt; Docs("API Docs")
         Http --"&lt;strong&gt;/ping&lt;/strong&gt;"--&gt; Health("Health Check")
         Http --"&lt;strong&gt;/metadata&lt;/strong&gt;"--&gt; Info("Model Info")
         Docs &amp; Health &amp; Info --&gt; FastAPI
@@ -1604,56 +1595,56 @@ graph TD
 </section>
 <section id="server" class="level3">
 <h3 class="anchored" data-anchor-id="server">Server</h3>
-<p>The server code looks much different than R, but the documentation provides excellent explanations for <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#reactive-programming">creating reactives</a> and <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#connecting-outputs">rendering outputs</a>. I’ve included mermaid diagrams for the sections below because I’m still learning the Python for Shiny syntax and it’s reactive model.</p>
+<p>The server code looks much different than R, but the documentation provides excellent explanations for <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#reactive-programming">creating reactives</a> and <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#connecting-outputs">rendering outputs</a>. I’ve included mermaid diagrams for the sections below because I’m still learning the Shiny for Python syntax and its reactive model.</p>
 <section id="reactive-values" class="level4">
 <h4 class="anchored" data-anchor-id="reactive-values">Reactive values</h4>
-<p>The reactive calculations (<em>expressions</em>) and reactive effects (<em>observers</em>) are indicated with function <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#decorators">decorators</a> (<code>@reactive.calc</code> and <code>@reactive.event</code>). The inputs are accessed in the server with <code>input.</code> (not <code>input$</code>).</p>
+<p>Reactive calculations (<em>expressions</em>) are indicated with function <a href="https://shiny.posit.co/py/docs/comp-r-shiny.html#decorators">decorators</a>: <code>@reactive.calc</code> creates the calculation, and <code>@reactive.event</code> makes it wait for an event (like a button click). The inputs are accessed in the server with <code>input.</code> (not <code>input$</code>).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>show/hide Python syntax</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-23"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-23-1"><a href="#annotated-cell-23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># UI code </span></span>
-<span id="annotated-cell-23-2"><a href="#annotated-cell-23-2" aria-hidden="true" tabindex="-1"></a>  ui.output_text_verbatim(<span class="bu">id</span><span class="op">=</span><span class="st">"vals_out"</span>),</span>
-<span id="annotated-cell-23-3"><a href="#annotated-cell-23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># server code</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="1">1</button><span id="annotated-cell-23-4" class="code-annotation-target"><a href="#annotated-cell-23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="2">2</button><span id="annotated-cell-23-5" class="code-annotation-target"><a href="#annotated-cell-23-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals():</span>
-<span id="annotated-cell-23-6"><a href="#annotated-cell-23-6" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> [{</span>
-<span id="annotated-cell-23-7"><a href="#annotated-cell-23-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"bill_length_mm"</span>: <span class="bu">int</span>(<span class="bu">input</span>.bill_length()),</span>
-<span id="annotated-cell-23-8"><a href="#annotated-cell-23-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Chinstrap"</span>: <span class="bu">int</span>(<span class="bu">input</span>.species() <span class="op">==</span> <span class="st">"Chinstrap"</span>),</span>
-<span id="annotated-cell-23-9"><a href="#annotated-cell-23-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Gentoo"</span>: <span class="bu">int</span>(<span class="bu">input</span>.species() <span class="op">==</span> <span class="st">"Gentoo"</span>),</span>
-<span id="annotated-cell-23-10"><a href="#annotated-cell-23-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">"sex_male"</span>: <span class="bu">int</span>(<span class="bu">input</span>.sex() <span class="op">==</span> <span class="st">"Male"</span>)</span>
-<span id="annotated-cell-23-11"><a href="#annotated-cell-23-11" aria-hidden="true" tabindex="-1"></a>        }]</span>
-<span id="annotated-cell-23-12"><a href="#annotated-cell-23-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> d</span>
-<span id="annotated-cell-23-13"><a href="#annotated-cell-23-13" aria-hidden="true" tabindex="-1"></a>      </span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="3">3</button><span id="annotated-cell-23-14" class="code-annotation-target"><a href="#annotated-cell-23-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="4">4</button><span id="annotated-cell-23-15" class="code-annotation-target"><a href="#annotated-cell-23-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals_out():</span>
-<span id="annotated-cell-23-16"><a href="#annotated-cell-23-16" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> vals() </span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="5">5</button><span id="annotated-cell-23-17" class="code-annotation-target"><a href="#annotated-cell-23-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f"</span><span class="sc">{</span>data<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-20"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-20-1"><a href="#annotated-cell-20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># UI code </span></span>
+<span id="annotated-cell-20-2"><a href="#annotated-cell-20-2" aria-hidden="true" tabindex="-1"></a>  ui.output_text_verbatim(<span class="bu">id</span><span class="op">=</span><span class="st">"vals_out"</span>),</span>
+<span id="annotated-cell-20-3"><a href="#annotated-cell-20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># server code</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="1">1</button><span id="annotated-cell-20-4" class="code-annotation-target"><a href="#annotated-cell-20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="2">2</button><span id="annotated-cell-20-5" class="code-annotation-target"><a href="#annotated-cell-20-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals():</span>
+<span id="annotated-cell-20-6"><a href="#annotated-cell-20-6" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> [{</span>
+<span id="annotated-cell-20-7"><a href="#annotated-cell-20-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"bill_length_mm"</span>: <span class="bu">float</span>(<span class="bu">input</span>.bill_length()),</span>
+<span id="annotated-cell-20-8"><a href="#annotated-cell-20-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Chinstrap"</span>: <span class="bu">int</span>(<span class="bu">input</span>.species() <span class="op">==</span> <span class="st">"Chinstrap"</span>),</span>
+<span id="annotated-cell-20-9"><a href="#annotated-cell-20-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">"species_Gentoo"</span>: <span class="bu">int</span>(<span class="bu">input</span>.species() <span class="op">==</span> <span class="st">"Gentoo"</span>),</span>
+<span id="annotated-cell-20-10"><a href="#annotated-cell-20-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">"sex_male"</span>: <span class="bu">int</span>(<span class="bu">input</span>.sex() <span class="op">==</span> <span class="st">"Male"</span>)</span>
+<span id="annotated-cell-20-11"><a href="#annotated-cell-20-11" aria-hidden="true" tabindex="-1"></a>        }]</span>
+<span id="annotated-cell-20-12"><a href="#annotated-cell-20-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> d</span>
+<span id="annotated-cell-20-13"><a href="#annotated-cell-20-13" aria-hidden="true" tabindex="-1"></a>      </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="3">3</button><span id="annotated-cell-20-14" class="code-annotation-target"><a href="#annotated-cell-20-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@render.text</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="4">4</button><span id="annotated-cell-20-15" class="code-annotation-target"><a href="#annotated-cell-20-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> vals_out():</span>
+<span id="annotated-cell-20-16"><a href="#annotated-cell-20-16" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> vals() </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="5">5</button><span id="annotated-cell-20-17" class="code-annotation-target"><a href="#annotated-cell-20-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f"</span><span class="sc">{</span>data<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-annotation">
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-23" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-20" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="4" data-code-annotation="1">Equivalent to <code>reactive()</code><br>
+<span data-code-cell="annotated-cell-20" data-code-lines="4" data-code-annotation="1">Equivalent to <code>reactive()</code><br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-23" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-20" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="5,12" data-code-annotation="2">Equivalent to <code>vals() &lt;-</code><br>
+<span data-code-cell="annotated-cell-20" data-code-lines="5,12" data-code-annotation="2">Equivalent to <code>vals() &lt;-</code><br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-23" data-target-annotation="3">3</dt>
+<dt data-target-cell="annotated-cell-20" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="14" data-code-annotation="3">Equivalent to <code>renderPrint()</code> and assigning it to <code>output$vals</code><br>
+<span data-code-cell="annotated-cell-20" data-code-lines="14" data-code-annotation="3">Equivalent to <code>renderPrint()</code> and assigning it to <code>output$vals</code><br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-23" data-target-annotation="4">4</dt>
+<dt data-target-cell="annotated-cell-20" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="15" data-code-annotation="4">Function name (<code>vals_out()</code>) = output ID (<code>"vals_out"</code>)<br>
+<span data-code-cell="annotated-cell-20" data-code-lines="15" data-code-annotation="4">Function name (<code>vals_out()</code>) = output ID (<code>"vals_out"</code>)<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-23" data-target-annotation="5">5</dt>
+<dt data-target-cell="annotated-cell-20" data-target-annotation="5">5</dt>
 <dd>
-<span data-code-cell="annotated-cell-23" data-code-lines="17" data-code-annotation="5">f-string interpolation</span>
+<span data-code-cell="annotated-cell-20" data-code-lines="17" data-code-annotation="5">f-string interpolation</span>
 </dd>
 </dl>
 </div>
@@ -1729,56 +1720,60 @@ graph TD
 <div class="cell">
 <details open="" class="code-fold">
 <summary>show/hide outputs</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-25"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-25-1"><a href="#annotated-cell-25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> server(<span class="bu">input</span>, output, session):</span>
-<span id="annotated-cell-25-2"><a href="#annotated-cell-25-2" aria-hidden="true" tabindex="-1"></a>  </span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-25" data-target-annotation="1">1</button><span id="annotated-cell-25-3" class="code-annotation-target"><a href="#annotated-cell-25-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-25" data-target-annotation="2">2</button><span id="annotated-cell-25-4" class="code-annotation-target"><a href="#annotated-cell-25-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.event</span>(<span class="bu">input</span>.predict)</span>
-<span id="annotated-cell-25-5"><a href="#annotated-cell-25-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred():</span>
-<span id="annotated-cell-25-6"><a href="#annotated-cell-25-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
-<span id="annotated-cell-25-7"><a href="#annotated-cell-25-7" aria-hidden="true" tabindex="-1"></a>            data_to_send <span class="op">=</span> vals()</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-25" data-target-annotation="3">3</button><span id="annotated-cell-25-8" class="code-annotation-target"><a href="#annotated-cell-25-8" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
-<span id="annotated-cell-25-9"><a href="#annotated-cell-25-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="annotated-cell-25-10"><a href="#annotated-cell-25-10" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="annotated-cell-25-11"><a href="#annotated-cell-25-11" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
-<span id="annotated-cell-25-12"><a href="#annotated-cell-25-12" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="annotated-cell-25-13"><a href="#annotated-cell-25-13" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="annotated-cell-25-14"><a href="#annotated-cell-25-14" aria-hidden="true" tabindex="-1"></a>            </span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-25" data-target-annotation="4">4</button><span id="annotated-cell-25-15" class="code-annotation-target"><a href="#annotated-cell-25-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
-<span id="annotated-cell-25-16"><a href="#annotated-cell-25-16" aria-hidden="true" tabindex="-1"></a>                result <span class="op">=</span> r.json()</span>
-<span id="annotated-cell-25-17"><a href="#annotated-cell-25-17" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="annotated-cell-25-18"><a href="#annotated-cell-25-18" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="annotated-cell-25-19"><a href="#annotated-cell-25-19" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="annotated-cell-25-20"><a href="#annotated-cell-25-20" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result: </span>
-<span id="annotated-cell-25-21"><a href="#annotated-cell-25-21" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
-<span id="annotated-cell-25-22"><a href="#annotated-cell-25-22" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> prediction</span>
-<span id="annotated-cell-25-23"><a href="#annotated-cell-25-23" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
-<span id="annotated-cell-25-24"><a href="#annotated-cell-25-24" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
-<span id="annotated-cell-25-25"><a href="#annotated-cell-25-25" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> prediction</span>
-<span id="annotated-cell-25-26"><a href="#annotated-cell-25-26" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="annotated-cell-25-27"><a href="#annotated-cell-25-27" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
-<span id="annotated-cell-25-28"><a href="#annotated-cell-25-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
-<span id="annotated-cell-25-29"><a href="#annotated-cell-25-29" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-22"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-22-1"><a href="#annotated-cell-22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> server(<span class="bu">input</span>, output, session):</span>
+<span id="annotated-cell-22-2"><a href="#annotated-cell-22-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="1">1</button><span id="annotated-cell-22-3" class="code-annotation-target"><a href="#annotated-cell-22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.calc</span></span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="2">2</button><span id="annotated-cell-22-4" class="code-annotation-target"><a href="#annotated-cell-22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">@reactive.event</span>(<span class="bu">input</span>.predict)</span>
+<span id="annotated-cell-22-5"><a href="#annotated-cell-22-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> pred():</span>
+<span id="annotated-cell-22-6"><a href="#annotated-cell-22-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="annotated-cell-22-7"><a href="#annotated-cell-22-7" aria-hidden="true" tabindex="-1"></a>            data_to_send <span class="op">=</span> vals()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="3">3</button><span id="annotated-cell-22-8" class="code-annotation-target"><a href="#annotated-cell-22-8" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=== PREDICTION REQUEST ==="</span>)</span>
+<span id="annotated-cell-22-9"><a href="#annotated-cell-22-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Sending data to API: </span><span class="sc">{</span>data_to_send<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-22-10"><a href="#annotated-cell-22-10" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="annotated-cell-22-11"><a href="#annotated-cell-22-11" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.post(api_url, json<span class="op">=</span>data_to_send, timeout<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="annotated-cell-22-12"><a href="#annotated-cell-22-12" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"HTTP Status Code: </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-22-13"><a href="#annotated-cell-22-13" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Raw response text: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-22-14"><a href="#annotated-cell-22-14" aria-hidden="true" tabindex="-1"></a>            </span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-22" data-target-annotation="4">4</button><span id="annotated-cell-22-15" class="code-annotation-target"><a href="#annotated-cell-22-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="annotated-cell-22-16"><a href="#annotated-cell-22-16" aria-hidden="true" tabindex="-1"></a>                result <span class="op">=</span> r.json()</span>
+<span id="annotated-cell-22-17"><a href="#annotated-cell-22-17" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"✅ Success! Parsed response: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-22-18"><a href="#annotated-cell-22-18" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="annotated-cell-22-19"><a href="#annotated-cell-22-19" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="annotated-cell-22-20"><a href="#annotated-cell-22-20" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="st">'.pred'</span> <span class="kw">in</span> result: </span>
+<span id="annotated-cell-22-21"><a href="#annotated-cell-22-21" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'.pred'</span>][<span class="dv">0</span>]</span>
+<span id="annotated-cell-22-22"><a href="#annotated-cell-22-22" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> prediction</span>
+<span id="annotated-cell-22-23"><a href="#annotated-cell-22-23" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="st">'predict'</span> <span class="kw">in</span> result:</span>
+<span id="annotated-cell-22-24"><a href="#annotated-cell-22-24" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> result[<span class="st">'predict'</span>][<span class="dv">0</span>]</span>
+<span id="annotated-cell-22-25"><a href="#annotated-cell-22-25" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> prediction</span>
+<span id="annotated-cell-22-26"><a href="#annotated-cell-22-26" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="annotated-cell-22-27"><a href="#annotated-cell-22-27" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> <span class="ss">f"Unexpected response format: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-22-28"><a href="#annotated-cell-22-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="annotated-cell-22-29"><a href="#annotated-cell-22-29" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="ss">f"API Error </span><span class="sc">{</span>r<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>r<span class="sc">.</span>text<span class="sc">}</span><span class="ss">"</span></span>
+<span id="annotated-cell-22-30"><a href="#annotated-cell-22-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-22-31"><a href="#annotated-cell-22-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="annotated-cell-22-32"><a href="#annotated-cell-22-32" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"❌ Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="annotated-cell-22-33"><a href="#annotated-cell-22-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="ss">f"Error: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">"</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-annotation">
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-25" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-25" data-code-lines="3" data-code-annotation="1">Stacked decorators<br>
+<span data-code-cell="annotated-cell-22" data-code-lines="3" data-code-annotation="1">Stacked decorators<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-25" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-25" data-code-lines="4" data-code-annotation="2">Function executes when <code>input.predict</code> changes<br>
+<span data-code-cell="annotated-cell-22" data-code-lines="4" data-code-annotation="2">Function executes when <code>input.predict</code> changes<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-25" data-target-annotation="3">3</dt>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-25" data-code-lines="8,9,12,13" data-code-annotation="3">Explicit print statements<br>
+<span data-code-cell="annotated-cell-22" data-code-lines="8,9,12,13" data-code-annotation="3">Explicit print statements<br>
 </span>
 </dd>
-<dt data-target-cell="annotated-cell-25" data-target-annotation="4">4</dt>
+<dt data-target-cell="annotated-cell-22" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-25" data-code-lines="15,29" data-code-annotation="4">Handle different possible responses</span>
+<span data-code-cell="annotated-cell-22" data-code-lines="15,29" data-code-annotation="4">Handle different possible responses</span>
 </dd>
 </dl>
 </div>
@@ -1835,7 +1830,7 @@ graph TD
 graph TB
     subgraph Py["Python Philosophy"]
         A("&lt;strong&gt;Explicit over&lt;br&gt;Implicit&lt;/strong&gt;") --&gt; A1("Decorators to make&lt;br&gt;behavior clear")
-        A --&gt; A2("Type conversion&lt;br&gt;and error handing&lt;br&gt;are explicit")
+        A --&gt; A2("Type conversion&lt;br&gt;and error handling&lt;br&gt;are explicit")
         A --&gt; A4("Method calls&lt;br&gt;with parentheses")
     end
 
@@ -1855,7 +1850,13 @@ graph TB
 </section>
 <section id="verify" class="level2">
 <h2 class="anchored" data-anchor-id="verify">Verify</h2>
-<p>Now when we launch the app, a preview of the parameters are in the list/JSON format we created them in:</p>
+<p>Keep the API running in its own Terminal. In a third Terminal, move into the app folder, activate its virtual environment, and run the app with <code>shiny run</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> _labs/lab03/Python/app</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .env/bin/activate</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="ex">shiny</span> run app-api.py <span class="at">--host</span> 127.0.0.1 <span class="at">--port</span> 3000 <span class="at">--reload</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now when we open the app at <a href="http://127.0.0.1:3000" class="uri">http://127.0.0.1:3000</a>, a preview of the parameters are in the list/JSON format we created them in:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
@@ -1866,7 +1867,7 @@ graph TB
 <figcaption>Parameters as JSON</figcaption>
 </figure>
 </div>
-<p>When we click <strong>Predict</strong>, we see notifications and the value is returned:</p>
+<p>When we click <strong>Predict</strong>, the <strong>Predicted Mass</strong> card shows the value returned by the API (the <strong>API Connection</strong> card above it confirms the <code>ping</code>):</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
@@ -1879,28 +1880,29 @@ graph TB
 </div>
 <section id="back-in-the-api" class="level3">
 <h3 class="anchored" data-anchor-id="back-in-the-api">Back in the API</h3>
-<p>If we return to the FastAPI UI, we can click on <strong>POST / predict</strong>, <strong>TRY</strong>, then change the JSON values to match our parameters in the app, and click <strong>Execute</strong>:</p>
+<p>If we return to the Vetiver page (<a href="http://127.0.0.1:8080/" class="uri">http://127.0.0.1:8080/</a>), we can scroll to <strong>Predict</strong> and look at the example in the <strong>REQUEST BODY</strong>. The example is the prototype row (a male Gentoo with a 45 mm bill):</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab3-py-fast-req-body.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="FastAPI request body"><img src="img/lab3-py-fast-req-body.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="FastAPI request body"></a></p>
+<p><a href="img/lab3-py-fast-req-body.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Vetiver request body"><img src="img/lab3-py-fast-req-body.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Vetiver request body"></a></p>
 </figure>
 </div>
-<figcaption><code>FastAPI</code> request body</figcaption>
+<figcaption>Vetiver request body</figcaption>
 </figure>
 </div>
-<p>And we can compare the response to the value we saw in the app:</p>
+<p>Clicking <strong>TRY</strong> sends the example, and the response is about 5275.7 grams:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="img/lab3-py-fast-resp-body.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="FastAPI response"><img src="img/lab3-py-fast-resp-body.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="FastAPI response"></a></p>
+<p><a href="img/lab3-py-fast-resp-body.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Vetiver response"><img src="img/lab3-py-fast-resp-body.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%" alt="Vetiver response"></a></p>
 </figure>
 </div>
-<figcaption><code>FastAPI</code> response</figcaption>
+<figcaption>Vetiver response</figcaption>
 </figure>
 </div>
+<p>To compare with the app, change <code>species_Gentoo</code> to <code>0</code> (an Adelie, like the app’s inputs) and click <strong>TRY</strong> again. The response should match the app’s 4180.8 grams.</p>
 <p>A diagram of the user inputs (i.e., the <strong>Predict</strong> button), reactives, and the API request is below:</p>
 <div class="cell" data-fig-width="7" data-layout-align="center">
 <div class="cell-output-display">
@@ -1917,17 +1919,17 @@ sequenceDiagram
     
     Note over Shiny: User enters:&lt;br&gt;Bill=45mm,&lt;br&gt;Species=Gentoo,&lt;br&gt;Sex=Male
     
-    Shiny-&gt;&gt;API: POST /predict&lt;br&gt;{"bill_length_mm": 45.0,&lt;br&gt;"species_Gentoo": 1,&lt;br&gt;"sex_male": 1}
+    Shiny-&gt;&gt;API: POST /predict&lt;br&gt;[{"bill_length_mm": 45,&lt;br&gt;"species_Chinstrap": 0,&lt;br&gt;"species_Gentoo": 1,&lt;br&gt;"sex_male": 1}]
     
     API-&gt;&gt;Vetiver: Validate data
     
     Vetiver-&gt;&gt;Vetiver: Run ML prediction
     
-    Vetiver--&gt;&gt;API: Prediction: 4500.0 grams
+    Vetiver--&gt;&gt;API: Prediction: 5275.66 grams
     
-    API--&gt;&gt;Shiny: {"pred": [4500.0]}
+    API--&gt;&gt;Shiny: {"predict": [5275.66...]}
     
-    Note over Shiny: Display:&lt;br&gt;"4500.0 grams"
+    Note over Shiny: Display:&lt;br&gt;"5275.7 grams"
 
 </pre>
 </div>
@@ -1939,32 +1941,13 @@ sequenceDiagram
 </section>
 <section id="finishing-touches" class="level2">
 <h2 class="anchored" data-anchor-id="finishing-touches">Finishing touches</h2>
-<p>To keep the Python environments in each directory self-contained and reproducible, we will ‘freeze’ the dependencies in a <code>requirements.txt</code> in each folder.</p>
+<p>To keep the Python environments in each directory self-contained and reproducible, we will save the dependencies with <code>pip freeze</code> in a <code>requirements.txt</code> in each folder.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> freeze <span class="op">&gt;</span> requirements.txt</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> requirements.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> freeze <span class="op">&gt;</span> requirements.txt</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> requirements.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="pythonapi-files" class="level3">
 <h3 class="anchored" data-anchor-id="pythonapi-files"><code>Python/api/</code> files</h3>
-<div style="font-style: italic;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>├── .env</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>│   ├── bin</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>│   ├── include</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>│   ├── lib</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>│   ├── pyvenv.cfg</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>│   └── share</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>├── .Rhistory</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>├── api.Rproj</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>├── mod-api.py</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>└── requirements.txt</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>6 directories, 7 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
-<section id="pythonapp-files" class="level3">
-<h3 class="anchored" data-anchor-id="pythonapp-files"><code>Python/app/</code> files</h3>
 <div style="font-style: italic;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>├── .env</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>│   ├── bin</span>
@@ -1974,12 +1957,31 @@ sequenceDiagram
 <span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>│   └── share</span>
 <span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>├── .Rhistory</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>├── app-api.py</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>├── app.Rproj</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>├── api.Rproj</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>├── mod-api.py</span>
 <span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
 <span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>└── requirements.txt</span>
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>6 directories, 7 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="pythonapp-files" class="level3">
+<h3 class="anchored" data-anchor-id="pythonapp-files"><code>Python/app/</code> files</h3>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>├── .env</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>│   ├── bin</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>│   ├── include</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>│   ├── lib</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>│   ├── pyvenv.cfg</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>│   └── share</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>├── .gitignore</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>├── .Rhistory</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>├── app-api.py</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>├── app.Rproj</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>└── requirements.txt</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>6 directories, 7 files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>

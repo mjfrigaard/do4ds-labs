@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Accessibility – DO4DS: Lab Solutions</title>
@@ -27,6 +27,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -51,8 +86,8 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -80,6 +115,10 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<meta name="mermaid-theme" content="default">
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -659,8 +698,34 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#what-were-building" id="toc-what-were-building" class="nav-link active" data-scroll-target="#what-were-building">What we’re building</a></li>
+  <li><a href="#logging-into-the-instance" id="toc-logging-into-the-instance" class="nav-link" data-scroll-target="#logging-into-the-instance">Logging into the instance</a></li>
+  <li><a href="#a-user-to-log-in-with" id="toc-a-user-to-log-in-with" class="nav-link" data-scroll-target="#a-user-to-log-in-with">A user to log in with</a></li>
+  <li><a href="#installing-rstudio-server" id="toc-installing-rstudio-server" class="nav-link" data-scroll-target="#installing-rstudio-server">Installing RStudio Server</a>
+  <ul>
+  <li><a href="#keeping-rstudio-server-private" id="toc-keeping-rstudio-server-private" class="nav-link" data-scroll-target="#keeping-rstudio-server-private">Keeping RStudio Server private</a></li>
+  </ul></li>
+  <li><a href="#installing-jupyterhub" id="toc-installing-jupyterhub" class="nav-link" data-scroll-target="#installing-jupyterhub">Installing JupyterHub</a>
+  <ul>
+  <li><a href="#configuring-jupyterhub" id="toc-configuring-jupyterhub" class="nav-link" data-scroll-target="#configuring-jupyterhub">Configuring JupyterHub</a></li>
+  <li><a href="#running-jupyterhub-as-a-service" id="toc-running-jupyterhub-as-a-service" class="nav-link" data-scroll-target="#running-jupyterhub-as-a-service">Running JupyterHub as a service</a></li>
+  </ul></li>
+  <li><a href="#configuring-nginx" id="toc-configuring-nginx" class="nav-link" data-scroll-target="#configuring-nginx">Configuring nginx</a>
+  <ul>
+  <li><a href="#the-websocket-map" id="toc-the-websocket-map" class="nav-link" data-scroll-target="#the-websocket-map">The WebSocket map</a></li>
+  <li><a href="#the-three-locations" id="toc-the-three-locations" class="nav-link" data-scroll-target="#the-three-locations">The three locations</a></li>
+  <li><a href="#testing-and-starting-nginx" id="toc-testing-and-starting-nginx" class="nav-link" data-scroll-target="#testing-and-starting-nginx">Testing and starting nginx</a></li>
+  </ul></li>
+  <li><a href="#opening-port-80" id="toc-opening-port-80" class="nav-link" data-scroll-target="#opening-port-80">Opening port 80</a></li>
+  <li><a href="#trying-it-out" id="toc-trying-it-out" class="nav-link" data-scroll-target="#trying-it-out">Trying it out</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1">
@@ -679,7 +744,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -709,8 +774,343 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>How do we reach RStudio Server, JupyterHub, and <code>baseball-trajectory</code> on the same instance without opening a port for each one? The answer from <a href="./lab12.html">Lab 12</a> is a proxy. In this chapter we install the two new services, keep every port but <code>80</code> closed to the outside, and put <code>nginx</code> in front. RStudio Server lives at <code>/rstudio</code>, JupyterHub at <code>/jupyter</code>, and the app from <a href="./install-real-app.html">Installing a Real Application</a> at <code>/trajectory</code>.</p>
+<section id="what-were-building" class="level2">
+<h2 class="anchored" data-anchor-id="what-were-building">What we’re building</h2>
+<p>Only port <code>80</code> opens in the security group. <code>nginx</code> listens there and reads the path of each request. It forwards <code>/rstudio/</code> to RStudio Server on <code>8787</code>, <code>/jupyter/</code> to JupyterHub on <code>8001</code>, and <code>/trajectory/</code> to the app on <code>8000</code>. Everything else gets the <code>nginx</code> welcome page:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+flowchart TD
+    Browser(["&lt;strong&gt;Browser&lt;/strong&gt;"])
+    SG{"Security group&lt;br/&gt;&lt;em&gt;port 80 from our IP&lt;/em&gt;"}
+    subgraph Instance["&lt;strong&gt;EC2 instance&lt;/strong&gt;"]
+        Nginx("&lt;strong&gt;nginx&lt;/strong&gt;&lt;br/&gt;:80")
+        Welcome("Welcome page&lt;br/&gt;&lt;code&gt;/&lt;/code&gt;")
+        RS("&lt;strong&gt;RStudio Server&lt;/strong&gt;&lt;br/&gt;127.0.0.1:8787")
+        JH("&lt;strong&gt;JupyterHub&lt;/strong&gt;&lt;br/&gt;127.0.0.1:8001")
+        App("&lt;strong&gt;baseball-trajectory&lt;/strong&gt;&lt;br/&gt;127.0.0.1:8000")
+    end
+
+    Browser --&gt; SG --&gt; Nginx
+    Nginx --"&lt;code&gt;/&lt;/code&gt;"--&gt; Welcome
+    Nginx --"&lt;code&gt;/rstudio/&lt;/code&gt;"--&gt; RS
+    Nginx --"&lt;code&gt;/jupyter/&lt;/code&gt;"--&gt; JH
+    Nginx --"&lt;code&gt;/trajectory/&lt;/code&gt;"--&gt; App
+
+    style Browser fill:#E8A33D,stroke:#000,stroke-width:1px,color:#000
+    style SG fill:#D2562B,stroke:#fff,stroke-width:1px,color:#fff
+    style Nginx fill:#2A6F77,stroke:#fff,stroke-width:1px,color:#fff
+    style Welcome fill:#666,stroke:#999,stroke-width:1px,color:#fff
+    style RS fill:#1B2A41,stroke:#fff,stroke-width:1px,color:#fff
+    style JH fill:#1B2A41,stroke:#fff,stroke-width:1px,color:#fff
+    style App fill:#5B8C5A,stroke:#fff,stroke-width:1px,color:#fff
+</pre>
+</div>
+<p></p><figcaption> One Port, Four Destinations</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p><code>baseball-trajectory</code> already holds <code>8000</code>, and JupyterHub uses <code>8000</code> by default. JupyterHub moves to <code>8001</code> so both can run. In <a href="./install-real-app.html#viewing-the-app">Installing a Real Application</a> only we could see the app, through an SSH tunnel; here anyone the security group allows can reach it. <a href="./configure-ssl.html">Configure SSL</a> later moves it to <code>443</code>.</p>
+</section>
+<section id="logging-into-the-instance" class="level2">
+<h2 class="anchored" data-anchor-id="logging-into-the-instance">Logging into the instance</h2>
+<p>We use the same AL2023 instance from <a href="./instance-size.html">Instance Size</a>. It already has R 4.6.1 (from <code>rig</code>) and Python 3.12.1 in <code>/opt</code>. Start it, look up the new IP, and connect the same way as in <a href="./install-real-app.html#logging-into-the-instance">Installing a Real Application</a>, or with <code>awsdev</code> from <a href="./ssh-config.html">SSH config</a>.</p>
+<p>The instance is a <code>t3.small</code>, which we kept for this chapter (see <a href="./instance-size.html#staying-on-a-t3.small">Staying on a <code>t3.small</code></a>). RStudio Server and JupyterHub add two more services that need memory, so check what’s free before we start:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: free -h -->
+</section>
+<section id="a-user-to-log-in-with" class="level2">
+<h2 class="anchored" data-anchor-id="a-user-to-log-in-with">A user to log in with</h2>
+<p>RStudio Server and JupyterHub both log users in with their Linux username and password. <code>ec2-user</code> has no password (we log in with a key), so create a user for the lab and give it one:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> useradd <span class="at">-m</span> datasci</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> passwd datasci</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: sudo passwd datasci (no password shown) -->
+<p><code>-m</code> creates <code>/home/datasci</code>, which both services need for the user’s files and sessions.</p>
+</section>
+<section id="installing-rstudio-server" class="level2">
+<h2 class="anchored" data-anchor-id="installing-rstudio-server">Installing RStudio Server</h2>
+<p>Posit doesn’t build RStudio Server for Amazon Linux. We use the RHEL 9 package, for the same reason <code>rig</code> could use the RHEL 9 build of R: AL2023 is close enough to RHEL 9. Copy the current RHEL 9 download link from the <a href="https://posit.co/download/rstudio-server/">RStudio Server download page</a> and download it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-LO</span> https://download2.rstudio.org/server/rhel9/x86_64/rstudio-server-rhel-VERSION-x86_64.rpm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- TODO: replace VERSION with the version downloaded -->
+<p><code>dnf</code> installs the package and the libraries it depends on:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> ./rstudio-server-rhel-VERSION-x86_64.rpm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: last lines of the dnf install (ending in Complete!) -->
+<p>The package installs a <code>systemd</code> unit and starts it. Check that it’s running:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status rstudio-server</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: systemctl status rstudio-server (first 5 lines) -->
+<section id="keeping-rstudio-server-private" class="level3">
+<h3 class="anchored" data-anchor-id="keeping-rstudio-server-private">Keeping RStudio Server private</h3>
+<p>RStudio Server listens on every address by default. We want it reachable only through <code>nginx</code>, the same way <code>baseball-trajectory</code> binds to <code>127.0.0.1</code>. Open its config file:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/rstudio/rserver.conf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Add one line:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>www-address=127.0.0.1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Restart RStudio Server to load the change:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl restart rstudio-server</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We could also set <code>www-root-path=/rstudio</code> here. We don’t need to, because <code>nginx</code> sends the same information in a header (see below).</p>
+</section>
+</section>
+<section id="installing-jupyterhub" class="level2">
+<h2 class="anchored" data-anchor-id="installing-jupyterhub">Installing JupyterHub</h2>
+<p>JupyterHub has two parts. The hub logs users in and starts a notebook server for each one. <code>configurable-http-proxy</code>, a Node.js program, sits in front and routes each user’s traffic to their server. That means JupyterHub needs Node.js as well as Python:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> nodejs npm</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> npm install <span class="at">-g</span> configurable-http-proxy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: npm install output (last lines) -->
+<p><code>npm install -g</code> puts the proxy in <code>/usr/local/bin</code>. Check that it’s on the <code>PATH</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> configurable-http-proxy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: which configurable-http-proxy -->
+<p>The Python side gets its own virtual environment in <code>/opt</code>, built from the <code>/opt</code> Python just like <code>baseball-trajectory</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/python/3.12.1/bin/python3.12 <span class="at">-m</span> venv /opt/jupyterhub/.venv</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/jupyterhub/.venv/bin/pip install jupyterhub jupyterlab</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: pip install output (Successfully installed ... line, trimmed) -->
+<section id="configuring-jupyterhub" class="level3">
+<h3 class="anchored" data-anchor-id="configuring-jupyterhub">Configuring JupyterHub</h3>
+<p>JupyterHub writes a default config file that lists every setting, all commented out. Generate it in <code>/etc/jupyterhub</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /etc/jupyterhub</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /etc/jupyterhub</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> /opt/jupyterhub/.venv/bin/jupyterhub <span class="at">--generate-config</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: --generate-config output -->
+<p>Open the file and add three settings at the top:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/jupyterhub/jupyterhub_config.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-14"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="1">1</button><span id="annotated-cell-14-1" class="code-annotation-target"><a href="#annotated-cell-14-1" aria-hidden="true" tabindex="-1"></a>c.JupyterHub.bind_url = 'http://127.0.0.1:8001/jupyter'</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="2">2</button><span id="annotated-cell-14-2" class="code-annotation-target"><a href="#annotated-cell-14-2" aria-hidden="true" tabindex="-1"></a>c.Spawner.cmd = ['/opt/jupyterhub/.venv/bin/jupyterhub-singleuser']</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-14" data-target-annotation="3">3</button><span id="annotated-cell-14-3" class="code-annotation-target"><a href="#annotated-cell-14-3" aria-hidden="true" tabindex="-1"></a>c.Spawner.default_url = '/lab'</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-14" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-14" data-code-lines="1" data-code-annotation="1">The address, port, and path JupyterHub serves from. <code>127.0.0.1</code> keeps it private, <code>8001</code> avoids <code>baseball-trajectory</code>, and <code>/jupyter</code> matches the path in <code>nginx</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-14" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-14" data-code-lines="2" data-code-annotation="2">The program that starts each user’s notebook server, with its full path into the venv.</span>
+</dd>
+<dt data-target-cell="annotated-cell-14" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-14" data-code-lines="3" data-code-annotation="3">Users land in JupyterLab instead of the classic notebook page.</span>
+</dd>
+</dl>
+<p>The path in <code>bind_url</code> is the setting the chapter warns about. JupyterHub writes its links relative to that path. Without <code>/jupyter</code>, the login page loads but every link on it points at <code>/</code> and gets the <code>nginx</code> welcome page instead.</p>
+</section>
+<section id="running-jupyterhub-as-a-service" class="level3">
+<h3 class="anchored" data-anchor-id="running-jupyterhub-as-a-service">Running JupyterHub as a service</h3>
+<p>JupyterHub doesn’t ship a unit file, so we write one, the same way we did for <code>baseball-trajectory</code> in <a href="./install-real-app.html#the-unit-file">Installing a Real Application</a>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/systemd/system/jupyterhub.service</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-16"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-16-1"><a href="#annotated-cell-16-1" aria-hidden="true" tabindex="-1"></a>[Unit]</span>
+<span id="annotated-cell-16-2"><a href="#annotated-cell-16-2" aria-hidden="true" tabindex="-1"></a>Description=JupyterHub</span>
+<span id="annotated-cell-16-3"><a href="#annotated-cell-16-3" aria-hidden="true" tabindex="-1"></a>After=network.target</span>
+<span id="annotated-cell-16-4"><a href="#annotated-cell-16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-16-5"><a href="#annotated-cell-16-5" aria-hidden="true" tabindex="-1"></a>[Service]</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="1">1</button><span id="annotated-cell-16-6" class="code-annotation-target"><a href="#annotated-cell-16-6" aria-hidden="true" tabindex="-1"></a>User=root</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="2">2</button><span id="annotated-cell-16-7" class="code-annotation-target"><a href="#annotated-cell-16-7" aria-hidden="true" tabindex="-1"></a>Environment="PATH=/opt/jupyterhub/.venv/bin:/usr/local/bin:/usr/bin:/bin"</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-16" data-target-annotation="3">3</button><span id="annotated-cell-16-8" class="code-annotation-target"><a href="#annotated-cell-16-8" aria-hidden="true" tabindex="-1"></a>WorkingDirectory=/etc/jupyterhub</span>
+<span id="annotated-cell-16-9"><a href="#annotated-cell-16-9" aria-hidden="true" tabindex="-1"></a>ExecStart=/opt/jupyterhub/.venv/bin/jupyterhub -f /etc/jupyterhub/jupyterhub_config.py</span>
+<span id="annotated-cell-16-10"><a href="#annotated-cell-16-10" aria-hidden="true" tabindex="-1"></a>Restart=on-failure</span>
+<span id="annotated-cell-16-11"><a href="#annotated-cell-16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-16-12"><a href="#annotated-cell-16-12" aria-hidden="true" tabindex="-1"></a>[Install]</span>
+<span id="annotated-cell-16-13"><a href="#annotated-cell-16-13" aria-hidden="true" tabindex="-1"></a>WantedBy=multi-user.target</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-16" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="6" data-code-annotation="1">The hub runs as <code>root</code> because it has to start each user’s server as that user. This is the opposite of <code>baseball-trajectory</code>, which runs as its own service account.</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="7" data-code-annotation="2">The <code>PATH</code> has to include <code>/usr/local/bin</code>, or the hub can’t find <code>configurable-http-proxy</code>.</span>
+</dd>
+<dt data-target-cell="annotated-cell-16" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-16" data-code-lines="8" data-code-annotation="3">The hub writes its cookie secret and user database here.</span>
+</dd>
+</dl>
+<p>Load the unit, then enable and start it:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> jupyterhub</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status jupyterhub</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: systemctl status jupyterhub (first 10 lines) -->
+</section>
+</section>
+<section id="configuring-nginx" class="level2">
+<h2 class="anchored" data-anchor-id="configuring-nginx">Configuring nginx</h2>
+<p>AL2023’s <code>nginx</code> package already has a <code>server</code> block for port <code>80</code> in <code>/etc/nginx/nginx.conf</code>. It serves the welcome page, and it reads any file in <code>/etc/nginx/default.d/</code>. That means we don’t have to replace <code>nginx.conf</code>, as the chapter does on Ubuntu. We add two small files instead. Install <code>nginx</code> first:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> nginx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: dnf install nginx (last lines) -->
+<p>Confirm the default <code>server</code> block includes <code>default.d</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-n</span> <span class="st">'listen\|default.d'</span> /etc/nginx/nginx.conf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: grep listen/default.d -->
+<section id="the-websocket-map" class="level3">
+<h3 class="anchored" data-anchor-id="the-websocket-map">The WebSocket map</h3>
+<p>RStudio and JupyterLab both keep a WebSocket open to the browser (see <a href="./configure-ssl.html">Configure SSL</a>). <code>nginx</code> only passes it through when the request asks for an upgrade. A <code>map</code> sets that header for us, and it has to live in the <code>http</code> block, which reads every file in <code>conf.d/</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/nginx/conf.d/websocket.conf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>map $http_upgrade $connection_upgrade {</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    default upgrade;</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    ''      close;</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="the-three-locations" class="level3">
+<h3 class="anchored" data-anchor-id="the-three-locations">The three locations</h3>
+<p>The <code>location</code> blocks go in <code>default.d/</code>, so they join the existing port <code>80</code> server:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> vim /etc/nginx/default.d/lab12.conf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-23"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><span id="annotated-cell-23-1"><a href="#annotated-cell-23-1" aria-hidden="true" tabindex="-1"></a>location /rstudio/ {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="1">1</button><span id="annotated-cell-23-2" class="code-annotation-target"><a href="#annotated-cell-23-2" aria-hidden="true" tabindex="-1"></a>    rewrite ^/rstudio/(.*)$ /$1 break;</span>
+<span id="annotated-cell-23-3"><a href="#annotated-cell-23-3" aria-hidden="true" tabindex="-1"></a>    proxy_pass http://127.0.0.1:8787;</span>
+<span id="annotated-cell-23-4"><a href="#annotated-cell-23-4" aria-hidden="true" tabindex="-1"></a>    proxy_http_version 1.1;</span>
+<span id="annotated-cell-23-5"><a href="#annotated-cell-23-5" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Upgrade $http_upgrade;</span>
+<span id="annotated-cell-23-6"><a href="#annotated-cell-23-6" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Connection $connection_upgrade;</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="2">2</button><span id="annotated-cell-23-7" class="code-annotation-target"><a href="#annotated-cell-23-7" aria-hidden="true" tabindex="-1"></a>    proxy_read_timeout 20d;</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="3">3</button><span id="annotated-cell-23-8" class="code-annotation-target"><a href="#annotated-cell-23-8" aria-hidden="true" tabindex="-1"></a>    proxy_set_header X-RStudio-Root-Path /rstudio;</span>
+<span id="annotated-cell-23-9"><a href="#annotated-cell-23-9" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Host $host:$server_port;</span>
+<span id="annotated-cell-23-10"><a href="#annotated-cell-23-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="annotated-cell-23-11"><a href="#annotated-cell-23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-23-12"><a href="#annotated-cell-23-12" aria-hidden="true" tabindex="-1"></a>location /jupyter/ {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="4">4</button><span id="annotated-cell-23-13" class="code-annotation-target"><a href="#annotated-cell-23-13" aria-hidden="true" tabindex="-1"></a>    proxy_pass http://127.0.0.1:8001;</span>
+<span id="annotated-cell-23-14"><a href="#annotated-cell-23-14" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Host $host;</span>
+<span id="annotated-cell-23-15"><a href="#annotated-cell-23-15" aria-hidden="true" tabindex="-1"></a>    proxy_set_header X-Real-IP $remote_addr;</span>
+<span id="annotated-cell-23-16"><a href="#annotated-cell-23-16" aria-hidden="true" tabindex="-1"></a>    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span>
+<span id="annotated-cell-23-17"><a href="#annotated-cell-23-17" aria-hidden="true" tabindex="-1"></a>    proxy_set_header X-Forwarded-Proto $scheme;</span>
+<span id="annotated-cell-23-18"><a href="#annotated-cell-23-18" aria-hidden="true" tabindex="-1"></a>    proxy_http_version 1.1;</span>
+<span id="annotated-cell-23-19"><a href="#annotated-cell-23-19" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Upgrade $http_upgrade;</span>
+<span id="annotated-cell-23-20"><a href="#annotated-cell-23-20" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Connection $connection_upgrade;</span>
+<span id="annotated-cell-23-21"><a href="#annotated-cell-23-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="annotated-cell-23-22"><a href="#annotated-cell-23-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-23-23"><a href="#annotated-cell-23-23" aria-hidden="true" tabindex="-1"></a>location /trajectory/ {</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-23" data-target-annotation="5">5</button><span id="annotated-cell-23-24" class="code-annotation-target"><a href="#annotated-cell-23-24" aria-hidden="true" tabindex="-1"></a>    proxy_pass http://127.0.0.1:8000/;</span>
+<span id="annotated-cell-23-25"><a href="#annotated-cell-23-25" aria-hidden="true" tabindex="-1"></a>    proxy_http_version 1.1;</span>
+<span id="annotated-cell-23-26"><a href="#annotated-cell-23-26" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Upgrade $http_upgrade;</span>
+<span id="annotated-cell-23-27"><a href="#annotated-cell-23-27" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Connection $connection_upgrade;</span>
+<span id="annotated-cell-23-28"><a href="#annotated-cell-23-28" aria-hidden="true" tabindex="-1"></a>    proxy_set_header Host $host;</span>
+<span id="annotated-cell-23-29"><a href="#annotated-cell-23-29" aria-hidden="true" tabindex="-1"></a>}</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-hidden code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-23" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="2" data-code-annotation="1">RStudio Server expects paths that start at <code>/</code>, so <code>nginx</code> strips <code>/rstudio</code> before passing the request on.</span>
+</dd>
+<dt data-target-cell="annotated-cell-23" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="7" data-code-annotation="2">Keeps an idle RStudio session’s connection open instead of dropping it after 60 seconds.</span>
+</dd>
+<dt data-target-cell="annotated-cell-23" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="8" data-code-annotation="3">Tells RStudio Server it lives at <code>/rstudio</code>, so the links it writes include the prefix.</span>
+</dd>
+<dt data-target-cell="annotated-cell-23" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="13" data-code-annotation="4">No <code>rewrite</code> here. JupyterHub already serves from <code>/jupyter</code> (its <code>bind_url</code>), so the path passes through unchanged.</span>
+</dd>
+<dt data-target-cell="annotated-cell-23" data-target-annotation="5">5</dt>
+<dd>
+<span data-code-cell="annotated-cell-23" data-code-lines="24" data-code-annotation="5">The trailing <code>/</code> on <code>proxy_pass</code> strips <code>/trajectory/</code> before the request reaches the app. The app thinks it lives at <code>/</code>, and it works because Shiny writes its links relative to the page.</span>
+</dd>
+</dl>
+<p>Each service handles the path its own way. RStudio Server gets the prefix stripped and a header telling it where it lives. JupyterHub keeps the prefix because its own config already expects it. <code>baseball-trajectory</code> gets the prefix stripped and needs nothing else, so its unit file stays as it is.</p>
+</section>
+<section id="testing-and-starting-nginx" class="level3">
+<h3 class="anchored" data-anchor-id="testing-and-starting-nginx">Testing and starting nginx</h3>
+<p><code>nginx -t</code> checks every file for errors before we start the server:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nginx <span class="at">-t</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: sudo nginx -t (syntax is ok / test is successful) -->
+<p>Enable and start <code>nginx</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> nginx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>ss</code> shows every service and the address it listens on. Only <code>nginx</code> should listen on all addresses (<code>0.0.0.0:80</code>); the rest stay on <code>127.0.0.1</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ss <span class="at">-tlnp</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: sudo ss -tlnp (expect nginx :80, rserver :8787, configurable-http-proxy :8001, jupyterhub :8081, shiny :8000, sshd :22) -->
+<p>Before touching the security group, test all three paths from the instance itself. <code>curl -I</code> asks for the headers only:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1/rstudio/</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1/jupyter/</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> http://127.0.0.1/trajectory/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: all three curl -I responses (status line and Location header) -->
+<p>A <code>302</code> is a good sign for the first two. RStudio Server and JupyterHub redirect a visitor who isn’t logged in to their sign in page. The app has no login, so it should answer <code>200 OK</code>, the same as the <code>curl -I</code> in <a href="./install-real-app.html">Installing a Real Application</a>.</p>
+</section>
+</section>
+<section id="opening-port-80" class="level2">
+<h2 class="anchored" data-anchor-id="opening-port-80">Opening port 80</h2>
+<p>From outside, the request still hangs. The security group only allows port <code>22</code>. Add a rule for port <code>80</code> from our local machine:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 authorize-security-group-ingress <span class="dt">\</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--group-name</span> dev-sg <span class="dt">\</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--protocol</span> tcp <span class="at">--port</span> 80 <span class="dt">\</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--cidr</span> YOUR_IP/32 <span class="dt">\</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: authorize-security-group-ingress JSON (Return: true) -->
+<p>The chapter opens port <code>80</code> to everyone (<code>0.0.0.0/0</code>). We limit it to our own IP, the same as the SSH rule. This site is plain HTTP, so the <code>datasci</code> password crosses the internet unencrypted until <a href="./configure-ssl.html">Configure SSL</a> adds HTTPS.</p>
+</section>
+<section id="trying-it-out" class="level2">
+<h2 class="anchored" data-anchor-id="trying-it-out">Trying it out</h2>
+<p>Open <code>http://YOUR_PUBLIC_IP_ADDRESS/</code> in a browser. The <code>nginx</code> welcome page confirms the proxy and the security group work. Then try each path:</p>
+<ul>
+<li><code>http://YOUR_PUBLIC_IP_ADDRESS/rstudio/</code>: RStudio Server’s sign in page. Sign in as <code>datasci</code>.</li>
+<li><code>http://YOUR_PUBLIC_IP_ADDRESS/jupyter/</code>: JupyterHub’s login page. Sign in as <code>datasci</code>, and JupyterLab opens.</li>
+<li><code>http://YOUR_PUBLIC_IP_ADDRESS/trajectory/</code>: <code>baseball-trajectory</code>, with no SSH tunnel this time.</li>
+</ul>
+<!-- SCREENSHOT: RStudio at /rstudio/, JupyterLab at /jupyter/, and the app at /trajectory/ -->
+<p>Type <code>http://</code> in full. Some browsers try <code>https://</code> first, and nothing listens on <code>443</code> yet. Keep the trailing <code>/</code> too, since each <code>location</code> block matches a path that ends in <code>/</code>.</p>
+<p>With both sessions open, check memory again:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free</span> <span class="at">-h</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<!-- OUTPUT: free -h with both sessions running -->
+</section>
+<section id="recap" class="level2">
+<h2 class="anchored" data-anchor-id="recap">Recap</h2>
+<ol type="1">
+<li><p>One open port can serve several services, including the app we could only reach through an SSH tunnel before. <code>nginx</code> listens on <code>80</code> and sends each path to a service that only listens on <code>127.0.0.1</code>.</p></li>
+<li><p>Each service needs to know its path. RStudio Server learns it from the <code>X-RStudio-Root-Path</code> header, and JupyterHub learns it from <code>bind_url</code>. <code>baseball-trajectory</code> never needs to know, because <code>nginx</code> strips the prefix and Shiny’s links are relative.</p></li>
+<li><p>On AL2023, the <code>location</code> blocks go in <code>/etc/nginx/default.d/</code> and the WebSocket <code>map</code> goes in <code>/etc/nginx/conf.d/</code>, so <code>nginx.conf</code> stays untouched.</p></li>
+<li><p>The new security group rule opens port <code>80</code> to our IP only, because plain HTTP sends passwords unencrypted. <a href="./configure-ssl.html">Configure SSL</a> adds HTTPS.</p></li>
+</ol>
 
 
+</section>
 
 </main> <!-- /main -->
 <script>

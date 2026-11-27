@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Installing a Real Application – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -730,6 +730,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#confirming-it-actually-came-up" id="toc-confirming-it-actually-came-up" class="nav-link" data-scroll-target="#confirming-it-actually-came-up">Confirming it actually came up</a></li>
   <li><a href="#fixing-the-matplotlib-cache-warning" id="toc-fixing-the-matplotlib-cache-warning" class="nav-link" data-scroll-target="#fixing-the-matplotlib-cache-warning">Fixing the Matplotlib cache warning</a></li>
   </ul></li>
+  <li><a href="#viewing-the-app" id="toc-viewing-the-app" class="nav-link" data-scroll-target="#viewing-the-app">Viewing the app</a></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -751,7 +752,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -1505,6 +1506,47 @@ Table&nbsp;2: Common <code>vim</code> keys
 <p>The old process (<code>208804</code>) shut down cleanly, and the new one (<code>210169</code>) started with no <code>mkdir -p failed</code> or <code>MPLCONFIGDIR</code> warning between <code>Started</code> and <code>Started server process</code>.</p>
 </section>
 </section>
+<section id="viewing-the-app" class="level2">
+<h2 class="anchored" data-anchor-id="viewing-the-app">Viewing the app</h2>
+<p><code>curl -I</code> proves the app answers, but we still haven’t seen it. The app listens on <code>127.0.0.1</code>, and the security group only opens port <code>22</code>, so a browser on our local machine can’t reach it directly. An SSH tunnel gets around both without opening a port. SSH forwards a port on our local machine through the connection we already use, to a port on the instance:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant B as Browser
+    participant L as ssh&lt;br/&gt;local :8000
+    participant S as sshd&lt;br/&gt;instance :22
+    participant A as app&lt;br/&gt;127.0.0.1:8000
+    B-&gt;&gt;L: GET localhost:8000
+    L-&gt;&gt;S: SSH tunnel
+    S-&gt;&gt;A: GET /
+    A--&gt;&gt;S: 200 OK
+    S--&gt;&gt;L: SSH tunnel
+    L--&gt;&gt;B: the app
+</pre>
+</div>
+<p></p><figcaption> An SSH Tunnel to the App</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Run this from our local machine, not the instance:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-N</span> <span class="at">-L</span> 8000:127.0.0.1:8000 <span class="dt">\</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-i</span> ~/.ssh/aws-dev.pem <span class="at">-o</span> IdentitiesOnly=yes <span class="at">-o</span> IdentityAgent=none <span class="dt">\</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  ec2-user@YOUR_PUBLIC_IP_ADDRESS</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>-L 8000:127.0.0.1:8000</code> reads as local port <code>8000</code>, sent to <code>127.0.0.1:8000</code> as seen from the instance. <code>-N</code> tells SSH not to open a shell, so the terminal sits quietly while the tunnel is open. With the <code>aws-dev</code> entry from <a href="./ssh-config.html">SSH config</a>, the same command is <code>ssh -N -L 8000:127.0.0.1:8000 aws-dev</code>. If something on our local machine already uses <code>8000</code>, pick another local port (<code>-L 8001:127.0.0.1:8000</code>) and use it in the browser.</p>
+<!-- OUTPUT: none expected; note any prompt or error -->
+<p>Now open <code>http://localhost:8000</code> in a browser:</p>
+<!-- SCREENSHOT: baseball-trajectory in the browser through the tunnel -->
+<!-- OUTPUT: the journal line for the request, if shown -->
+<p>The tunnel only works for whoever holds the SSH key, and it closes with <kbd>Ctrl</kbd>+<kbd>C</kbd>. That’s fine for checking our own work. Giving other people access takes a proxy, which <a href="./accessibility.html">Accessibility</a> sets up with <code>nginx</code>.</p>
+</section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
 <ol type="1">
@@ -1514,6 +1556,7 @@ Table&nbsp;2: Common <code>vim</code> keys
 <li><p>The <code>baseball-trajectory</code> unit runs as its own service account (<code>User=</code>), starts from an absolute <code>ExecStart</code> path into the venv, binds to <code>127.0.0.1</code> so only nginx can reach it, and restarts on failure.</p></li>
 <li><p>After <code>systemctl enable --now</code>, confirm with <code>systemctl status</code> (<code>active (running)</code> and <code>enabled</code>) and <code>curl -I http://127.0.0.1:8000</code>, and read <code>journalctl -u baseball-trajectory</code> even when both look fine. Warnings like Matplotlib’s missing home folder only show up there.</p></li>
 <li><p>A service account has no home folder, so anything the app expects to write under <code>~</code> needs a folder of its own. <code>CacheDirectory=</code> creates one with the right owner, and <code>Environment=</code> points the app at it.</p></li>
+<li><p>An SSH tunnel (<code>ssh -N -L 8000:127.0.0.1:8000</code>) shows the app in our own browser without opening a port. Other people reach it through <code>nginx</code>, set up in <a href="./accessibility.html">Accessibility</a>.</p></li>
 </ol>
 
 

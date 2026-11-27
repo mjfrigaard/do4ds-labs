@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-26">
+<meta name="dcterms.date" content="2026-11-27">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Instance Size – DO4DS: Lab Solutions</title>
@@ -86,8 +86,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc37a32f3ee353103a79f59389b7269e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-bf3577d709258090be070a116ed1ba13.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9f4d274a4e7f1b37f753c200113fea25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-f0f5794e0ffe979a8df4889c6f094031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -708,7 +708,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2-change-the-instance-type-and-bring-it-back" id="toc-step-2-change-the-instance-type-and-bring-it-back" class="nav-link" data-scroll-target="#step-2-change-the-instance-type-and-bring-it-back">Step 2: Change the instance type and bring it back</a></li>
   <li><a href="#step-3-confirm-the-new-server-size" id="toc-step-3-confirm-the-new-server-size" class="nav-link" data-scroll-target="#step-3-confirm-the-new-server-size">Step 3: Confirm the new server size</a></li>
   <li><a href="#step-4-upgrade-storage-maybe" id="toc-step-4-upgrade-storage-maybe" class="nav-link" data-scroll-target="#step-4-upgrade-storage-maybe">Step 4: Upgrade storage (maybe)</a></li>
-  <li><a href="#sizing-back-down" id="toc-sizing-back-down" class="nav-link" data-scroll-target="#sizing-back-down">Sizing back down</a></li>
+  <li><a href="#staying-on-a-t3.small" id="toc-staying-on-a-t3.small" class="nav-link" data-scroll-target="#staying-on-a-t3.small">Staying on a <code>t3.small</code></a>
+  <ul>
+  <li><a href="#sizing-back-down-later" id="toc-sizing-back-down-later" class="nav-link" data-scroll-target="#sizing-back-down-later">Sizing back down later</a></li>
+  </ul></li>
   <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap">Recap</a></li>
   </ul>
 </nav>
@@ -730,7 +733,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-26</p>
+      <p class="date">2026-11-27</p>
     </div>
   </div>
   
@@ -966,7 +969,7 @@ flowchart TD
 <span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The instance gets a new public IP when it starts, so <code>HostName</code> in <code>~/.ssh/config</code> is now stale. <code>awsdev</code> looks up the new address for us.</p>
-<p>A larger type costs more for every hour it runs. To go back, we repeat these commands with <code>t3.micro</code> once we’re done.</p>
+<p>A larger type costs more for every hour it runs. We keep the <code>t3.small</code> anyway, for reasons covered in <a href="#staying-on-a-t3.small">Staying on a <code>t3.small</code></a>.</p>
 </section>
 <section id="step-3-confirm-the-new-server-size" class="level2">
 <h2 class="anchored" data-anchor-id="step-3-confirm-the-new-server-size">Step 3: Confirm the new server size</h2>
@@ -1078,18 +1081,52 @@ flowchart TD
 </div>
 <p>The root filesystem went from 8.0G (62% used) to 16G (31% used), and the instance never stopped.</p>
 </section>
-<section id="sizing-back-down" class="level2">
-<h2 class="anchored" data-anchor-id="sizing-back-down">Sizing back down</h2>
-<p>A bigger instance costs more for every hour it runs, so once the extra memory has done its job we go back to <code>t3.micro</code>. The commands below run from our local machine and use the <code>INSTANCE_ID</code> shell variable from Step 2. If the terminal has closed since then, rerun the lookup from Step 2 first. Then we repeat the Step 2 commands with the original type:</p>
+<section id="staying-on-a-t3.small" class="level2">
+<h2 class="anchored" data-anchor-id="staying-on-a-t3.small">Staying on a <code>t3.small</code></h2>
+<p>Should we go back to the <code>t3.micro</code> now? Not for this book. The labs ahead add services to the same instance, and each one stays in memory the whole time it runs:</p>
+<div class="cell" data-fig-width="7" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+
+<pre class="mermaid mermaid-js">%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'monospace', 'fontSize':'16px', 'lineColor':'#999999', 'cScale0':'#5B8C5A', 'cScale1':'#2A6F77', 'cScale2':'#1B2A41', 'cScaleLabel0':'#ffffff', 'cScaleLabel1':'#ffffff', 'cScaleLabel2':'#ffffff'}}}%%
+
+timeline
+    Lab 10 : baseball-trajectory
+    Lab 12 : nginx
+           : RStudio Server
+           : JupyterHub
+    Lab 14 : nginx adds HTTPS
+</pre>
+</div>
+<p></p><figcaption> Services on the Instance, Lab by Lab</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<p>Step 1 showed only 377Mi <code>available</code> on the <code>t3.micro</code> with just <code>baseball-trajectory</code> running. <a href="./accessibility.html">Accessibility</a> adds RStudio Server and JupyterHub, and every user who signs in starts an R or Python session of their own. Swap won’t cover that, because the services run all day, not once. This is the ongoing need from the first diagram, and the instance type is the fix for it.</p>
+<p>A <code>t3.small</code> costs twice as much per hour as a <code>t3.micro</code>. A stopped instance costs nothing for its hours (the EBS volume still bills), so stopping it between sessions saves more than sizing down.</p>
+<section id="sizing-back-down-later" class="level3">
+<h3 class="anchored" data-anchor-id="sizing-back-down-later">Sizing back down later</h3>
+<p>When the instance only runs <code>baseball-trajectory</code> again, we can go back to a <code>t3.micro</code>. The commands below run from our local machine and use the <code>INSTANCE_ID</code> shell variable from Step 2. If the terminal has closed since then, rerun the lookup from Step 2 first. Then we repeat the Step 2 commands with the original type:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 stop-instances <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 wait instance-stopped <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 modify-instance-attribute <span class="at">--instance-id</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> <span class="st">'{"Value": "t3.micro"}'</span> <span class="at">--profile</span> dev-deploy</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 wait instance-running <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 stop-instances <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 wait instance-stopped <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 modify-instance-attribute <span class="at">--instance-id</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--instance-type</span> <span class="st">'{"Value": "t3.micro"}'</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 start-instances <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ec2 wait instance-running <span class="at">--instance-ids</span> <span class="st">"</span><span class="va">$INSTANCE_ID</span><span class="st">"</span> <span class="at">--profile</span> dev-deploy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The larger EBS volume from Step 4 stays at its new size; only the instance type changes.</p>
+</section>
 </section>
 <section id="recap" class="level2">
 <h2 class="anchored" data-anchor-id="recap">Recap</h2>
@@ -1097,7 +1134,7 @@ flowchart TD
 <li><p>Swap space lets a memory hungry, one time job (like compiling from source) finish on a small instance. It’s slower than RAM, and the swap file only lasts until the next reboot.</p></li>
 <li><p>Changing the instance type takes a stop and a start, and the instance comes back with a new public IP. Going from <code>t3.micro</code> to <code>t3.small</code> raised RAM from 911Mi to 1.9Gi; the CPU stayed at 2 vCPUs (one core, two threads).</p></li>
 <li><p>Storage belongs to the EBS volume, not the instance type. The volume can grow while the instance runs (<code>modify-volume</code>, <code>growpart</code>, <code>xfs_growfs</code>), but it can never shrink.</p></li>
-<li><p>A larger instance type costs more for every hour it runs, so we size back down when the work is done. A larger volume costs more every month, whether the instance runs or not.</p></li>
+<li><p>We stay on the <code>t3.small</code> because the labs ahead keep RStudio Server and JupyterHub running next to the app. It costs twice as much per hour, so stopping the instance between sessions matters more than its size. A larger volume costs more every month, whether the instance runs or not.</p></li>
 </ol>
 
 
