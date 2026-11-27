@@ -84,7 +84,7 @@ server <- function(input, output, session) {
       error_msg <- conditionMessage(e)
 
       if (grepl("Connection refused|couldn't connect", error_msg, ignore.case = TRUE)) {
-        user_msg <- "API not available - is the server running on port 8080?"
+        user_msg <- "API not available - is the server running on port 8081?"
       } else if (grepl("timeout|timed out", error_msg, ignore.case = TRUE)) {
         user_msg <- "Request timed out - API may be overloaded"
       } else {
