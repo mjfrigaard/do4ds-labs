@@ -22,19 +22,18 @@ co_box(
 )
 ```
 
-In this solution we'll rebuild the lab 3 API with the [`plumber`](https://www.rplumber.io/) package and write our own handler functions instead of letting `vetiver_api()` generate the endpoints. The main changes from [lab 3](lab03.qmd) are:
+The [R App & API](r-app-api.qmd) chapter served our model with `vetiver_api()`, which generates the endpoints for us. In this chapter we'll rebuild that API with the [`plumber`](https://www.rplumber.io/) package and write our own handler functions instead. The main changes from [lab 3](lab03.qmd) are:
 
 * `prep_pred_data()`: a helper that converts the `species` and `sex` strings from JSON into factors.
 * `/predict-validated`: an endpoint that checks every field and returns a `400` error for invalid input.
 * `/predict-batch`: an endpoint that accepts arrays and returns one prediction per row.
 
-Install the development version of `plumber`:
+Install `plumber` from CRAN (the `renv.lock` file in `api/` pins version 1.3.3):
 
 ```{r}
 #| eval: false
 #| code-fold: false
-install.packages('pak')
-pak::pkg_install("rstudio/plumber")
+install.packages("plumber")
 ```
 
 
@@ -82,7 +81,7 @@ The process involves three steps:
 
 ## Overview
 
-This architecture is comprised of three scripts in two folders:
+This architecture uses three scripts in two folders (`mod-api.R` is the `vetiver_api()` version of the API from [R App & API](r-app-api.qmd)):
 
 **`api/`**
 
@@ -221,9 +220,11 @@ graph LR
   
 ```
 
+#### Pin files
+
 Running `model.R` creates the `models/` directory and the `duckdb` database file:[^models-folder] 
 
-[^models-folder]: If you run this on your machine your folder will look slightly different because of the timestamp and random ID. 
+[^models-folder]: If you run this on your machine your folder name will be different, because the version name comes from the time the pin was written and the pin's hash. 
 
 ::: {style="font-style: italic;"}
 
@@ -237,8 +238,8 @@ Running `model.R` creates the `models/` directory and the `duckdb` database file
 ```
 1. `models/` directory for the model  
 2. Local `duckdb` database   
-3. The name of the model board (i.e., board subfolder)
-4. Version timestamp + random ID    
+3. The pin name (the `model_name` from `vetiver_model()`)
+4. Version: a timestamp plus the first five characters of the pin hash    
 5. The `data.txt` file contains metadata about the pin    
 6. `penguin_model.rds` is the serialized vetiver model    
 
@@ -246,7 +247,7 @@ Running `model.R` creates the `models/` directory and the `duckdb` database file
 
 
 
-`models` includes a `model_name` from `vetiver_model()`, and we've add a `description` to accompany the metadata. `data.txt` stores metadata on the model: 
+The `penguin_model/` folder takes its name from the `model_name` in `vetiver_model()`, and we've added a `description` to accompany the metadata. `data.txt` stores metadata on the model: 
 
 ```{r}
 #| eval: false 
@@ -301,7 +302,7 @@ v$model
 #          2169.27             32.54           -298.77           1094.87            547.37 
 ```
 
-If we dig a little deeper, we can see `lm()` object with coefficients, residuals, etc.
+If we dig a little deeper, we can see the `lm()` object with its coefficients, residuals, and other components.
 
 ```{r}
 #| eval: false 
@@ -385,7 +386,7 @@ v <- vetiver::vetiver_pin_read(model_board, "penguin_model") #<3>
 
 ### Prepare prediction data 
 
-When R builds a linear model using categorical variables, it will convert these values to factors. However, JSON doesn't have factors -- only strings. The `prep_pred_data()` function bridges the gap by converting `species` and `sex` to factors. 
+When R builds a linear model using categorical variables, it will convert these values to factors. However, JSON doesn't have factors; it only has strings. The `prep_pred_data()` function bridges the gap by converting `species` and `sex` to factors. 
 
 ```{r}
 #| eval: false 
@@ -450,7 +451,7 @@ The first two plumber functions in our `plumber.R` file are for checking the hea
 
 ##### **`/ping`**
 
-The first function is simple health check--it sends a `ping` to see if the API is running: 
+The first function is a simple health check that confirms the API is running: 
 
 ```{r}
 #| eval: false 
@@ -473,15 +474,17 @@ handle_ping <- function() {
 }
 ```
 
-This can be used to ensure API is up. We can test this from the Terminal with `curl`:
+We can test the endpoint from the Terminal with `curl`:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8080/ping
 ```
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "status": [
     "alive"
@@ -524,13 +527,15 @@ handle_health <- function() {
 
 This is useful for monitoring and debugging. Below is an example using `curl`.
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8080/health
 ```
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "status": [
     "healthy"
@@ -593,7 +598,9 @@ handle_model_prototype <- function() {
 
 This is useful for clients to understand what data to send. Below is an example of `handle_model_prototype()` using `curl`:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8080/model-prototype
 ```
 
@@ -604,7 +611,7 @@ We can see the response includes `prototype` and `model_class`:
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "prototype": {
     "bill_length_mm": [
@@ -672,7 +679,9 @@ handle_model_info <- function() {
 
 Below is an example using `curl`: 
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8080/model-info
 ```
 
@@ -683,7 +692,7 @@ We can see this returns the model name, class, version, and description.
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "model_name": [
     "penguin_model"
@@ -756,7 +765,9 @@ handle_input_schema <- function() {
 
 When we use `curl`, we can see the response includes `required_fields` and the `example`:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8080/input-schema
 ```
 
@@ -765,7 +776,7 @@ curl http://127.0.0.1:8080/input-schema
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "required_fields": {
     "bill_length_mm": {
@@ -826,7 +837,7 @@ curl http://127.0.0.1:8080/input-schema
 
 #### Predictions
 
-The primary prediction endpoint is stored in the `handle_predict()`. I've also included functions performing predictions with input validation and more than one prediction at a time. 
+The last three handlers make predictions. I've included one for a single prediction, one with input validation, and one for more than one prediction at a time. 
 
 ##### **`/predict`**
 
@@ -929,7 +940,9 @@ graph TB
 
 In the Terminal, we can send values for bill length, species, and sex using `curl`:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8080/predict \
   -H "Content-Type: application/json" \
   -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
@@ -939,7 +952,7 @@ This returns a simple JSON list with the prediction:
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   ".pred": [
     4180.7965
@@ -1140,7 +1153,9 @@ graph TD
 
 Below is an example of a valid request using the input validation: 
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8080/predict-validated \
   -H "Content-Type: application/json" \
   -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
@@ -1150,7 +1165,7 @@ Below is the validated prediction response.
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "prediction": [
     4180.7965
@@ -1177,9 +1192,11 @@ Below is the validated prediction response.
 
 :::
 
-If we send an invalid `species`, the API will return error:
+If we send an invalid `species`, the API returns an error:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8080/predict-validated \
    -H "Content-Type: application/json" \
    -d '{"bill_length_mm": 45, "species": "Emperor", "sex": "male"}'
@@ -1189,7 +1206,7 @@ We can see the error includes the `provided` incorrect value.
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "error": [
     "Invalid species"
@@ -1209,7 +1226,7 @@ We can see the error includes the `provided` incorrect value.
 
 ##### **`/predict-batch`**
 
-`handle_predict_batch()` lets us send more than one request to the API and receive multiple predictions. This request is slightly different because they must be arrays of the same length. 
+`handle_predict_batch()` lets us send several penguins in one request and receive one prediction for each. The request is slightly different: each field is an array, and the arrays must be the same length. 
 
 ```{r}
 #| eval: false 
@@ -1262,12 +1279,15 @@ handle_predict_batch <- function(req, res) {
 6. Error handling.  
 7. Return prediction.  
 
-Below are three predictions:  
+Below are the inputs for three predictions:
+
 1. `bill_length_mm` = `45`, `species` = `"Adelie"`, `sex` = `"male"`    
 2. `bill_length_mm` = `39`, `species` = `"Adelie"`, `sex` = `"female"`      
 3. `bill_length_mm` = `50`, `species` = `"Gentoo"`, `sex` = `"male"`         
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8080/predict-batch \
    -H "Content-Type: application/json" \
    -d '{
@@ -1277,11 +1297,11 @@ curl -X POST http://127.0.0.1:8080/predict-batch \
    }'
 ```
 
-The response contains the predictions, along the number of predictions sent/returned and the timestamp. 
+The response contains the predictions, along with the number of predictions and the timestamp. 
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "predictions": [
     4180.7965,
@@ -1303,7 +1323,7 @@ The response contains the predictions, along the number of predictions sent/retu
 
 The last bit of code in `plumber.R` builds a router object by registering HTTP endpoint handlers with a functional pipeline. The pipeline starts with `pr()`, which returns a plumber router object. 
 
-The router object is passed to  [`pr_set_api_spec()`](https://www.rplumber.io/reference/pr_set_api_spec.html), which is used to create machine-readable API documentation following the [OpenAPI standard](https://swagger.io/specification/). 
+The router object is passed to [`pr_set_api_spec()`](https://www.rplumber.io/reference/pr_set_api_spec.html), which is used to create machine-readable API documentation following the [OpenAPI standard](https://swagger.io/specification/). 
 
 
 ```{r}
@@ -1318,7 +1338,7 @@ app <- plumber::pr() |>
     spec$info$version <- "1.0.0"
     spec$info$contact <- list(
       name = "API Support",
-      email = "mjfrigaard@pm.me"
+      email = "support@example.com"
     )
     spec$info$license <- list(
       name = "MIT",
@@ -1360,7 +1380,7 @@ Now that we have a router object with specifications, we can add the endpoints.
 
 ### Endpoints
 
-Each `pr_get()` or `pr_post()` call adds a route mapping (URL pattern + HTTP method → handler function) to the router's internal dispatch table. The pipe operator enables a fluent interface for sequential configuration.
+Each `pr_get()` or `pr_post()` call adds a route mapping (URL pattern + HTTP method → handler function) to the router's internal dispatch table. The pipe passes the router from one call to the next, so each call adds one endpoint.
 
 The `GET` and `POST` endpoints are created with `pr_get()` and `pr_post()` and have the following arguments: 
 
@@ -1368,7 +1388,7 @@ The `GET` and `POST` endpoints are created with `pr_get()` and `pr_post()` and h
 
 2. `handler`: the handler function we wrote above. 
 
-3. `serializer`: this function '*translating a generated R value into output that a remote user can understand.*"[^serializer]
+3. `serializer`: the function responsible for "*translating a generated R value into output that a remote user can understand*."[^serializer]
 
 4. `tags`: these are the labels/headers our endpoints are organized under in the API. 
 
@@ -1479,39 +1499,6 @@ app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
 
 Now that the API is running, we can use a Shiny application to send values for penguin bill length, species, and sex and receive predictions. 
 
-```{mermaid}
-%%| fig-cap: 'Handling a /predict Request'
-%%| fig-width: 7.0
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-sequenceDiagram
-    participant Shiny as Shiny App
-    participant Handler as handle_predict()
-    participant Helper as prep_pred_data()
-    participant Model as Linear Model
-
-    Shiny->>Handler: POST /predict<br>{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}
-
-    Note over Handler: i. Parse<br>JSON
-    Handler->>Handler: jsonlite::fromJSON()
-
-    Note over Handler: ii. Validate<br>& Convert
-    Handler->>Helper: prep_pred_data()
-    Helper-->>Handler: data.frame with factors
-
-    Note over Handler: iii. Predict
-    Handler->>Model: predict(v, data)
-    Note over Model: y = β₀ +<br>β₁×bill_length +<br>β₂×species +<br>β₃×sex
-    Model-->>Handler: 4180.797
-
-    Note over Handler: iv. Format<br>response
-    Handler->>Handler: list(.pred = 4180.797)
-
-    Handler-->>Shiny: {"pred": [4180.797]}
-
-```
-
 ## The Shiny App (`app-api.R`)
 
 The `app-api.R` file is a Shiny application that sends user input to the `/predict` endpoint and displays the returned prediction. It lives in the separate `app/` directory.
@@ -1621,7 +1608,7 @@ pred <- reactive({
       httr2::req_perform() |>
       httr2::resp_body_json()
 
-    showNotification("Prediction successful!", type = "default", duration = 10)
+    showNotification("✅ Prediction successful!", type = "default", duration = 10)
 
     response$.pred[[1]]
 
@@ -1642,8 +1629,8 @@ pred <- reactive({
 }) |>
   bindEvent(input$predict, ignoreInit = TRUE)
 ```
-1. `vals()` is assigned to `request_data` before the pipe so any reactive invalidation is captured once.
-2. `auto_unbox = FALSE` sends single values as JSON arrays (e.g., `[45]` not `45`), which the `/predict` handler's `as.data.frame(body)` step handles correctly.
+1. `vals()` is read once and stored in `request_data` before the request is built.
+2. `req_body_json()` sends the one row data frame as a JSON array of row objects (`[{"bill_length_mm":45,"species":"Adelie","sex":"male"}]`). `jsonlite::fromJSON()` in the `/predict` handler parses that array back into a data frame, so `auto_unbox` doesn't change this request.
 
 ### httr2 request/response pipeline
 
@@ -1675,7 +1662,7 @@ graph TD
 |----------|------|
 | `request(url)` | Creates a base request with the target URL |
 | `req_method("POST")` | Sets the HTTP verb |
-| `req_body_json(data, auto_unbox = FALSE)` | Serialises `data` as JSON arrays; sets `Content-Type: application/json` |
+| `req_body_json(data, auto_unbox = FALSE)` | Converts `data` to JSON; sets `Content-Type: application/json` |
 | `req_perform()` | Sends the assembled request; returns a response object |
 | `resp_body_json()` | Parses the JSON response body into an R list |
 
@@ -1723,7 +1710,7 @@ server <- function(input, output) {
         httr2::req_perform() |>
         httr2::resp_body_json()
 
-      showNotification("Prediction successful!", type = "default", duration = 10)
+      showNotification("✅ Prediction successful!", type = "default", duration = 10)
 
       response$.pred[[1]]
 
@@ -1774,12 +1761,12 @@ sequenceDiagram
     participant Helper as prep_pred_data()
     participant Model as Linear Model
 
-    Shiny->>Handler: POST /predict<br>{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}
+    Shiny->>Handler: POST /predict<br>[{"bill_length_mm": 45,<br>"species": "Adelie",<br>"sex": "male"}]
 
     Note over Handler: i. Parse JSON
     Handler->>Handler: jsonlite::fromJSON()
 
-    Note over Handler: ii. Validate<br>& Convert
+    Note over Handler: ii. Convert<br>types
     Handler->>Helper: prep_pred_data()
     Helper-->>Handler: data.frame with factors
 

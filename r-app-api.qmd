@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-In this lab I'll launch a `vetiver` API in one session and send predictions to it from a Shiny app (using `httr2`) in another.
+This chapter builds the R version of [Python App & API](py-app-api.qmd). I'll launch a `vetiver` API in one session and send predictions to it from a Shiny app (using `httr2`) in another.
 
 I isolated development for the R Shiny app and API for lab 3 into separate `app/` and `api/` directories:
 
@@ -36,15 +36,25 @@ fs::dir_tree("_labs/lab03/R", recurse = 1)
 
 ```{verbatim}
 _labs/lab03/R
-├── R.Rproj
 ├── api #<1>
 │   ├── api.Rproj
-│   └── mod-api.R #<1>
+│   ├── mod-api.R 
+│   ├── model.R
+│   ├── models/
+│   ├── my-db.duckdb
+│   ├── README.md
+│   ├── renv
+│   └── renv.lock #<1>
 ├── app #<2>
 │   ├── app-api.R
-│   └── app.Rproj #<2>
+│   ├── app.Rproj
+│   ├── README.md
+│   ├── renv
+│   └── renv.lock #<2>
 ├── eda-db.qmd #<3>
-└── r-data-load.R #<4>
+├── r-data-load.R #<4>
+└── R.Rproj
+
 ```
 1.  `vetiver` model API\
 2.  `shiny` application\
@@ -53,9 +63,74 @@ _labs/lab03/R
 
 :::
 
+## Model
+
+The API reads the model from a `pins` board in `models/`, and that board doesn't exist until we train and pin the model. Open a RStudio/Positron session from [`_labs/lab03/R/api/`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/R/api) and run [`model.R`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab03/R/api/model.R):
+
+```{r}
+#| eval: false
+#| code-fold: false
+source("model.R")
+```
+
+This is the same linear model from [R processing layer](model-vetiver-r.qmd), with three changes: 
+
+1. The query drops rows with missing values and keeps `bill_length_mm` between 30 and 60, so 333 of the 344 rows remain.  
+2. `lm()` takes `species` and `sex` as factors and creates the dummy variables itself (lab 2 built them with `dummy_cols()`).  
+3. As a result, the `vetiver` prototype has three columns, and the API expects `species` and `sex` as strings.
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+Loaded 333 observations from DuckDB
+
+=== Model Training Complete ===
+Formula:
+body_mass_g ~ bill_length_mm + species + sex
+
+Coefficients:
+     (Intercept)   bill_length_mm speciesChinstrap    speciesGentoo 
+      2169.26972         32.53689       -298.76553       1094.86739 
+         sexmale 
+       547.36692 
+===============================
+
+Vetiver prototype (API will expect this format):
+# A tibble: 0 × 3
+# ℹ 3 variables: bill_length_mm <dbl>, species <fct>, sex <fct>
+
+Creating new version '20261127T072151Z-d2aea'
+Writing to pin 'penguin_model'
+✓ Model trained and pinned successfully
+  Model name: penguin_model 
+  Pin location: ./models/penguin_model
+```
+
+:::
+
+The coefficients match lab 2. We can confirm the board exists by listing the `models/` folder:
+
+```{r}
+#| eval: false
+#| code-fold: false
+fs::dir_tree("models")
+```
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+models
+└── penguin_model
+    └── 20261127T072151Z-d2aea
+        ├── data.txt
+        └── penguin_model.rds
+```
+
+:::
+
 ## API
 
-The [`_labs/lab03/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab03/R/api/mod-api.R) contains the following:
+In a RStudio/Positron session opened from [`_labs/lab03/R/api/`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/R/api), the [`mod-api.R` file](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab03/R/api/mod-api.R) contains the following (I've removed the sections that print the model info):
 
 ```{r}
 #| eval: false
@@ -63,14 +138,14 @@ The [`_labs/lab03/R/api/mod-api.R` file](https://github.com/mjfrigaard/do4ds-lab
 library(vetiver)
 library(pins)
 
-# connect to model board
-model_board <- pins::board_folder("../../../lab02/R/models/")
+# connect to lab03 model board ----
+model_board <- pins::board_folder("models/")
 
-# read pinned vetiver model
+# read pinned vetiver model ----
 v <- vetiver::vetiver_pin_read(model_board, "penguin_model")
 
-# use plumber/vetiver to create router/create API
-app <- plumber::pr() |> vetiver::vetiver_api(v)
+# create plumber API ----
+app <- plumber::pr() |> vetiver::vetiver_api(v) 
 ```
 
 ### Start the API
@@ -86,11 +161,11 @@ app |> plumber::pr_run(port = 8080, host = "127.0.0.1")
 
 Now we have a working API! We'll explore the UI in the sections below. Let's launch the app.[^plumber]
 
-[^plumber]: I've also created an updated [`plumber`](plumber.qmd) api in the `plumber.R` file. 
+[^plumber]: I've also created an updated [`plumber`](plumber.qmd) API in the `plumber.R` file. 
 
 ## App
 
-I've made a few changes to the UI layout in `app-api.R`, so when I launched the app in a new RStudio session I see the following:
+Open a separate RStudio/Positron session from [`_labs/lab03/R/app/`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/R/app) and launch the app with `app-api.R`. I've made a few changes to the UI layout, so when I launch the app, I see the following:
 
 ![Launch `app-api.R`](img/lab3-r-shiny-launch.png){fig-align="center" width="100%"}
 
@@ -153,6 +228,8 @@ ui <- page_sidebar(
 )
 ```
 
+### Original error
+
 In the original server, `vals()` returned a `list()` (the full code is in [Original App Code](#original-app-code) at the end of this chapter). With that list, clicking **Predict** produced the following error:
 
 ::: {style="font-style: italic;"}
@@ -176,29 +253,28 @@ Error in `hardhat::validate_column_names()`:
 
 :::
 
-These errors are pretty clear: The `httr2::req_body_json()` function is sending the data as a JSON list, but the `vetiver` API expects a data frame or a matrix structure.
+Both errors point to the same problem. `httr2::req_body_json()` sends the list as a single JSON object, but the `vetiver` API expects a data frame or a matrix.
 
 We can fix this in the application server by changing the format of the values sent to the API.
 
 ### Reactive values
 
-Our error tells us `'data' should be a data frame or a matrix`, so we'll convert `vals()` to a single-row `data.frame` and format the categorical values as numeric (not logical).
+The API error tells us `data` must be a data frame or a matrix. We'll convert `vals()` to a single row `data.frame` with the columns the model was trained on: `bill_length_mm`, `species`, and `sex` (lowercase, to match the factor levels in the data).
 
 ```{r}
 #| eval: false
   vals <- reactive({
     data.frame(
       bill_length_mm = input$bill_length,
-      species_Chinstrap = as.numeric(input$species == "Chinstrap"),
-      species_Gentoo = as.numeric(input$species == "Gentoo"),
-      sex_male = as.numeric(input$sex == "Male")
+      species = input$species,
+      sex = tolower(input$sex)
     )
   })
 ```
 
 ### Predictions
 
-The `pred()` reactive sends `vals()` to the API and returns only `response$.pred[1]`.
+The `pred()` reactive sends `vals()` to the API and returns only `response$.pred[[1]]`.
 
 ```{r}
 #| eval: false
@@ -218,7 +294,7 @@ The `pred()` reactive sends `vals()` to the API and returns only `response$.pred
     showNotification("✅ Prediction successful!", 
                      type = "default", duration = 10)
         
-    response$.pred[1]
+    response$.pred[[1]]
         
     }, error = function(e) {
       error_msg <- conditionMessage(e)
@@ -239,12 +315,33 @@ The `pred()` reactive sends `vals()` to the API and returns only `response$.pred
     bindEvent(input$predict, ignoreInit = TRUE)
 ```
 1. `api_url` is "http://127.0.0.1:8080/predict"   
-2. Converts `vals()/request_data` into a JSON array structure instead of a flat object (which is the format `vetiver` expects)   
+2. `request_data` is a single row data frame, so `req_body_json()` sends it as a JSON array with one object per row (the format `vetiver` expects). `auto_unbox = FALSE` doesn't change the JSON for a data frame.   
 
 
 ### R API Request/Response Flow
 
-The sections below cover the `httr2` functions used in the Shiny API app. 
+The sections below cover the `httr2` functions used in the Shiny API app. The diagram shows how each function hands its result to the next:
+
+```{mermaid}
+%%| fig-cap: 'The httr2 Request Pipeline'
+%%| fig-align: 'center'
+%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
+
+flowchart TD
+    A(["<strong>request()</strong><br>sets the URL"]) --> B("<strong>req_method()</strong><br>sets the verb (POST)")
+    B --> C("<strong>req_body_json()</strong><br>adds vals() as JSON")
+    C --> D("<strong>req_perform()</strong><br>sends the request")
+    D --> E["vetiver API<br>/predict"]
+    E --> F[/"JSON response"/]
+    F --> G("<strong>resp_body_json()</strong><br>parses JSON into an R list")
+    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    style B fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style D fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+    style E fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style F fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
+    style G fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
+```
 
 #### The `request()`
 
@@ -252,7 +349,7 @@ The sections below cover the `httr2` functions used in the Shiny API app.
 
 *   Stores the base URL
 
-*   Sets default HTTP method (`GET`)
+*   Uses `GET` by default (and `POST` once a body is added)
 
 *   Initializes empty headers, query parameters, and body
 
@@ -263,24 +360,6 @@ The sections below cover the `httr2` functions used in the Shiny API app.
 #| code-fold: false
 # creates a base request with URL
 response <- httr2::request(api_url)
-```
-
-```{mermaid}
-%%| fig-cap: 'The request() Object'
-%%| fig-width: 6.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-
-	A(["<strong>request()</strong> URL"]) --> B("Creates base<br>request object")
-
-	B --> C("Contains URL and<br>default settings")
-    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
-    style B fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style C fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
-
-
 ```
 
 #### `req_method()` 
@@ -296,24 +375,6 @@ graph TD
 *   **`PUT`**: Update existing data (body allowed)
 
 *   **`DELETE`**: Remove data (usually no body)
-
-```{mermaid}
-%%| fig-cap: 'Setting the HTTP Method'
-%%| fig-width: 6.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A(["Request Object"]) --> B("<strong>req_method()</strong>")
-	B --> C("Sets HTTP verb")
-	C --> D("GET/POST/PUT/DELETE/PATCH")
-    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
-    style B fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style D fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
-
-
-```
 
 ```{r}
 #| eval: false
@@ -336,35 +397,18 @@ response <- httr2::request(api_url) |>
 
 *   Used primarily with `POST`/`PUT` requests
 
-```{mermaid}
-%%| fig-cap: 'Adding a JSON Body'
-%%| fig-width: 6.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A[/"R Object"/] --> B("<strong>req_body_json()</strong>")
-	B --> C("Converts to JSON")
-	C --> D("Adds to request body")
-    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
-    style B fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style D fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
-
-
-```
-
 ```{r}
 #| eval: false
 #| code-fold: false
 vals <- reactive({
   data.frame(
     bill_length_mm = input$bill_length,
-    species_Chinstrap = as.numeric(input$species == "Chinstrap"),
-    species_Gentoo = as.numeric(input$species == "Gentoo"),
-    sex_male = as.numeric(input$sex == "Male")
+    species = input$species,
+    sex = tolower(input$sex)
   )
 })
+
+request_data <- vals()
 
 response <- httr2::request(api_url) |>
   httr2::req_method("POST") |> # sending data
@@ -383,24 +427,6 @@ What happens:\
 3. Sends HTTP request\
 4. Waits for server response\
 5. Returns response object for processing
-
-```{mermaid}
-%%| fig-cap: 'Performing the Request'
-%%| fig-width: 6.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-	A(["Complete Request<br>Object"]) --> B("<strong>req_perform()</strong>")
-	B --> C("Sends HTTP request")
-	C --> D("Returns response<br>object")
-    style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
-    style B fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-    style C fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-    style D fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-
-
-```
 
 ```{r}
 #| eval: false
@@ -427,24 +453,6 @@ response <- httr2::request(api_url) |>
 
 * Automatically converts data types (numbers, booleans, strings)
 
-```{mermaid}
-%%| fig-cap: 'Parsing the JSON Response'
-%%| fig-width: 6.5
-%%| fig-align: 'center'
-%%{init: {'theme': 'base', 'look': 'classic', 'themeVariables': {'fontFamily': 'monospace'}}}%%
-
-graph TD
-      A[/"JSON Response Body"/] --> B("<strong>resp_body_json()</strong>")
-      B --> C("Parses JSON to R objects")
-      C --> D("Lists, data.frames, etc.")
-    style A fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style B fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-    style C fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
-    style D fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
-
-
-```
-
 ```{r}
 #| eval: false
 #| code-fold: false
@@ -457,7 +465,7 @@ response <- httr2::request(api_url) |>
 
 ## Verify
 
-Now when we launch the app, the preview of the parameters are in a `data.frame` (not a list):
+Now when we launch the app, the preview of the parameters is in a `data.frame` (not a list):
 
 ![Parameters as `data.frame()`](img/lab3-r-shiny-data-frame.png){fig-align="center" width="100%"}
 
@@ -467,7 +475,7 @@ When we click **Predict**, we see notifications and the value is returned:
 
 ### Back in the API
 
-If we return to the plumber UI, we can click on **Return predictions from model using 4 features**, change the JSON values to match our parameters in the app, and click **TRY**:
+If we return to the `plumber` UI, we can click on **Return predictions from model using 3 features**. We change the JSON values to match our parameters in the app, then click **TRY**:
 
 ![`plumber` API request body](img/lab3-r-plumber-req-body.png){fig-align="center" width="100%"}
 
@@ -475,21 +483,7 @@ And we can compare the response to the value we saw in the app:
 
 ![`plumber` API response](img/lab3-r-plumber-response.png){fig-align="center" width="100%"}
 
-A diagram of the Shiny inputs sent(i.e., the **Predict** button), reactives, and the API request is below:
-
-```{=html}
-<style>
-
-.codeStyle span:not(.nodeLabel) {
-  font-family: monospace;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #d80808 !important;
-  background-color: #ffffff;
-  padding: 0.2em;
-}
-</style>
-```
+The diagram below follows one prediction from the Shiny app through the `plumber` API to the `vetiver` model:
 
 ```{mermaid}
 %%| fig-cap: 'Input Dependencies'
@@ -501,16 +495,16 @@ sequenceDiagram
     participant Waiter as Plumber<br>API
     participant Kitchen as Vetiver<br>Model
     
-    Customer->>Waiter: Prediction request:<br>bill_length=45, species=Adelie,<br>and sex=male
+    Customer->>Waiter: Prediction request:<br>bill_length=45,<br>species=Adelie, sex=male
     Waiter->>Kitchen: Prepare data
     Kitchen->>Waiter: Perform prediction
-    Waiter->>Customer: Displays response:<br> 4180.8 grams
+    Waiter->>Customer: Returns prediction:<br>4180.8 grams
 
 ```
 
 ## Finishing touches
 
-To keep the R environment in each directory self-contained and reproducible, we should initiate a `renv` repo in each folder.
+To keep the R environment in each directory self-contained and reproducible, we should initialize an `renv` project in each folder.
 
 ```{r}
 #| eval: false 
@@ -524,15 +518,20 @@ This results in the following files:
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
+_labs/lab03/R/api
+├── README.md
 ├── api.Rproj
 ├── mod-api.R
+├── model.R
+├── models
+│   └── penguin_model
+├── my-db.duckdb
 ├── renv
 │   ├── activate.R
 │   ├── library
-│   └── settings.json
+│   ├── settings.json
+│   └── staging
 └── renv.lock
-
-3 directories, 5 files
 ```
 
 :::
@@ -542,15 +541,16 @@ This results in the following files:
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
+_labs/lab03/R/app
+├── README.md
 ├── app-api.R
 ├── app.Rproj
 ├── renv
 │   ├── activate.R
 │   ├── library
-│   └── settings.json
+│   ├── settings.json
+│   └── staging
 └── renv.lock
-
-3 directories, 5 files
 ```
 
 :::
@@ -559,7 +559,7 @@ This results in the following files:
 
 1. The `vetiver` API only takes a few lines in R: read the pinned model with `vetiver_pin_read()`, pass it to `vetiver_api()` on a `plumber` router, and start it with `pr_run()` on port 8080.
 
-2. The original app failed with an `HTTP 500` error because it sent the inputs as a JSON list, and the `vetiver` API expects a data frame or matrix. Building `vals()` as a single row `data.frame` (with the categorical inputs converted to numeric) fixed the request.
+2. The original app failed with an `HTTP 500` error because it sent the inputs as a JSON list, and the `vetiver` API expects a data frame or matrix. Building `vals()` as a single row `data.frame` (with `species` and `sex` as strings) fixed the request.
 
 3. The `httr2` request is a pipeline: `request()` sets the URL, `req_method()` sets the verb, `req_body_json()` attaches the data, `req_perform()` sends it, and `resp_body_json()` parses the response. Wrapping that pipeline in `tryCatch()` turns connection failures and timeouts into notifications instead of a crashed app.
 

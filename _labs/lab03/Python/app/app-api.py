@@ -33,7 +33,7 @@ def server(input, output, session):
     def vals():
         # Create data in LIST format (what API expects)
         d = [{
-            "bill_length_mm": int(input.bill_length()),
+            "bill_length_mm": float(input.bill_length()),
             "species_Chinstrap": int(input.species() == "Chinstrap"),
             "species_Gentoo": int(input.species() == "Gentoo"),
             "sex_male": int(input.sex() == "Male")

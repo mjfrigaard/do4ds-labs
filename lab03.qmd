@@ -22,15 +22,13 @@ co_box(
 )
 ```
 
-In the previous labs, we built a Python model API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](https://rstudio.github.io/vetiver-r/)). This lab continues with accessing databases and using APIs.
+In the previous lab, we wrapped a Python model in an API with [`vetiver`](https://rstudio.github.io/vetiver-python/stable/) (I also repeated this [lab in R](model-vetiver-r.qmd)). This lab continues with accessing databases and using APIs. The DO4DS [third lab](https://do4ds.com/chapters/sec1/1-3-data-access.html#lab-use-a-database-and-an-api) moves the `penguins` data into a `duckdb` database and builds Shiny apps that send requests to the model API.
 
-The original files in [`_labs/lab03`](https://github.com/alexkgold/do4ds/tree/main/_labs/lab3) are below: 
+The original files in the DO4DS [`_labs/lab3`](https://github.com/alexkgold/do4ds/tree/main/_labs/lab3) folder are below:
 
 ::: {style="font-style: italic;"}
 
-```{bash}
-#| code-fold: false
-#| eval: false
+```{verbatim}
 ├── app-api.py #<1>
 ├── app-api.R #<2>
 ├── eda-db.qmd #<3>
@@ -50,11 +48,11 @@ The original files in [`_labs/lab03`](https://github.com/alexkgold/do4ds/tree/ma
 
 ### Databases
 
-> ***1. Draw two mental maps for connecting to a database, one using a database driver (in a Python or R package) vs. an ODBC or JDBC driver. You should (at a minimum) include the nodes: database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.***
+> "*Draw two mental maps for connecting to a database, one using a database driver in a Python or R package vs. an ODBC or JDBC driver. You should (at a minimum) include the nodes database package, DBI (R only), driver, system driver, ODBC, JDBC, and database.*"
 
 #### Python and databases 
 
-In Python, there is a large database ecosystem (i.e., many driver options). [SQLAlchemy](https://www.sqlalchemy.org/) adds ORM support and can bypass the DB-API standard when needed.
+In Python, there is a large database ecosystem (i.e., many driver options). Most of these packages follow the DB-API 2.0 standard. [SQLAlchemy](https://www.sqlalchemy.org/) sits on top of them and generates the SQL for us, with an ORM if we want one.
 
 ```{mermaid}
 %%| fig-cap: 'Python DB Connections'
@@ -63,12 +61,12 @@ In Python, there is a large database ecosystem (i.e., many driver options). [SQL
 
 graph TB
     subgraph PyApp["Python App"]
-        PyCode(["<strong>app-api.py</strong>"])
+        PyCode(["<strong>model-db.qmd</strong>"])
     end
 
     
     subgraph PyPkg["<strong>Python Packages</strong>"]
-        DBPkg("DB Package<br><strong>psycopg2</strong>, <strong>pymysql</strong>, <strong>sqlite3</strong>")
+        DBPkg("DB Package<br><strong>psycopg2</strong>, <strong>duckdb</strong>")
         ODBCPkg("ODBC Package<br><strong>pyodbc</strong>")
         JDBCPkg("JDBC Package<br><strong>jaydebeapi</strong>")
     end
@@ -142,22 +140,22 @@ In R, the **`DBI` package provides a universal interface** (same code works acro
 
 graph TB
     subgraph RApp["<strong>R App</strong>"]
-        A(["<strong>app-api.R</strong>"])
+        A(["<strong>eda-db.qmd</strong>"])
     end
 
     
+    subgraph DBI["<strong>R Standard Interface</strong>"]
+        E("DBI<br>Database Interface")
+    end
+
     subgraph RPkgs["<strong>R Packages</strong>"]
-        B("DB Packages<br><strong>RPostgres</strong>, <strong>RMySQL</strong>, <strong>RSQLite</strong>")
+        B("DB Packages<br><strong>RPostgres</strong>, <strong>RMariaDB</strong>, <strong>duckdb</strong>")
         C("ODBC Package<br><strong>odbc</strong>")
         D("JDBC Package<br><strong>RJDBC</strong>")
     end
 
     %%% Tints of #35605a
     
-    subgraph DBI["<strong>R Standard Interface</strong>"]
-        E("DBI<br>Database Interface")
-    end
-
     %% Tints of #6b818c
 
     
@@ -181,24 +179,22 @@ graph TB
 
     
     %% All paths go through DBI
-    A --> B
-    A --> C  
-    A --> D
-    B --> E
-    C --> E
-    D --> E
+    A --> E
+    E --> B
+    E --> C
+    E --> D
     
     %% Direct pathway (bypasses system layer)
-    E --> F
+    B --> F
     F --"bypasses system layer"--> K
     
     %% ODBC pathway  
-    E --> G
+    C --> G
     G --> I
     I --> K
     
     %% JDBC pathway
-    E --> H
+    D --> H
     H --> J
     J --> K
     style RApp fill:#fbf7ec,stroke:#5B8C5A,color:#1B2A41
@@ -263,9 +259,9 @@ graph LR
 
 ### APIs
 
-> ***2. Draw a mental map for using an API from R and Python. You should (at a minimum) include nodes for `{requests}`/`{httr2}`, request, HTTP verb/request method, headers, query parameters, body, JSON, response, and response code.***
+> "*Draw a mental map for using an API from R or Python. You should (at a minimum) include nodes for `{requests}`/`{httr2}`, request, HTTP verb/request method, headers, query parameters, body, JSON, response, and response code.*"
 
-In general, APIs are like the digital 'plumbing' that makes connections between modern software ecosystems possible. 
+In general, APIs are like the digital plumbing that makes connections between modern software ecosystems possible. 
 
 ```{mermaid}
 %%| fig-cap: 'APIs'
@@ -321,7 +317,7 @@ graph LR
 		I2 --> J2("HTTP Response")
 		J2 --> K2("<strong>response.status_code</strong><br>200, 404, 500, etc.")
 		J2 --> L2("<strong>response.headers</strong><br>Response metadata")
-		J2 --> M2("<strong>response.json</strong><br>JSON parsing")
+		J2 --> M2("<strong>response.json()</strong><br>JSON parsing")
 		K2 --> N2("<strong>Python Response Object</strong>")
 		L2 --> N2
 		M2 --> N2
@@ -358,11 +354,11 @@ graph LR
         C1 --> E1("<strong>req_headers()</strong><br>Content-Type, Auth, etc.")
         C1 --> F1("<strong>req_url_query()</strong><br>?param=value&key=data")
         C1 --> G1("<strong>req_body_json()</strong><br>Request payload")
-        D1 --> H1("HTTP Request")
-        E1 --> H1
-        F1 --> H1
-        G1 --> H1
-        H1 --> I1["API Server"]
+        D1 --> P1("<strong>req_perform()</strong><br>HTTP Request")
+        E1 --> P1
+        F1 --> P1
+        G1 --> P1
+        P1 --> I1["API Server"]
         I1 --> J1("HTTP Response")
         J1 --> K1("<strong>resp_status()</strong><br>200, 404, 500, etc.")
         J1 --> L1("<strong>resp_headers()</strong><br>Response metadata")
@@ -379,7 +375,7 @@ graph LR
     style E1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style F1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style G1 fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
-    style H1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
+    style P1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
     style I1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style J1 fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
     style K1 fill:#485466,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -389,24 +385,24 @@ graph LR
 
 ```
 
-> ***3. How can environment variables be used to keep secrets secure in your code?***
+> "*How can environment variables be used to keep secrets secure in your code?*"
 
 Environment variables keep secrets (API keys, database passwords) out of the code itself. In R, we store them in a `.Renviron` file and read them with `Sys.getenv()`; in Python, we store them in a `.env` file (loaded with `python-dotenv`) and read them with `os.environ`. Both files go in `.gitignore`, so the secrets never end up in version control.
 
 
 
-### Previously, in lab 2
+## Previously, in Lab 2
 
-We previously turned our Python `scikit-learn` model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`.[^lab02-with-py] 
+We previously turned our Python `scikit-learn` model into a `VetiverModel()`, saved it to a `pins` board, and then created a `VetiverAPI()`.[^lab02-with-py]
 
-  * In R, we created a linear model (with `lm()` and `fastDummies`), converted it to a `vetiver_model()`, put it in a `board_folder()`, 'pinned' it with `vetiver_pin_write()`, then converted it into an API with `plumber::pr()` and `vetiver_api()`.[^lab02-with-r] 
+  * In R, we created a linear model (with `lm()` and `fastDummies`) and converted it to a `vetiver_model()`. Then we pinned it to a `board_folder()` with `vetiver_pin_write()` and converted it into an API with `plumber::pr()` and `vetiver_api()`.[^lab02-with-r]
 
-[^lab02-with-r]: This can be found in [`_labs/lab02/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab02/R/model-vetiver-r.qmd). 
+[^lab02-with-r]: This can be found in [`_labs/lab02/R/model-vetiver-r.qmd`](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/R/model-vetiver-r.qmd).
 
 [^lab02-with-py]: This can be found in
 [/_labs/lab02/model-vetiver/model-vetiver.qmd](https://github.com/mjfrigaard/do4ds-labs/blob/main/_labs/lab02/model-vetiver/model-vetiver.qmd)
 
-The sections below cover how to create and communicate with APIs.  I've split each lab into separate `Python/` and `R/` folders (and included RStudio project files). 
+The sections below walk through the original lab files. The chapters that follow create the APIs and send requests to them from the apps. For those chapters, I've split the lab into separate `Python/` and `R/` folders (and included RStudio project files).
 
 ## <strong>Python Shiny App</strong> 
 
@@ -414,20 +410,18 @@ The original Python App files can be found in the [`_labs/lab03/` folder](https:
 
 ::: {style="font-style: italic;"}
 
-```{bash}
-#| code-fold: false
-#| eval: false
+```{verbatim}
 _labs/lab03/
 ├── app-api.py
 ├── model-db.qmd
-└──  py-data-load.py
+└── py-data-load.py
 ```
 
 :::
 
-### Model EDA {#sec-model-db}
+### Model {#sec-model-db}
 
-The [model-db.qmd](_labs/lab03/model-db.qmd) file contains the EDA from [lab 1](lab01.qmd).
+The [model-db.qmd](_labs/lab03/model-db.qmd) file contains the model from [Lab 1](model-basic-py.qmd), with the data read from `duckdb`.
 
 It begins by importing `duckdb`, `pandas`, `numpy`, and `scikit-learn`:
 
@@ -477,7 +471,7 @@ print(f"Coefficients {model.coef_}")
 
 ### Original app file {#sec-app-api-py}
 
-`app-api.py` creates an Python Shiny application that calls the `vetiver` API.
+`app-api.py` creates a Python Shiny application that calls the `vetiver` API.
 
 #### UI 
 
@@ -573,9 +567,7 @@ The R App API files can be found in the [`_labs/lab03/` folder](https://github.c
 
 ::: {style="font-style: italic;"}
 
-```{bash}
-#| collapse: true
-#| eval: false
+```{verbatim}
 _labs/lab03/
 ├── app-api.R
 ├── eda-db.qmd
@@ -586,7 +578,7 @@ _labs/lab03/
 
 ### Model EDA {#sec-eda-db.qmd}
 
-The [`eda-db.qmd`](_labs/lab03/eda-db.qmd) file has the EDA R code from lab 1. 
+The [`eda-db.qmd`](_labs/lab03/eda-db.qmd) file has the EDA R code from [Lab 1](eda-basic.qmd). The code below comes from my version in [`R/eda-db.qmd`](_labs/lab03/R/eda-db.qmd).
 
 It begins by loading the libraries: 
 
@@ -600,7 +592,7 @@ library(ggplot2)
 library(dbplyr)
 ```
 
-The code below creates a connection to the database, but needs to be changed slightly so the `penguins` data is registered with `duckdb` (before the queries can be run).
+The original file reads the `penguins` table with `dplyr::tbl()`, so `r-data-load.R` has to run first. My version below registers the `penguins` data with `duckdb` and creates the table before the queries run.
 
 ```{r}
 #| eval: false
@@ -619,7 +611,7 @@ dbExecute(con, "CREATE OR REPLACE TABLE penguins AS SELECT * FROM penguins_data"
 df <- dbGetQuery(con, "SELECT * FROM penguins") |> na.omit()
 ```
 
-The table below displays the means of the measurements (body mass, flipper length, and bill length/depth) by species and sex:
+The code below creates a table of the means of the measurements (body mass, flipper length, and bill length/depth) by species and sex:
 
 ```{r}
 #| eval: false
@@ -635,7 +627,7 @@ df %>%
   knitr::kable()
 ```
 
-The graph displays the best-fit linear relationship between `bill_length_mm` and `body_mass_g` by `species`:
+The code below plots the best-fit linear relationship between `bill_length_mm` and `body_mass_g` by `species`:
 
 ```{r}
 #| eval: false
@@ -770,7 +762,7 @@ DBI::dbDisconnect(con)
 
 2. An API request bundles an HTTP method, headers, query parameters, and a JSON body; the response returns a status code, headers, and JSON. Python builds these with `requests`, and R builds them with `httr2` functions like `req_body_json()` and `resp_body_json()`.
 
-3. Both Shiny apps convert the bill length, species, and sex inputs into the dummy columns the model expects, send them to the `vetiver` API at `http://127.0.0.1:8080/predict`, and display the returned prediction. The Python app uses `requests.post()`, and the R app pipes `httr2::request()` into `req_body_json()` and `req_perform()`.
+3. Both Shiny apps convert the bill length, species, and sex inputs into dummy columns and send them to the `vetiver` API at `http://127.0.0.1:8080/predict`. The Python app uses `requests.post()`, and the R app pipes `httr2::request()` into `req_body_json()` and `req_perform()`. Neither original request matches what the API expects. The Python app sends `sex_Male` (the model expects `sex_male`), and the R app sends a list instead of a data frame.
 
-Next, [Python App & API](py-app-api.qmd) connects the Python Shiny app to the `vetiver` API from lab 2.
+Next, [Python App & API](py-app-api.qmd) connects the Python Shiny app to the `vetiver` API from Lab 2.
 

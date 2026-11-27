@@ -22,7 +22,7 @@ co_box(
 )
 ```
 
-This chapter covers building and consuming an R API using [`plumber2`](https://plumber2.posit.co/) (when do4ds was written, the original [`plumber`](https://www.rplumber.io/) package was used). We'll build the same penguin body mass prediction API from [lab 3](lab03.qmd) and connect it to a Shiny application, but update the API to use `plumber2`'s syntax.
+The [previous chapter](plumber.qmd) built the penguin body mass prediction API with the original [`plumber`](https://www.rplumber.io/) package (the version used when do4ds was written). This chapter rebuilds the same API with [`plumber2`](https://plumber2.posit.co/) and its new syntax. We'll then connect it to a Shiny application.
 
 ```{r}
 #| eval: false
@@ -80,18 +80,15 @@ The updated `plumber2` files are in the following folders:
 
 ::: {style="font-style: italic;"}
 
-```{bash}
-#| eval: false
-#| code-fold: false
+```{verbatim}
 _labs/lab03/R/plumber2/api
 ├── api.Rproj
-├── model.R     #<1>
-├── models/
-│   └── penguin_model/
+├── model.R #<1>
+├── models
+│   └── penguin_model
 ├── my-db.duckdb
-├── plumber.R   #<2>
+├── plumber.R #<2>
 ├── README.md
-├── renv/
 └── renv.lock
 ```
 1. `model.R` builds and stores the model used for predictions.
@@ -103,13 +100,11 @@ _labs/lab03/R/plumber2/api
 
 ::: {style="font-style: italic;"}
 
-```{bash}
-#| eval: false
-#| code-fold: false
+```{verbatim}
 _labs/lab03/R/plumber2/app
-├── app-api.R   #<1>
+├── app-api.R #<1>
 ├── app.Rproj
-├── renv/
+├── README.md
 └── renv.lock
 ```
 1. `app-api.R` is the Shiny application that sends requests to the API.
@@ -125,7 +120,7 @@ renv::init()
 
 ## The model (`model.R`)
 
-The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app. This code is identical to the original `plumber` API's `model.R` file; expand the chunk below to review it.
+Open a new RStudio/Positron session from [`_labs/lab03/R/plumber2/api`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab03/R/plumber2/api). The `model.R` file contains the packages and functions to build the linear model used to generate predictions from our Shiny app. This code is identical to the original `plumber` API's `model.R` file; expand the chunk below to review it.
 
 ```{r}
 #| eval: false
@@ -211,7 +206,7 @@ graph LR
     style PinBoard fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-Our `api/` folder contains the `models/` directory (the `duckdb` database file is stored *outside* this folder):
+After `model.R` runs, our `api/` folder contains the `models/` directory and the `duckdb` database file:
 
 ::: {style="font-style: italic;"}
 
@@ -225,6 +220,8 @@ Our `api/` folder contains the `models/` directory (the `duckdb` database file i
 ```
 
 :::
+
+### The prototype
 
 The `prototype` stored in the `vetiver` model contains the expected input format, including column names, data types, and factor levels:
 
@@ -256,7 +253,7 @@ tibble [0 × 3] (S3: tbl_df/tbl/data.frame)
 
 ## The API (`plumber.R`) {#sec-api}
 
-`plumber2` is a complete rewrite of `plumber`. The `plumber.R` file defines handler functions and assembles them into a router. The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
+`plumber2` is a complete rewrite of `plumber`. The `plumber.R` file defines handler functions (the functions that run when a request arrives). It then assembles them into a router (the object that matches each request's path and method to a handler). The most important change is in handler function signatures. In `plumber`, query parameters, body parameters, and path parameters are all mixed together as named function arguments, and the raw request body must be parsed manually. 
 
 In `plumber2`, these are separated:
 
@@ -274,7 +271,7 @@ Below is a table comparing `plumber` to the new `plumber2` syntax.
 | Add GET route | `pr_get()` | `api_get()` |
 | Add POST route | `pr_post()` | `api_post()` |
 | Start server | `pr_run()` | `api_run()` |
-| JSON serializer | `serializer_json()` | `format_json()` |
+| JSON serializer | `serializer_json()` | `get_serializers("json")` (or the default) |
 | Request body | `jsonlite::fromJSON(req$postBody)` | `body` argument |
 | Set response status | `res$status <- 500` | `response$status <- 500L` |
 
@@ -300,7 +297,7 @@ v <- vetiver::vetiver_pin_read(model_board, "penguin_model") #<3>
 
 ### Prepare prediction data
 
-We'll use the `prep_pred_data()` helper function again to bridge the gap by converting `species` and `sex` strings to factors (JSON doesn't have factors, only strings) using the levels stored in the `vetiver` model prototype.
+JSON doesn't have factors, only strings. We'll use the `prep_pred_data()` helper function again to bridge the gap: it converts the `species` and `sex` strings to factors with the levels stored in the `vetiver` model prototype.
 
 ```{r}
 #| eval: false
@@ -387,13 +384,15 @@ Test with `curl` in the Terminal:[^port]
 [^port]: We're using port `8081` for our `plumber2` API (`8080` is being used by the `plumber` API).
 
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8081/ping
 ```
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "status": ["alive"],
   "timestamp": ["2025-10-08 08:31:51"]
@@ -425,13 +424,15 @@ handle_health <- function() {
 }
 ```
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8081/health
 ```
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "status": ["healthy"],
   "timestamp": ["2025-10-08 08:38:29"],
@@ -475,7 +476,9 @@ handle_model_prototype <- function() {
 }
 ```
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl http://127.0.0.1:8081/model-prototype
 ```
 
@@ -484,7 +487,7 @@ curl http://127.0.0.1:8081/model-prototype
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "prototype": {
     "bill_length_mm": ["numeric"],
@@ -522,11 +525,15 @@ handle_model_info <- function() {
     model_name = v$model_name,
     model_class = class(v$model)[1],
     version = v$metadata$version,
-    created = v$metadata$created,
-    required_pkgs = v$metadata$required_pkgs,
     description = v$description %||% "No description available"
   )
 }
+```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl http://127.0.0.1:8081/model-info
 ```
 
 <details>
@@ -534,13 +541,11 @@ handle_model_info <- function() {
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "model_name": ["penguin_model"],
   "model_class": ["butchered_lm"],
-  "version": ["20251005T062750Z-74445"],
-  "created": {},
-  "required_pkgs": {},
+  "version": ["20260611T211913Z-8856d"],
   "description": ["Linear model predicting penguin body mass from bill length, species, and sex"]
 }
 ```
@@ -590,6 +595,48 @@ handle_input_schema <- function() {
   )
 }
 ```
+
+```{bash}
+#| eval: false
+#| code-fold: false
+curl http://127.0.0.1:8081/input-schema
+```
+
+<details>
+<summary>show/hide JSON response from input-schema</summary>
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+{
+  "required_fields": {
+    "bill_length_mm": {
+      "type": ["numeric"],
+      "description": ["Bill length in millimeters"],
+      "range": [30, 60]
+    },
+    "species": {
+      "type": ["string (converted to factor)"],
+      "description": ["Penguin species"],
+      "valid_values": ["Adelie", "Chinstrap", "Gentoo"]
+    },
+    "sex": {
+      "type": ["string (converted to factor)"],
+      "description": ["Penguin sex"],
+      "valid_values": ["female", "male"]
+    }
+  },
+  "example": {
+    "bill_length_mm": [45.5],
+    "species": ["Gentoo"],
+    "sex": ["male"]
+  }
+}
+```
+
+:::
+
+</details>
 
 #### Predictions
 
@@ -667,7 +714,9 @@ graph TB
     style Response fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8081/predict \
   -H "Content-Type: application/json" \
   -d '{"bill_length_mm": 45, "species": "Adelie", "sex": "male"}'
@@ -675,7 +724,7 @@ curl -X POST http://127.0.0.1:8081/predict \
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   ".pred": [4180.7965]
 }
@@ -809,7 +858,9 @@ graph TD
 
 An invalid `species` value returns a 400 error with the valid options:
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8081/predict-validated \
    -H "Content-Type: application/json" \
    -d '{"bill_length_mm": 45, "species": "Emperor", "sex": "male"}'
@@ -817,7 +868,7 @@ curl -X POST http://127.0.0.1:8081/predict-validated \
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "error": ["Invalid species"],
   "provided": ["Emperor"],
@@ -873,7 +924,9 @@ handle_predict_batch <- function(body, response) {
 3. Make predictions.
 4. Return predictions, count, and timestamp.
 
-```{verbatim}
+```{bash}
+#| eval: false
+#| code-fold: false
 curl -X POST http://127.0.0.1:8081/predict-batch \
    -H "Content-Type: application/json" \
    -d '{
@@ -885,7 +938,7 @@ curl -X POST http://127.0.0.1:8081/predict-batch \
 
 ::: {style="font-style: italic;"}
 
-```json
+```{verbatim}
 {
   "predictions": [4180.7965, 3438.2083, 5438.3484],
   "count": [3],
@@ -899,7 +952,7 @@ curl -X POST http://127.0.0.1:8081/predict-batch \
 
 The last section of `plumber.R` assembles a router by chaining handler registrations with `api()`. In `plumber2`, `api()` replaces `pr()` and the `api_get()`/`api_post()` functions replace `pr_get()`/`pr_post()`.
 
-Each `api_get()` or `api_post()` call maps a URL path and HTTP method to a handler function. The `serializer` argument controls how the return value is converted for the response.
+Each `api_get()` or `api_post()` call maps a URL path and HTTP method to a handler function. Neither call needs a serializer argument: without one, `plumber2` picks a serializer by content negotiation (matching the client's `Accept` header), and JSON is the first one registered. The `serializers` argument (for example, `serializers = get_serializers("json")`) restricts a route to specific formats.
 
 ### `GET` Endpoints
 
@@ -912,31 +965,26 @@ The `GET` endpoints register the health, model info, and documentation handlers:
 app <- plumber2::api() |>
   api_get(                              #<1>
     path = "/ping",
-    handler = handle_ping,
-    serializer = format_json()
+    handler = handle_ping
   ) |>
   api_get(
     path = "/health",
-    handler = handle_health,
-    serializer = format_json()
+    handler = handle_health
   ) |>
   api_get(
     path = "/model-prototype",
-    handler = handle_model_prototype,
-    serializer = format_json()
+    handler = handle_model_prototype
   ) |>
   api_get(
     path = "/model-info",
-    handler = handle_model_info,
-    serializer = format_json()
+    handler = handle_model_info
   ) |>
   api_get(                              #<2>
     path = "/input-schema",
-    handler = handle_input_schema,
-    serializer = format_json()
-  )
+    handler = handle_input_schema
+  ) |>
 ```
-1. `api_get()` replaces `pr_get()`; `format_json()` replaces `serializer_json()`.
+1. `api_get()` replaces `pr_get()`; the JSON serializer is the default, so there's no `serializer_json()` call.
 2. Each `api_get()` call adds one `GET` route to the router's dispatch table.
 
 **Route table after `GET` registrations:**
@@ -951,7 +999,7 @@ app <- plumber2::api() |>
 
 ### `POST` Endpoints
 
-The `POST` endpoints add the three prediction handlers to the same router:
+The pipe continues from the last `api_get()` call above, and the `POST` endpoints add the three prediction handlers to the same router:
 
 ```{r}
 #| eval: false
@@ -959,18 +1007,15 @@ The `POST` endpoints add the three prediction handlers to the same router:
 #| code-summary: 'show/hide POST endpoints'
   api_post(
     path = "/predict",
-    handler = handle_predict,
-    serializer = format_json()
+    handler = handle_predict
   ) |>
   api_post(
     path = "/predict-validated",
-    handler = handle_predict_validated,
-    serializer = format_json()
+    handler = handle_predict_validated
   ) |>
   api_post(
     path = "/predict-batch",
-    handler = handle_predict_batch,
-    serializer = format_json()
+    handler = handle_predict_batch
   )
 ```
 
@@ -992,9 +1037,11 @@ The `POST` endpoints add the three prediction handlers to the same router:
 app |> plumber2::api_run(port = 8081, host = "127.0.0.1")
 ```
 
+The API also serves interactive documentation at `http://127.0.0.1:8081/__docs__/`, which lists every route:
+
 ![`plumber2` UI](img/lab3-plumber2-router-positron.png){width='100%' fig-align='center'}
 
-If we click on the **API Servers**, we will see the url our `plumber2` api is running on: 
+Clicking **API Servers** in the documentation shows the URL our `plumber2` API runs on:
 
 ![`plumber2` API server](img/lab3-plumber2-api-server.png){width='100%' fig-align='center'}
 
@@ -1021,7 +1068,7 @@ The UI collects the bill length, sex, and species in the sidebar and displays th
 #| code-fold: show
 #| code-summary: 'show/hide UI'
 ui <- page_sidebar(
-  title = "Penguin Mass Predictor",
+  title = h4(strong("Penguin Mass Predictor "), code("plumber2")),
   theme = bs_theme(bootswatch = "sketchy"),
   sidebar = sidebar(
     sliderInput(
@@ -1087,7 +1134,7 @@ vals <- reactive({
 ```
 1. Species and sex are sent as strings (`"Adelie"`, `"male"`); `prep_pred_data()` in the API converts them to factors.
 
-This is simpler than the original approach, which required manual dummy variable creation (`species_Chinstrap = as.numeric(input$species == "Chinstrap")`, etc.).
+This is simpler than the app for the `vetiver` API in [R App & API](r-app-api.qmd), which required manual dummy variable creation (`species_Chinstrap = as.numeric(input$species == "Chinstrap")`, etc.).
 
 ### Predictions
 
@@ -1158,14 +1205,6 @@ graph TD
     style Result fill:#2A6F77,stroke:#000000,stroke-width:1px,color:#ffffff
 ```
 
-| Function | Role |
-|----------|------|
-| `request(url)` | Creates a base request with the target URL |
-| `req_method("POST")` | Sets the HTTP verb (`GET`, `POST`, `PUT`, `DELETE`) |
-| `req_body_json(data)` | Converts `data` to JSON and sets it as the request body |
-| `req_perform()` | Sends the assembled request; returns a response object |
-| `resp_body_json()` | Parses the JSON response body into an R list |
-
 ### Outputs
 
 The server renders `vals()` and `pred()` to the UI:
@@ -1176,7 +1215,7 @@ The server renders `vals()` and `pred()` to the UI:
 output$vals <- renderPrint(vals())
 output$pred <- renderText({
   p <- pred()
-  if (is.numeric(p)) round(p, 1) else p
+  if (is.numeric(p)) paste(round(p, 1), "grams") else p
 })
 ```
 
@@ -1230,7 +1269,7 @@ server <- function(input, output, session) {
   output$vals <- renderPrint(vals())
   output$pred <- renderText({
     p <- pred()
-    if (is.numeric(p)) round(p, 1) else p
+    if (is.numeric(p)) paste(round(p, 1), "grams") else p
   })
 }
 
@@ -1276,7 +1315,7 @@ sequenceDiagram
 
 ## Recap
 
-1. `plumber2` is a rewrite, not an update: `api()`, `api_get()`, `api_post()`, `format_json()`, and `api_run()` replace their `pr_*()` and `serializer_json()` counterparts. The model, `prep_pred_data()`, and the endpoints stay the same as the `plumber` version.
+1. `plumber2` is a rewrite, not an update: `api()`, `api_get()`, `api_post()`, and `api_run()` replace their `pr_*()` counterparts, and JSON is the default serializer, so `serializer_json()` disappears. The model, `prep_pred_data()`, and the endpoints stay the same as the `plumber` version.
 
 2. The biggest change is in the handler signatures. `plumber2` parses the JSON request body and passes it in as the `body` argument, so the `jsonlite::fromJSON(req$postBody)` step disappears, and status codes are set with `response$status`.
 
