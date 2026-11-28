@@ -4,10 +4,10 @@ This directory contains an R Shiny app to demonstrate logging from lab 4 of [Dev
 
 ## Running the API
 
-To run the application, launch the api from lab 3 by navigating to `do4ds-labs/_labs/lab03/R/api/` and running `plumber.R`.
+To run the application, launch the Lab 4 API by navigating to `do4ds-labs/_labs/lab04/R/api/` and running `plumber.R`.
 
 ```r
-source("do4ds-labs/_labs/lab03/R/api/plumber.R")
+source("do4ds-labs/_labs/lab04/R/api/plumber.R")
 ```
 
 ## Run the app

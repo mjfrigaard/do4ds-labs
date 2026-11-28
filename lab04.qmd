@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -22,20 +22,20 @@ co_box(
 )
 ```
 
-This lab answers the comprehension questions from [Chapter 4](https://do4ds.com/chapters/sec1/1-4-monitor-log.html) of do4ds (Logging and Monitoring). It also adds logging to the R and Python Shiny apps from lab 3. Logs record what happened inside an app, so they're the first place we look when a prediction fails or a user reports a problem.
+This lab answers the comprehension questions from [Chapter 4](https://do4ds.com/chapters/sec1/1-4-monitor-log.html) of DO4DS (Logging and Monitoring). It also adds logging to the R and Python Shiny apps from [Lab 3](lab03.qmd). Logs record what happened inside an app, so they're the first place we look when a prediction fails or a user reports a problem. The DO4DS [fourth lab](https://do4ds.com/chapters/sec1/1-4-monitor-log.html#lab-an-app-with-logging) adds `log4r` to the R app and Python's `logging` module to the Python app.
 
-The original files in `do4ds/_labs/lab04` are below:
+The original files in the DO4DS [`_labs/lab4`](https://github.com/alexkgold/do4ds/tree/main/_labs/lab4) folder are below:
 
-```{r}
-#| collapse: true
-#| eval: false
-fs::dir_tree(path = "_labs/lab04/")
-## _labs/lab04/
-## ├── app-log.R #<1>
-## └── app-log.py #<2>
+::: {style="font-style: italic;"}
+
+```{verbatim}
+├── app-log.R #<1>
+└── app-log.py #<2>
 ```
-1.  R Shiny app   
+1.  R Shiny app
 2.  Python Shiny app
+
+:::
 
 ## Comprehension questions
 
@@ -43,11 +43,13 @@ Below are my answers to the comprehension questions in this chapter.
 
 ### Monitoring vs. logging
 
-> ***What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?***
+> "*What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?*"
 
-Logging is a record of "***What happened***"--logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.
+Logging is a record of "***What happened***": logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.
 
 Monitoring tracks quantitative metrics and system health over time to answer "***How is it performing***".
+
+The two halves of the process are emitting logs and metrics, then aggregating and consuming them. As data scientists, we own the first half. The second half usually runs on the log aggregation and monitoring tools our organization already has.
 
 ```{mermaid}
 %%| fig-cap: 'Logging vs. Monitoring'
@@ -125,11 +127,11 @@ graph LR
 
 ### What not to log
 
-> ***Logging is generally good, but what are some things you should be careful not to log?***
+> "*Logging is generally good, but what are some things you should be careful not to log?*"
 
 Critical data we should make sure not to log includes:
 
-1.  Sensitive Personal Information (PII)    
+1.  Personally Identifiable Information (PII)    
     *   Email addresses, phone numbers, names     
     *   Social Security Numbers, passport numbers   
     *   Addresses, birth dates    
@@ -164,7 +166,7 @@ Industry specific guidelines on logging are available below:
 
 ### Log levels
 
-> ***At what level would you log each of the following events:***
+> "*At what level would you log each of the following events:*"
 
 The answers below are provided for the [R `logger` package](https://daroczig.github.io/logger/) and [Python's `logging` facility](https://docs.python.org/3/library/logging.html#). 
 
@@ -246,13 +248,13 @@ graph TD
 
 ```
 
-> ***Someone clicks on a particular tab in your Shiny app.***
+> "*Someone clicks on a particular tab in your Shiny app.*"
 
 :::{layout="[40,60]" layout-valign="top"}
 
 **R `logger`:** `TRACE` or `DEBUG`
 
-Tab clicks are fine-grained UI interaction details, so we could use `TRACE` if we want extremely detailed user behavior tracking, or `DEBUG` if we only need this during development/troubleshooting. In production, we typically wouldn't log every tab click unless tracking user flow.
+Tab clicks are fine-grained UI interaction details. We could use `TRACE` for detailed tracking of user behavior, or `DEBUG` if we only need it during development or troubleshooting. In production, we typically wouldn't log every tab click unless tracking user flow.
 
 :::
 
@@ -266,7 +268,7 @@ The same reasoning applies: diagnostic information about user interactions is pr
 
 *In most production apps, we'd disable `TRACE`/`DEBUG` levels and only enable them when investigating specific issues to avoid log bloat.*
 
-> ***Someone puts an invalid entry into a text entry box.***
+> "*Someone puts an invalid entry into a text entry box.*"
 
 :::{layout="[40,60]" layout-valign="top"}
 
@@ -286,7 +288,7 @@ Same reasoning applies: this is an unexpected but handled situation. We'd want t
 
 *Some developers use `INFO` for validation failures if they're expected and very common. Use `WARN` if you want to monitor frequency or patterns of invalid inputs.*
 
-> ***An HTTP call your app makes to an external API fails.***
+> "*An HTTP call your app makes to an external API fails.*"
 
 :::{layout="[40,60]" layout-valign="top"}
 
@@ -318,7 +320,7 @@ Same reasoning applies: this is a genuine failure that prevents the app from fun
 log_error("API call failed: {endpoint} returned {status_code} - {error_msg}")
 ```
 
-> ***The numeric values that are going into your computational function.***
+> "*The numeric values that are going into your computational function.*"
 
 :::{layout="[40,60]" layout-valign="top"}
 
@@ -369,13 +371,13 @@ Python doesn't have `TRACE`, so `DEBUG` is appropriate for detailed variable sta
 
 We can't prevent failures or predict when they'll happen. We *can* build [**observable systems**](https://en.wikipedia.org/wiki/Observability_(software)) that:
 
-1. **Accept failure is inevitable** (rather than trying to prevent it).
+1. **Accept that failure is inevitable** (rather than trying to prevent it).
 
 2. **Implement comprehensive monitoring and logging**.
 
 3. **Enable rapid diagnosis** (i.e., using logs and metrics to reconstruct what failed and why).
 
-To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).
+To do this, data scientists and developers need to generate meaningful logs and metrics from their code. System admins make sure the new data science work fits into the organization's existing log aggregation and monitoring tools.
 
 ```{mermaid}
 %%| fig-cap: 'Observability Responsibilities'
@@ -434,7 +436,7 @@ Observable systems give data science teams three benefits:
 
 ## Logging in R
 
-`app-log.R` adds `log4r` logging to the lab 3 Shiny app. It logs when the app starts, when a prediction is requested and returned, and when the API returns an HTTP error. [R App Logging](app-log-r.qmd) walks through the full code.
+`app-log.R` adds `log4r` logging to the Lab 3 Shiny app. It logs when the app starts, when a prediction is requested and returned, and when the API returns an HTTP error. [R App Logging](app-log-r.qmd) builds a longer version of the app (`R/app/app.R`) with the `logger` package.
 
 <details>
 
@@ -454,7 +456,7 @@ readr::read_lines("_labs/lab04/app-log.R") |>
 
 ## Logging in Python
 
-`app-log.py` adds Python's `logging` module to the lab 3 Shiny for Python app. It logs the same events: the app starting, a request being made and returned, and an HTTP error. [Python App Logging](app-log-py.qmd) walks through the full code.
+`app-log.py` adds Python's `logging` module to the Lab 3 Shiny for Python app. It logs the same events: the app starting, a request being made and returned, and an HTTP error. [Python App Logging](app-log-py.qmd) builds a longer version of the app (`Python/app/app.py`) with logging and performance metrics.
 
 <details>
 
@@ -478,6 +480,8 @@ readr::read_lines("_labs/lab04/app-log.py") |>
 
 2. Be careful about what ends up in a log file. Personal information, passwords, API keys, and full account numbers should never be logged, and patient data needs to be de-identified first.
 
-3. Pick the log level based on what the event means for the app. Fine grained interactions and variable values belong at `TRACE` or `DEBUG`, handled problems like invalid input at `WARN`, and failed operations like an external API call at `ERROR`; Python's `logging` has no `TRACE`, so `DEBUG` covers both.
+3. Pick the log level based on what the event means for the app. Fine grained interactions and variable values belong at `TRACE` or `DEBUG`, handled problems like invalid input at `WARN`, and failed operations like an external API call at `ERROR`. Python's `logging` has no `TRACE`, so `DEBUG` covers both.
 
-We'll add these logs to the Shiny for Python app in [Python App Logging](app-log-py.qmd).
+4. The original `app-log.R` and `app-log.py` files log four events: the app starting, a prediction request, the returned response, and an HTTP error. The R app uses `log4r`, and the Python app uses the standard `logging` module.
+
+Next, [Python App Logging](app-log-py.qmd) adds logging and performance metrics to the Shiny for Python app from Lab 3.

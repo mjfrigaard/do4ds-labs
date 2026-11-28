@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -22,25 +22,11 @@ co_box(
 )
 ```
 
-This lab covers how to use logging and monitoring to track events inside data science projects. Our focus is on events inside a Shiny application. We'll also cover what you can do with logs and metrics when they are created. 
+The [previous chapter](app-log-py.qmd) added logging and monitoring to the Shiny for Python app. This chapter adds the same features to the R Shiny app with the [`logger`](https://daroczig.github.io/logger/index.html) package. Our focus is on events inside the app, and on what we can do with the logs and metrics once they're written.
 
 ## The App and API from Lab 3
 
-For a refresher, I've included a diagram of the Shiny App and API (using the [`plumber2` version](plumber2.qmd)) from the previous lab (i.e., the user inputs are sent to the API with the **Predict** button):
-
-```{=html}
-<style>
-
-.codeStyle span:not(.nodeLabel) {
-  font-family: monospace;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #d80808 !important;
-  background-color: #ffffff;
-  padding: 0.2em;
-}
-</style>
-```
+For a refresher, the diagram below shows the Shiny app and API from Lab 3 (the [`plumber2` version](plumber2.qmd)). The **Predict** button sends the user inputs to the API:
 
 ```{mermaid}
 %%| fig-cap: 'Shiny R App and plumber API'
@@ -59,7 +45,7 @@ sequenceDiagram
     
     Shiny->>Shiny: Create data.frame
     
-    Shiny->>API: HTTP POST /predict<br>{"bill_length_mm":45,...}
+    Shiny->>API: HTTP POST /predict<br>[{"bill_length_mm":45,...}]
     
     Note over API: body parsed<br>by plumber2
     API->>API: prep_pred_data()
@@ -90,6 +76,7 @@ _labs/lab04/R/api/
               │   └── penguin_model/
               ├── my-db.duckdb
               ├── plumber.R
+              ├── README.md
               ├── renv/
               └── renv.lock
 
@@ -101,19 +88,21 @@ _labs/lab04/R/api/
 
 The `model.R` file creates our `vetiver` model: 
 
-1. Creates the `my-db.duckdb` file (with a subset the `palmerpenguins::penguins` data). 
-2. Converts the `lm()` model object to `vetiver` model.   
+1. Creates the `my-db.duckdb` file (with a subset of the `palmerpenguins::penguins` data). 
+2. Converts the `lm()` model object to a `vetiver` model.   
 3. The model is stored in the `models/` folder with `pins::board_folder()` and `vetiver::vetiver_pin_write()`.   
 
 This script only needs to be run once (or whenever the model changes). 
 
 ### `plumber.R`
 
-The `plumber.R` file contains the same API we created in [`plumber2`](plumber2.qmd), updated to use `plumber2` syntax (`api()`, `api_get()`, `api_post()`, `api_run()`). Launching the API in Positron displays the documentation and handlers:
+The `plumber.R` file contains the same API we built in [`plumber2`](plumber2.qmd) (`api()`, `api_get()`, `api_post()`, `api_run()`). It differs in two ways: it prints the model class and prototype when it starts, and it runs on port 8080 instead of 8081. Launching the API in Positron displays the documentation and handlers:
 
 ![`plumber2` API with `vetiver` model](img/lab4-plumber2-api.png){width='100%' fig-align='center'}
 
 ## The App 
+
+The files for the app are in the `_labs/lab04/R/app/` folder:
 
 ::: {style="font-style: italic;"}
 
@@ -131,7 +120,7 @@ _labs/lab04/R/app/
 
 Below we load the packages for app design (`bslib`, `bsicons`), making the API request (`httr2`), and logging and monitoring (`logger` and `jsonlite`). 
 
-I chose the [`logger` package](https://daroczig.github.io/logger/index.html) instead of the example from the text ([`log4r`](https://github.com/r-lib/log4r)) because I'm more [familiar with it's features](https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger). 
+I chose the [`logger` package](https://daroczig.github.io/logger/index.html) instead of the example from the text ([`log4r`](https://github.com/r-lib/log4r)) because I'm more [familiar with its features](https://mjfrigaard.github.io/shiny-app-pkgs/logging.html#sec-logging-logger). 
 
 ```{r}
 #| eval: false
@@ -155,10 +144,12 @@ Below we'll configure the log level and assign the [`log_appender()`](https://da
 ```{r}
 #| eval: false
 #| code-fold: false
-logger::log_threshold(level = "DEBUG")
+logger::log_threshold(level = "INFO")
 logger::log_appender(appender = appender_tee(file = "shiny_app.log"))
 logger::log_formatter(logger::formatter_glue_or_sprintf)
 ```
+
+With the threshold at `INFO`, the `log_debug()` calls below stay out of the log; setting it to `DEBUG` turns them on.
 
 ### App startup
 
@@ -175,12 +166,23 @@ We'll start by logging the application startup within an observer to access sess
 
 This log records when a new user session begins with the session token and client information for user tracking and session management.
 
+`app.R` also logs one line when the app itself loads (outside the `server` function, before any session starts):
+
+```{r}
+#| eval: false 
+#| code-fold: false
+#| code-overflow: wrap
+logger::log_info(
+  "Shiny application initialized - timestamp: {Sys.time()} - r_version: {R.version.string}"
+)
+```
+
 
 ### User interactions
 
 We'll also track user interactions (but `throttle` to avoid excessive logging).[^throttle]
 
-[^throttle]: "*Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New r invalidations do not reset the time window. This means that if invalidations continually come from r within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.* (see the [`shiny::throttle()`](https://shiny.posit.co/r/reference/shiny/latest/debounce.html) documentation for more info."
+[^throttle]: "*Throttling delays invalidation if the throttled reactive recently (within the time window) invalidated. New `r` invalidations do not reset the time window. This means that if invalidations continually come from `r` within the time window, the throttled reactive will invalidate regularly, at a rate equal to or slower than the time window.*" (see the [`shiny::throttle()`](https://shiny.posit.co/r/reference/shiny/latest/debounce.html) documentation for more info).
 
 ```{r}
 #| eval: false 
@@ -197,7 +199,7 @@ This log captures user input changes for debugging user interaction flows and in
 
 ### Session token
 
-We'll display  **Session Token** (a subset of `session$token` as `log_status`) in the upper right-hand corner of the UI.  
+We'll display the **Session Token** (a subset of `session$token` as `log_status`) in the upper right-hand corner of the UI.  
 
 ![](img/lab4-div-session.png){width='100%' fig-align='center'}
 
@@ -240,7 +242,7 @@ The parameter display and predictions from the API remain largely unchanged here
 
 #### UI
 
-The params and predictions are displayed in two `bslib::cards()` and include a `value_box()` and `bs_icon()` for the response from the API.
+The params and predictions are displayed in two `bslib::card()`s and include a `value_box()` and `bs_icon()` for the response from the API.
 
 ```{r}
 #| label: main-content
@@ -264,12 +266,12 @@ The params and predictions are displayed in two `bslib::cards()` and include a `
           value = textOutput(outputId = "pred"),
           showcase = bs_icon("graph-up"),
           max_height = "200px",
-          min_height = "200px",
+          min_height = "200px"
         )
       )
     ),
     col_widths = c(6, 6),
-    row_heights = c(3, 1),
+    row_heights = c(3, 1)
   )
 ```
 
@@ -331,7 +333,13 @@ The `vals()` are printed to the UI in a `data.frame`:
 
 #### ***Predicted Mass***
 
-I've added logs to the predictions reactive values below. As you can see, the majority of the logs are errors and warning, but I've also included notifications (`showNotification()`) for major events, too. 
+I've added logs to the predictions reactive values below. As you can see, the majority of the logs are errors and warnings, but I've also included notifications (`showNotification()`) for major events, too. The request goes to `api_url`, which `app.R` sets near the top (after the logging setup):
+
+```{r}
+#| eval: false
+#| code-fold: false
+api_url <- "http://127.0.0.1:8080/predict"
+```
 
 ```{r}
 #| label: main-pred-server
@@ -434,7 +442,7 @@ I've added logs to the predictions reactive values below. As you can see, the ma
 4. Logs initiation of prediction request w/ input parameters for request tracing and/or debugging.    
 5. Handles API communication failures (i.e., network issues, timeouts, etc) and provides meaningful error messages to users instead of crashing the application.    
 6. Notification for predicting penguin mass   
-7. `httr2` API request; `auto_unbox = TRUE` sends scalar values (e.g., `45` not `[45]`) matching the `plumber2` body parser
+7. `httr2` API request; the one row `data.frame` is sent as a JSON array of row objects (`[{"bill_length_mm":45,...}]`), which the `plumber2` API reads as a data frame
 8. Record API response time   
 9. API prediction response 
 10. Extracts prediction value 
@@ -484,7 +492,7 @@ We can make room for a **System Status** section in the UI as a `card()` using `
         textOutput("api_health"),#<1>
         h5("Recent Logs:"),#<2>
         div(
-          style = "font-family: 'Ubuntu Mono', monospace; font-size: 13px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
+          style = "font-family: 'Ubuntu Mono', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px;",
           verbatimTextOutput("recent_logs", placeholder = TRUE)
         ),#<2>
         h6("Last updated:", #<3>
@@ -542,7 +550,7 @@ api_health <- reactive({
 1. Logs when health checks are initiated to track frequency and timing.   
 2. `ping` sent to API     
 3. Logs the external API is responding normally.   
-4. Logs to API degradation or partial failures that may impact user experience.   
+4. Logs API degradation or partial failures that may impact user experience.   
 5. Logs complete API connectivity failures that render the application non-functional.  
 
 The `tryCatch()` prevents the application from crashing when the external API is unreachable or returns unexpected responses. This ensures 'graceful' failures of our health check display.
@@ -605,10 +613,10 @@ flowchart TD
 
     
     
-    classDef log fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    classDef log fill:#5B8C5A,stroke:#000000,stroke-width:1px
     class A,B,Q,R,S log
 
-    classDef outcome fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    classDef outcome fill:#E8A33D,stroke:#000000,stroke-width:1px
     class D,E,A1,A2 outcome
     style T fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style C fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -618,7 +626,7 @@ flowchart TD
     
 ```
 
-The reactive returned from `reactiveFileReader()` will contain a list with the log line (`lines`), the time this file was last modified (`last_mod`), and a count of the total number of lines in the log file (`total_lines`). 
+The reactive returned from `reactiveFileReader()` holds a list with three items. `lines` holds the log lines, `last_mod` holds the time the file was last modified, and `total_lines` counts the lines in the file.
 
 ```{r}
 #| label: log_file_content
@@ -656,7 +664,7 @@ log_file_content <- reactiveFileReader(
 2. Return both content and timestamp.  
 3. Return empty list.  
 
-To make this display more manageable, we'll limit the number of extracted logs to the five most recent lines (unless there are less than five total lines in the log file). We'll also format the logs to be displayed in the  `verbatimTextOutput()` and include a message if the log file is empty. 
+To keep this display manageable, we'll show only the five most recent log lines (or all of them if the file has fewer than five). We'll also format the logs to be displayed in the  `verbatimTextOutput()` and include a message if the log file is empty. 
 
 ```{mermaid}
 %%| fig-cap: 'Displaying logs'
@@ -678,7 +686,7 @@ flowchart TD
 
     A --> H
     H --> I
-    I -- "<em>Yes</em" --> J
+    I -- "<em>Yes</em>" --> J
     I -- "<em>No</em>" --> K
     J --> L
     K --> L
@@ -696,10 +704,10 @@ flowchart TD
 
     style A fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
 
-    classDef log fill:#5B8C5A,stroke:#000000,stroke-width:1px,color:#ffffff
+    classDef log fill:#5B8C5A,stroke:#000000,stroke-width:1px
     class A log
 
-    classDef outcome fill:#E8A33D,stroke:#000000,stroke-width:1px,color:#ffffff
+    classDef outcome fill:#E8A33D,stroke:#000000,stroke-width:1px
     class O outcome
     style H fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
     style I fill:#D2562B,stroke:#000000,stroke-width:1px,color:#ffffff
@@ -741,16 +749,16 @@ flowchart TD
 2. Log that we're updating the display (at `DEBUG` level to avoid spam)     
 3. Format the recent logs before displaying in the UI.  
 
-If the API is running, the log file will contain the status of the health check and the app start-up/initialization message:
+#### ***The log file***
+
+If the API is running, the log file starts with the app initialization, session startup, and health check messages:
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-INFO [2025-09-09 13:22:10] Shiny app started - Session: 8f018f03ac7f1339dc2f826077156264 - Host: localhost
-INFO [2025-09-09 13:22:10] API health check successful - Session: 8f018f03ac7f1339dc2f826077156264
-INFO [2025-09-09 13:27:40] Shiny application initialized - timestamp: 2025-09-09 13:27:40.00443 - r_version: R version 4.5.1 (2025-06-13)
-INFO [2025-09-09 13:27:41] Shiny app started - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - Host: localhost
-INFO [2025-09-09 13:27:41] API health check successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8
+INFO [2026-11-27 01:23:57] Shiny application initialized - timestamp: 2026-11-27 01:23:57.766555 - r_version: R version 4.6.2 (2026-10-29)
+INFO [2026-11-27 01:23:59] Shiny app started - Session: 78f628a3cbf10b881b179373602827cb - Host: 127.0.0.1
+INFO [2026-11-27 01:23:59] API health check successful - Session: 78f628a3cbf10b881b179373602827cb
 ```
 
 :::
@@ -759,17 +767,19 @@ We can see these logs in the UI:
 
 ![](img/lab4-api-recent-logs-display.png){width='100%' fig-align='center'}
 
-When a user clicks on **Predict**, the values are sent in a request to the API, a response is returned, and the log file is updated with: 
+When a user clicks on **Predict**, the app sends the values to the API and gets a prediction back. The log file is updated with: 
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-INFO [2025-09-09 13:37:54] Starting prediction request - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - request_data: {"bill_length_mm":45,"species":"Adelie","sex":"male"}
-INFO [2025-09-09 13:37:55] Prediction successful - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - response_time_sec: 0.619 - prediction: 4180.7965
-INFO [2025-09-09 13:37:55] Displaying prediction to user - Session: 40ba19c3b213c5aa6c8589dc15aa4bd8 - display_value: 4180.8 grams
+INFO [2026-11-27 01:24:05] Starting prediction request - Session: 78f628a3cbf10b881b179373602827cb - request_data: [{"bill_length_mm":45,"species":"Adelie","sex":"male"}]
+INFO [2026-11-27 01:24:05] Prediction successful - Session: 78f628a3cbf10b881b179373602827cb - response_time_sec: 0.077 - prediction: 4180.7965
+INFO [2026-11-27 01:24:05] Displaying prediction to user - Session: 78f628a3cbf10b881b179373602827cb - display_value: 4180.8 grams
 ```
 
 :::
+
+The third line comes from `output$pred`, which logs the value it shows in the UI.
 
 We can also see our UI updates with the recent logs: 
 
@@ -783,7 +793,7 @@ Finally, we should see the log file included in our Shiny app directory:
 ```{verbatim}
 app/
 ├── app.R
-├── R.Rproj
+├── app.Rproj
 ├── README.md
 ├── renv
 ├── renv.lock
@@ -798,7 +808,7 @@ app/
 
 #### ***Last updated***
 
-The final **Last updated** section includes the time and date the `log_file_content()` reactive was last updated. 
+The final **Last updated** section shows `last_mod` from `log_file_content()`: the time `shiny_app.log` was last modified. 
 
 ```{r}
 #| label: log_timestamp-server
@@ -835,11 +845,11 @@ renv::snapshot()
 
 ## Recap
 
-1. The `logger` package needs three lines of setup: `log_threshold()` sets the level to `DEBUG`, `appender_tee()` writes each entry to both the console and `shiny_app.log`, and `formatter_glue_or_sprintf` lets us interpolate values like `{session$token}` directly into each message.
+1. The `logger` package needs three lines of setup. `log_threshold()` sets the level to `INFO`, `appender_tee()` writes each entry to both the console and `shiny_app.log`, and `formatter_glue_or_sprintf` lets us interpolate values like `{session$token}` directly into each message.
 
 2. We used four log levels in the app. `log_debug()` covers throttled input changes and the data sent to the API; `log_info()` records startups, prediction requests, and successful responses; `log_warn()` flags out of range inputs, slow responses, and timeouts; and `log_error()` captures missing inputs, failed requests, and refused connections.
 
-3. The System Status card turns those logs into a simple monitoring display. `api_health()` pings the API and reports it as online, having issues, or offline, while `reactiveFileReader()` polls `shiny_app.log` every second to show the five most recent entries and the time the file was last modified.
+3. The System Status card turns those logs into a simple monitoring display. `api_health()` pings the API and reports it as online, having issues, or offline. `reactiveFileReader()` polls `shiny_app.log` every second to show the five most recent entries and the time the file was last modified.
 
 In [Lab 5](lab05.qmd) we'll move on to deployments and code promotion.
 

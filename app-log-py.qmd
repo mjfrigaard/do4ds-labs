@@ -10,7 +10,7 @@ source("_common.R")
 #| label: co_box_rev
 #| echo: false
 #| results: asis
-#| eval: true
+#| eval: false
 co_box(
   color = "o",
   look = "default", 
@@ -22,21 +22,7 @@ co_box(
 )
 ```
 
-In this lab, I'll be updating the  Shiny for Python application from [lab 3](py-app-api.qmd) with logging and performance metrics. As a refresher, I've created a diagram below that illustrates the  app user inputs, reactives, and the API request/response. 
-
-```{=html}
-<style>
-
-.codeStyle span:not(.nodeLabel) {
-  font-family: monospace;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #d80808 !important;
-  background-color: #ffffff;
-  padding: 0.2em;
-}
-</style>
-```
+The [Lab 4 page](lab04.qmd) introduced logging with the original [`app-log.py` file from do4ds](https://github.com/alexkgold/do4ds/blob/main/_labs/lab4/app-log.py). This chapter adds logging and performance metrics to the Shiny for Python application from [lab 3](py-app-api.qmd). As a refresher, I've created a diagram below that illustrates the app's user inputs, reactives, and the API request and response.
 
 ```{mermaid}
 %%| fig-cap: 'Python Shiny App and API'
@@ -67,7 +53,7 @@ You can access the code for this application in [this folder on GitHub](https://
 
 ## Packages 
 
-In the top of our `app-log.py` file, we load the following packages. 
+In the top of our `app.py` file (in [`_labs/lab04/Python/app/`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab04/Python/app)), we load the following packages.
 
 ```{python}
 #| label: packages 
@@ -120,11 +106,11 @@ logging.info("Shiny for Python application initialized") #<10>
 2. creates directory if it doesn't exist (won't raise an error if directory already exists) 
 3. Joins paths using `/` operator (equivalent to `os.path.join(log_dir, "filename")`)  
 4. Configuration for log level, file format, and handlers.    
-5. Only `INFO`, `WARNING`, `ERROR`, and `CRITICAL` messages are logged).  
-6. Every log entry has the same format (`timestamp` - `level` - `message`)
-7. Logs accumulate across application restarts    
-8. Convert `Path` object to string    
-9. Store the path (kater used for file monitoring)      
+5. Only `INFO`, `WARNING`, `ERROR`, and `CRITICAL` messages are logged.
+6. Every log entry has the same format (`timestamp - level - message`)
+7. Logs accumulate across application restarts
+8. Convert `Path` object to string
+9. Store the path (later used for file monitoring)
 10. Log app initialization with `logging.info()`    
 
 
@@ -132,7 +118,7 @@ logging.info("Shiny for Python application initialized") #<10>
 
 * `level`: `logging.INFO` is the "*root logger level*." This means `DEBUG` messages are ignored.  
 
-* `format`: "*Defaults to attributes `levelname`, `name` and `message` separated by colons*."
+* `format`: "*Defaults to attributes `levelname`, `name` and `message` separated by colons*." Our format string replaces the default with the time (`asctime`), the level, and the message.
     
 ```{mermaid}
 %%| fig-cap: 'Python logging'
@@ -182,12 +168,12 @@ graph LR
     * `mode='a'` means previous log entries are preserved       
 * [`StreamHandler()`](https://docs.python.org/3/library/logging.handlers.html#logging.StreamHandler) "*sends logging output to streams such as `sys.stdout`, `sys.stderr` or any file-like object (or, more precisely, any object which supports `write()` and `flush()` methods).*"   
 
-This results in the following log in the **Console**:
+When the app starts, this results in the following log in the **Console**:
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-2025-09-15 06:58:53,346 - INFO - New session started - Session: py_79024
+2026-11-27 01:23:04,232 - INFO - Shiny for Python application initialized
 ```
 
 :::
@@ -197,10 +183,10 @@ And our log file is created in `logs/` directory:
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-├── app-log.py
+├── app.py
+├── app.Rproj
 ├── logs
 │   └── shiny_app.log #<1> 
-├── Python.Rproj
 ├── README.md
 └── requirements.txt
 
@@ -262,7 +248,7 @@ The [`ui.output_text()`](https://shiny.posit.co/py/api/core/ui.output_text.html)
 
 #### Server
 
-In the server, we start by creating the `session_id` object with f-string formatting (`f"py_{result}"`). This prepends `py_` to the output (i.e., `py_result`).[^f-string] The `py_` prefix is like as a namespace identifier so it's clear these are Python-generated session IDs (not R, JavaScript, etc.), and provides a consistent format for parsing/filtering logs later.
+In the server, we start by creating the `session_id` object with f-string formatting (`f"py_{result}"`). This prepends `py_` to the output (i.e., `py_result`).[^f-string] The `py_` prefix works as a namespace identifier, so it's clear these are Python-generated session IDs (not R, JavaScript, etc.). It also provides a consistent format for parsing and filtering logs later.
 
 [^f-string]: [Formatted string literals](https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals) "*let you include the value of Python expressions inside a string by prefixing the string with `f` or `F` and writing expressions as `{expression}`*."
 
@@ -276,9 +262,9 @@ co_box(
   look = "default", 
   hsize = "1.15", 
   size = "1.00", 
-  header = "**LLM: Session ID Expression Breakdown**", 
+  header = "**Great LLM Question: Session ID Expression Breakdown**", 
   fold = TRUE,
-  contents = "I asked Claude 'How should I create a unique session ID for my Shiny for Python applicaion' and received the answer below:
+  contents = "I asked Claude '*How should I create a unique session ID for my Shiny for Python application?*' and received the answer below:
   
 - `time.time()` is a Python function that returns the current time as a floating-point number representing seconds since the Unix epoch (January 1, 1970, 00:00:00 UTC). The return value includes fractional seconds with microsecond precision, so we get something like `1694438318.619247` where the decimal portion represents microseconds.
 
@@ -303,10 +289,22 @@ def server(input, output, session): #<1>
     session_id = f"py_{int(time.time() * 1000) % 100000}" #<2> 
     
     logging.info(f"New session started - Session: {session_id}") #<3> 
+    
+    request_times = reactive.value([]) #<4> 
+    error_count = reactive.value(0) #<4> 
+    connection_errors = reactive.value(0) #<4> 
+    timeout_errors = reactive.value(0) #<4> 
+    
+    def on_session_end(): #<5> 
+        logging.info(f"Session ended - Session: {session_id}")
+    
+    session.on_ended(on_session_end) #<5> 
 ```
 1. Shiny server definition  
 2. f-string for time  
 3. f-string for session ID  
+4. Reactive values for response times and error counts (used in `pred()` below)  
+5. Log the end of each session  
 
 The first log (`logging.info`) tells us the Shiny session has started. 
 
@@ -408,7 +406,7 @@ graph TD
     
 ```
 
-The input values are stored in a `ui.card()` and include our four reactives: `input.bill_length()`, `input.sex()`. `input.species()`, and `input.predict()`.
+The input values are stored in a `ui.card()` and include our four inputs: `input.bill_length()`, `input.sex()`, `input.species()`, and `input.predict()`.
 
 ```{python}
 #| eval: false 
@@ -429,9 +427,9 @@ ui.layout_columns(
 
 ![](img/lab4-py-param-inputs.png){width='70%' fig-align='center'}
 
-Instead of using the sidebar layout, I've place a second `ui.card()` inside the `ui.layout_columns()` and titled it **Results**. This includes the **Input Values** and **Predicted Mass** sections. 
+Instead of using the sidebar layout, I've placed a second `ui.card()` inside the `ui.layout_columns()` and titled it **Results**. This includes the **Input Values** and **Predicted Mass** sections. 
 
-We can set the widths for each `ui.card()` with `col_widths=[4, 8]`, which will give the general appearance of a sidebar (while leaving us with more screen real-estate for the **System Status** section we'll add below). 
+We can set the widths for each `ui.card()` with `col_widths=[4, 8]`, which gives the general appearance of a sidebar. This leaves more screen space for the **System Status** section we'll add below. 
 
 The following CSS styling variables are used to give the input values display a console-like appearance: 
 
@@ -450,9 +448,8 @@ The returned prediction is styled with the following CSS variables:
 1. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)      
 2. [`font-weight`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight)         
 3. [`text-align`](https://developer.mozilla.org/en-US/docs/Web/CSS/text-align)        
-4. [`center`](https://developer.mozilla.org/en-US/docs/Web/CSS/center)        
-5. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)        
-6. [`color`](https://developer.mozilla.org/en-US/docs/Web/CSS/color)        
+4. [`padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)        
+5. [`color`](https://developer.mozilla.org/en-US/docs/Web/CSS/color)        
 
 ```{python}
 #| eval: false 
@@ -464,7 +461,7 @@ The returned prediction is styled with the following CSS variables:
             ui.h3("Input Values"),
             ui.div(#<1>
                 ui.output_text("vals_out"),#<2>
-                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"#<3>
+                style="font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;"#<3>
             ),#<1>
             ui.h3("Predicted Mass"),
             ui.div( #<4>
@@ -561,7 +558,7 @@ graph LR
 
 ```
 
-To render the reactive `vals()`, we define `vals_out()` with `@render.text` and include a 'debug' level log to review/investigate any issues. 
+To render the reactive `vals()`, we define `vals_out()` with `@render.text` and include a `debug` level log to review or investigate any issues. With `level=logging.INFO` set above, `debug` logs aren't written; changing the level to `logging.DEBUG` adds them to the console and the log file. 
 
 ```{python}
 #| eval: false 
@@ -661,7 +658,7 @@ The **Predicted Mass** is really the heart of the application, and it's definite
             return error_msg
 ```
 
-The `@reactive.calc` and `@reactive.event(input.predict)` decorators override the standard reactive behavior so the `pred()` function only executes when the **Predict** button is clicked (rather than whenever any input changes). This allows users to adjusting input parameters without sending  accidental API calls (and ensures predictions only happen when the user explicitly requests a response).
+The `@reactive.calc` and `@reactive.event(input.predict)` decorators override the standard reactive behavior so the `pred()` function only executes when the **Predict** button is clicked (rather than whenever any input changes). This allows users to adjust input parameters without sending accidental API calls. Predictions only happen when the user asks for one.
 
 ```{python}
 #| eval: false 
@@ -677,7 +674,7 @@ The `@reactive.calc` and `@reactive.event(input.predict)` decorators override th
 ```
 1. Stacking these decorators creates a lazy evaluation with manual trigger, where the `pred()` function is reactive (cached) (but only executes on explicit events).   
 2. Docstring for function purpose.     
-3. Provides precise millisecond-level stat time of API request.   
+3. Records the start time of the API request (seconds since the epoch, as a float).   
 4. Values to be sent to the API.    
 5. The f-string combines `{session_id}` (prints session ID) and `{json.dumps(data_to_send)}` (converts the Python data structure into a JSON string) for logging. 
 
@@ -724,10 +721,10 @@ The error handling/logging for the inputs sent to the API (and the response) sta
 
 **Initial Request**
 
-The predictions are stored in `r` and sent using `requests.post()`, which includes:   
+The input data is sent with `requests.post()`, and the response is stored in `r`. The call includes:   
 
 * The destination (`api_url`)    
-* Automatic conversion of Python dict to JSON format (`json`)   
+* Automatic conversion of the Python list of dictionaries to JSON format (`json`)   
 * The maximum wait time in seconds (`timeout`) 
 
 **Performance Metrics Tracking**
@@ -738,7 +735,7 @@ Performance timing is calculated using:
 * `request_times()` is a Shiny-specific reactive value; we can call it like a function to get its value.    
 * `current_times.append(response_time)` adds current response time to the list of times.    
 
-The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then the `request_times` is updated the stored value using `set(current_times)` (recall that `request_times` is a shiny-specific reactive value). 
+The first `if` statement is a rolling window/circular buffer that focuses on the last 10 items and prevents the list from growing infinitely. Then `request_times.set(current_times)` updates the stored value (recall that `request_times` is a Shiny-specific reactive value). 
 
 ```{python}
 #| eval: false 
@@ -852,11 +849,11 @@ The error handling starts by checking the response code (**`200`**), `r.json()` 
 1. Only proceed if request succeeded  
 2. Convert JSON text to Python dictionary  
 3. Success confirmation with result  
-4. Handle different API response structures  
-5. Try second possible prediction format   
+4. Handle different API response structures (the R `vetiver` API returns `.pred`)  
+5. Try second possible prediction format (the Python `vetiver` API returns `predict`)   
 6. Send error message back to UI instead of crashing    
 7. Structured success logging with metrics  
-8. Performance threshold monitoring (5 seconds--configurable based on requirements)
+8. Performance threshold monitoring (5 seconds, configurable based on requirements)
 9. Send prediction back to calling function for display  
 10. Error message construction (non-200 status)   
 
@@ -943,7 +940,7 @@ The first exception uses the `requests.exceptions.` [`ConnectionError`](https://
 
 * **Exception `ConnectionError`**      
   * *The `error_msg` string is created using `str(e)` to extract the error description from exception.*      
-  * *A structured `warning` log is printed to the console with the `session_id` and the error description.*   
+  * *A structured `error` log is printed to the console with the `session_id` and the error description.*   
 
 :::
 
@@ -1076,18 +1073,18 @@ Each section is stored in a `ui.div()` inside `ui.layout_columns()`. We can arra
 #| eval: false 
 #| code-fold: false 
   ui.card(
-      ui.card_header("System Status & Monitoring"),
+      ui.card_header("System Status"),
       ui.card_body(
           ui.layout_columns( #<1> 
               ui.div(
-                  ui.h5("API Connection:"),
+                  ui.h4("API Health Check:"),
                   ui.br(),
                   ui.output_text("api_status"), #<3> 
                   ui.br(),
-                  ui.h5("Recent Application Logs:"),
+                  ui.h4("Recent Logs:"),
                   ui.div( #<4> 
                       ui.output_text("recent_logs_display"),
-                      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;" #<6> 
+                      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 2px; max-height: 250px; overflow-y: auto; border: 2px solid #dee2e6; white-space: pre-wrap;" #<6> 
                   ), #<4> 
                   ui.p( #<5> 
                       "Last updated: ",
@@ -1119,7 +1116,7 @@ The UI displays the API health check with a `ui.output_text()`:
 ```{python}
 #| eval: false 
 #| code-fold: false 
-    ui.h5("API Connection:"),
+    ui.h4("API Health Check:"),
     ui.br(),
     ui.output_text("api_status") #<1>
 ```
@@ -1133,7 +1130,7 @@ The UI displays the API health check with a `ui.output_text()`:
 
 graph TB
     subgraph UI["UI Layer"]
-        A("<strong>ui.h5()</strong><br>header") --> B("<strong>ui.output_text()</strong>")
+        A("<strong>ui.h4()</strong><br>header") --> B("<strong>ui.output_text()</strong>")
     end
 
     subgraph SERVER["Server Layer"]
@@ -1178,7 +1175,7 @@ The server contains a corresponding `@reactive.calc` and defines the `api_health
             if r.status_code == 200: #<7>
                 logging.info(f"API health check successful - Session: {session_id} - response_time: {response_time:.3f}s")
                 return f"✅ API is running (ping: {r.json()}) - {response_time:.2f}s"  #<7>
-              else: #<8>
+            else: #<8>
                 logging.warning(f"API ping failed - Session: {session_id} - status: {r.status_code}")
                 return f"⚠️ API ping failed: {r.status_code}" #<8>
                 
@@ -1254,7 +1251,7 @@ The first exception uses the `requests.exceptions.` [`ConnectionError`](https://
 
 * **Exception `ConnectionError`**      
   * *`str(e)` is used to extract the error description from exception.*   
-  * *The `warning` log is printed to the console with the `session_id` and the error description.*   
+  * *The `error` log is printed to the console with the `session_id` and the error description.*   
 
 :::
 
@@ -1280,7 +1277,7 @@ The final exception uses a generic `Exception` to handle any unexpected errors n
 :::
 
 
-The code above continuously checks if the API server is responding, like calling a phone number to see if someone answers. The `@render.text` decorator converts the returned value to a string, sends it to the UI, and automatically re-renders it when the dependencies (i.e., values) change. 
+The code above checks if the API server is responding, like calling a phone number to see if someone answers. `api_health_check()` reads no inputs or reactive values, so it runs once when the session starts (reload the app to check again). The `@render.text` decorator converts the returned value to a string and sends it to the UI. It re-renders whenever its dependencies change. 
 
 ```{python}
 #| eval: false 
@@ -1318,7 +1315,7 @@ sequenceDiagram
     Calc->>API: GET http://127.0.0.1:8080/ping<br>(timeout=5s)
     
     alt Success (200 OK)
-        API-->>Calc: 200 {"message": "pong"}
+        API-->>Calc: 200 {"ping": "pong"}
         Calc->>Calc: Calculate response_time
         Calc->>Log: INFO: Health check successful<br>response_time: 0.15s
         Calc-->>Render: "✅ API is running... 0.15s"
@@ -1347,14 +1344,7 @@ sequenceDiagram
     
     Render-->>UI: Display status message
     
-    Note over Calc: Cache result<br>(auto-refresh<br>periodically)
-    
-    loop Every N seconds
-        Calc->>API: GET /ping (again)
-        API-->>Calc: Response
-        Calc-->>Render: Updated status
-        Render-->>UI: Update display
-    end
+    Note over Calc: Cache result<br>(runs again only<br>in a new session)
 
 ```
 
@@ -1364,7 +1354,7 @@ In the app, we can see the response rendered in the **System Status**:
 
 #### ***Recent Application Logs***
 
-In the UI contains the following CSS styling variables to make it look like the console: 
+The UI contains the following CSS styling variables to make it look like the console: 
 
 1. [`font-family`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family)      
 2. [`font-size`](https://developer.mozilla.org/en-US/docs/Web/CSS/font-size)          
@@ -1379,10 +1369,10 @@ In the UI contains the following CSS styling variables to make it look like the 
 ```{python}
 #| eval: false 
 #| code-fold: false 
-  ui.h5("Recent Application Logs:"),
+  ui.h4("Recent Logs:"),
   ui.div( #<1>
       ui.output_text("recent_logs_display"),#<2>
-      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap;" #<3>
+      style="font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 2px; max-height: 250px; overflow-y: auto; border: 2px solid #dee2e6; white-space: pre-wrap;" #<3>
   ) #<1>
 ```
 1. `div()` for recent log display   
@@ -1398,7 +1388,7 @@ Below is an overview of recent log display architecture:
 
 graph TB
     subgraph UI["UI"]
-        subgraph H5["ui.h5() Header"]
+        subgraph H5["ui.h4() Header"]
             subgraph DIV["ui.div() Container"]
                 C("<strong>ui.output_text()</strong><br>display")
             end
@@ -1441,7 +1431,7 @@ graph TB
 
 In the server, we define `log_file_content()`, which watches the file and re-runs function when it's modified. The file is opened read only (`'r'`) inside a `with` block, which closes `f` automatically when the block ends. 
 
-`f.readlines()` reads the entire file as a list (each line is an element in the list) and returns it in a dictionary with the `last_modified` (when it was read) and the `total_lines` (total number of lines in the log file). 
+`f.readlines()` reads the entire file as a list, with one element per line. The function returns this list in a dictionary with `last_modified` (when the file was read) and `total_lines` (the number of lines in the log file). 
 
 ```{python}
 #| eval: false 
@@ -1541,7 +1531,7 @@ sequenceDiagram
     Content-->>Display: log_data
     
     Display->>Display: Extract lines
-    Display->>Display: Slice last 8 lines
+    Display->>Display: Slice last 10 lines
     Display->>Display: Strip whitespace
     Display->>Display: Join with '\n'
     
@@ -1593,7 +1583,7 @@ In the server, the `log_file_content()` is used to extract the `last_modified` d
 ```{python}
 #| eval: false 
 #| code-fold: false 
-   @render.text #<1> 
+    @render.text #<1> 
     def log_timestamp(): #<2> 
         log_data = log_file_content() #<3> 
         return log_data['last_modified'].strftime("%Y-%m-%d %H:%M:%S") #<4> 
@@ -1607,31 +1597,70 @@ The formatted date is rendered under the **Last updated** section at the bottom 
 
 ![](img/lab4-py-last-updated.png){width='100%' fig-align='center'}
 
-## Finishing touches 
+## Run the app
 
-To finish off our app, we’ll include a `README.md` with instructions for launching the API and application together and capture dependencies. 
+The app needs the API running first. In one Terminal, move into the API folder and run `mod-api.py`:
 
-```{verbatim}
-python3 -m pip freeze > requirements.txt
+```{bash}
+#| eval: false
+#| code-fold: false
+cd _labs/lab04/Python/api
+python3 mod-api.py
 ```
 
-The final files in the [`do4ds-labs/_labs/lab04/Python`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab04/Python) folder are below: 
+In a second Terminal, move into the app folder and run the app with `shiny run`:
+
+```{bash}
+#| eval: false
+#| code-fold: false
+cd _labs/lab04/Python/app
+shiny run app.py --host 127.0.0.1 --port 3000 --reload
+```
+
+We can confirm the logging works by opening the app, clicking **Predict**, and closing the browser tab. The `logs/shiny_app.log` file records each step:
 
 ::: {style="font-style: italic;"}
 
 ```{verbatim}
-├── app-log.py #<1> 
+2026-11-27 01:23:04,232 - INFO - Shiny for Python application initialized
+2026-11-27 01:23:04,237 - INFO - Shiny for Python application created successfully
+2026-11-27 01:23:05,587 - INFO - New session started - Session: py_85587
+2026-11-27 01:23:05,627 - INFO - API health check successful - Session: py_85587 - response_time: 0.002s
+2026-11-27 01:23:05,629 - INFO - Starting prediction request - Session: py_85587 - request_data: [{"bill_length_mm": 45.0, "species_Chinstrap": 0, "species_Gentoo": 0, "sex_male": 1}]
+2026-11-27 01:23:05,632 - INFO - Prediction successful - Session: py_85587 - response_time: 0.003s - prediction: 4180.796549720755
+2026-11-27 01:23:05,633 - INFO - Displaying prediction to user - Session: py_85587 - display_value: 4180.8 grams
+2026-11-27 01:23:05,690 - INFO - Session ended - Session: py_85587
+```
+
+:::
+
+## Finishing touches
+
+To finish off our app, we’ll include a `README.md` with instructions for launching the API and application together and capture dependencies. 
+
+```{bash}
+#| eval: false
+#| code-fold: false
+python3 -m pip freeze > requirements.txt
+```
+
+The final files in the [`do4ds-labs/_labs/lab04/Python/app`](https://github.com/mjfrigaard/do4ds-labs/tree/main/_labs/lab04/Python/app) folder are below: 
+
+::: {style="font-style: italic;"}
+
+```{verbatim}
+├── app.py #<1> 
+├── app.Rproj #<2>
 ├── logs
-│   └── shiny_app.log #<2> 
-├── Python.Rproj #<3>
+│   └── shiny_app.log #<3> 
 ├── README.md #<4> 
 └── requirements.txt #<5> 
 
 2 directories, 5 files
 ```
 1. App python script  
-2. Log file   
-3. RStudio project file   
+2. RStudio project file   
+3. Log file   
 4. Documentation for app    
 5. Dependencies
 
@@ -1645,7 +1674,7 @@ The final files in the [`do4ds-labs/_labs/lab04/Python`](https://github.com/mjfr
 
 3. The `try`/`except` blocks catch `ConnectionError` and `Timeout` before the generic `Exception`, because exception order matters. Each branch logs the failure, updates the error counters, and returns a readable message to the UI instead of crashing the app.
 
-4. The System Status card pings the API's `/ping` endpoint, and `@reactive.file_reader()` re-reads the log file whenever it changes, so the 10 most recent entries appear in the app automatically.
+4. The System Status card pings the API's `/ping` endpoint once per session. `@reactive.file_reader()` re-reads the log file whenever it changes, so the 10 most recent entries appear in the app automatically.
 
 In [R App Logging](app-log-r.qmd) we'll add the same logging and monitoring to the R Shiny app with the `logger` package.
 
@@ -1671,8 +1700,8 @@ graph LR
     B -->|Detailed troubleshooting| G("<strong>logging.debug()</strong>")
 
     C --> C1("Examples:<br>1. Prediction successful<br>2. Session started")
-    D --> D1("Examples:<br>1. Slow response<br>2. Unexpected format<br>Timeout")
-    E --> E1("Examples:<br>1. Connection refused<br>2. HTTP error<br>Parse failure")
+    D --> D1("Examples:<br>1. Slow response<br>2. Unexpected format<br>3. Timeout")
+    E --> E1("Examples:<br>1. Connection refused<br>2. HTTP error<br>3. Parse failure")
     F --> F1("Examples:<br>1. Out of memory<br>2. Database corrupted")
     G --> G1("Examples:<br>1. Variable values<br>2. Detailed flow")
 
@@ -1752,11 +1781,11 @@ sequenceDiagram
     API->>API: Validate input format
     API->>Model: Pass data to model
     Model->>Model: Calculate prediction
-    Model->>API: Return prediction (e.g., 4500.0)
-    API->>ShinyServer: HTTP 200<br>{".pred": [4500.0]}
+    Model->>API: Return prediction (e.g., 5275.66)
+    API->>ShinyServer: HTTP 200<br>{"predict": [5275.66]}
     
     ShinyServer->>Logger: Log successful prediction<br>(response time, result)
-    ShinyServer->>ShinyUI: Update display:<br>"4500.0 grams"
+    ShinyServer->>ShinyUI: Update display:<br>"5275.7 grams"
     ShinyUI->>User: Shows prediction
     
     Note over ShinyServer,Logger: Simultaneously monitoring
