@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-11-27">
+<meta name="dcterms.date" content="2026-11-28">
 <meta name="description" content="DevOps for Data Science: Lab Solutions">
 
 <title>Lab 4: Logging and Monitoring – DO4DS: Lab Solutions</title>
@@ -736,7 +736,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026-11-27</p>
+      <p class="date">2026-11-28</p>
     </div>
   </div>
   
@@ -748,26 +748,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This lab answers the comprehension questions from <a href="https://do4ds.com/chapters/sec1/1-4-monitor-log.html">Chapter 4</a> of do4ds (Logging and Monitoring). It also adds logging to the R and Python Shiny apps from lab 3. Logs record what happened inside an app, so they’re the first place we look when a prediction fails or a user reports a problem.</p>
-<p>The original files in <code>do4ds/_labs/lab04</code> are below:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="annotated-cell-1"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">path =</span> <span class="st">"_labs/lab04/"</span>)</span>
-<span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a><span class="do">## _labs/lab04/</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1">1</button><span id="annotated-cell-1-3" class="code-annotation-target"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ├── app-log.R</span></span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2">2</button><span id="annotated-cell-1-4" class="code-annotation-target"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a><span class="do">## └── app-log.py</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-annotation">
+<p>This lab answers the comprehension questions from <a href="https://do4ds.com/chapters/sec1/1-4-monitor-log.html">Chapter 4</a> of DO4DS (Logging and Monitoring). It also adds logging to the R and Python Shiny apps from <a href="./lab03.html">Lab 3</a>. Logs record what happened inside an app, so they’re the first place we look when a prediction fails or a user reports a problem. The DO4DS <a href="https://do4ds.com/chapters/sec1/1-4-monitor-log.html#lab-an-app-with-logging">fourth lab</a> adds <code>log4r</code> to the R app and Python’s <code>logging</code> module to the Python app.</p>
+<p>The original files in the DO4DS <a href="https://github.com/alexkgold/do4ds/tree/main/_labs/lab4"><code>_labs/lab4</code></a> folder are below:</p>
+<div style="font-style: italic;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-2"><pre class="sourceCode default code-annotation-code code-with-copy code-annotated"><code class="sourceCode default"><button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1">1</button><span id="annotated-cell-2-1" class="code-annotation-target"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a>├── app-log.R</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="2">2</button><span id="annotated-cell-2-2" class="code-annotation-target"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a>└── app-log.py</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <dl class="code-annotation-container-hidden code-annotation-container-grid">
-<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
 <dd>
-<span data-code-cell="annotated-cell-1" data-code-lines="3" data-code-annotation="1">R Shiny app<br>
-</span>
+<span data-code-cell="annotated-cell-2" data-code-lines="1" data-code-annotation="1">R Shiny app</span>
 </dd>
-<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
+<dt data-target-cell="annotated-cell-2" data-target-annotation="2">2</dt>
 <dd>
-<span data-code-cell="annotated-cell-1" data-code-lines="4" data-code-annotation="2">Python Shiny app</span>
+<span data-code-cell="annotated-cell-2" data-code-lines="2" data-code-annotation="2">Python Shiny app</span>
 </dd>
 </dl>
-</div>
 </div>
 <section id="comprehension-questions" class="level2">
 <h2 class="anchored" data-anchor-id="comprehension-questions">Comprehension questions</h2>
@@ -775,10 +770,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="monitoring-vs.-logging" class="level3">
 <h3 class="anchored" data-anchor-id="monitoring-vs.-logging">Monitoring vs.&nbsp;logging</h3>
 <blockquote class="blockquote">
-<p><strong><em>What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?</em></strong></p>
+<p>“<em>What is the difference between monitoring and logging? What are the two halves of the monitoring and logging process?</em>”</p>
 </blockquote>
-<p>Logging is a record of “<strong><em>What happened</em></strong>”–logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.</p>
+<p>Logging is a record of “<strong><em>What happened</em></strong>”: logs capture discrete events and detailed narratives of what occurred in the system at specific points in time.</p>
 <p>Monitoring tracks quantitative metrics and system health over time to answer “<strong><em>How is it performing</em></strong>”.</p>
+<p>The two halves of the process are emitting logs and metrics, then aggregating and consuming them. As data scientists, we own the first half. The second half usually runs on the log aggregation and monitoring tools our organization already has.</p>
 <div class="cell" data-fig-width="6.5" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -900,11 +896,11 @@ graph LR
 <section id="what-not-to-log" class="level3">
 <h3 class="anchored" data-anchor-id="what-not-to-log">What not to log</h3>
 <blockquote class="blockquote">
-<p><strong><em>Logging is generally good, but what are some things you should be careful not to log?</em></strong></p>
+<p>“<em>Logging is generally good, but what are some things you should be careful not to log?</em>”</p>
 </blockquote>
 <p>Critical data we should make sure not to log includes:</p>
 <ol type="1">
-<li>Sensitive Personal Information (PII)
+<li>Personally Identifiable Information (PII)
 <ul>
 <li>Email addresses, phone numbers, names<br>
 </li>
@@ -976,7 +972,7 @@ graph LR
 <section id="log-levels" class="level3">
 <h3 class="anchored" data-anchor-id="log-levels">Log levels</h3>
 <blockquote class="blockquote">
-<p><strong><em>At what level would you log each of the following events:</em></strong></p>
+<p>“<em>At what level would you log each of the following events:</em>”</p>
 </blockquote>
 <p>The answers below are provided for the <a href="https://daroczig.github.io/logger/">R <code>logger</code> package</a> and <a href="https://docs.python.org/3/library/logging.html#">Python’s <code>logging</code> facility</a>.</p>
 <p>In R, the <code>logger</code> package has the following levels:</p>
@@ -1066,7 +1062,7 @@ graph TD
 </div>
 </div>
 <blockquote class="blockquote">
-<p><strong><em>Someone clicks on a particular tab in your Shiny app.</em></strong></p>
+<p>“<em>Someone clicks on a particular tab in your Shiny app.</em>”</p>
 </blockquote>
 <div class="quarto-layout-panel" data-layout="[40,60]">
 <div class="quarto-layout-row quarto-layout-valign-top">
@@ -1074,7 +1070,7 @@ graph TD
 <p><strong>R <code>logger</code>:</strong> <code>TRACE</code> or <code>DEBUG</code></p>
 </div>
 <div class="quarto-layout-cell" style="flex-basis: 60.0%;justify-content: flex-start;">
-<p>Tab clicks are fine-grained UI interaction details, so we could use <code>TRACE</code> if we want extremely detailed user behavior tracking, or <code>DEBUG</code> if we only need this during development/troubleshooting. In production, we typically wouldn’t log every tab click unless tracking user flow.</p>
+<p>Tab clicks are fine-grained UI interaction details. We could use <code>TRACE</code> for detailed tracking of user behavior, or <code>DEBUG</code> if we only need it during development or troubleshooting. In production, we typically wouldn’t log every tab click unless tracking user flow.</p>
 </div>
 </div>
 </div>
@@ -1090,7 +1086,7 @@ graph TD
 </div>
 <p><em>In most production apps, we’d disable <code>TRACE</code>/<code>DEBUG</code> levels and only enable them when investigating specific issues to avoid log bloat.</em></p>
 <blockquote class="blockquote">
-<p><strong><em>Someone puts an invalid entry into a text entry box.</em></strong></p>
+<p>“<em>Someone puts an invalid entry into a text entry box.</em>”</p>
 </blockquote>
 <div class="quarto-layout-panel" data-layout="[40,60]">
 <div class="quarto-layout-row quarto-layout-valign-top">
@@ -1114,7 +1110,7 @@ graph TD
 </div>
 <p><em>Some developers use <code>INFO</code> for validation failures if they’re expected and very common. Use <code>WARN</code> if you want to monitor frequency or patterns of invalid inputs.</em></p>
 <blockquote class="blockquote">
-<p><strong><em>An HTTP call your app makes to an external API fails.</em></strong></p>
+<p>“<em>An HTTP call your app makes to an external API fails.</em>”</p>
 </blockquote>
 <div class="quarto-layout-panel" data-layout="[40,60]">
 <div class="quarto-layout-row quarto-layout-valign-top">
@@ -1149,7 +1145,7 @@ graph TD
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log_error</span>(<span class="st">"API call failed: {endpoint} returned {status_code} - {error_msg}"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <blockquote class="blockquote">
-<p><strong><em>The numeric values that are going into your computational function.</em></strong></p>
+<p>“<em>The numeric values that are going into your computational function.</em>”</p>
 </blockquote>
 <div class="quarto-layout-panel" data-layout="[40,60]">
 <div class="quarto-layout-row quarto-layout-valign-top">
@@ -1238,11 +1234,11 @@ graph TD
 <h2 class="anchored" data-anchor-id="observability">Observability</h2>
 <p>We can’t prevent failures or predict when they’ll happen. We <em>can</em> build <a href="https://en.wikipedia.org/wiki/Observability_(software)"><strong>observable systems</strong></a> that:</p>
 <ol type="1">
-<li><p><strong>Accept failure is inevitable</strong> (rather than trying to prevent it).</p></li>
+<li><p><strong>Accept that failure is inevitable</strong> (rather than trying to prevent it).</p></li>
 <li><p><strong>Implement comprehensive monitoring and logging</strong>.</p></li>
 <li><p><strong>Enable rapid diagnosis</strong> (i.e., using logs and metrics to reconstruct what failed and why).</p></li>
 </ol>
-<p>To do this, data scientist and developers need to generate meaningful logs and metrics from their code. System admins need to ensure new data science work can be easily integrated within the organizational infrastructure (i.e., into the existing log aggregation and monitoring tools).</p>
+<p>To do this, data scientists and developers need to generate meaningful logs and metrics from their code. System admins make sure the new data science work fits into the organization’s existing log aggregation and monitoring tools.</p>
 <div class="cell" data-fig-width="8" data-layout-align="center">
 <div class="cell-output-display">
 <div>
@@ -1305,7 +1301,7 @@ graph LR
 </section>
 <section id="logging-in-r" class="level2">
 <h2 class="anchored" data-anchor-id="logging-in-r">Logging in R</h2>
-<p><code>app-log.R</code> adds <code>log4r</code> logging to the lab 3 Shiny app. It logs when the app starts, when a prediction is requested and returned, and when the API returns an HTTP error. <a href="./app-log-r.html">R App Logging</a> walks through the full code.</p>
+<p><code>app-log.R</code> adds <code>log4r</code> logging to the Lab 3 Shiny app. It logs when the app starts, when a prediction is requested and returned, and when the API returns an HTTP error. <a href="./app-log-r.html">R App Logging</a> builds a longer version of the app (<code>R/app/app.R</code>) with the <code>logger</code> package.</p>
 <details>
 <summary>
 Expand to view app-log.R
@@ -1401,7 +1397,7 @@ shinyApp(ui = ui, server = server)</code></pre>
 </section>
 <section id="logging-in-python" class="level2">
 <h2 class="anchored" data-anchor-id="logging-in-python">Logging in Python</h2>
-<p><code>app-log.py</code> adds Python’s <code>logging</code> module to the lab 3 Shiny for Python app. It logs the same events: the app starting, a request being made and returned, and an HTTP error. <a href="./app-log-py.html">Python App Logging</a> walks through the full code.</p>
+<p><code>app-log.py</code> adds Python’s <code>logging</code> module to the Lab 3 Shiny for Python app. It logs the same events: the app starting, a request being made and returned, and an HTTP error. <a href="./app-log-py.html">Python App Logging</a> builds a longer version of the app (<code>Python/app/app.py</code>) with logging and performance metrics.</p>
 <details>
 <summary>
 Expand to view app-log.py
@@ -1482,9 +1478,10 @@ app = App(app_ui, server)</code></pre>
 <ol type="1">
 <li><p>Logging records what happened (discrete events with enough context to investigate later), while monitoring tracks how the system is performing through metrics over time. Data scientists are responsible for generating meaningful logs and metrics; admins make sure those feed into the organization’s existing aggregation and alerting tools.</p></li>
 <li><p>Be careful about what ends up in a log file. Personal information, passwords, API keys, and full account numbers should never be logged, and patient data needs to be de-identified first.</p></li>
-<li><p>Pick the log level based on what the event means for the app. Fine grained interactions and variable values belong at <code>TRACE</code> or <code>DEBUG</code>, handled problems like invalid input at <code>WARN</code>, and failed operations like an external API call at <code>ERROR</code>; Python’s <code>logging</code> has no <code>TRACE</code>, so <code>DEBUG</code> covers both.</p></li>
+<li><p>Pick the log level based on what the event means for the app. Fine grained interactions and variable values belong at <code>TRACE</code> or <code>DEBUG</code>, handled problems like invalid input at <code>WARN</code>, and failed operations like an external API call at <code>ERROR</code>. Python’s <code>logging</code> has no <code>TRACE</code>, so <code>DEBUG</code> covers both.</p></li>
+<li><p>The original <code>app-log.R</code> and <code>app-log.py</code> files log four events: the app starting, a prediction request, the returned response, and an HTTP error. The R app uses <code>log4r</code>, and the Python app uses the standard <code>logging</code> module.</p></li>
 </ol>
-<p>We’ll add these logs to the Shiny for Python app in <a href="./app-log-py.html">Python App Logging</a>.</p>
+<p>Next, <a href="./app-log-py.html">Python App Logging</a> adds logging and performance metrics to the Shiny for Python app from Lab 3.</p>
 
 
 </section>
